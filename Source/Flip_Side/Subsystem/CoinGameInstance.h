@@ -3,8 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/GameInstance.h"
-#include "CoinDataTypes.h"
+#include "Subsystems/GameInstanceSubsystem.h"
 #include "CoinDataTypes.h"
 #include "ItemDataTypes.h"
 #include "CoinGameInstance.generated.h"
@@ -12,12 +11,11 @@
  * 
  */
 UCLASS()
-class FLIP_SIDE_API UCoinGameInstance : public UGameInstance
+class FLIP_SIDE_API UCoinGameInstance : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
-	
 
-	private:
+private:
 	//슬롯 코인 저장하는 배열
 	TArray<FCoinTypeStructure> SlotCoinArray;
 
@@ -27,23 +25,16 @@ class FLIP_SIDE_API UCoinGameInstance : public UGameInstance
 	//아이템을 저장하는 배열
 	TArray<FItemData> ItemArray;
 
-
 	//디폴트 코인
 	FCoinTypeStructure DefaultCoin;
 
-	
 	//슬롯에 코인을 제작함
 	void InitCointSlot();
 
+protected:
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-	protected:
-
-	virtual void Init() override;
-
-
-
-	public:
-
+public:
 	//슬롯에 코인을 제작함
 	UFUNCTION(BlueprintCallable)
 	void SetSlotCoin(int SlotNum, FCoinTypeStructure CoinStruct);

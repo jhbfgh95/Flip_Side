@@ -8,12 +8,32 @@ public class Flip_Side : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "SQLiteCore", "SQLiteSupport", "Niagara" });
+		PublicDependencyModuleNames.AddRange(new string[] { 
+			"Core", 
+			"CoreUObject", 
+			"Engine", 
+			"InputCore", 
+			"EnhancedInput", 
+			"SQLiteCore", 
+			"SQLiteSupport", 
+			"Niagara",
+			"UMG"
+			 });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
+		PublicIncludePaths.AddRange(new string[] {
+			"Flip_Side",
+			"Flip_Side/DataTypes",
+			"Flip_Side/Player",
+			"Flip_Side/Interface",
+			"Flip_Side/UI",
+			"Flip_Side/Subsystem"
+		});
+
+
 		// Uncomment if you are using Slate UI
-		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 		
 		// Uncomment if you are using online features
 		// PrivateDependencyModuleNames.Add("OnlineSubsystem");

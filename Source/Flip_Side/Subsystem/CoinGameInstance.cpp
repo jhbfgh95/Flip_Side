@@ -5,10 +5,9 @@
 
 #define COIN_SLOT_SIZE 10
 
-
-void UCoinGameInstance::Init()
+void UCoinGameInstance::Initialize(FSubsystemCollectionBase& Collection)
 {
-    Super::Init();
+    Super::Initialize(Collection);
 
     InitCointSlot();
 
