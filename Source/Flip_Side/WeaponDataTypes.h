@@ -19,6 +19,9 @@ struct FFaceData
     int32 WeaponID = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 TypeID = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EWeaponClass WeaponType = EWeaponClass::None;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)

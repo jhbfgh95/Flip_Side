@@ -8,7 +8,7 @@ public class Flip_Side : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "SQLiteCore", "SQLiteSupport", "Niagara" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "SQLiteCore", "SQLiteSupport", "Niagara"});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
