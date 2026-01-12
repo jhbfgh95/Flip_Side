@@ -6,6 +6,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/WidgetComponent.h"
 #include "DataTypes/GridTypes.h"
+#include "FlipSide_Enum.h"
 #include "DataTypes/WeaponDataTypes.h"
 
 ACoinActor::ACoinActor()
@@ -23,7 +24,7 @@ ACoinActor::ACoinActor()
 
 	/* 처음 GridPoint는 없는거 (-1) */
 	CurrentGridPoint.GridX = -1;
-	CurrentGridPoint.GirdY = -1;
+	CurrentGridPoint.GridY = -1;
 }
 
 void ACoinActor::BeginPlay()
@@ -47,7 +48,7 @@ EFaceState ACoinActor::GetCoinFace()
 	return CurrentFace;
 }
 
-void ACoinActor::SetCoinFace(EFaceStae DecidedFace)
+void ACoinActor::SetCoinFace(EFaceState DecidedFace)
 {
 	if(DecidedFace == EFaceState::None) return;
 
