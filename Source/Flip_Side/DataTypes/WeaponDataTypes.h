@@ -28,6 +28,9 @@ struct FFaceData
     int32 AttackPoint = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 BehaviorPoint = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FGridPoint AttackRange;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)

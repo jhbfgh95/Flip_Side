@@ -38,7 +38,8 @@ enum class ETurnState : uint8
     CoinReadyTurn  UMETA(DisplayName = "Coin Ready Turn"),
     CoinSelectTurn UMETA(DisplayName = "Coin Select Turn"),
     BehaviorTurn   UMETA(DisplayName = "Behavior Turn"),
-    BossTurn       UMETA(DisplayName = "Boss Turn"),
+    BossTurn       UMETA(DisplayName = "Boss Turn"), 
+    SettingTurn       UMETA(DisplayName = "Setting Turn")
 };
 
 /**
