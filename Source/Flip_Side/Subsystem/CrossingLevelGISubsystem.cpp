@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CoinGameInstance.h"
+#include "CrossingLevelGISubsystem.h"
 
 #define COIN_SLOT_SIZE 10
 
-void UCoinGameInstance::Initialize(FSubsystemCollectionBase& Collection)
+void UCrossingLevelGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
@@ -15,7 +15,7 @@ void UCoinGameInstance::Initialize(FSubsystemCollectionBase& Collection)
 }
 
 //코인 초기화
-void UCoinGameInstance::InitCointSlot()
+void UCrossingLevelGISubsystem::InitCointSlot()
 {
     //디폴트 코인 값 생성
     DefaultCoin.BackWeaponID = -1;
@@ -32,7 +32,7 @@ void UCoinGameInstance::InitCointSlot()
 }
 
 //코인슬롯에 코인 할당
-void UCoinGameInstance::SetSlotCoin(int SlotNum, FCoinTypeStructure CoinStruct)
+void UCrossingLevelGISubsystem::SetSlotCoin(int SlotNum, FCoinTypeStructure CoinStruct)
 {
     //슬롯 크기보다 작다면
     if(SlotNum < COIN_SLOT_SIZE)
@@ -44,13 +44,14 @@ void UCoinGameInstance::SetSlotCoin(int SlotNum, FCoinTypeStructure CoinStruct)
         if(SlotNum<SlotCoinArray.Num())
         {
             SlotCoinArray[SlotNum] = CoinStruct;
+            MakedCoinNum++;
         }
     }
 
 }
 
 //정해진 슬롯에 위치한 코인구조체를 반환
-FCoinTypeStructure UCoinGameInstance::GetSlotCoin(int SlotNum)
+FCoinTypeStructure UCrossingLevelGISubsystem::GetSlotCoin(int SlotNum)
 {
     //슬롯 크기가 넘는 것을 불러온다면
     if(SlotNum > COIN_SLOT_SIZE )
@@ -64,16 +65,24 @@ FCoinTypeStructure UCoinGameInstance::GetSlotCoin(int SlotNum)
     
 }
 
+int32 UCrossingLevelGISubsystem::GetMakedCoinNum()
+{
+    return MakedCoinNum;
+}
+
 //테스트용 코인 생성
-void UCoinGameInstance::GenerateTestCoin()
+void UCrossingLevelGISubsystem::GenerateTestCoin()
 {
     FCoinTypeStructure SlotTestCoin;
     SlotTestCoin.SameTypeCoinNum = 3;
 
-    for(int i =0; i< COIN_SLOT_SIZE;i++)
-    {
-        SlotTestCoin.BackWeaponID = 100+i;
-        SlotTestCoin.FrontWeaponID = 101+i;
-        SetSlotCoin(i, SlotTestCoin);
-    }
+    for (int32 t = 0; t < 10; t++)
+        {
+            SlotTestCoin.FrontWeaponID = (t * 2) + 1;
+            
+            int32 BackID = (t * 2) + 2;
+            SlotTestCoin.BackWeaponID = (BackID > 19) ? 19 : BackID;
+
+            SetSlotCoin(t, SlotTestCoin);
+        }
 }
