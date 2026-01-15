@@ -1,0 +1,91 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "Subsystem/BattleManagerWSubsystem.h"
+#include "FlipSide_Enum.h"
+#include "CoinDataTypes.h"
+#include "LevelGISubsystem.h"
+#include "CoinManagementWSubsystem.h"
+
+#define BATTLE_COIN_MAX 10
+
+void UBattleManagerWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+    CoinOrderArray.SetNum(BATTLE_COIN_MAX);
+
+    CoinOrderArrayInit();
+    TurnStackInit();
+
+}
+
+bool UBattleManagerWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
+{
+    UWorld* World = Cast<UWorld>(Outer);
+
+    if(World)
+    {
+        FString MapName = World->GetName();
+        if(MapName.Contains(TEXT("L_Stage")))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("BattleManagerOn"));
+            return true;
+        }
+    }
+
+    return false;
+}
+
+//다 -1로 세팅 후 초기화
+//이후에 예외 검사할 때 전부 -1이면 return판정
+void UBattleManagerWSubsystem::CoinOrderArrayInit()
+{
+    for(int i = 0; i < BATTLE_COIN_MAX; i++)
+    {
+        CoinOrderArray[i].CoinID = -1;
+        CoinOrderArray[i].CoinGrid.GridX = -1;
+        CoinOrderArray[i].CoinGrid.GridY = -1;
+        CoinOrderArray[i].SelectedWeaponID = -1;
+    }
+}
+
+void UBattleManagerWSubsystem::TurnStackInit()
+{
+    //TurnManageMentStack.Push(ETurnState::SettingTurn);
+    TurnManageMentStack.Push(ETurnState::BossTurn);
+    TurnManageMentStack.Push(ETurnState::BehaviorTurn);
+    TurnManageMentStack.Push(ETurnState::CoinSelectTurn);
+    TurnManageMentStack.Push(ETurnState::CoinReadyTurn);
+}
+
+ETurnState UBattleManagerWSubsystem::GetCurrentTurn()
+{
+    return TurnManageMentStack.Top();
+}
+
+void UBattleManagerWSubsystem::TurnProgressing()
+{
+    // 코인 레디턴 -> 코인 설렉트턴 -> 비헤이비어 턴 -> 보스 턴 -> 세팅 턴
+    CurrentTurn = TurnManageMentStack.Pop();
+
+    switch(CurrentTurn)
+    {
+    case ETurnState::CoinReadyTurn:
+        break;
+        
+    case ETurnState::CoinSelectTurn:
+        break;
+    
+    case ETurnState::BehaviorTurn:
+        break;
+    
+    case ETurnState::BossTurn:
+        break;
+
+    /*
+    case ETurnState::SettingTurn:
+        CoinOrderArrayInit();
+        TurnStackInit();
+        break();
+    */
+    }
+}

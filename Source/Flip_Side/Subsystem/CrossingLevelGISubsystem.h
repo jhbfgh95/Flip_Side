@@ -6,12 +6,12 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "CoinDataTypes.h"
 #include "ItemDataTypes.h"
-#include "CoinGameInstance.generated.h"
+#include "CrossingLevelGISubsystem.generated.h"
 /**
  * 
  */
 UCLASS()
-class FLIP_SIDE_API UCoinGameInstance : public UGameInstanceSubsystem
+class FLIP_SIDE_API UCrossingLevelGISubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 
@@ -28,6 +28,8 @@ private:
 	//디폴트 코인
 	FCoinTypeStructure DefaultCoin;
 
+	int32 MakedCoinNum;
+
 	//슬롯에 코인을 제작함
 	void InitCointSlot();
 
@@ -43,6 +45,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FCoinTypeStructure GetSlotCoin(int SlotNum);
 
+	UFUNCTION(BlueprintCallable)
+	int32 GetMakedCoinNum();
 	
 	//테스트용 코인슬롯에 코인들을 채움
 	void GenerateTestCoin();

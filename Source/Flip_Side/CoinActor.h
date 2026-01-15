@@ -9,7 +9,7 @@
 #include "DataTypes/FlipSide_Enum.h"
 #include "CoinActor.generated.h"
 
-UCLASS(abstract)
+UCLASS()
 class ACoinActor : public AActor
 {
 	GENERATED_BODY()
@@ -43,13 +43,21 @@ class ACoinActor : public AActor
 	UPROPERTY(VisibleAnywhere, Category = "Coin | WeaponID")
 	int BackWeaponID = 0;
 
-	//랜덤 앞뒤 정해질 때 즉, SetCoinFace할 때 그냥 해당 WeaponID 넣어버림
-	int DecidedWeaponID = 0;
-
 	//코인 전체 HP
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Mesh", meta = (AllowPrivateAccess = "true"))
 	int32 HP = 0;
-	
+
+	UPROPERTY(VisibleAnywhere)
+	UTexture2D* FrontIconTexture;
+
+	UPROPERTY(VisibleAnywhere)
+	UTexture2D* BackIconTexture;
+
+/* Battle상태 변수들 */
+protected:
+	//랜덤 앞뒤 정해질 때 즉, SetCoinFace할 때 그냥 해당 WeaponID 넣어버림
+	int DecidedWeaponID = 0;
+
 	//이거로 Getter, Setter로 앞뒤 판별
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Face")
 	EFaceState CurrentFace = EFaceState::None;
@@ -63,6 +71,15 @@ public:
 
 	int32 GetCoinID();
 
+	void SetCoinValues(
+		int CoinId,
+		int FrontId, 
+		int BackId,
+		EWeaponClass WeaponTypes, 
+		UTexture2D* FrontTexture, 
+		UTexture2D* BackTexture
+	);
+
 	/* 앞,뒤 결정 */
 	EFaceState GetCoinFace();
 
@@ -71,8 +88,14 @@ public:
 	/* BattleGrid에 나올 위치 설정 */
 	void SetGridPoint(FGridPoint DecidedGridPoint);
 
+	//순서대로 0 탱 1 딜 2 힐
+	UPROPERTY(EditAnywhere)
+	TArray<FLinearColor> TypeColors;
+
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 	virtual void Tick(float DeltaTime) override;
 
