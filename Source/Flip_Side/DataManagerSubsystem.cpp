@@ -143,7 +143,7 @@ bool UDataManagerSubsystem::OpenDbReadWrite()
         }
     }
 
-    return Db.Open(*SavedDbPath, ESQLiteDatabaseOpenMode::ReadWrite);
+    return Db.Open(*ContentDbPath, ESQLiteDatabaseOpenMode::ReadWrite);
 }
 
 void UDataManagerSubsystem::CloseDb()
