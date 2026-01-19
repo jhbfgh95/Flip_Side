@@ -2,7 +2,6 @@
 
 
 #include "Subsystem/CoinCreateWSubsystem.h"
-#include "DataTypes/FlipSide_Enum.h"
 bool UCoinCreateWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     Super::ShouldCreateSubsystem(Outer);
@@ -61,6 +60,7 @@ void UCoinCreateWSubsystem::ChangeSelectedCoinWeapon(int32 WeaponID)
 
 void UCoinCreateWSubsystem::SetCoinClass(EWeaponClass weponClass)
 {
+    UE_LOG(LogTemp, Warning, TEXT("클래스설정"));
     OnCoinClassUpdate.Broadcast(weponClass);
 }
 

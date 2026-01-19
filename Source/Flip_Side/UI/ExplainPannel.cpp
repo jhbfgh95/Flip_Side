@@ -6,7 +6,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Subsystem/CoinCreateWSubsystem.h"
 #include "Subsystems/WorldSubsystem.h" 
-
+#include "Components/WidgetComponent.h"
+#include "UI/W_ExplainWidget.h"
 // Sets default values
 AExplainPannel::AExplainPannel()
 {
@@ -15,6 +16,9 @@ AExplainPannel::AExplainPannel()
 	PannelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PannelMeshCompoenent"));
 	SetRootComponent(PannelMesh);
 	Timeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("PannelTimeline"));
+
+	ExplainWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("ExplainWidget"));
+	ExplainWidget->SetupAttachment(RootComponent);
 
 }
 
@@ -40,7 +44,8 @@ void AExplainPannel::BeginPlay()
 	FinishDelegate.BindUFunction(this, FName("FinishRotationPannel"));
 	Timeline->SetTimelineFinishedFunc(FinishDelegate);
 
-
+	ExplainWidgetClass = Cast<UW_ExplainWidget>(ExplainWidget->GetUserWidgetObject());
+	ShowRotation = GetActorRotation();
 }
 
 // Called every frame
@@ -67,5 +72,9 @@ void AExplainPannel::RotatePannel(float Value)
 void AExplainPannel::UpdateExplanationText(int32 WeaponID)
 {
 	UE_LOG(LogTemp, Warning, TEXT("%d"), WeaponID);
+
 	WorkPannel();
+	FString text =  FString::Printf(TEXT(" %d"), WeaponID);
+	if(ExplainWidgetClass)
+		ExplainWidgetClass->SetExplainText(text);
 }

@@ -36,6 +36,9 @@ void AClassButtonPannel::BeginPlay()
 	Timeline->SetTimelineFinishedFunc(FinishDelegate);
 	bIsPannelOpen = false;
 
+	StartLocation = GetActorLocation();
+	EndLocation = StartLocation +FVector(0,0,500.f);
+
 }
 
 // Called every frame

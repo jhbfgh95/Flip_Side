@@ -15,9 +15,10 @@ class FLIP_SIDE_API AClassSelectButton : public AActor
 private:
 	//서브 시스템
 	class UCoinCreateWSubsystem* coinCreateWSubSystem;
-	void SelectedClass();
 
-	UPROPERTY(BlueprintReadWrite, Category = "Info",meta = (AllowPrivateAccess = "true"))
+	
+
+	UPROPERTY(EditAnywhere, Category = "Info",meta = (AllowPrivateAccess = "true"))
 	EWeaponClass weaponClass;
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* sphereCollision;
@@ -36,5 +37,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	
+	UFUNCTION(BlueprintCallable)
+	void SelectedClass();
 };

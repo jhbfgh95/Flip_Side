@@ -18,7 +18,7 @@ private:
 
 	//text
 
-	class UCoinCreateWSubsystem* coinCreateWSubSystem;
+	class UCoinCreateWSubsystem* CoinCreateWSubSystem;
 
 
 
@@ -52,6 +52,7 @@ private:
     UUserWidget* utilClassGrid;
 
 private:
+	UFUNCTION()
 	void SetClassGrid(EWeaponClass weaponClass);
 
 };

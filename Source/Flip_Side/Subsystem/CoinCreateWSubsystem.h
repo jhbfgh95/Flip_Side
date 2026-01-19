@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "CoinDataTypes.h"
+#include "DataTypes/FlipSide_Enum.h"
 #include "CoinCreateWSubsystem.generated.h"
 
 /**
@@ -18,7 +19,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectedCoinUpdate, int32, WeaponID
 
 
 //코인이 클래스가 선택 됬을 때 델리게이트
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCoinClassUpdate, enum EWeaponClass, SelectedClass);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCoinClassUpdate,EWeaponClass, SelectedClass);
 
 UCLASS()
 class FLIP_SIDE_API UCoinCreateWSubsystem : public UWorldSubsystem

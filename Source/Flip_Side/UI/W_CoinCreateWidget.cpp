@@ -6,13 +6,21 @@
 #include "Subsystems/WorldSubsystem.h" 
 void UW_CoinCreateWidget::NativeConstruct()
 {
-    coinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
+    Super::NativeConstruct();
+    CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
+    if(CoinCreateWSubSystem)
+	{
+		//코인클래스 변경됬을때
+		CoinCreateWSubSystem->OnCoinClassUpdate.AddDynamic(this, &UW_CoinCreateWidget::SetClassGrid);
+	}
+
+
 }
 
 
 void UW_CoinCreateWidget::SetCreateCoinWepon(int32 WeponID)
 {
-    if(coinCreateWSubSystem)
+    if(CoinCreateWSubSystem)
     {
         //coinCreateWSubSystem->ChangeSelectedCoinWeapon(WeponID, IsCoinFront);
     }
@@ -26,16 +34,21 @@ void UW_CoinCreateWidget::UpdateCoinState(struct FCoinTypeStructure UpdateCoinIn
 //코드가 안 예쁨 수정해야할듯 
 void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
 {
+    UE_LOG(LogTemp, Warning, TEXT("값설정됨"));
+
     switch (weaponClass)
     {
     case EWeaponClass::Deal:
         dealClassGrid->SetVisibility(ESlateVisibility::Visible);
+        UE_LOG(LogTemp, Warning, TEXT("딜"));
         break;
     case EWeaponClass::Tank:
         tankClassGrid->SetVisibility(ESlateVisibility::Visible);
+        UE_LOG(LogTemp, Warning, TEXT("텡"));
         break;
     case EWeaponClass::Heal:
         utilClassGrid->SetVisibility(ESlateVisibility::Visible);
+        UE_LOG(LogTemp, Warning, TEXT("힐"));
         break;
     
     default:

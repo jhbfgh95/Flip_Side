@@ -14,8 +14,10 @@ class FLIP_SIDE_API UW_WeaponSelectGrid : public UUserWidget
 {
 	GENERATED_BODY()
 	
+protected:
+	virtual void NativeConstruct() override;
+
 private:
-	
     UPROPERTY(meta = (BindWidget))
     class UUniformGridPanel* weaponButtonGrid;
 };

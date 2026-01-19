@@ -27,12 +27,18 @@ private:
 
 	class UCoinCreateWSubsystem* CoinCreateWSubSystem;
 
+
 private:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* PannelMesh;
 
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UTimelineComponent* Timeline;
+
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	class UWidgetComponent* ExplainWidget;
+
+	class UW_ExplainWidget* ExplainWidgetClass;
 
 private:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))

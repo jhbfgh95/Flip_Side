@@ -3,3 +3,10 @@
 
 #include "UI/W_WeaponSelectGrid.h"
 
+
+void UW_WeaponSelectGrid::NativeConstruct()
+{
+    Super::NativeConstruct();
+    this->SetVisibility(ESlateVisibility::Collapsed);
+
+}

@@ -34,6 +34,7 @@ void AClassSelectButton::Tick(float DeltaTime)
 
 void AClassSelectButton::SelectedClass()
 {
-	coinCreateWSubSystem->SetCoinClass(weaponClass);
+	if(coinCreateWSubSystem)
+		coinCreateWSubSystem->SetCoinClass(weaponClass);
 }
 
