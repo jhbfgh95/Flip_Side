@@ -1,6 +1,7 @@
 #include "ShopPlayerPawn_FlipSide.h"
 #include "Components/SceneComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Player/GameMode_Shop.h"
 
 AShopPlayerPawn_FlipSide::AShopPlayerPawn_FlipSide()
 {
@@ -20,11 +21,20 @@ AShopPlayerPawn_FlipSide::AShopPlayerPawn_FlipSide()
 void AShopPlayerPawn_FlipSide::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
+	if(ShopGameMode)
+	{
+		ShopGameMode->OnCoinCreateMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveCoinCreateMode);
+	}
 }
 
 void AShopPlayerPawn_FlipSide::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
+}
+void AShopPlayerPawn_FlipSide::MoveCoinCreateMode()
+{
+	SetActorLocation(CoinCreateLocation);
 }

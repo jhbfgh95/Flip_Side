@@ -6,6 +6,7 @@
 #include "W_ShopWidget.h"
 #include "ShopPlayerPawn_FlipSide.h"
 #include "UI/W_CoinCreateWidget.h"
+#include "Player/GameMode_Shop.h"
 AShopController_FlipSide::AShopController_FlipSide()
 {
     bShowMouseCursor = true;
@@ -30,10 +31,20 @@ void AShopController_FlipSide::BeginPlay()
         if(coinCreateWidget)
         {
             coinCreateWidget->AddToViewport(0);
+            coinCreateWidget->SetVisibility(ESlateVisibility::Collapsed);
         }
+
+    }
+
+    ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
+    if(ShopGameMode)
+    {
+        ShopGameMode->OnCoinCreateMode.AddDynamic(this, &AShopController_FlipSide::SetCoinCreateUI);
+        ShopGameMode->OnMainMode.AddDynamic(this, &AShopController_FlipSide::SetMainModeUI);
     }
 }
 
+//입력 처리
 void AShopController_FlipSide::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -43,7 +54,7 @@ void AShopController_FlipSide::SetupInputComponent()
 		Subsystem->AddMappingContext(InputContext, 0);
 	}
 }
-
+//폰하고 연결
 void AShopController_FlipSide::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
@@ -52,8 +63,7 @@ void AShopController_FlipSide::OnPossess(APawn* InPawn)
     check(ControlledPawn);
 }
 
-
-
+//위젯 리스트에 넣고 보이게함
 void AShopController_FlipSide::ViewWidgetList()
 {
     if(0<openWidgetList.Num())
@@ -65,18 +75,20 @@ void AShopController_FlipSide::ViewWidgetList()
     }
 }
 
+//현재 보여지고 있는 위젯들을 다 안보이게 설정
 void AShopController_FlipSide::HideWidgetList()
 {
     if(0<openWidgetList.Num())
     {
         for(int i =0; i<openWidgetList.Num();i++)
         {
-            openWidgetList[i]->SetVisibility(ESlateVisibility::Hidden);
+            openWidgetList[i]->SetVisibility(ESlateVisibility::Collapsed);
         }
         openWidgetList.Empty();
     }
 }
 
+//보이는 위젯에 추가
 void AShopController_FlipSide::AddOpenWidgetList(UUserWidget* AddWidget)
 {
     openWidgetList.Add(AddWidget);
@@ -88,8 +100,17 @@ void AShopController_FlipSide::SetCoinCreateUI()
 {
     if(coinCreateWidget)
     {
-        coinCreateWidget->SetVisibility(ESlateVisibility::Visible);
+        HideWidgetList();
+        AddOpenWidgetList(coinCreateWidget);
+        ViewWidgetList();
     }
+}
+
+//메인모드 UI
+
+void AShopController_FlipSide::SetMainModeUI()
+{
+    HideWidgetList();
 }
 
 UW_CoinCreateWidget* AShopController_FlipSide::GetCoinCreateWidget()

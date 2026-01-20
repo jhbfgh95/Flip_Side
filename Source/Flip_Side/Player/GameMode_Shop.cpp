@@ -3,3 +3,14 @@
 
 #include "Player/GameMode_Shop.h"
 
+
+void AGameMode_Shop::SetCoinCreateMode()
+{
+    OnCoinCreateMode.Broadcast();
+}
+
+
+void AGameMode_Shop::SetMainMode()
+{
+    OnMainMode.Broadcast();
+}

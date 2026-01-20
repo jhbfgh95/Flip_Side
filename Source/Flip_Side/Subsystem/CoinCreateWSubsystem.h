@@ -30,9 +30,10 @@ class FLIP_SIDE_API UCoinCreateWSubsystem : public UWorldSubsystem
 	//상점 레벨일 경우에만 생성
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 
+	
+public:
 	//선택된 코인
 	FCoinTypeStructure SelectedCoin;
-	public:
 	//선택된 코인이 변경되었을 때
     FSelectedCoinChanged OnSelectedCoinChanged;
 	//선택한 코인의 스탯이 변경되었을 때

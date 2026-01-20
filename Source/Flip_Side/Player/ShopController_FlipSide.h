@@ -16,7 +16,6 @@ class AShopController_FlipSide : public APlayerController
 
 private:
 	TArray<UUserWidget*> openWidgetList;
-
 /* Input And Default Pawn*/
 protected:
 	TObjectPtr<AShopPlayerPawn_FlipSide> ControlledPawn;
@@ -38,6 +37,10 @@ protected:
 	UPROPERTY()
 	UW_CoinCreateWidget* coinCreateWidget;
 
+private:
+	class AGameMode_Shop* ShopGameMode;
+
+
 public:
 	AShopController_FlipSide();
 
@@ -47,8 +50,7 @@ public:
 
 	UW_CoinCreateWidget* GetCoinCreateWidget();
 
-	UFUNCTION()
-	void SetCoinCreateUI();
+
 
 	
 	UFUNCTION()
@@ -59,7 +61,13 @@ public:
 
 	UFUNCTION()
 	void AddOpenWidgetList(UUserWidget* AddWidget);
-
+//모드 변경 될 때 함수들
+public:
+	UFUNCTION()
+	void SetCoinCreateUI();
+	
+	UFUNCTION()
+	void SetMainModeUI();
 protected:
 	virtual void BeginPlay() override;
 };
