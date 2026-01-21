@@ -40,7 +40,31 @@ void AShopController_FlipSide::BeginPlay()
     if(ShopGameMode)
     {
         ShopGameMode->OnCoinCreateMode.AddDynamic(this, &AShopController_FlipSide::SetCoinCreateUI);
-        ShopGameMode->OnMainMode.AddDynamic(this, &AShopController_FlipSide::SetMainModeUI);
+        ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopController_FlipSide::SetMainModeUI);
+        ShopGameMode->OnCoinManageMode.AddDynamic(this, &AShopController_FlipSide::SetCoinManageModeUI);
+    }
+
+    if(ShopMainWigetClass)
+    {
+        ShopMainWiget = CreateWidget<UUserWidget>(this, ShopMainWigetClass);
+        if(ShopMainWiget)
+        {
+            ShopMainWiget->AddToViewport(0);
+            coinCreateWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+            AddOpenWidgetList(ShopMainWiget);
+            ViewWidgetList();
+        }
+    }
+
+    if(CoinManageWidgetClass)
+    {
+        CoinManageWidget = CreateWidget<UUserWidget>(this, CoinManageWidgetClass);
+        if(ShopMainWiget)
+        {
+            CoinManageWidget->AddToViewport(0);
+            CoinManageWidget->SetVisibility(ESlateVisibility::Collapsed);
+        }
     }
 }
 
@@ -107,10 +131,20 @@ void AShopController_FlipSide::SetCoinCreateUI()
 }
 
 //메인모드 UI
-
 void AShopController_FlipSide::SetMainModeUI()
 {
     HideWidgetList();
+}
+
+
+void AShopController_FlipSide::SetCoinManageModeUI()
+{
+    if(CoinManageWidget)
+    {
+        HideWidgetList();
+        AddOpenWidgetList(CoinManageWidget);
+        ViewWidgetList();
+    }
 }
 
 UW_CoinCreateWidget* AShopController_FlipSide::GetCoinCreateWidget()

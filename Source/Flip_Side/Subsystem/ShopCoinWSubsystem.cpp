@@ -18,30 +18,89 @@ bool UShopCoinWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
     return MapName.Contains(TEXT("L_ShopLevel"));
 } 
 
-
-
-bool UShopCoinWSubsystem::CanAddCoin()
+void UShopCoinWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-    if(TotalCoinCount <= MAX_TOTAL_COIN)
+    Super::Initialize(Collection);
+
+    FCoinTypeStructure DefaultCoin;
+    DefaultCoin.BackWeaponID = -1;
+    DefaultCoin.FrontWeaponID = -1;
+    DefaultCoin.SameTypeCoinNum = 0;
+    DefaultCoin.SlotNum = -1;
+
+    for(int i =0; i< 10;i++)
     {
-        return true;
+        //코인 배열에 추가
+        DefaultCoin.SlotNum = i;
+        CoinArray.Add(DefaultCoin);
     }
-    return false;
 }
 
 
-
-void UShopCoinWSubsystem::AddTotalCoin()
+bool UShopCoinWSubsystem::CanAddCoin(int32 SlotNum)
 {
-    if(TotalCoinCount <= MAX_TOTAL_COIN)
+    if(CoinArray.Num()-1<SlotNum)
+        return false;
+
+    if(MAX_TOTAL_COIN<=CoinArray[SlotNum].SameTypeCoinNum)
+        return false;
+
+    if(MAX_TOTAL_COIN <= TotalCoinCount)
+        return false;
+        
+
+    return true;
+}
+
+bool UShopCoinWSubsystem::CanRemoveCoin(int32 SlotNum)
+{
+    if(CoinArray.Num()-1<SlotNum)
+        return false;
+
+    if(CoinArray[SlotNum].SameTypeCoinNum<=0)
+        return false;
+
+    if(TotalCoinCount<=0)
+        return false;
+
+    return true;
+}
+
+void UShopCoinWSubsystem::AddSlotCoin(int32 SlotNum)
+{
+    if(CanAddCoin(SlotNum))
     {
         TotalCoinCount++;
+        CoinArray[SlotNum].SameTypeCoinNum++;
     }
+    
 }
-void UShopCoinWSubsystem::RemoveTotalCoin()
+
+void UShopCoinWSubsystem::RemoveSlotCoin(int32 SlotNum)
 {
-    if(0<TotalCoinCount)
+    if(CanRemoveCoin(SlotNum))
     {
         TotalCoinCount--;
+        CoinArray[SlotNum].SameTypeCoinNum--;
     }
+}
+
+
+FCoinTypeStructure UShopCoinWSubsystem::GetSlotCoin(int32 SlotNum)
+{
+    FCoinTypeStructure CoinInfo;
+    if(CoinArray.Num()-1<SlotNum)
+        return CoinInfo;
+    CoinInfo = CoinArray[SlotNum];
+    
+    return CoinInfo;
+
+}
+
+void UShopCoinWSubsystem::SetSlotCoin(FCoinTypeStructure SetCoinInfo)
+{
+    if(CoinArray.Num()-1<SetCoinInfo.SlotNum)
+        return;
+
+    CoinArray[SetCoinInfo.SlotNum] = SetCoinInfo;
 }

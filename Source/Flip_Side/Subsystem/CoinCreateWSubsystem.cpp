@@ -35,6 +35,11 @@ void UCoinCreateWSubsystem::ChangeCoinSide()
 
 }
 
+
+FCoinTypeStructure UCoinCreateWSubsystem::GetSelectCoin()
+{
+    return SelectedCoin;
+}
 //코인 선택
 void UCoinCreateWSubsystem::SelectCoin(FCoinTypeStructure SelectCoinInfo)
 {

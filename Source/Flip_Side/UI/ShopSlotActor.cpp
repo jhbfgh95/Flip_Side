@@ -40,19 +40,21 @@ void AShopSlotActor::BeginPlay()
 
 void AShopSlotActor::AddCoin()
 {
-    if(CoinSubSystem->CanAddCoin())
+    /*
+    if(CoinSubSystem->CanAddCoin(0))
     {
         SlotCoins[SlotCoinCount]->AddCoin();
         SlotCoinCount++;
-        CoinSubSystem->AddTotalCoin();
-    }
+        //CoinSubSystem->AddTotalCoin();
+    }*/
 }
 
 void AShopSlotActor::RemoveCoin()
 {
+    /*
     if(0<SlotCoinCount)
     {
         SlotCoins[0]->RemoveCoin();
-        CoinSubSystem->RemoveTotalCoin();
-    }
+        //CoinSubSystem->RemoveTotalCoin(0);
+    }*/
 }

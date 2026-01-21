@@ -40,6 +40,8 @@ void ACreateCoinUIActor::BeginPlay()
 		CoinCreateWSubSystem->OnCoinClassUpdate.AddDynamic(this, &ACreateCoinUIActor::UpdateWeaponClass);
 		//코인 상태 업데이트 됬을때
 		CoinCreateWSubSystem->OnSelectedCoinUpdate.AddDynamic(this, &ACreateCoinUIActor::UpdateCoinWeapon);
+
+		//CoinCreateWSubSystem->OnSelectedCoinChanged.AddDynamic(this, &ACreateCoinUIActor::UpdateCoinWeapon);
 	}
 
 
@@ -99,6 +101,10 @@ void ACreateCoinUIActor::UpdateWeaponClass(EWeaponClass weponClass)
 	WeaponType = weponClass;
 }
 
+void ACreateCoinUIActor::InitCoin(FCoinTypeStructure CoinValue)
+{
+	CoinInfo = CoinValue; 
+}
 
 void ACreateCoinUIActor::UpdateCoinWeapon(int32 WeaponID)
 {

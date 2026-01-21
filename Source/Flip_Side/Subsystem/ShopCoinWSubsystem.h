@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "DataTypes/CoinDataTypes.h"
 #include "ShopCoinWSubsystem.generated.h"
 
 #define MAX_TOTAL_COIN 30
@@ -18,14 +19,21 @@ class FLIP_SIDE_API UShopCoinWSubsystem : public UWorldSubsystem
 protected:
 	//상점 레벨일 경우에만 생성
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
-	
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 private:
 	//총 코인 개수
 	int32 TotalCoinCount;
 
-public:
-	bool CanAddCoin();
+	TArray<FCoinTypeStructure> CoinArray;
 
-	void AddTotalCoin();
-	void RemoveTotalCoin();
+	//void InitCoinArray();
+
+public:
+	bool CanAddCoin(int32 SlotNum);
+	bool CanRemoveCoin(int32 SlotNum);
+	void AddSlotCoin(int32 SlotNum);
+	void RemoveSlotCoin(int32 SlotNum);
+
+	FCoinTypeStructure GetSlotCoin(int32 SlotNum);
+	void SetSlotCoin(FCoinTypeStructure SetCoinInfo);
 };

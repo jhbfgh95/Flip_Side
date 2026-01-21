@@ -26,6 +26,8 @@ void AShopPlayerPawn_FlipSide::BeginPlay()
 	if(ShopGameMode)
 	{
 		ShopGameMode->OnCoinCreateMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveCoinCreateMode);
+
+		ShopGameMode->OnCoinManageMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveCoinManageMode);
 	}
 }
 
@@ -38,3 +40,10 @@ void AShopPlayerPawn_FlipSide::MoveCoinCreateMode()
 {
 	SetActorLocation(CoinCreateLocation);
 }
+
+
+void AShopPlayerPawn_FlipSide::MoveCoinManageMode()
+{
+	SetActorLocation(CoinManageLocation);
+}
+

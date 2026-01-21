@@ -41,7 +41,9 @@ public:
 	//코인의 클래스가 변경됬을 때
 	FCoinClassUpdate OnCoinClassUpdate;
 
-	
+	//코인반환
+	FCoinTypeStructure GetSelectCoin();
+
 	//코인 선택
 	void SelectCoin(FCoinTypeStructure SelectCoinInfo);
 	//선택된 코인 면의 ID를 변경

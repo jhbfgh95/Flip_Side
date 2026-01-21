@@ -10,7 +10,12 @@ void AGameMode_Shop::SetCoinCreateMode()
 }
 
 
-void AGameMode_Shop::SetMainMode()
+void AGameMode_Shop::SetShopMainMode()
 {
-    OnMainMode.Broadcast();
+    OnShopMainMode.Broadcast();
+}
+
+void AGameMode_Shop::SetCoinManageMode()
+{
+    OnCoinManageMode.Broadcast();
 }

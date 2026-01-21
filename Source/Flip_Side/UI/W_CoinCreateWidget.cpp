@@ -3,17 +3,21 @@
 
 #include "UI/W_CoinCreateWidget.h"
 #include "Subsystem/CoinCreateWSubsystem.h"
+#include "Subsystem/ShopCoinWSubsystem.h"
 #include "Subsystems/WorldSubsystem.h" 
+#include "Components/Button.h"
 void UW_CoinCreateWidget::NativeConstruct()
 {
     Super::NativeConstruct();
     CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
+    ShopCoinSubSystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     if(CoinCreateWSubSystem)
 	{
 		//코인클래스 변경됬을때
 		CoinCreateWSubSystem->OnCoinClassUpdate.AddDynamic(this, &UW_CoinCreateWidget::SetClassGrid);
 	}
 
+    FinishButton->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::FinishCreate);
 
 }
 
@@ -29,7 +33,20 @@ void UW_CoinCreateWidget::SetCreateCoinWepon(int32 WeponID)
 void UW_CoinCreateWidget::UpdateCoinState(struct FCoinTypeStructure UpdateCoinInfo)
 {
     
+    
 }
+
+void UW_CoinCreateWidget::FinishCreate()
+{
+    ShopCoinSubSystem->SetSlotCoin(CoinCreateWSubSystem->GetSelectCoin());
+}
+
+void UW_CoinCreateWidget::OpenClassSelectPannel()
+{
+
+}
+
+
 
 //코드가 안 예쁨 수정해야할듯 
 void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)

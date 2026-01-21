@@ -31,7 +31,14 @@ private:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	FVector CoinCreateLocation;
 
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	FVector CoinManageLocation;
+
 private:
 	UFUNCTION()
 	void MoveCoinCreateMode();
+
+	
+	UFUNCTION()
+	void MoveCoinManageMode();
 };

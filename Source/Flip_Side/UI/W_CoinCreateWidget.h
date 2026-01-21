@@ -19,7 +19,9 @@ private:
 	//text
 
 	class UCoinCreateWSubsystem* CoinCreateWSubSystem;
+	
 
+	class UShopCoinWSubsystem* ShopCoinSubSystem;
 
 
 protected:
@@ -51,8 +53,21 @@ private:
     UPROPERTY(meta = (BindWidget))
     UUserWidget* utilClassGrid;
 
+	
+    UPROPERTY(meta = (BindWidget))
+    class UButton* FinishButton;
+
+    UPROPERTY(meta = (BindWidget))
+    class UButton* ClassSelectButton;
+
 private:
 	UFUNCTION()
 	void SetClassGrid(EWeaponClass weaponClass);
+
+	UFUNCTION()
+	void FinishCreate();
+
+	UFUNCTION()
+	void OpenClassSelectPannel();
 
 };
