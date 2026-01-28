@@ -4,7 +4,6 @@
 #include "UI/ExplainPannel.h"
 #include "Components/TimelineComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Subsystem/CoinCreateWSubsystem.h"
 #include "Subsystems/WorldSubsystem.h" 
 #include "Components/WidgetComponent.h"
 #include "UI/W_ExplainWidget.h"
@@ -26,14 +25,6 @@ AExplainPannel::AExplainPannel()
 void AExplainPannel::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
-
-	if(CoinCreateWSubSystem)
-	{
-		CoinCreateWSubSystem->OnSelectedCoinUpdate.AddDynamic(this, &AExplainPannel::UpdateExplanationText);
-	}
-
 
 	FOnTimelineFloat UpdateDelegate;
 	UpdateDelegate.BindUFunction(this, FName("RotatePannel"));
@@ -69,12 +60,15 @@ void AExplainPannel::RotatePannel(float Value)
 	SetActorRotation(ShowRotation + FRotator(Value,0.f,  0.f));
 }
 
-void AExplainPannel::UpdateExplanationText(int32 WeaponID)
+void AExplainPannel::UpdateExplanationText(FString Explain)
 {
-	UE_LOG(LogTemp, Warning, TEXT("%d"), WeaponID);
-
 	WorkPannel();
-	FString text =  FString::Printf(TEXT(" %d"), WeaponID);
 	if(ExplainWidgetClass)
-		ExplainWidgetClass->SetExplainText(text);
+		ExplainWidgetClass->SetExplainText(Explain);
+}
+
+
+void AExplainPannel::GetExplainByID(int32 ID)
+{
+
 }

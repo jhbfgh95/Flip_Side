@@ -5,7 +5,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "W_ShopWidget.h"
 #include "ShopPlayerPawn_FlipSide.h"
-#include "UI/W_CoinCreateWidget.h"
 #include "Player/GameMode_Shop.h"
 AShopController_FlipSide::AShopController_FlipSide()
 {
@@ -25,38 +24,43 @@ void AShopController_FlipSide::BeginPlay()
         }
     }
 */
-    if(coinCreateWigetClass)
+    //게임모드에서 델리게이트에 등록
+    ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
+
+    if(ShopGameMode)
     {
-        coinCreateWidget = CreateWidget<UW_CoinCreateWidget>(this, coinCreateWigetClass);
-        if(coinCreateWidget)
+        ShopGameMode->OnCoinCreateMode.AddDynamic(this, &AShopController_FlipSide::SetCoinCreateWidget);
+        ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopController_FlipSide::SetShopMainModeWidget);
+        ShopGameMode->OnCoinManageMode.AddDynamic(this, &AShopController_FlipSide::SetCoinManageModeWidget);
+        ShopGameMode->OnShopItemMode.AddDynamic(this, &AShopController_FlipSide::SetShopItemModeWidget);
+        ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopController_FlipSide::SetSelectCardModeWidget);
+    }
+    //코인 제작UI 초기 설정
+    if(CoinCreateWigetClass)
+    {
+        
+        CoinCreateWidget = CreateWidget<UUserWidget>(this, CoinCreateWigetClass);
+        if(CoinCreateWidget)
         {
-            coinCreateWidget->AddToViewport(0);
-            coinCreateWidget->SetVisibility(ESlateVisibility::Collapsed);
+            CoinCreateWidget->AddToViewport(0);
+            CoinCreateWidget->SetVisibility(ESlateVisibility::Collapsed);
         }
 
     }
-
-    ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
-    if(ShopGameMode)
-    {
-        ShopGameMode->OnCoinCreateMode.AddDynamic(this, &AShopController_FlipSide::SetCoinCreateUI);
-        ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopController_FlipSide::SetMainModeUI);
-        ShopGameMode->OnCoinManageMode.AddDynamic(this, &AShopController_FlipSide::SetCoinManageModeUI);
-    }
-
+    //상점 메인 UI 초기설정
     if(ShopMainWigetClass)
     {
         ShopMainWiget = CreateWidget<UUserWidget>(this, ShopMainWigetClass);
         if(ShopMainWiget)
         {
             ShopMainWiget->AddToViewport(0);
-            coinCreateWidget->SetVisibility(ESlateVisibility::Collapsed);
+            CoinCreateWidget->SetVisibility(ESlateVisibility::Collapsed);
 
             AddOpenWidgetList(ShopMainWiget);
             ViewWidgetList();
         }
     }
-
+    //코인 관리 UI 초기 설정
     if(CoinManageWidgetClass)
     {
         CoinManageWidget = CreateWidget<UUserWidget>(this, CoinManageWidgetClass);
@@ -66,8 +70,36 @@ void AShopController_FlipSide::BeginPlay()
             CoinManageWidget->SetVisibility(ESlateVisibility::Collapsed);
         }
     }
+    //상점 UI 클래스
+    if(ShopItemWidgetClass)
+    {
+        ShopItemWidget = CreateWidget<UUserWidget>(this, ShopItemWidgetClass);
+        if(ShopItemWidget)
+        {
+            ShopItemWidget->AddToViewport(0);
+            ShopItemWidget->SetVisibility(ESlateVisibility::Collapsed);
+        }
+    }
+    //카드선택 UI 초기설정
+    if(SelectCardWidgetClass)
+    {
+        SelectCardWidget = CreateWidget<UUserWidget>(this, SelectCardWidgetClass);
+        if(SelectCardWidget)
+        {
+            SelectCardWidget->AddToViewport(0);
+            SelectCardWidget->SetVisibility(ESlateVisibility::Collapsed);
+        }
+    }
+    if(ModeChangeWidgetClass)
+    {
+        ModeChangeWidget = CreateWidget<UUserWidget>(this, ModeChangeWidgetClass);
+        if(SelectCardWidget)
+        {
+            ModeChangeWidget->AddToViewport(0);
+            ModeChangeWidget->SetVisibility(ESlateVisibility::Collapsed);
+        }
+    }
 }
-
 //입력 처리
 void AShopController_FlipSide::SetupInputComponent()
 {
@@ -120,25 +152,31 @@ void AShopController_FlipSide::AddOpenWidgetList(UUserWidget* AddWidget)
 
 
 //코인 제작 UI
-void AShopController_FlipSide::SetCoinCreateUI()
+void AShopController_FlipSide::SetCoinCreateWidget()
 {
-    if(coinCreateWidget)
+    HideModeChangeWidget();
+    if(CoinCreateWidget)
     {
         HideWidgetList();
-        AddOpenWidgetList(coinCreateWidget);
+        AddOpenWidgetList(CoinCreateWidget);
         ViewWidgetList();
     }
 }
 
 //메인모드 UI
-void AShopController_FlipSide::SetMainModeUI()
+void AShopController_FlipSide::SetShopMainModeWidget()
 {
     HideWidgetList();
+    AddOpenWidgetList(ShopMainWiget);
+    ViewWidgetList();
+
+    HideModeChangeWidget();
 }
 
 
-void AShopController_FlipSide::SetCoinManageModeUI()
+void AShopController_FlipSide::SetCoinManageModeWidget()
 {
+    ShowModeChangeWidget();
     if(CoinManageWidget)
     {
         HideWidgetList();
@@ -146,9 +184,42 @@ void AShopController_FlipSide::SetCoinManageModeUI()
         ViewWidgetList();
     }
 }
-
-UW_CoinCreateWidget* AShopController_FlipSide::GetCoinCreateWidget()
+//카드 상점UI 띄움
+void AShopController_FlipSide::SetShopItemModeWidget()
 {
-    return coinCreateWidget;
+    ShowModeChangeWidget();
+    if(ShopItemWidget)
+    {
+        HideWidgetList();
+        AddOpenWidgetList(ShopItemWidget);
+        ViewWidgetList();
+    }
 }
 
+//카드 선택UI 띄움
+void AShopController_FlipSide::SetSelectCardModeWidget()
+{
+    ShowModeChangeWidget();
+    if(SelectCardWidget)
+    {
+        
+        AddOpenWidgetList(SelectCardWidget);
+        ViewWidgetList();
+    }
+}
+
+void AShopController_FlipSide::HideModeChangeWidget()
+{
+    if(ModeChangeWidget)
+    {
+        ModeChangeWidget->SetVisibility(ESlateVisibility::Collapsed);
+    }
+}
+
+void AShopController_FlipSide::ShowModeChangeWidget()
+{
+    if(ModeChangeWidget)
+    {
+        ModeChangeWidget->SetVisibility(ESlateVisibility::Visible);
+    }
+}

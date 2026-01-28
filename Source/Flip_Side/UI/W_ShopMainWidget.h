@@ -31,7 +31,7 @@ private:
 	class UButton* CardSelectButton;
 
 	UPROPERTY(meta = (BindWidget))
-	class UButton* BuyItemButton;
+	class UButton* ShopItemButton;
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* CheckBossButton;
@@ -40,4 +40,10 @@ public:
 	UFUNCTION()
 	void ClickCoinCreateButton();
 
+	
+	UFUNCTION()
+	void ClickShopItemButton();
+
+	UFUNCTION()
+	void ClickCardSelectButton();
 };

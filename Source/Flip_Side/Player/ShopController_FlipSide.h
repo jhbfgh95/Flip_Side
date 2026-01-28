@@ -7,7 +7,6 @@
 class UInputMappingContext;
 class AShopPlayerPawn_FlipSide;
 class UW_ShopWidget;
-class UW_CoinCreateWidget;
 class UUserWidget;
 UCLASS(abstract)
 class AShopController_FlipSide : public APlayerController
@@ -16,6 +15,7 @@ class AShopController_FlipSide : public APlayerController
 
 private:
 	TArray<UUserWidget*> openWidgetList;
+
 /* Input And Default Pawn*/
 protected:
 	TObjectPtr<AShopPlayerPawn_FlipSide> ControlledPawn;
@@ -26,11 +26,11 @@ protected:
 /* UI */
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UW_ShopWidget> ShopWigetClass;
+	TSubclassOf<UUserWidget> ShopWigetClass;
 
 	//코인제작 UI
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UW_CoinCreateWidget> coinCreateWigetClass;
+	TSubclassOf<UUserWidget> CoinCreateWigetClass;
 
 	//상점 메인 UI
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
@@ -41,21 +41,34 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> CoinManageWidgetClass;
 
+	//코인 관리 UI
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> ShopItemWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> SelectCardWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> ModeChangeWidgetClass;
 //UI 스크립트
 private:
 	UPROPERTY()
-	UW_ShopWidget* HudShopWidget;
+	UUserWidget* HudShopWidget;
 	UPROPERTY()
-	UW_CoinCreateWidget* coinCreateWidget;
+	UUserWidget* CoinCreateWidget;
 	UPROPERTY()
-	class UUserWidget* ShopMainWiget;
+	UUserWidget* ShopMainWiget;
 	UPROPERTY()
-	class UUserWidget* CoinManageWidget;
+	UUserWidget* CoinManageWidget;
+	UPROPERTY()
+	UUserWidget* ShopItemWidget;
+	UPROPERTY()
+	UUserWidget* SelectCardWidget;
+	UPROPERTY()
+	UUserWidget* ModeChangeWidget;
 
 private:
 	class AGameMode_Shop* ShopGameMode;
-
 
 public:
 	AShopController_FlipSide();
@@ -63,11 +76,6 @@ public:
 	virtual void SetupInputComponent() override;
 
 	virtual void OnPossess(APawn* InPawn);
-
-	UW_CoinCreateWidget* GetCoinCreateWidget();
-
-
-
 	
 	UFUNCTION()
 	void ViewWidgetList();
@@ -80,13 +88,23 @@ public:
 //모드 변경 될 때 함수들
 public:
 	UFUNCTION()
-	void SetCoinCreateUI();
+	void SetCoinCreateWidget();
 	
 	UFUNCTION()
-	void SetCoinManageModeUI();
+	void SetCoinManageModeWidget();
 
 	UFUNCTION()
-	void SetMainModeUI();
+	void SetShopMainModeWidget();
+	
+	UFUNCTION()
+	void SetShopItemModeWidget();
+
+	UFUNCTION()
+	void SetSelectCardModeWidget();
+
+	void HideModeChangeWidget();
+
+	void ShowModeChangeWidget();
 protected:
 	virtual void BeginPlay() override;
 };

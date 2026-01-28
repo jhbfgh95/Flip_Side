@@ -17,6 +17,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCoinCreateMode);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCoinManageMode);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FShopItemMode);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSelectCardMode);
 UCLASS()
 class FLIP_SIDE_API AGameMode_Shop : public AGameModeBase
 {
@@ -36,15 +39,18 @@ public:
 
 	FCoinCreateMode OnCoinCreateMode;
 
+	FShopItemMode OnShopItemMode;
+	
+	FSelectCardMode OnSelectCardMode;
+	
 public:
 	void SetShopMainMode();
 	void SetCheckBossMode();
-
 	void SetCoinManageMode();
-
 	void SetCoinCreateMode();
-
+	void SetShopItemMode();
 	void SetCardSelectMode();
-	void SetBuyItemMode();
+
+
 	void CheckCanGameStart();
 };

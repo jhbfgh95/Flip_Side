@@ -6,11 +6,13 @@
 #include "Subsystem/ShopCoinWSubsystem.h"
 #include "Subsystems/WorldSubsystem.h" 
 #include "Components/Button.h"
+#include "Player/GameMode_Shop.h"
 void UW_CoinCreateWidget::NativeConstruct()
 {
     Super::NativeConstruct();
     CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
     ShopCoinSubSystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
+    ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
     if(CoinCreateWSubSystem)
 	{
 		//코인클래스 변경됬을때
@@ -39,6 +41,7 @@ void UW_CoinCreateWidget::UpdateCoinState(struct FCoinTypeStructure UpdateCoinIn
 void UW_CoinCreateWidget::FinishCreate()
 {
     ShopCoinSubSystem->SetSlotCoin(CoinCreateWSubSystem->GetSelectCoin());
+    ShopGameMode->SetCoinManageMode();
 }
 
 void UW_CoinCreateWidget::OpenClassSelectPannel()

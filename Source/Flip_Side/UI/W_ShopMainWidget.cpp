@@ -10,6 +10,8 @@ void UW_ShopMainWidget::NativeConstruct()
     shopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
 
     CoinCreateButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickCoinCreateButton);
+    ShopItemButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickShopItemButton);
+    CardSelectButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickCardSelectButton);
 }
 
 
@@ -18,5 +20,23 @@ void UW_ShopMainWidget::ClickCoinCreateButton()
     if(shopGameMode)
     {
         shopGameMode->SetCoinManageMode();
+    }
+}
+
+
+void UW_ShopMainWidget::ClickShopItemButton()
+{
+    if(shopGameMode)
+    {
+        shopGameMode->SetShopItemMode();
+    }
+}
+
+
+void UW_ShopMainWidget::ClickCardSelectButton()
+{
+    if(shopGameMode)
+    {
+        shopGameMode->SetCardSelectMode();
     }
 }

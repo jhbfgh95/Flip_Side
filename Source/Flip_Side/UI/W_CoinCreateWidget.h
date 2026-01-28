@@ -23,7 +23,7 @@ private:
 
 	class UShopCoinWSubsystem* ShopCoinSubSystem;
 
-
+	class AGameMode_Shop* ShopGameMode;
 protected:
 	virtual void NativeConstruct() override;
 

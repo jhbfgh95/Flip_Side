@@ -19,3 +19,14 @@ void AGameMode_Shop::SetCoinManageMode()
 {
     OnCoinManageMode.Broadcast();
 }
+
+
+void AGameMode_Shop::SetShopItemMode()
+{
+    OnShopItemMode.Broadcast();
+}
+
+void AGameMode_Shop::SetCardSelectMode()
+{
+    OnSelectCardMode.Broadcast();
+}

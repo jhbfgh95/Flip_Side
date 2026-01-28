@@ -28,6 +28,10 @@ void AShopPlayerPawn_FlipSide::BeginPlay()
 		ShopGameMode->OnCoinCreateMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveCoinCreateMode);
 
 		ShopGameMode->OnCoinManageMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveCoinManageMode);
+		
+		ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveSelectCardMode);
+		
+		ShopGameMode->OnShopItemMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveShopItemMode);
 	}
 }
 
@@ -47,3 +51,12 @@ void AShopPlayerPawn_FlipSide::MoveCoinManageMode()
 	SetActorLocation(CoinManageLocation);
 }
 
+void AShopPlayerPawn_FlipSide::MoveSelectCardMode()
+{
+	SetActorLocation(SelectCardLocation);
+}
+
+void AShopPlayerPawn_FlipSide::MoveShopItemMode()
+{
+	SetActorLocation(ShopItemLocation);
+}

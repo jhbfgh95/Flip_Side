@@ -34,11 +34,21 @@ private:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	FVector CoinManageLocation;
 
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	FVector SelectCardLocation;
+
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	FVector ShopItemLocation;
 private:
 	UFUNCTION()
 	void MoveCoinCreateMode();
-
 	
 	UFUNCTION()
 	void MoveCoinManageMode();
+
+	UFUNCTION()
+	void MoveSelectCardMode();
+
+	UFUNCTION()
+	void MoveShopItemMode();
 };

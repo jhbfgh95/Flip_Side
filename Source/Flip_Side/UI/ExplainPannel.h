@@ -23,12 +23,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-private:
-
-	class UCoinCreateWSubsystem* CoinCreateWSubSystem;
 
 
-private:
+protected:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* PannelMesh;
 
@@ -40,7 +37,7 @@ private:
 
 	class UW_ExplainWidget* ExplainWidgetClass;
 
-private:
+protected:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	FRotator ShowRotation;
 
@@ -62,7 +59,9 @@ private:
 	void RotatePannel(float Value);
 
 	UFUNCTION()
-	void UpdateExplanationText(int32 WeaponID);
+	virtual void GetExplainByID(int32 ID);
+	
+	void UpdateExplanationText(FString Explain);
 
 
 	//void ClosePannel();
