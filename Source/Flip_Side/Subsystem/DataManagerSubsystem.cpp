@@ -1,9 +1,11 @@
 #include "DataManagerSubsystem.h"
-
+#include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "HAL/FileManager.h"
 #include "Engine/Texture2D.h"
 #include "NiagaraSystem.h"
+
+static bool TryParseHexColor_RRGGBBAA(const FString& InHex, FLinearColor& OutColor);
 
 static FString GetColText(FSQLitePreparedStatement& Stmt, int32 Index)
 {
