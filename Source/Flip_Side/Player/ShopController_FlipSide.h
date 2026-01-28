@@ -7,11 +7,14 @@
 class UInputMappingContext;
 class AShopPlayerPawn_FlipSide;
 class UW_ShopWidget;
-
+class UUserWidget;
 UCLASS(abstract)
 class AShopController_FlipSide : public APlayerController
 {
 	GENERATED_BODY()
+
+private:
+	TArray<UUserWidget*> openWidgetList;
 
 /* Input And Default Pawn*/
 protected:
@@ -23,17 +26,85 @@ protected:
 /* UI */
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UW_ShopWidget> ShopWigetClass;
+	TSubclassOf<UUserWidget> ShopWigetClass;
 
+	//코인제작 UI
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> CoinCreateWigetClass;
+
+	//상점 메인 UI
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> ShopMainWigetClass;
+
+	
+	//코인 관리 UI
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> CoinManageWidgetClass;
+
+	//코인 관리 UI
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> ShopItemWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> SelectCardWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> ModeChangeWidgetClass;
+//UI 스크립트
+private:
 	UPROPERTY()
-	UW_ShopWidget* HudShopWidget;
+	UUserWidget* HudShopWidget;
+	UPROPERTY()
+	UUserWidget* CoinCreateWidget;
+	UPROPERTY()
+	UUserWidget* ShopMainWiget;
+	UPROPERTY()
+	UUserWidget* CoinManageWidget;
+	UPROPERTY()
+	UUserWidget* ShopItemWidget;
+	UPROPERTY()
+	UUserWidget* SelectCardWidget;
+	UPROPERTY()
+	UUserWidget* ModeChangeWidget;
+
+private:
+	class AGameMode_Shop* ShopGameMode;
+
 public:
 	AShopController_FlipSide();
 
 	virtual void SetupInputComponent() override;
 
 	virtual void OnPossess(APawn* InPawn);
+	
+	UFUNCTION()
+	void ViewWidgetList();
 
+	UFUNCTION()
+	void HideWidgetList();
+
+	UFUNCTION()
+	void AddOpenWidgetList(UUserWidget* AddWidget);
+//모드 변경 될 때 함수들
+public:
+	UFUNCTION()
+	void SetCoinCreateWidget();
+	
+	UFUNCTION()
+	void SetCoinManageModeWidget();
+
+	UFUNCTION()
+	void SetShopMainModeWidget();
+	
+	UFUNCTION()
+	void SetShopItemModeWidget();
+
+	UFUNCTION()
+	void SetSelectCardModeWidget();
+
+	void HideModeChangeWidget();
+
+	void ShowModeChangeWidget();
 protected:
 	virtual void BeginPlay() override;
 };

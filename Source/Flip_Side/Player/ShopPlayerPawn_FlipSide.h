@@ -16,6 +16,8 @@ class AShopPlayerPawn_FlipSide : public APawn
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* Camera;
 
+private:
+	class AGameMode_Shop* ShopGameMode;
 public:
 	AShopPlayerPawn_FlipSide();
 
@@ -25,4 +27,28 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
+private:
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	FVector CoinCreateLocation;
+
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	FVector CoinManageLocation;
+
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	FVector SelectCardLocation;
+
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	FVector ShopItemLocation;
+private:
+	UFUNCTION()
+	void MoveCoinCreateMode();
+	
+	UFUNCTION()
+	void MoveCoinManageMode();
+
+	UFUNCTION()
+	void MoveSelectCardMode();
+
+	UFUNCTION()
+	void MoveShopItemMode();
 };
