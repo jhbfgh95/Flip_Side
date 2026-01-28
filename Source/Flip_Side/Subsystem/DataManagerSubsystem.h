@@ -9,6 +9,7 @@
 #include "CoinDataTypes.h"
 #include "FlipSide_Enum.h"
 #include "GridTypes.h"
+#include "CardTypes.h"
 
 #include "SQLiteDatabase.h"
 #include "SQLitePreparedStatement.h"
@@ -24,10 +25,9 @@ public:
     // ===== 캐시 =====
     UPROPERTY(BlueprintReadOnly)
     TMap<int32, FFaceData> WeaponByID;
-    /*
-    UPROPERTY(BlueprintReadOnly)
+
     TMap<int32, TArray<FFaceData>> WeaponByTypeID;
-    */
+
     UPROPERTY(BlueprintReadOnly)
     TMap<EWeaponClass, FWeaponIDArray> WeaponIDsByClass;
 
@@ -39,6 +39,9 @@ public:
 
     UPROPERTY(BlueprintReadOnly)
     TMap<int32, FItemData> ItemByID;
+
+    UPROPERTY(BlueprintReadOnly)
+    TMap<int32, FCardData> CardByID;
 
     // ===== Subsystem =====
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -54,10 +57,9 @@ public:
     UFUNCTION(BlueprintCallable)
     bool TryGetWeapon(int32 WeaponID, FFaceData& Out) const;
 
-    /*
-    UFUNCTION(BlueprintCallable)
-    bool TryGetWeaponsByType(int32 TypeID, TArray<FFaceData>& Out) const;
-    */
+    bool TryGetWeaponsByType(int32 TypeID, const TArray<FFaceData>*& OutWeapons) const;
+
+    void BuildWeaponTypeMap(const TArray<FFaceData>& AllWeapons);
 
     UFUNCTION(BlueprintCallable)
     bool TryGetBossByStage(int32 Stage, FBossData& Out) const;
@@ -78,6 +80,7 @@ private:
     bool LoadWeapons();
     bool LoadBosses();
     bool LoadItems();
+    bool LoadCards();
 
     // ===== PrepareStatement 시그니처 차이 자동 대응 래퍼 =====
     template<typename TDb>
@@ -103,3 +106,4 @@ private:
     // 문자열(EWeaponClass) 변환
     static EWeaponClass WeaponClassFromString(const FString& S);
 };
+

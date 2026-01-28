@@ -77,17 +77,27 @@ bool UDataManagerSubsystem::TryGetWeapon(int32 WeaponID, FFaceData& Out) const
     }
     return false;
 }
-/*
-bool UDataManagerSubsystem::TryGetWeaponsByType(int32 TypeID, TArray<FFaceData>& Out) const
+bool UDataManagerSubsystem::TryGetWeaponsByType(
+    int32 TypeID,
+    const TArray<FFaceData>*& OutWeapons
+) const
 {
-    if (const TArray<FFaceData>* Found = WeaponByTypeID.Find(TypeID))
-    {
-        Out = *Found;
-        return true;
-    }
-    return false;
+    OutWeapons = WeaponByTypeID.Find(TypeID);
+    return OutWeapons != nullptr;
 }
-*/
+
+
+void UDataManagerSubsystem::BuildWeaponTypeMap(const TArray<FFaceData>& AllWeapons)
+{
+    WeaponByTypeID.Empty();
+
+    for (const FFaceData& Weapon : AllWeapons)
+    {
+        // TypeID 기준으로 자동 그룹핑
+        WeaponByTypeID.FindOrAdd(Weapon.TypeID).Add(Weapon);
+    }
+}
+
 
 bool UDataManagerSubsystem::TryGetBossByStage(int32 Stage, FBossData& Out) const
 {
@@ -162,10 +172,11 @@ EWeaponClass UDataManagerSubsystem::WeaponClassFromString(const FString& S)
     return EWeaponClass::None;
 }
 
+
 bool UDataManagerSubsystem::LoadWeapons()
 {
     const TCHAR* Sql =
-        TEXT("SELECT c.id, w.weapon_type AS weapon_type, c.behavior_point, c.range_x, c.range_y, c.icon_path, c.behavior, c.vfx_path, c.weapon_id FROM coin_weapon_def AS c JOIN weapon_type AS w ON c.weapon_id = w.weapon_id; ");
+        TEXT("SELECT c.id, w.weapon_type AS weapon_type, c.behavior_point, c.range_x, c.range_y, c.icon_path, c.behavior, c.vfx_path, c.weapon_id, w.HP, c.weapon_point, c.KOR_DES, c.ENG_DES, w.typecolor FROM coin_weapon_def AS c JOIN weapon_type AS w ON c.weapon_id = w.weapon_id; ");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
@@ -183,7 +194,7 @@ bool UDataManagerSubsystem::LoadWeapons()
         const FString ClassStr = GetColText(Stmt, 1);
         Data.WeaponType = WeaponClassFromString(ClassStr);
 
-        Data.AttackPoint = GetColInt(Stmt, 2);
+        Data.BehaviorPoint = GetColInt(Stmt, 2);
 
         Data.AttackRange.GridX = GetColDouble(Stmt, 3);
         Data.AttackRange.GridY = GetColDouble(Stmt, 4);
@@ -202,12 +213,28 @@ bool UDataManagerSubsystem::LoadWeapons()
             Data.WeaponVFX = LoadObject<UNiagaraSystem>(nullptr, *VfxPath);
         }
 
+        Data.TypeID = GetColInt(Stmt, 8);
+        Data.HP = GetColInt(Stmt, 9);
+        Data.AttackPoint = GetColInt(Stmt, 10);
+
+        const FString KORStr = GetColText(Stmt, 11);
+        Data.KOR_DES = KORStr;
+
+        const FString ENGStr = GetColText(Stmt, 12);
+        Data.KOR_DES = KORStr;
+
+
+        const FString ColorHex = GetColText(Stmt, 13);
+        if (!TryParseHexColor_RRGGBBAA(ColorHex, Data.TypeColor))
+        {
+            Data.TypeColor = FLinearColor::White;
+        }
+
         WeaponByID.Add(Data.WeaponID, Data);
         WeaponIDsByClass
             .FindOrAdd(Data.WeaponType)
             .WeaponIDs
             .Add(Data.WeaponID);
-        Data.TypeID = GetColInt(Stmt, 8);
     }
 
     Stmt.Destroy();
@@ -246,7 +273,7 @@ bool UDataManagerSubsystem::LoadBosses()
 bool UDataManagerSubsystem::LoadItems()
 {
     const TCHAR* Sql =
-        TEXT("SELECT item_id, item_range, item_effect_value "
+        TEXT("SELECT item_id, item_range, item_effect_value, icon_path, item_des "
             "FROM item_def;");
 
     FSQLitePreparedStatement Stmt;
@@ -262,6 +289,13 @@ bool UDataManagerSubsystem::LoadItems()
         Item.ItemID = GetColInt(Stmt, 0);
         Item.ItemRange = GetColInt(Stmt, 1);
         Item.ItemEffectValue = GetColInt(Stmt, 2);
+        const FString IconPath = GetColText(Stmt, 3);
+        if (!IconPath.IsEmpty())
+        {
+            Item.ItemIcon = LoadObject<UTexture2D>(nullptr, *IconPath);
+        }
+        const FString itemdes = GetColText(Stmt, 4);
+        Item.Item_DES = itemdes;
 
         ItemByID.Add(Item.ItemID, Item);
     }
@@ -269,3 +303,56 @@ bool UDataManagerSubsystem::LoadItems()
     Stmt.Destroy();
     return true;
 }
+
+bool UDataManagerSubsystem::LoadCards()
+{
+    const TCHAR* Sql =
+        TEXT("SELECT CardID, icon_path, CardName, Card_Description ")
+        TEXT("FROM Card;");
+
+    FSQLitePreparedStatement Stmt;
+    if (!PrepareStmt(Db, Sql, Stmt))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[DB] LoadCards: PrepareStatement failed"));
+        return false;
+    }
+
+    while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
+    {
+        FCardData Card;
+
+        Card.CardID = GetColInt(Stmt, 0);
+
+        const FString IconPath = GetColText(Stmt, 1);
+        Card.CardName = GetColText(Stmt, 2);
+        Card.Card_Description = GetColText(Stmt, 3);
+
+
+        CardByID.Add(Card.CardID, Card);
+    }
+
+    Stmt.Destroy();
+    return true;
+}
+
+static bool TryParseHexColor_RRGGBBAA(const FString& InHex, FLinearColor& Out)
+{
+    FString Hex = InHex;
+    Hex.TrimStartAndEndInline();
+    Hex.RemoveFromStart(TEXT("#"));
+
+    if (Hex.Len() == 6) Hex += TEXT("FF");
+    if (Hex.Len() != 8) return false;
+
+    const FString R = Hex.Mid(0, 2);
+    const FString G = Hex.Mid(2, 2);
+    const FString B = Hex.Mid(4, 2);
+    const FString A = Hex.Mid(6, 2);
+
+    const FString AARRGGBB = A + R + G + B;
+
+    const FColor SRGB = FColor::FromHex(AARRGGBB);
+    Out = FLinearColor::FromSRGBColor(SRGB);
+    return true;
+}
+

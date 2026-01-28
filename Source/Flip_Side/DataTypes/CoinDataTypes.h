@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GridTypes.h"
+#include "FlipSide_Enum.h"
 #include "CoinDataTypes.generated.h"
 
 /**
@@ -45,4 +46,17 @@ struct FBattleCoinInfo
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 SelectedWeaponID = 0;
+};
+
+
+USTRUCT(BlueprintType)
+struct FRandomState
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EFaceState RandomFace;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FGridPoint RandomGrid;
 };
