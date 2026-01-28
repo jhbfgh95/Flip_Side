@@ -22,6 +22,9 @@ struct FFaceData
     int32 TypeID = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 HP = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EWeaponClass WeaponType = EWeaponClass::None;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -41,7 +44,16 @@ struct FFaceData
     FString BehaviorCode;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FString KOR_DES;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FString ENG_DES;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UNiagaraSystem* WeaponVFX = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FLinearColor TypeColor;
 };
 
 

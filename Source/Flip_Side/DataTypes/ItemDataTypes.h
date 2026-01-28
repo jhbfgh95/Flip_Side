@@ -18,6 +18,12 @@ struct FItemData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 ItemEffectValue = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FString Item_DES;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    UTexture2D* ItemIcon=nullptr;
 };
 
 /**
