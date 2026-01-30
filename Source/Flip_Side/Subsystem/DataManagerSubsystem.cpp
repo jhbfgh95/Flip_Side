@@ -233,6 +233,7 @@ bool UDataManagerSubsystem::LoadWeapons()
         }
 
         WeaponByID.Add(Data.WeaponID, Data);
+        WeaponByTypeID.FindOrAdd(Data.TypeID).Add(Data);
         WeaponIDsByClass
             .FindOrAdd(Data.WeaponType)
             .WeaponIDs

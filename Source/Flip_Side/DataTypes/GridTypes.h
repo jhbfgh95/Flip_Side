@@ -16,4 +16,14 @@ struct FGridPoint
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 GridY = 0;
+
+    bool operator==(const FGridPoint& Other) const
+    {
+        return GridX == Other.GridX && GridY == Other.GridY;
+    }
 };
+
+FORCEINLINE uint32 GetTypeHash(const FGridPoint& P)
+{
+    return HashCombine(::GetTypeHash(P.GridX), ::GetTypeHash(P.GridY));
+}
