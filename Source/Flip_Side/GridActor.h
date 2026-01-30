@@ -9,6 +9,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "CoinActor.h"
 #include "FlipSide_Enum.h"
 #include "GridTypes.h"
 #include "GridActor.generated.h"
@@ -27,6 +28,9 @@ class FLIP_SIDE_API AGridActor : public AActor
 	//0 보스, 1 아이템
 	UPROPERTY(EditAnywhere, Category = "Grid | Colors", meta = (AllowPrivateAccess = "true"))
 	TArray<FLinearColor> TypeColors;
+
+	UPROPERTY()
+	TWeakObjectPtr<ACoinActor> CurrentCoin;
 
 protected:
 	bool bIsOccupied = false;
@@ -66,6 +70,16 @@ public:
 
 	UFUNCTION()
 	FVector GetGridWorldXY();
+
+	UFUNCTION(BlueprintCallable)
+	void SetOccupiedCoin(ACoinActor* Coin);
+
+	UFUNCTION(BlueprintCallable)
+	void ClearOccupied();
+
+	UFUNCTION(BlueprintCallable)
+	ACoinActor* GetCurrentCoin() const;   // GridManager가 이걸로 ID 뽑음
+
 
 protected:
 	virtual void BeginPlay() override;

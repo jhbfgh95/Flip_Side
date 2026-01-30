@@ -20,4 +20,8 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "CoinSpawn")
 	TSoftClassPtr<ASlotActor> SlotActor;
+
+	UPROPERTY(EditAnywhere, Config, Category = "GridSpawn")
+	TSoftClassPtr<class AGridActor> GridActor;
+
 };

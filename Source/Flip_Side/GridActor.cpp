@@ -41,6 +41,11 @@ void AGridActor::SetOccupied(bool IsOccupied, EGridOccupyingType OccupyType)
 {
 	bIsOccupied = IsOccupied;
 	CurrentOccupying= OccupyType;
+
+	if (OccupyType != EGridOccupyingType::Coin)
+	{
+		CurrentCoin.Reset();
+	}
 }
 
 void AGridActor::SetBossAttack(bool bWillAttack)
@@ -71,4 +76,29 @@ FVector AGridActor::GetGridWorldXY()
 	GridWorldXY = GridTransform.GetLocation();
 
 	return GridWorldXY;
+}
+
+void AGridActor::SetOccupiedCoin(ACoinActor* Coin)
+{
+	if (!IsValid(Coin))
+	{
+		ClearOccupied();
+		return;
+	}
+
+	bIsOccupied = true;
+	CurrentOccupying = EGridOccupyingType::Coin; 
+	CurrentCoin = Coin;
+}
+
+void AGridActor::ClearOccupied()
+{
+	bIsOccupied = false;
+	CurrentOccupying = EGridOccupyingType::None;
+	CurrentCoin.Reset();
+}
+
+ACoinActor* AGridActor::GetCurrentCoin() const
+{
+	return CurrentCoin.Get();
 }
