@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "DataTypes/CoinDataTypes.h"
+#include "DataTypes/FlipSide_Enum.h"
 #include "ShopCoinWSubsystem.generated.h"
 
 #define MAX_TOTAL_COIN 30
@@ -25,15 +26,21 @@ private:
 	int32 TotalCoinCount;
 
 	TArray<FCoinTypeStructure> CoinArray;
-
+	TArray<EWeaponClass> CoinClassArray;
 	//void InitCoinArray();
 
 public:
 	bool CanAddCoin(int32 SlotNum);
 	bool CanRemoveCoin(int32 SlotNum);
-	void AddSlotCoin(int32 SlotNum);
-	void RemoveSlotCoin(int32 SlotNum);
+
+	void AddSlotCoinCount(int32 SlotNum);
+	void RemoveSlotCoinCount(int32 SlotNum);
+
+	void ResetCoin(int32 SlotNum);
+
 
 	FCoinTypeStructure GetSlotCoin(int32 SlotNum);
-	void SetSlotCoin(FCoinTypeStructure SetCoinInfo);
+	EWeaponClass GetSlotCoinClass(int32 SlotNum);
+
+	void SetSlotCoin(FCoinTypeStructure SetCoinInfo, EWeaponClass CoinClass);
 };

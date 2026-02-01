@@ -55,6 +55,20 @@ private:
 
 	
     UPROPERTY(meta = (BindWidget))
+	class UButton* TestClass;
+    UPROPERTY(meta = (BindWidget))
+	class UButton* TestClass2;
+    UPROPERTY(meta = (BindWidget))
+	class UButton* TestClass3;
+	UFUNCTION()
+	void SetDeal();
+	UFUNCTION()
+	void SetTank();
+	UFUNCTION()
+	void SetUtil();
+
+
+    UPROPERTY(meta = (BindWidget))
     class UButton* FinishButton;
 
     UPROPERTY(meta = (BindWidget))
@@ -69,5 +83,6 @@ private:
 
 	UFUNCTION()
 	void OpenClassSelectPannel();
-
+	UFUNCTION()
+	void CloseClassSelectPannel();
 };

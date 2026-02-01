@@ -85,7 +85,7 @@ private:
 	void RotateCoin(float Value);
 
 	UFUNCTION()
-	void InitCoin(FCoinTypeStructure CoinValue);
+	void InitCoin(FCoinTypeStructure CoinValue, EWeaponClass weponClass);
 private:
 	UPROPERTY(EditAnywhere,Category = "PressMachine",meta = (AllowPrivateAccess = "true"))
 	class UTimelineComponent* PressMachineTimeline;
@@ -98,5 +98,7 @@ private:
 
 	UFUNCTION()
 	void PressCoin(float Value);
+
+	void ResetSideTexture();
 
 };

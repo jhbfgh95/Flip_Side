@@ -33,6 +33,7 @@ void UShopCoinWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         //코인 배열에 추가
         DefaultCoin.SlotNum = i;
         CoinArray.Add(DefaultCoin);
+        CoinClassArray.Add(EWeaponClass::None);
     }
 }
 
@@ -47,7 +48,8 @@ bool UShopCoinWSubsystem::CanAddCoin(int32 SlotNum)
 
     if(MAX_TOTAL_COIN <= TotalCoinCount)
         return false;
-        
+    if(CoinArray[SlotNum].FrontWeaponID == -1 ||CoinArray[SlotNum].BackWeaponID == -1)
+        return false;
 
     return true;
 }
@@ -66,7 +68,7 @@ bool UShopCoinWSubsystem::CanRemoveCoin(int32 SlotNum)
     return true;
 }
 
-void UShopCoinWSubsystem::AddSlotCoin(int32 SlotNum)
+void UShopCoinWSubsystem::AddSlotCoinCount(int32 SlotNum)
 {
     if(CanAddCoin(SlotNum))
     {
@@ -76,7 +78,7 @@ void UShopCoinWSubsystem::AddSlotCoin(int32 SlotNum)
     
 }
 
-void UShopCoinWSubsystem::RemoveSlotCoin(int32 SlotNum)
+void UShopCoinWSubsystem::RemoveSlotCoinCount(int32 SlotNum)
 {
     if(CanRemoveCoin(SlotNum))
     {
@@ -94,13 +96,36 @@ FCoinTypeStructure UShopCoinWSubsystem::GetSlotCoin(int32 SlotNum)
     CoinInfo = CoinArray[SlotNum];
     
     return CoinInfo;
-
 }
 
-void UShopCoinWSubsystem::SetSlotCoin(FCoinTypeStructure SetCoinInfo)
+
+EWeaponClass UShopCoinWSubsystem::GetSlotCoinClass(int32 SlotNum)
+{
+    if(CoinClassArray.Num()<=SlotNum)
+        return EWeaponClass::None;
+    
+    return CoinClassArray[SlotNum];
+        
+}
+
+void UShopCoinWSubsystem::SetSlotCoin(FCoinTypeStructure SetCoinInfo, EWeaponClass CoinClass)
 {
     if(CoinArray.Num()-1<SetCoinInfo.SlotNum)
         return;
 
     CoinArray[SetCoinInfo.SlotNum] = SetCoinInfo;
+    CoinClassArray[SetCoinInfo.SlotNum] = CoinClass;
+}
+
+
+void UShopCoinWSubsystem::ResetCoin(int32 SlotNum)
+{
+    CoinArray[SlotNum].FrontWeaponID = -1;
+    CoinArray[SlotNum].BackWeaponID = -1;
+    CoinClassArray[SlotNum] = EWeaponClass::None;
+    for(int i = CoinArray[SlotNum].SameTypeCoinNum;  0<= i; i--)
+    {
+        RemoveSlotCoinCount(SlotNum);
+    }
+    
 }

@@ -48,8 +48,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> SelectCardWidgetClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> ModeChangeWidgetClass;
 //UI 스크립트
 private:
 	UPROPERTY()
@@ -64,8 +62,6 @@ private:
 	UUserWidget* ShopItemWidget;
 	UPROPERTY()
 	UUserWidget* SelectCardWidget;
-	UPROPERTY()
-	UUserWidget* ModeChangeWidget;
 
 private:
 	class AGameMode_Shop* ShopGameMode;

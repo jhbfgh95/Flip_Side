@@ -4,17 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "W_ShopItemBuyButton.generated.h"
+#include "W_ShopItemInvenButton.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class FLIP_SIDE_API UW_ShopItemBuyButton : public UUserWidget
+class FLIP_SIDE_API UW_ShopItemInvenButton : public UUserWidget
 {
 	GENERATED_BODY()
 	
-
 protected:
 	virtual void NativeConstruct() override;
 

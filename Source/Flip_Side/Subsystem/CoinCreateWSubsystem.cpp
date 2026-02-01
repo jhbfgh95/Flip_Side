@@ -41,11 +41,13 @@ FCoinTypeStructure UCoinCreateWSubsystem::GetSelectCoin()
     return SelectedCoin;
 }
 //코인 선택
-void UCoinCreateWSubsystem::SelectCoin(FCoinTypeStructure SelectCoinInfo)
+void UCoinCreateWSubsystem::SelectCoin(FCoinTypeStructure SelectCoinInfo, EWeaponClass CoinClass)
 {
     SelectedCoin = SelectCoinInfo;
-    
-    OnSelectedCoinChanged.Broadcast(SelectedCoin);
+    SetCoinClass(CoinClass);
+    UE_LOG(LogTemp,Warning, TEXT("코인 제작 서브시스템에서 코인 클래스 : %s"),*UEnum::GetValueAsString(CoinClass));
+    OnSelectedCoin.Broadcast(SelectedCoin, CoinClass);
+    OnCoinClassUpdate.Broadcast(CoinClass);
 }
 
 //선택된 코인 면의 ID를 변경
@@ -65,7 +67,12 @@ void UCoinCreateWSubsystem::ChangeSelectedCoinWeapon(int32 WeaponID)
 
 void UCoinCreateWSubsystem::SetCoinClass(EWeaponClass weponClass)
 {
-    UE_LOG(LogTemp, Warning, TEXT("클래스설정"));
+    if(SelectedCoinClass != weponClass)
+    {
+        SelectedCoinClass = weponClass;
+        //SelectedCoin.FrontWeaponID = -1;
+        //SelectedCoin.BackWeaponID = -1;
+    }
     OnCoinClassUpdate.Broadcast(weponClass);
 }
 
@@ -73,4 +80,22 @@ void UCoinCreateWSubsystem::SetCoinClass(EWeaponClass weponClass)
 bool UCoinCreateWSubsystem::GetIsCreateCoinFront()
 {
     return bIsCreateCoinFront;
+}
+
+
+EWeaponClass UCoinCreateWSubsystem::GetSelectCoinClass()
+{
+    return SelectedCoinClass;
+}
+
+
+void UCoinCreateWSubsystem::OnClassSelectMode()
+{
+    OnCoinClassSelectMode.Broadcast();
+}
+
+
+void UCoinCreateWSubsystem::OffClassSelectMode()
+{
+    OffCoinClassSelectMode.Broadcast();
 }

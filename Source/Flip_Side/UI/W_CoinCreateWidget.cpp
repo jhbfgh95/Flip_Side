@@ -17,10 +17,17 @@ void UW_CoinCreateWidget::NativeConstruct()
 	{
 		//코인클래스 변경됬을때
 		CoinCreateWSubSystem->OnCoinClassUpdate.AddDynamic(this, &UW_CoinCreateWidget::SetClassGrid);
+		CoinCreateWSubSystem->OffCoinClassSelectMode.AddDynamic(this, &UW_CoinCreateWidget::CloseClassSelectPannel);
 	}
 
     FinishButton->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::FinishCreate);
+    ClassSelectButton->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::OpenClassSelectPannel);
 
+    TestClass->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetDeal);
+    
+    TestClass2->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetTank);
+    
+    TestClass3->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetUtil);
 }
 
 
@@ -40,22 +47,34 @@ void UW_CoinCreateWidget::UpdateCoinState(struct FCoinTypeStructure UpdateCoinIn
 
 void UW_CoinCreateWidget::FinishCreate()
 {
-    ShopCoinSubSystem->SetSlotCoin(CoinCreateWSubSystem->GetSelectCoin());
+    UE_LOG(LogTemp,Warning, TEXT("코인제작 매니저의 코인 클래스 : %s"),*UEnum::GetValueAsString(CoinCreateWSubSystem->GetSelectCoinClass()));
+    ShopCoinSubSystem->SetSlotCoin(CoinCreateWSubSystem->GetSelectCoin(), CoinCreateWSubSystem->GetSelectCoinClass());
     ShopGameMode->SetCoinManageMode();
 }
 
 void UW_CoinCreateWidget::OpenClassSelectPannel()
 {
-
+    
+    CoinCreateWSubSystem->OnClassSelectMode();
+    dealClassGrid->SetVisibility(ESlateVisibility::Collapsed);
+    utilClassGrid->SetVisibility(ESlateVisibility::Collapsed);
+    tankClassGrid->SetVisibility(ESlateVisibility::Collapsed);
+    FinishButton->SetVisibility(ESlateVisibility::Collapsed);
 }
 
-
+void UW_CoinCreateWidget::CloseClassSelectPannel()
+{
+    FinishButton->SetVisibility(ESlateVisibility::Visible);
+}
 
 //코드가 안 예쁨 수정해야할듯 
 void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
 {
     UE_LOG(LogTemp, Warning, TEXT("값설정됨"));
-
+    FinishButton->SetVisibility(ESlateVisibility::Visible);
+    dealClassGrid->SetVisibility(ESlateVisibility::Collapsed);
+    utilClassGrid->SetVisibility(ESlateVisibility::Collapsed);
+    tankClassGrid->SetVisibility(ESlateVisibility::Collapsed);
     switch (weaponClass)
     {
     case EWeaponClass::Deal:
@@ -70,8 +89,25 @@ void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
         utilClassGrid->SetVisibility(ESlateVisibility::Visible);
         UE_LOG(LogTemp, Warning, TEXT("힐"));
         break;
-    
     default:
+        OpenClassSelectPannel();
         break;
     }
+}
+
+
+void UW_CoinCreateWidget::SetDeal()
+{
+    UE_LOG(LogTemp, Warning, TEXT("xptmzmrn"));
+    CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Deal);
+}
+void UW_CoinCreateWidget::SetTank()
+{
+
+    CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Tank);
+}
+void UW_CoinCreateWidget::SetUtil()
+{
+
+    CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Heal);
 }

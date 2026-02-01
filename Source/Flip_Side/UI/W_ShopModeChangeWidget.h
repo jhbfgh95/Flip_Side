@@ -42,4 +42,6 @@ class FLIP_SIDE_API UW_ShopModeChangeWidget : public UUserWidget
 	void ClickCheckBossMode();
 	UFUNCTION()
 	void OpenWidget();
+	UFUNCTION()
+	void ClickShopMainModeButton();
 };

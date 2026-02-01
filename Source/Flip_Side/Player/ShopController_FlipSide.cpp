@@ -90,15 +90,6 @@ void AShopController_FlipSide::BeginPlay()
             SelectCardWidget->SetVisibility(ESlateVisibility::Collapsed);
         }
     }
-    if(ModeChangeWidgetClass)
-    {
-        ModeChangeWidget = CreateWidget<UUserWidget>(this, ModeChangeWidgetClass);
-        if(SelectCardWidget)
-        {
-            ModeChangeWidget->AddToViewport(0);
-            ModeChangeWidget->SetVisibility(ESlateVisibility::Collapsed);
-        }
-    }
 }
 //입력 처리
 void AShopController_FlipSide::SetupInputComponent()
@@ -154,7 +145,6 @@ void AShopController_FlipSide::AddOpenWidgetList(UUserWidget* AddWidget)
 //코인 제작 UI
 void AShopController_FlipSide::SetCoinCreateWidget()
 {
-    HideModeChangeWidget();
     if(CoinCreateWidget)
     {
         HideWidgetList();
@@ -169,14 +159,11 @@ void AShopController_FlipSide::SetShopMainModeWidget()
     HideWidgetList();
     AddOpenWidgetList(ShopMainWiget);
     ViewWidgetList();
-
-    HideModeChangeWidget();
 }
 
 
 void AShopController_FlipSide::SetCoinManageModeWidget()
 {
-    ShowModeChangeWidget();
     if(CoinManageWidget)
     {
         HideWidgetList();
@@ -187,7 +174,6 @@ void AShopController_FlipSide::SetCoinManageModeWidget()
 //카드 상점UI 띄움
 void AShopController_FlipSide::SetShopItemModeWidget()
 {
-    ShowModeChangeWidget();
     if(ShopItemWidget)
     {
         HideWidgetList();
@@ -199,27 +185,11 @@ void AShopController_FlipSide::SetShopItemModeWidget()
 //카드 선택UI 띄움
 void AShopController_FlipSide::SetSelectCardModeWidget()
 {
-    ShowModeChangeWidget();
     if(SelectCardWidget)
     {
-        
+        HideWidgetList();
         AddOpenWidgetList(SelectCardWidget);
         ViewWidgetList();
     }
 }
 
-void AShopController_FlipSide::HideModeChangeWidget()
-{
-    if(ModeChangeWidget)
-    {
-        ModeChangeWidget->SetVisibility(ESlateVisibility::Collapsed);
-    }
-}
-
-void AShopController_FlipSide::ShowModeChangeWidget()
-{
-    if(ModeChangeWidget)
-    {
-        ModeChangeWidget->SetVisibility(ESlateVisibility::Visible);
-    }
-}

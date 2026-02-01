@@ -11,14 +11,14 @@ void UW_ShopItemBuyButton::NativeConstruct()
     ShopSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
     SelectButton->OnClicked.AddDynamic(this, &UW_ShopItemBuyButton::SelectItem);
     SelectButton->OnHovered.AddDynamic(this, &UW_ShopItemBuyButton::HoverItem);
-    
     SelectButton->OnUnhovered.AddDynamic(this, &UW_ShopItemBuyButton::UnHoverItem);
+    UnSelectButton->OnClicked.AddDynamic(this, &UW_ShopItemBuyButton::UnSelectItem);
 }
 
 
 void UW_ShopItemBuyButton::SelectItem()
 {
-    //ShopSubsystem->BuyItem(SelectButtonNum);
+    ShopSubsystem->AddItem(SelectButtonNum);
 }
 
 void UW_ShopItemBuyButton::HoverItem()
@@ -29,4 +29,9 @@ void UW_ShopItemBuyButton::HoverItem()
 void UW_ShopItemBuyButton::UnHoverItem()
 {
     ShopSubsystem->UnHoverShopItem();
+}
+
+void UW_ShopItemBuyButton::UnSelectItem()
+{
+    ShopSubsystem->ReduceItem(SelectButtonNum);
 }

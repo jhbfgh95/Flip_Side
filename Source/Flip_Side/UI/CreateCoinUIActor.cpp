@@ -40,8 +40,7 @@ void ACreateCoinUIActor::BeginPlay()
 		CoinCreateWSubSystem->OnCoinClassUpdate.AddDynamic(this, &ACreateCoinUIActor::UpdateWeaponClass);
 		//코인 상태 업데이트 됬을때
 		CoinCreateWSubSystem->OnSelectedCoinUpdate.AddDynamic(this, &ACreateCoinUIActor::UpdateCoinWeapon);
-
-		//CoinCreateWSubSystem->OnSelectedCoinChanged.AddDynamic(this, &ACreateCoinUIActor::UpdateCoinWeapon);
+		CoinCreateWSubSystem->OnSelectedCoin.AddDynamic(this, &ACreateCoinUIActor::InitCoin);
 	}
 
 
@@ -101,9 +100,19 @@ void ACreateCoinUIActor::UpdateWeaponClass(EWeaponClass weponClass)
 	WeaponType = weponClass;
 }
 
-void ACreateCoinUIActor::InitCoin(FCoinTypeStructure CoinValue)
+void ACreateCoinUIActor::InitCoin(FCoinTypeStructure CoinValue, EWeaponClass weponClass)
 {
-	CoinInfo = CoinValue; 
+	
+    UE_LOG(LogTemp,Warning, TEXT("코인 ui 코인 클래스 : %s"),*UEnum::GetValueAsString(weponClass));
+	CoinInfo = CoinValue;
+	if(weponClass == EWeaponClass::None)
+	{
+		ResetSideTexture();
+	}
+	else
+	{
+		SetCoinSideMatarial();
+	}
 }
 
 void ACreateCoinUIActor::UpdateCoinWeapon(int32 WeaponID)
@@ -145,7 +154,23 @@ void ACreateCoinUIActor::SetCoinSideMatarial()
 				MID->SetVectorParameterValue(FName("Front_Color"), TypeColors[2]);
 				MID->SetVectorParameterValue(FName("Back_Color"), TypeColors[2]);
 			}
+			else
+			{
+				ResetSideTexture();
+			}
 		}
+	}
+}
+
+
+void ACreateCoinUIActor::ResetSideTexture()
+{
+	UTexture* Tex = nullptr;
+	UMaterialInstanceDynamic* MID = CoinMesh->CreateDynamicMaterialInstance(0);
+	if(MID)
+	{
+		MID->SetVectorParameterValue(FName("Front_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		MID->SetVectorParameterValue(FName("Back_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
 	}
 }
 

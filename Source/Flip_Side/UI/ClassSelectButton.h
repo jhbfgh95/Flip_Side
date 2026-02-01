@@ -37,6 +37,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION()
 	void SelectedClass();
 };
