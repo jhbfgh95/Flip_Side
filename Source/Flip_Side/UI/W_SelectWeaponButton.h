@@ -31,12 +31,21 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Info")
 	EWeaponClass WeaponClass;
 
+	UPROPERTY(EditAnywhere, Category = "Info")
+	FString WeaponName;
+
 	//아이디
     UPROPERTY(meta = (BindWidget))
     class UButton* WeaponButton;
 
+	
+    UPROPERTY(meta = (BindWidget))
+    class UTextBlock* WeaponNameBlock;
+
 	UPROPERTY(EditAnywhere, Category="Button")
 	class UTexture2D* WeapoTexture;
+
+
 
 	//함수
 	//class UW_CoinCreateWidget* CoinCreateWidget;

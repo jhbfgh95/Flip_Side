@@ -15,8 +15,10 @@ void UW_CardSelectWidget::NativeConstruct()
     RightCardButton->OnClicked.AddDynamic(this, &UW_CardSelectWidget::ClickRightCardButton);
     LeftCardButton->OnClicked.AddDynamic(this, &UW_CardSelectWidget::ClickLeftCardButton);
     SelectCardButton->OnClicked.AddDynamic(this, &UW_CardSelectWidget::ClickSelectCardButton);
-
     ShopCardSubSystem->OnCardChanged.AddDynamic(this, &UW_CardSelectWidget::InitCard);
+
+    
+    CurrentCardWidget->InitCard(ShopCardSubSystem->GetCurrentCard());
 }
 
 

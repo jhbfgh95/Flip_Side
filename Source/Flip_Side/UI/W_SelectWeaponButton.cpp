@@ -8,6 +8,7 @@
 #include "Subsystem/CoinCreateWSubsystem.h"
 #include "Subsystems/WorldSubsystem.h" 
 #include "Components/Image.h"
+#include "Components/TextBlock.h"
 void UW_SelectWeaponButton::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -49,4 +50,5 @@ void UW_SelectWeaponButton::InitButton()
 
     WeaponButton->SetStyle(ButtonStyle);
 
+    WeaponNameBlock->SetText(FText::FromString(WeaponName));
 }
