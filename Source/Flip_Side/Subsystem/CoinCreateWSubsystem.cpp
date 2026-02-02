@@ -24,12 +24,12 @@ void UCoinCreateWSubsystem::ChangeCoinSide()
     if(bIsCreateCoinFront)
     {
         bIsCreateCoinFront = false;
-        OnSelectedCoinUpdate.Broadcast(SelectedCoin.FrontWeaponID);
+        //OnSelectedCoinUpdate.Broadcast(SelectedCoin.FrontWeaponID);
     }
     else
     {
         bIsCreateCoinFront = true;
-        OnSelectedCoinUpdate.Broadcast(SelectedCoin.BackWeaponID);
+        //OnSelectedCoinUpdate.Broadcast(SelectedCoin.BackWeaponID);
     }
         
 
@@ -45,6 +45,9 @@ void UCoinCreateWSubsystem::SelectCoin(FCoinTypeStructure SelectCoinInfo, EWeapo
 {
     SelectedCoin = SelectCoinInfo;
     SetCoinClass(CoinClass);
+    bIsCreateCoinFront = true;
+    ChangeCoinSide();
+
     UE_LOG(LogTemp,Warning, TEXT("코인 제작 서브시스템에서 코인 클래스 : %s"),*UEnum::GetValueAsString(CoinClass));
     OnSelectedCoin.Broadcast(SelectedCoin, CoinClass);
     OnCoinClassUpdate.Broadcast(CoinClass);
@@ -70,6 +73,7 @@ void UCoinCreateWSubsystem::SetCoinClass(EWeaponClass weponClass)
     if(SelectedCoinClass != weponClass)
     {
         SelectedCoinClass = weponClass;
+        
         //SelectedCoin.FrontWeaponID = -1;
         //SelectedCoin.BackWeaponID = -1;
     }

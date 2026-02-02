@@ -4,19 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "DataTypes/FlipSide_Enum.h"
-#include "W_CoinManageWidget.generated.h"
+#include "W_ShopCoinButton.generated.h"
 
 /**
  * 
  */
+class UButton;
 UCLASS()
-class FLIP_SIDE_API UW_CoinManageWidget : public UUserWidget
+class FLIP_SIDE_API UW_ShopCoinButton : public UUserWidget
 {
 	GENERATED_BODY()
 	
-/*
-	protected:
+
+protected:
 	virtual void NativeConstruct() override;
 
 private:
@@ -24,27 +24,33 @@ private:
 
 	class UCoinCreateWSubsystem* CoinCreateSubsystem;
 
-private:	
-	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* TotalCoinCountText;
+private:
 
 	UPROPERTY(meta = (BindWidget))
-	class UButton* CoinSelectButton;
-	UPROPERTY(meta = (BindWidget))
-	class UButton* CoinSelectButton2;
-	
-	UPROPERTY(meta = (BindWidget))
-	class UButton* CoinAddButton;
-	
-	UPROPERTY(meta = (BindWidget))
-	class UButton* CoinRemovebutton;
+	UButton* CoinButton;
 
+	UPROPERTY(meta = (BindWidget))
+	UButton* CoinAddButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* CoinReduceButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* CoindistroyButton;
 public:
-
+	UPROPERTY(EditAnywhere)
+	int32 CoinIndex;
 
 	UFUNCTION()
-	void SelectCoin();
+	void CreateCoin();
 	
 	UFUNCTION()
-	void SelectCoin2();*/
+	void IncreaseCoin();
+	
+	UFUNCTION()
+	void DecreaseCoin();
+	
+	UFUNCTION()
+	void ResetCoin();
+	
 };

@@ -26,7 +26,8 @@ void AShopController_FlipSide::BeginPlay()
 */
     //게임모드에서 델리게이트에 등록
     ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
-
+    this->bShowMouseCursor = true;
+    this->bEnableMouseOverEvents = true;
     if(ShopGameMode)
     {
         ShopGameMode->OnCoinCreateMode.AddDynamic(this, &AShopController_FlipSide::SetCoinCreateWidget);
@@ -174,9 +175,10 @@ void AShopController_FlipSide::SetCoinManageModeWidget()
 //카드 상점UI 띄움
 void AShopController_FlipSide::SetShopItemModeWidget()
 {
+    HideWidgetList();
     if(ShopItemWidget)
     {
-        HideWidgetList();
+        
         AddOpenWidgetList(ShopItemWidget);
         ViewWidgetList();
     }

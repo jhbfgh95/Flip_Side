@@ -6,6 +6,7 @@
 #include "Subsystem/CoinCreateWSubsystem.h"
 #include "Player/GameMode_Shop.h"
 #include "Components/Button.h"
+/*
 void UW_CoinManageWidget::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -37,4 +38,4 @@ void UW_CoinManageWidget::SelectCoin2()
     gamemode->SetCoinCreateMode();
 
 
-}
+}*/

@@ -38,7 +38,7 @@ void UShopCoinWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 }
 
 
-bool UShopCoinWSubsystem::CanAddCoin(int32 SlotNum)
+bool UShopCoinWSubsystem::CanIncreaseCoin(int32 SlotNum)
 {
     if(CoinArray.Num()-1<SlotNum)
         return false;
@@ -54,7 +54,7 @@ bool UShopCoinWSubsystem::CanAddCoin(int32 SlotNum)
     return true;
 }
 
-bool UShopCoinWSubsystem::CanRemoveCoin(int32 SlotNum)
+bool UShopCoinWSubsystem::CanDecreaseCoin(int32 SlotNum)
 {
     if(CoinArray.Num()-1<SlotNum)
         return false;
@@ -68,23 +68,27 @@ bool UShopCoinWSubsystem::CanRemoveCoin(int32 SlotNum)
     return true;
 }
 
-void UShopCoinWSubsystem::AddSlotCoinCount(int32 SlotNum)
+void UShopCoinWSubsystem::IncreaseSlotCoinCount(int32 SlotNum)
 {
-    if(CanAddCoin(SlotNum))
+    if(CanIncreaseCoin(SlotNum))
     {
+        UE_LOG(LogTemp, Warning, TEXT("증가 시작"));
         TotalCoinCount++;
         CoinArray[SlotNum].SameTypeCoinNum++;
     }
-    
+    UE_LOG(LogTemp, Warning, TEXT("증가 실행 : 총 개수 %d 슬롯 : %d, 슬롯 개수 : %d")
+    ,TotalCoinCount, CoinArray[SlotNum].SlotNum, CoinArray[SlotNum].SameTypeCoinNum);
 }
 
-void UShopCoinWSubsystem::RemoveSlotCoinCount(int32 SlotNum)
+void UShopCoinWSubsystem::DecreaseSlotCoinCount(int32 SlotNum)
 {
-    if(CanRemoveCoin(SlotNum))
+    if(CanDecreaseCoin(SlotNum))
     {
         TotalCoinCount--;
         CoinArray[SlotNum].SameTypeCoinNum--;
     }
+    UE_LOG(LogTemp, Warning, TEXT("감소 실행 : 총 개수 %d 슬롯 : %d, 슬롯 개수 : %d")
+    ,TotalCoinCount, CoinArray[SlotNum].SlotNum, CoinArray[SlotNum].SameTypeCoinNum);
 }
 
 
@@ -125,7 +129,7 @@ void UShopCoinWSubsystem::ResetCoin(int32 SlotNum)
     CoinClassArray[SlotNum] = EWeaponClass::None;
     for(int i = CoinArray[SlotNum].SameTypeCoinNum;  0<= i; i--)
     {
-        RemoveSlotCoinCount(SlotNum);
+        DecreaseSlotCoinCount(SlotNum);
     }
     
 }

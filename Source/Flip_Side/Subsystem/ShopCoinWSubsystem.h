@@ -29,12 +29,15 @@ private:
 	TArray<EWeaponClass> CoinClassArray;
 	//void InitCoinArray();
 
-public:
-	bool CanAddCoin(int32 SlotNum);
-	bool CanRemoveCoin(int32 SlotNum);
+private:
 
-	void AddSlotCoinCount(int32 SlotNum);
-	void RemoveSlotCoinCount(int32 SlotNum);
+
+public:
+	bool CanIncreaseCoin(int32 SlotNum);
+	bool CanDecreaseCoin(int32 SlotNum);
+
+	void IncreaseSlotCoinCount(int32 SlotNum);
+	void DecreaseSlotCoinCount(int32 SlotNum);
 
 	void ResetCoin(int32 SlotNum);
 

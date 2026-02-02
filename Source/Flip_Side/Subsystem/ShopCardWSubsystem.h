@@ -31,9 +31,13 @@ private:
 
 	int32 CurrentCardListNum;
 
+
+private:
+	bool CanSelectCard();
 public:
 	FCardChanged OnCardChanged;
 	FCardSelected OnCardSelected;
+	
 	void SetNextCard();
 
 	void SetPreviousCard();

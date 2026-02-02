@@ -60,6 +60,7 @@ private:
 	class UButton* TestClass2;
     UPROPERTY(meta = (BindWidget))
 	class UButton* TestClass3;
+	
 	UFUNCTION()
 	void SetDeal();
 	UFUNCTION()

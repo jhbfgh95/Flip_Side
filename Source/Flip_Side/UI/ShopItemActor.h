@@ -11,6 +11,13 @@ class FLIP_SIDE_API AShopItemActor : public AActor
 {
 	GENERATED_BODY()
 	
+
+private:
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	class USphereComponent* SphereCollision;
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	class UStaticMeshComponent* ItemMesh;
+
 public:	
 	// Sets default values for this actor's properties
 	AShopItemActor();
@@ -22,5 +29,12 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+protected:
+	UFUNCTION()
+	void OnHoverBegin(UPrimitiveComponent* TouchedComponent);
 
+	
+    UFUNCTION()
+    void OnHoverEnd(UPrimitiveComponent* TouchedComponent);
 };
