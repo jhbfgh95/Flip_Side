@@ -95,10 +95,12 @@ void UShopCoinWSubsystem::DecreaseSlotCoinCount(int32 SlotNum)
 FCoinTypeStructure UShopCoinWSubsystem::GetSlotCoin(int32 SlotNum)
 {
     FCoinTypeStructure CoinInfo;
+
     if(CoinArray.Num()-1<SlotNum)
         return CoinInfo;
+
     CoinInfo = CoinArray[SlotNum];
-    
+    UE_LOG(LogTemp, Log,TEXT("선택한 코인 아이디 : %d"), CoinInfo.FrontWeaponID);
     return CoinInfo;
 }
 

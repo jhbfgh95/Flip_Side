@@ -6,6 +6,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "CoinDataTypes.h"
 #include "DataTypes/FlipSide_Enum.h"
+#include "DataTypes/WeaponDataTypes.h"
 #include "CoinCreateWSubsystem.generated.h"
 
 /**
@@ -31,11 +32,19 @@ class FLIP_SIDE_API UCoinCreateWSubsystem : public UWorldSubsystem
 	protected:
 	//상점 레벨일 경우에만 생성
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
-
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 private:
 	//선택된 코인
 	FCoinTypeStructure SelectedCoin;
 	EWeaponClass SelectedCoinClass;
+
+private:
+
+	class UDataManagerSubsystem* DM;
+	const TArray<FFaceData>* TankWeapons;
+	const TArray<FFaceData>* DealWeapons;
+	const TArray<FFaceData>* UtilWeapons;
+
 public:
 	
 	//선택된 코인이 변경되었을 때
@@ -68,4 +77,8 @@ public:
 	void OnClassSelectMode();
 	
 	void OffClassSelectMode();
+
+	const FFaceData* GetTankWeaponData(int32 ID) const;
+	const FFaceData* GetDealWeaponData(int32 ID) const;
+	const FFaceData* GetUtilWeaponData(int32 ID) const;
 };

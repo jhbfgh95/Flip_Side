@@ -2,6 +2,7 @@
 
 
 #include "Subsystem/ShopCardWSubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
 
 bool UShopCardWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -21,6 +22,16 @@ bool UShopCardWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 void UShopCardWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
+    
+
+    if (UGameInstance* GI = GetWorld()->GetGameInstance())
+    {
+        DM = GI->GetSubsystem<UDataManagerSubsystem>();
+    }
+    if(DM)
+    {
+        //TryGetCard나오면 받아오도록 추후 추가
+    }
 
     FCardData testCard;
     

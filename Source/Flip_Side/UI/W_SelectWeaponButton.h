@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "DataTypes/FlipSide_Enum.h"
+#include "DataTypes/WeaponDataTypes.h"
 #include "W_SelectWeaponButton.generated.h"
 
 /**
@@ -23,6 +24,8 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
+
+	const FFaceData* WeaponData;
 
 	//아이콘
 	UPROPERTY(EditAnywhere, Category = "Info")

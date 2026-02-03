@@ -2,7 +2,7 @@
 
 
 #include "Subsystem/ShopItemWSubsystem.h"
-
+#include "Subsystem/DataManagerSubsystem.h"
 bool UShopItemWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     Super::ShouldCreateSubsystem(Outer);
@@ -27,6 +27,16 @@ void UShopItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     DefaultsItem.SameItemNum = 0;
     for(int i =0; i<3; i++)
         PlayerItemArray.Add(DefaultsItem);
+
+    if (UGameInstance* GI = GetWorld()->GetGameInstance())
+    {
+        DM = GI->GetSubsystem<UDataManagerSubsystem>();
+    }
+
+    if(DM)
+    {
+        
+    }
 }
 
 

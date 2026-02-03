@@ -25,6 +25,9 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 private:
+	class UDataManagerSubsystem* DM;
+	
+private:
 	TArray<FCardData> CardList;
 
 	TArray<FCardData> PlayerCardList;

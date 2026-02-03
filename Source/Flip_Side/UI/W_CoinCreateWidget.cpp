@@ -47,7 +47,6 @@ void UW_CoinCreateWidget::UpdateCoinState(struct FCoinTypeStructure UpdateCoinIn
 
 void UW_CoinCreateWidget::FinishCreate()
 {
-    UE_LOG(LogTemp,Warning, TEXT("코인제작 매니저의 코인 클래스 : %s"),*UEnum::GetValueAsString(CoinCreateWSubSystem->GetSelectCoinClass()));
     ShopCoinSubSystem->SetSlotCoin(CoinCreateWSubSystem->GetSelectCoin(), CoinCreateWSubSystem->GetSelectCoinClass());
     ShopGameMode->SetCoinManageMode();
 }
@@ -70,7 +69,6 @@ void UW_CoinCreateWidget::CloseClassSelectPannel()
 //코드가 안 예쁨 수정해야할듯 
 void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
 {
-    UE_LOG(LogTemp, Warning, TEXT("값설정됨"));
     FinishButton->SetVisibility(ESlateVisibility::Visible);
     dealClassGrid->SetVisibility(ESlateVisibility::Collapsed);
     utilClassGrid->SetVisibility(ESlateVisibility::Collapsed);
@@ -79,15 +77,12 @@ void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
     {
     case EWeaponClass::Deal:
         dealClassGrid->SetVisibility(ESlateVisibility::Visible);
-        UE_LOG(LogTemp, Warning, TEXT("딜"));
         break;
     case EWeaponClass::Tank:
         tankClassGrid->SetVisibility(ESlateVisibility::Visible);
-        UE_LOG(LogTemp, Warning, TEXT("텡"));
         break;
     case EWeaponClass::Heal:
         utilClassGrid->SetVisibility(ESlateVisibility::Visible);
-        UE_LOG(LogTemp, Warning, TEXT("힐"));
         break;
     default:
         OpenClassSelectPannel();

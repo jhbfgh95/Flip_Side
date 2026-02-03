@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "DataTypes/CoinDataTypes.h"
 #include "DataTypes/FlipSide_Enum.h"
+#include "DataTypes/WeaponDataTypes.h"
 #include "CreateCoinUIActor.generated.h"
 
 UCLASS()
@@ -65,6 +66,10 @@ private:
 	UFUNCTION()
 	void SetCoinSideMatarial();
 
+	const FFaceData* FrontFaceData; 
+	
+	const FFaceData* BackFaceData;
+
 private:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UTimelineComponent* Timeline;
@@ -101,4 +106,5 @@ private:
 
 	void ResetSideTexture();
 
+	void SetCoinSide(const FFaceData*& faceData , int32 ID);
 };

@@ -2,6 +2,8 @@
 
 
 #include "Subsystem/CoinCreateWSubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
+
 bool UCoinCreateWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     Super::ShouldCreateSubsystem(Outer);
@@ -16,6 +18,43 @@ bool UCoinCreateWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
     const FString MapName = World->GetMapName();
     return MapName.Contains(TEXT("L_ShopLevel"));
 } 
+
+
+void UCoinCreateWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+    Super::Initialize(Collection);
+
+    if (UGameInstance* GI = GetWorld()->GetGameInstance())
+    {
+        DM = GI->GetSubsystem<UDataManagerSubsystem>();
+    }
+
+    if(DM)
+    {
+        if (DM->TryGetWeaponsByType(1, TankWeapons))
+        {
+            for (const FFaceData& Weapon : *TankWeapons)
+            {
+                UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
+            }
+        }
+        if (DM->TryGetWeaponsByType(2, DealWeapons))
+        {
+            for (const FFaceData& Weapon : *DealWeapons)
+            {
+                UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
+            }
+        } 
+        if (DM->TryGetWeaponsByType(3, UtilWeapons))
+        {
+            for (const FFaceData& Weapon : *UtilWeapons)
+            {
+                UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
+            }
+        } 
+    }
+}
+
 
 
 //코인의 앞뒤를 변경
@@ -35,20 +74,18 @@ void UCoinCreateWSubsystem::ChangeCoinSide()
 
 }
 
-
 FCoinTypeStructure UCoinCreateWSubsystem::GetSelectCoin()
 {
     return SelectedCoin;
 }
+
 //코인 선택
 void UCoinCreateWSubsystem::SelectCoin(FCoinTypeStructure SelectCoinInfo, EWeaponClass CoinClass)
 {
     SelectedCoin = SelectCoinInfo;
     SetCoinClass(CoinClass);
     bIsCreateCoinFront = true;
-    ChangeCoinSide();
 
-    UE_LOG(LogTemp,Warning, TEXT("코인 제작 서브시스템에서 코인 클래스 : %s"),*UEnum::GetValueAsString(CoinClass));
     OnSelectedCoin.Broadcast(SelectedCoin, CoinClass);
     OnCoinClassUpdate.Broadcast(CoinClass);
 }
@@ -102,4 +139,31 @@ void UCoinCreateWSubsystem::OnClassSelectMode()
 void UCoinCreateWSubsystem::OffClassSelectMode()
 {
     OffCoinClassSelectMode.Broadcast();
+}
+
+
+const FFaceData* UCoinCreateWSubsystem::GetTankWeaponData(int32 ID) const
+{
+    if (!TankWeapons || !TankWeapons->IsValidIndex(ID))
+        return nullptr;
+    else 
+        return &(*TankWeapons)[ID];
+    
+    
+}
+
+const FFaceData* UCoinCreateWSubsystem::GetDealWeaponData(int32 ID) const
+{
+    if (!DealWeapons || !DealWeapons->IsValidIndex(ID))
+        return nullptr;
+    else 
+        return &(*DealWeapons)[ID];
+}
+
+const FFaceData* UCoinCreateWSubsystem::GetUtilWeaponData(int32 ID) const
+{
+    if (!UtilWeapons || !UtilWeapons->IsValidIndex(ID))
+        return nullptr;
+    else 
+        return &(*UtilWeapons)[ID];
 }

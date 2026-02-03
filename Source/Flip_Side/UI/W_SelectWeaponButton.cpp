@@ -28,9 +28,10 @@ void UW_SelectWeaponButton::NativeConstruct()
         {
             WeaponButton->OnClicked.AddDynamic(this, &UW_SelectWeaponButton::SelectWeapon);
         }
+        
+        
+        InitButton();
     }
-    
-    InitButton();
 }
 void UW_SelectWeaponButton::SelectWeapon()
 {
@@ -39,16 +40,40 @@ void UW_SelectWeaponButton::SelectWeapon()
 
 void UW_SelectWeaponButton::InitButton()
 {
-    FButtonStyle ButtonStyle = WeaponButton->GetStyle();
+    if(WeaponClass == EWeaponClass::Tank)
+    {
+        WeaponData = CoinCreateWSubSystem->GetTankWeaponData(WeaponID);
+    }
+    else if(WeaponClass == EWeaponClass::Deal)
+    {
+        WeaponData = CoinCreateWSubSystem->GetDealWeaponData(WeaponID);
+    }
+    else if(WeaponClass == EWeaponClass::Heal)
+    {
+        WeaponData = CoinCreateWSubSystem->GetUtilWeaponData(WeaponID);
+    }
 
-    ButtonStyle.Normal.SetResourceObject(WeapoTexture);
-    //ButtonStyle.Normal.ImageSize = FVector2D(64.f, 64.f);
+    if(WeaponData)
+    {
+        FButtonStyle ButtonStyle = WeaponButton->GetStyle();
+        ButtonStyle.Normal.SetResourceObject(WeaponData->WeaponIcon);
+        WeaponButton->SetStyle(ButtonStyle);
+        WeaponNameBlock->SetText(FText::FromString(WeaponName));
+    }
+    else
+    {
+        /*
+        FButtonStyle ButtonStyle = WeaponButton->GetStyle();
 
-    // Pressed
-    //ButtonStyle.Pressed.SetResourceObject(WeapoTexture);
-    //NewStyle.Pressed.ImageSize = FVector2D(64.f, 64.f);
+        ButtonStyle.Normal.SetResourceObject(WeapoTexture);
+        //ButtonStyle.Normal.ImageSize = FVector2D(64.f, 64.f);
 
-    WeaponButton->SetStyle(ButtonStyle);
+        // Pressed
+        //ButtonStyle.Pressed.SetResourceObject(WeapoTexture);
+        //NewStyle.Pressed.ImageSize = FVector2D(64.f, 64.f);
 
-    WeaponNameBlock->SetText(FText::FromString(WeaponName));
+        WeaponButton->SetStyle(ButtonStyle);
+
+        WeaponNameBlock->SetText(FText::FromString(WeaponName));*/
+    }
 }

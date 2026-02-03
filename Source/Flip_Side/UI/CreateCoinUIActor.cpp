@@ -24,8 +24,6 @@ ACreateCoinUIActor::ACreateCoinUIActor()
 
 	PressMachineMesh= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PressMachineMesh"));
 	PressMachineMesh->SetupAttachment(RootComponent);
-
-
 }
 
 // Called when the game starts or when spawned
@@ -80,37 +78,42 @@ void ACreateCoinUIActor::ClickCoin()
 	CoinCreateWSubSystem->ChangeCoinSide();
 }
 
-
 void ACreateCoinUIActor::PressCoin(float Value)
 {
 	FVector MoveVector = FMath::Lerp(MachineStartLocation, MachineEndLocation, Value);
 	PressMachineMesh->SetRelativeLocation(MoveVector);
 }
 
-
 void ACreateCoinUIActor::RotateCoin(float Value)
 {
 	SetActorRotation(StartRotation + FRotator(0.f,Value,0.f));
 }
-
-
 
 void ACreateCoinUIActor::UpdateWeaponClass(EWeaponClass weponClass)
 {
 	WeaponType = weponClass;
 }
 
+
+//코인 선택됬을 때 초기화
 void ACreateCoinUIActor::InitCoin(FCoinTypeStructure CoinValue, EWeaponClass weponClass)
 {
-	
-    UE_LOG(LogTemp,Warning, TEXT("코인 ui 코인 클래스 : %s"),*UEnum::GetValueAsString(weponClass));
 	CoinInfo = CoinValue;
+	FrontFaceData = nullptr;
+	BackFaceData = nullptr;
+	IsCoinFront = true;
+	UpdateWeaponClass(weponClass);
+
 	if(weponClass == EWeaponClass::None)
 	{
 		ResetSideTexture();
 	}
 	else
 	{
+		SetCoinSide(FrontFaceData, CoinInfo.FrontWeaponID);
+
+		SetCoinSide(BackFaceData, CoinInfo.BackWeaponID);	
+
 		SetCoinSideMatarial();
 	}
 }
@@ -118,46 +121,69 @@ void ACreateCoinUIActor::InitCoin(FCoinTypeStructure CoinValue, EWeaponClass wep
 void ACreateCoinUIActor::UpdateCoinWeapon(int32 WeaponID)
 {
 	PressMachineTimeline->PlayFromStart();
+
 	if(IsCoinFront)
 	{
 		CoinInfo.FrontWeaponID = WeaponID;
+		SetCoinSide(FrontFaceData, WeaponID);
 	}
 	else
 	{
 		CoinInfo.BackWeaponID = WeaponID;
+		SetCoinSide(BackFaceData, WeaponID);
 	}
+
+
+}
+
+
+void ACreateCoinUIActor::SetCoinSide(const FFaceData*& FaceData , int32 ID)
+{
+	if(ID == -1)
+		FaceData = nullptr;
+	
+
+	if(WeaponType == EWeaponClass::Tank)
+	{
+		FaceData = CoinCreateWSubSystem->GetTankWeaponData(ID);
+	}
+	else if(WeaponType == EWeaponClass::Deal)
+	{	
+		FaceData = CoinCreateWSubSystem->GetDealWeaponData(ID);
+	}
+	else if(WeaponType == EWeaponClass::Heal)
+	{
+		FaceData = CoinCreateWSubSystem->GetUtilWeaponData(ID);
+	}
+	else
+	{
+		FaceData = nullptr;
+	}
+
 }
 
 void ACreateCoinUIActor::SetCoinSideMatarial()
 {
-	if(FrontIconTexture && BackIconTexture && TypeColors.Num() == 3)
-	{
-		
-		UMaterialInstanceDynamic* MID = CoinMesh->CreateDynamicMaterialInstance(0);
-		if(MID)
-		{
-				MID->SetTextureParameterValue(FName("Front_Texture"), FrontIconTexture);
-				MID->SetTextureParameterValue(FName("Back_Texture"), BackIconTexture);
+	
+	UMaterialInstanceDynamic* MID = CoinMesh->CreateDynamicMaterialInstance(0);
 
-			if(WeaponType == EWeaponClass::Tank)
-			{
-				MID->SetVectorParameterValue(FName("Front_Color"), TypeColors[0]);
-				MID->SetVectorParameterValue(FName("Back_Color"), TypeColors[0]);
-			}
-			else if(WeaponType == EWeaponClass::Deal)
-			{
-				MID->SetVectorParameterValue(FName("Front_Color"), TypeColors[1]);
-				MID->SetVectorParameterValue(FName("Back_Color"), TypeColors[1]);
-			}
-			else if(WeaponType == EWeaponClass::Heal)
-			{
-				MID->SetVectorParameterValue(FName("Front_Color"), TypeColors[2]);
-				MID->SetVectorParameterValue(FName("Back_Color"), TypeColors[2]);
-			}
-			else
-			{
-				ResetSideTexture();
-			}
+	if(MID)
+	{
+		if(FrontFaceData)
+		{
+			MID->SetTextureParameterValue(FName("Front_Texture"), FrontFaceData->WeaponIcon);
+			MID->SetVectorParameterValue(FName("Front_Color"), FrontFaceData->TypeColor);
+
+		}
+		if(BackFaceData)
+		{	
+			MID->SetTextureParameterValue(FName("Back_Texture"), BackFaceData->WeaponIcon);
+			MID->SetVectorParameterValue(FName("Back_Color"), BackFaceData->TypeColor);
+		}
+	
+		if(FrontFaceData&&BackFaceData)
+		{
+			ResetSideTexture();
 		}
 	}
 }

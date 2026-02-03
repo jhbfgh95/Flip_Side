@@ -24,6 +24,10 @@ protected:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
+
+private:
+	class UDataManagerSubsystem* DM;
+
 public:
 	FItemSelecte OnItemSelected;
 
@@ -43,17 +47,19 @@ private:
 
 	//아이템 선택 함수
 	FSelectItem GetSelectItem();
+
 	//아이템 정보 반환 함수
 
 public:
+	//상점 아이템에 마우스를 올려놧을 때
 	void HoverShopItem(int32 ItemNum);
-
-	void UnHoverShopItem();
-
+	//상점 아이템에서 마우스를 땠을떄
+	void UnHoverShopItem();	
+	//플레이어 인벤토리에 있는아이템에 마우스를 올렸을 때
 	void HoverPlayerItem(int32 ItemNum);
-
+	//플레이어 인벤토리에 있는 아이템에 마우스가 벗어 놨을 때
 	void UnHoverPlayerItem(int32 ItemNum);
-
+	//아이템 아이디에 해당하는 아이템을 가져옴
 	void GetItem(int32 GetItemID);
 
 
