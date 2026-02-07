@@ -65,7 +65,7 @@ void UCoinManagementWSubsystem::InitBattleReadyCoin()
     BattleReadyCoins.Empty();
 }
 
-// 260126, 김진수 수정
+// 260126~, 김진수 수정
 void UCoinManagementWSubsystem::AddBattleReadyCoins(ACoinActor* SelectCoinActor)
 {    
     /* 기존
@@ -86,15 +86,57 @@ void UCoinManagementWSubsystem::AddBattleReadyCoins(ACoinActor* SelectCoinActor)
     SelectCoinActor->SetActorRotation(FRotator(0.f, 180.f, 0.f));
 
     // 서랍 좌표로 이동
-    FVector BaseDrawerLocation = FVector(760.f, -2600.f, -160.f); // 서랍 첫 칸
-    float Offset = 400.f; // 다음 코인과의 간격
-    
-    FVector TargetLocation = BaseDrawerLocation + (FVector(0.f, BattleReadyCoinNum * Offset, 0.f));
+    const FVector Row1_Start = FVector(570.f, -2300.f, -690.f); // 1행 1열 (1~5번째 코인 시작점)
+    const FVector Row2_Start = FVector(110.f, -2300.f, -690.f); // 2행 1열 (6~10번째 코인 시작점)
+    const float ColumnOffset = 650.f; // 가로 칸 사이의 간격
+
+    // 2. 현재 코인이 몇 번째인지 계산 (0~9번 인덱스)
+    int32 CurrentIdx = BattleReadyCoins.Num() - 1;
+
+    // 3. 몇 번째 줄(Row)인지와 그 줄에서 몇 번째 칸(Col)인지 계산
+    int32 RowIndex = CurrentIdx / 5; // 0~4번은 0(1행), 5~9번은 1(2행)
+    int32 ColIndex = CurrentIdx % 5; // 각 줄 내에서 0, 1, 2, 3, 4번째 칸
+
+    // 4. 최종 타겟 좌표 결정
+    FVector TargetLocation;
+
+    if (RowIndex == 0)
+    {
+        // 1행 배치 로직
+        TargetLocation = Row1_Start;
+        TargetLocation.Y += (ColIndex * ColumnOffset); // Y축 기준 가로 배치 예시
+    }
+    else
+    {
+        // 2행 배치 로직 (6번째 코인부터 여기로 들어옴)
+        TargetLocation = Row2_Start;
+        TargetLocation.Y += (ColIndex * ColumnOffset);
+    }
+
+    // 5. 이동 및 회전 적용
     SelectCoinActor->SetActorLocation(TargetLocation);
 
     BattleReadyCoinNum++;
 
     UE_LOG(LogTemp, Warning, TEXT("Coin Added to BattleReady: Index %d"), BattleReadyCoinNum - 1);
+
+    // [추가] 뽑힌 코인과 같은 종류(WeaponID)의 남은 코인들 인덱스 갱신
+    TArray<AActor*> OutActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACoinActor::StaticClass(), OutActors);
+
+    for (AActor* Actor : OutActors)
+    {
+        ACoinActor* Coin = Cast<ACoinActor>(Actor);
+        // 같은 무기 종류이면서, 아직 슬롯에 남아있는(스케일이 1.0인) 코인들만 대상
+        if (Coin && Coin->GetFrontWeaponID() == SelectCoinActor->GetFrontWeaponID() && Coin != SelectCoinActor)
+        {
+            // 스케일이 1.1보다 작다 = 아직 슬롯에 남아있는 코인이다
+            if (Coin->GetActorScale3D().X < 1.1f) 
+            {
+                Coin->DecrementSameTypeIndex(); 
+            }
+        }
+    }
 }
 
 int32 UCoinManagementWSubsystem::GetBattleReadyCoinNum() { return BattleReadyCoinNum; }
@@ -172,6 +214,10 @@ void UCoinManagementWSubsystem::InstanceCoins()
                                     FrontWP.WeaponIcon,
                                     BackWP.WeaponIcon
                                 );
+
+                                // i(루프 인덱스) 값을 코인에게 전달
+                                // i가 0인 코인이 뭉치의 가장 앞에 있는 코인이 됨
+                                NewCoin->SameTypeIndex = i;
 
                                 NewCoin->FinishSpawning(SpawnTransform);
 

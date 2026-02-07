@@ -70,6 +70,24 @@ void ACoinActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+int32 ACoinActor::GetSameTypeIndex() const
+{
+    return SameTypeIndex;
+}
+
+int32 ACoinActor::GetFrontWeaponID() const
+{
+    return FrontWeaponID;
+}
+
+void ACoinActor::DecrementSameTypeIndex()
+{
+    if (SameTypeIndex > 0)
+    {
+        SameTypeIndex--;
+    }
+}
+
 int32 ACoinActor::GetCoinID()
 {
 	return CoinID;
