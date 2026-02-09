@@ -49,5 +49,16 @@ public:
 	//클릭시 해당 함수 Call
 	void AddBattleReadyCoins(ACoinActor* SelectCoinActor);
 
+	// 서랍에 들어간 코인을 다시 클릭 시 취소 로직
+    void RemoveBattleReadyCoins(ACoinActor* SelectCoinActor);
+
 	int32 GetBattleReadyCoinNum();
+
+	bool IsCoinInBattleReady(ACoinActor* InCoin) const;
+
+	ACoinActor* GetCoinByName(FString TargetName);
+
+	bool IsCoinIdInBattleReady(int32 TargetID) const;
+
+	void LockCoinReady();
 };

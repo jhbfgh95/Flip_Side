@@ -88,6 +88,26 @@ void ACoinActor::DecrementSameTypeIndex()
     }
 }
 
+void ACoinActor::SetOriginSlotLocation(FVector InLoc)
+{
+    OriginSlotLocation = InLoc;
+}
+
+FVector ACoinActor::GetOriginSlotLocation() const
+{
+    return OriginSlotLocation;
+}
+
+void ACoinActor::SetSameTypeIndex(int32 NewIndex)
+{
+    SameTypeIndex = NewIndex;
+}
+
+void ACoinActor::IncrementSameTypeIndex()
+{
+    SameTypeIndex++;
+}
+
 int32 ACoinActor::GetCoinID()
 {
 	return CoinID;

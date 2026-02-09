@@ -62,10 +62,22 @@ ETurnState UBattleManagerWSubsystem::GetCurrentTurn()
     return TurnManageMentStack.Top();
 }
 
+void UBattleManagerWSubsystem::StartBattleFromLever() { TurnProgressing(); }
+
 void UBattleManagerWSubsystem::TurnProgressing()
 {
+    // 이전 턴 상태 보관 (로그용)
+    ETurnState PreviousTurn = CurrentTurn;
+
     // 코인 레디턴 -> 코인 설렉트턴 -> 비헤이비어 턴 -> 보스 턴 -> 세팅 턴
     CurrentTurn = TurnManageMentStack.Pop();
+
+    // 로그 출력: 어떤 턴에서 어떤 턴으로 넘어갔는지 명시
+    const UEnum* EnumPtr = StaticEnum<ETurnState>();
+    FString PrevName = EnumPtr ? EnumPtr->GetNameStringByValue((int64)PreviousTurn) : TEXT("None");
+    FString NextName = EnumPtr ? EnumPtr->GetNameStringByValue((int64)CurrentTurn) : TEXT("None");
+
+    UE_LOG(LogTemp, Warning, TEXT("#### [턴 전환] %s ===> %s ####"), *PrevName, *NextName);
 
     switch(CurrentTurn)
     {
