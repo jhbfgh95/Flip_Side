@@ -1,11 +1,14 @@
 #pragma once
 
+
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "GridTypes.h"
+#include "BossAttackTypes.h"
 #include "GridManagerSubsystem.generated.h"
 
 class AGridActor;
+class ACoinActor;
 
 USTRUCT(BlueprintType)
 struct FCoinOnGridInfo
@@ -14,6 +17,7 @@ struct FCoinOnGridInfo
 
 	UPROPERTY(BlueprintReadOnly) int32 CoinID = 0;
 	UPROPERTY(BlueprintReadOnly) FGridPoint GridXY;
+	ACoinActor* CoinActor = nullptr;
 };
 
 UCLASS()
@@ -25,7 +29,6 @@ public:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 
-	// 스폰 설정 (너가 준 고정값)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")
 	FVector GridOrigin = FVector(1440.f, -2460.f, -70.f);
 
@@ -54,6 +57,24 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	AGridActor* GetGridActor(const FGridPoint& P) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Grid|Boss")
+	void BuildBossAttackCells(const FBossAttackSpec& Spec, TArray<FGridPoint>& OutCells) const;
+
+	/*
+	UFUNCTION(BlueprintCallable, Category="Grid|Boss")
+	void PreviewBossAttack(const FBossAttackSpec& Spec);
+
+	UFUNCTION(BlueprintCallable, Category="Grid|Boss")
+	void ClearBossAttackPreview();
+	*/
+
+	using FCoinPred = TFunctionRef<bool(const FCoinOnGridInfo&)>;
+
+	void BuildCoinTargetCells(
+		FCoinPred Predicate,
+		TArray<FGridPoint>& OutCells
+	) const;
 
 private:
 	void InstanceGrid();

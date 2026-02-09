@@ -276,8 +276,7 @@ bool UDataManagerSubsystem::LoadBosses()
 bool UDataManagerSubsystem::LoadItems()
 {
     const TCHAR* Sql =
-        TEXT("SELECT item_id, item_range, item_effect_value, icon_path, item_des "
-            "FROM item_def;");
+        TEXT("SELECT i.item_id, i.item_range, i.item_effect_value, i.icon_path, i.item_description AS item_des, i.item_type_id, i.behavior, t.item_type_color FROM item i JOIN item_type t ON i.item_type_id = t.item_type_id;");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
@@ -299,7 +298,13 @@ bool UDataManagerSubsystem::LoadItems()
         }
         const FString itemdes = GetColText(Stmt, 4);
         Item.Item_DES = itemdes;
-
+        Item.ItemTypeID = GetColInt(Stmt, 5);
+        Item.BehaviorCode = GetColText(Stmt, 6);
+        const FString ColorHex = GetColText(Stmt, 7);
+        if (!TryParseHexColor_RRGGBBAA(ColorHex, Item.TypeColor))
+        {
+            Item.TypeColor = FLinearColor::White;
+        }
         ItemByID.Add(Item.ItemID, Item);
     }
 
