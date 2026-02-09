@@ -66,6 +66,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Grid")
 	FGridPoint CurrentGridPoint;
 
+	// 슬롯 뭉치의 시작점 (0번 자리 좌표) for 코인 취소 시 원위치 복귀
+    UPROPERTY(VisibleAnywhere, Category = "Coin | Location")
+    FVector OriginSlotLocation;
+
 public:	
 	ACoinActor();
 
@@ -76,6 +80,14 @@ public:
 
 	int32 GetFrontWeaponID() const;
 	void DecrementSameTypeIndex(); // 인덱스 감소를 위한 함수
+
+	// 초기 슬롯 위치 저장 및 반환
+    void SetOriginSlotLocation(FVector InLoc);
+    FVector GetOriginSlotLocation() const;
+
+    // 인덱스 제어 함수들
+    void SetSameTypeIndex(int32 NewIndex);
+    void IncrementSameTypeIndex();
 
 	int32 GetCoinID();
 
