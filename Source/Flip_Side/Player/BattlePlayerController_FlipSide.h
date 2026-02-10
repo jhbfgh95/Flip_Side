@@ -14,11 +14,20 @@ UCLASS(abstract)
 class ABattlePlayerController_FlipSide : public APlayerController
 {
 	GENERATED_BODY()
+private:
+    FVector DefaultCameraLocation;
+    FRotator DefaultCameraRotation;
+    float DefaultCameraArmLength;
+
 protected:
 	TObjectPtr<ABattlePlayerPawn_FlipSide> ControlledPawn;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputMappingContext* InputContext;
+
+	virtual void BeginPlay() override; // 기본값 저장을 위해 필요 (260204 추가)
+	// 디폴트 카메라 위치로 복귀
+	void ReturnToDefaultCamera();
 
 	// 마우스 좌클릭
     void OnLeftClick();
