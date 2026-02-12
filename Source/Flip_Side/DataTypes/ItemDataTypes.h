@@ -14,6 +14,9 @@ struct FItemData
     int32 ItemID = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 ItemTypeID = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 ItemRange = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -24,6 +27,13 @@ struct FItemData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UTexture2D* ItemIcon=nullptr;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FLinearColor TypeColor;
+
+    // DB에서 읽은 코드 문자열
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FString BehaviorCode;
 };
 
 /**

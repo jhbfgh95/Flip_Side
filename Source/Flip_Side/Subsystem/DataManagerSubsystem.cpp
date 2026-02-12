@@ -58,6 +58,8 @@ bool UDataManagerSubsystem::ReloadCache()
     bOk &= LoadWeapons();
     bOk &= LoadBosses();
     bOk &= LoadItems();
+    bOk &= LoadWeaponTypes();
+    bOk &= LoadCards();
 
     bCacheReady = bOk;
 
@@ -124,6 +126,16 @@ bool UDataManagerSubsystem::TryGetItem(int32 ItemID, FItemData& Out) const
     return false;
 }
 
+bool UDataManagerSubsystem::TryGetCard(int32 CardID, FCardData& Out) const
+{
+    if (const FCardData* Found = CardByID.Find(CardID))
+    {
+        Out = *Found;
+        return true;
+    }
+    return false;
+}
+
 void UDataManagerSubsystem::ClearCache()
 {
     WeaponByID.Reset();
@@ -178,7 +190,7 @@ EWeaponClass UDataManagerSubsystem::WeaponClassFromString(const FString& S)
 bool UDataManagerSubsystem::LoadWeapons()
 {
     const TCHAR* Sql =
-        TEXT("SELECT c.id, w.weapon_type AS weapon_type, c.behavior_point, c.range_x, c.range_y, c.icon_path, c.behavior, c.vfx_path, c.weapon_id, w.HP, c.weapon_point, c.KOR_DES, c.ENG_DES, w.typecolor FROM coin_weapon_def AS c JOIN weapon_type AS w ON c.weapon_id = w.weapon_id; ");
+        TEXT("SELECT c.id, w.weapon_type AS weapon_type, c.behavior_point, c.range_x, c.range_y, c.icon_path, c.behavior, c.vfx_path, c.type_id, w.HP, c.weapon_point, c.KOR_DES, c.ENG_DES, w.typecolor FROM coin_weapon_def AS c JOIN weapon_type AS w ON c.type_id = w.type_id; ");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
@@ -244,6 +256,44 @@ bool UDataManagerSubsystem::LoadWeapons()
     return true;
 }
 
+bool UDataManagerSubsystem::LoadWeaponTypes()
+{
+    const TCHAR* Sql =
+        TEXT("SELECT type_id, weapon_type, HP, typecolor FROM weapon_type; ");
+
+    FSQLitePreparedStatement Stmt;
+    if (!PrepareStmt(Db, Sql, Stmt))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[DB] LoadWeapons: PrepareStatement failed"));
+        return false;
+    }
+
+    while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
+    {
+        FWeaponType Data;
+
+        Data.TypeID = GetColInt(Stmt, 0);
+
+        const FString ClassStr = GetColText(Stmt, 1);
+        Data.WeaponType = WeaponClassFromString(ClassStr);
+
+        
+        Data.HP = GetColInt(Stmt, 2);
+        
+
+        const FString ColorHex = GetColText(Stmt, 3);
+        if (!TryParseHexColor_RRGGBBAA(ColorHex, Data.TypeColor))
+        {
+            Data.TypeColor = FLinearColor::White;
+        }
+
+        WeaponTypes.Add(Data);
+    }
+
+    Stmt.Destroy();
+    return true;
+}
+
 bool UDataManagerSubsystem::LoadBosses()
 {
     const TCHAR* Sql =
@@ -276,8 +326,7 @@ bool UDataManagerSubsystem::LoadBosses()
 bool UDataManagerSubsystem::LoadItems()
 {
     const TCHAR* Sql =
-        TEXT("SELECT item_id, item_range, item_effect_value, icon_path, item_des "
-            "FROM item_def;");
+        TEXT("SELECT i.item_id, i.item_range, i.item_effect_value, i.icon_path, i.item_description AS item_des, i.item_type_id, i.behavior, t.item_type_color FROM item i JOIN item_type t ON i.item_type_id = t.item_type_id;");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
@@ -299,7 +348,13 @@ bool UDataManagerSubsystem::LoadItems()
         }
         const FString itemdes = GetColText(Stmt, 4);
         Item.Item_DES = itemdes;
-
+        Item.ItemTypeID = GetColInt(Stmt, 5);
+        Item.BehaviorCode = GetColText(Stmt, 6);
+        const FString ColorHex = GetColText(Stmt, 7);
+        if (!TryParseHexColor_RRGGBBAA(ColorHex, Item.TypeColor))
+        {
+            Item.TypeColor = FLinearColor::White;
+        }
         ItemByID.Add(Item.ItemID, Item);
     }
 

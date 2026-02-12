@@ -35,4 +35,6 @@ protected:
 
 public:
 	ETurnState GetCurrentTurn();
+
+	void StartBattleFromLever();
 };
