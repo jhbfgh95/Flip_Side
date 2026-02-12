@@ -190,7 +190,7 @@ EWeaponClass UDataManagerSubsystem::WeaponClassFromString(const FString& S)
 bool UDataManagerSubsystem::LoadWeapons()
 {
     const TCHAR* Sql =
-        TEXT("SELECT c.id, w.weapon_type AS weapon_type, c.behavior_point, c.range_x, c.range_y, c.icon_path, c.behavior, c.vfx_path, c.weapon_id, w.HP, c.weapon_point, c.KOR_DES, c.ENG_DES, w.typecolor FROM coin_weapon_def AS c JOIN weapon_type AS w ON c.weapon_id = w.weapon_id; ");
+        TEXT("SELECT c.id, w.weapon_type AS weapon_type, c.behavior_point, c.range_x, c.range_y, c.icon_path, c.behavior, c.vfx_path, c.type_id, w.HP, c.weapon_point, c.KOR_DES, c.ENG_DES, w.typecolor FROM coin_weapon_def AS c JOIN weapon_type AS w ON c.type_id = w.type_id; ");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
@@ -259,7 +259,7 @@ bool UDataManagerSubsystem::LoadWeapons()
 bool UDataManagerSubsystem::LoadWeaponTypes()
 {
     const TCHAR* Sql =
-        TEXT("SELECT weapon_id, weapon_type, HP, typecolor FROM weapon_type; ");
+        TEXT("SELECT type_id, weapon_type, HP, typecolor FROM weapon_type; ");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
@@ -272,7 +272,7 @@ bool UDataManagerSubsystem::LoadWeaponTypes()
     {
         FWeaponType Data;
 
-        Data.WeaponID = GetColInt(Stmt, 0);
+        Data.TypeID = GetColInt(Stmt, 0);
 
         const FString ClassStr = GetColText(Stmt, 1);
         Data.WeaponType = WeaponClassFromString(ClassStr);

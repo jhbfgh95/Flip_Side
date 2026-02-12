@@ -62,7 +62,7 @@ struct FWeaponType
     GENERATED_BODY()
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    int32 WeaponID = 0;
+    int32 TypeID = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EWeaponClass WeaponType = EWeaponClass::None;
