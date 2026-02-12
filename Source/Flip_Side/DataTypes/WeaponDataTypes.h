@@ -57,6 +57,23 @@ struct FFaceData
 };
 
 
+struct FWeaponType
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 WeaponID = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EWeaponClass WeaponType = EWeaponClass::None;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 HP = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FLinearColor TypeColor;
+};
+
 USTRUCT(BlueprintType)
 struct FWeaponIDArray
 {

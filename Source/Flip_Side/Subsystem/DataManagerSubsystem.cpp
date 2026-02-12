@@ -58,6 +58,8 @@ bool UDataManagerSubsystem::ReloadCache()
     bOk &= LoadWeapons();
     bOk &= LoadBosses();
     bOk &= LoadItems();
+    bOk &= LoadWeaponTypes();
+    bOk &= LoadCards();
 
     bCacheReady = bOk;
 
@@ -117,6 +119,16 @@ bool UDataManagerSubsystem::TryGetBossByStage(int32 Stage, FBossData& Out) const
 bool UDataManagerSubsystem::TryGetItem(int32 ItemID, FItemData& Out) const
 {
     if (const FItemData* Found = ItemByID.Find(ItemID))
+    {
+        Out = *Found;
+        return true;
+    }
+    return false;
+}
+
+bool UDataManagerSubsystem::TryGetCard(int32 CardID, FCardData& Out) const
+{
+    if (const FCardData* Found = CardByID.Find(CardID))
     {
         Out = *Found;
         return true;
@@ -238,6 +250,44 @@ bool UDataManagerSubsystem::LoadWeapons()
             .FindOrAdd(Data.WeaponType)
             .WeaponIDs
             .Add(Data.WeaponID);
+    }
+
+    Stmt.Destroy();
+    return true;
+}
+
+bool UDataManagerSubsystem::LoadWeaponTypes()
+{
+    const TCHAR* Sql =
+        TEXT("SELECT weapon_id, weapon_type, HP, typecolor FROM weapon_type; ");
+
+    FSQLitePreparedStatement Stmt;
+    if (!PrepareStmt(Db, Sql, Stmt))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[DB] LoadWeapons: PrepareStatement failed"));
+        return false;
+    }
+
+    while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
+    {
+        FWeaponType Data;
+
+        Data.WeaponID = GetColInt(Stmt, 0);
+
+        const FString ClassStr = GetColText(Stmt, 1);
+        Data.WeaponType = WeaponClassFromString(ClassStr);
+
+        
+        Data.HP = GetColInt(Stmt, 2);
+        
+
+        const FString ColorHex = GetColText(Stmt, 3);
+        if (!TryParseHexColor_RRGGBBAA(ColorHex, Data.TypeColor))
+        {
+            Data.TypeColor = FLinearColor::White;
+        }
+
+        WeaponTypes.Add(Data);
     }
 
     Stmt.Destroy();

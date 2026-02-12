@@ -28,6 +28,8 @@ public:
 
     TMap<int32, TArray<FFaceData>> WeaponByTypeID;
 
+    TArray<FWeaponType> WeaponTypes;
+
     UPROPERTY(BlueprintReadOnly)
     TMap<EWeaponClass, FWeaponIDArray> WeaponIDsByClass;
 
@@ -67,6 +69,8 @@ public:
     UFUNCTION(BlueprintCallable)
     bool TryGetItem(int32 ItemID, FItemData& Out) const;
 
+    bool TryGetCard(int32 CardID, FCardData& Out) const;
+
 private:
     bool bCacheReady = false;
     FSQLiteDatabase Db;
@@ -78,6 +82,7 @@ private:
     void CloseDb();
 
     bool LoadWeapons();
+    bool LoadWeaponTypes();
     bool LoadBosses();
     bool LoadItems();
     bool LoadCards();
