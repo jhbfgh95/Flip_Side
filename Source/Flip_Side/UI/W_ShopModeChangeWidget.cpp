@@ -19,6 +19,7 @@ void UW_ShopModeChangeWidget::NativeConstruct()
 	ShopItemModeButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickShopItemMode);
 	CheckBossModeButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickCheckBossMode);
     ShopMainModeButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickShopMainModeButton);
+    UnlockWeaponButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickUnlockWeaponMode);
 }
 
 void UW_ShopModeChangeWidget::ClickCoinCreateMode()
@@ -60,5 +61,14 @@ void UW_ShopModeChangeWidget::ClickShopMainModeButton()
     if(ShopGameMode)
     {
         ShopGameMode->SetShopMainMode();
+    }
+}
+
+
+void UW_ShopModeChangeWidget::ClickUnlockWeaponMode()
+{
+    if(ShopGameMode)
+    {
+        ShopGameMode->SetUnlockWeaponMode();
     }
 }

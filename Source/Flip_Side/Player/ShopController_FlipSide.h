@@ -30,12 +30,11 @@ protected:
 
 	//코인제작 UI
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> CoinCreateWigetClass;
+	TSubclassOf<UUserWidget> CoinCreateWidgetClass;
 
 	//상점 메인 UI
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> ShopMainWigetClass;
-
 	
 	//코인 관리 UI
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
@@ -48,6 +47,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> SelectCardWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> UnlockWeaponWidgetClass;
 //UI 스크립트
 private:
 	UPROPERTY()
@@ -62,6 +63,10 @@ private:
 	UUserWidget* ShopItemWidget;
 	UPROPERTY()
 	UUserWidget* SelectCardWidget;
+	UPROPERTY()
+	UUserWidget* UnlockWeaponWidget;
+private:
+	void InitWidget(TSubclassOf<UUserWidget> WidgetClass, UUserWidget*& widget);
 
 private:
 	class AGameMode_Shop* ShopGameMode;
@@ -97,6 +102,9 @@ public:
 
 	UFUNCTION()
 	void SetSelectCardModeWidget();
+
+	UFUNCTION()
+	void SetUnlockWeaponModeWidget();
 
 	void HideModeChangeWidget();
 

@@ -30,3 +30,9 @@ void AGameMode_Shop::SetCardSelectMode()
 {
     OnSelectCardMode.Broadcast();
 }
+
+
+void AGameMode_Shop::SetUnlockWeaponMode()
+{
+    OnUnlockWeaponMode.Broadcast();
+}

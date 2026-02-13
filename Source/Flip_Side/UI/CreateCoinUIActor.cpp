@@ -4,6 +4,7 @@
 #include "UI/CreateCoinUIActor.h"
 #include "Subsystem/CoinCreateWSubsystem.h"
 #include "Subsystems/WorldSubsystem.h" 
+#include "Subsystem/ShopWeaponDataWSubsystem.h" 
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TimelineComponent.h"
@@ -31,6 +32,7 @@ void ACreateCoinUIActor::BeginPlay()
 {
 	Super::BeginPlay();
     CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
+	WeaponDataSubSystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
 
 	if(CoinCreateWSubSystem)
 	{
@@ -38,6 +40,7 @@ void ACreateCoinUIActor::BeginPlay()
 		CoinCreateWSubSystem->OnCoinClassUpdate.AddDynamic(this, &ACreateCoinUIActor::UpdateWeaponClass);
 		//코인 상태 업데이트 됬을때
 		CoinCreateWSubSystem->OnSelectedCoinUpdate.AddDynamic(this, &ACreateCoinUIActor::UpdateCoinWeapon);
+		//코인 생성이 클릭 됬을 떄
 		CoinCreateWSubSystem->OnSelectedCoin.AddDynamic(this, &ACreateCoinUIActor::InitCoin);
 	}
 
@@ -69,6 +72,7 @@ void ACreateCoinUIActor::Tick(float DeltaTime)
 
 void ACreateCoinUIActor::ClickCoin()
 {
+	//앞뒤 변경
 	if(IsCoinFront)
 		IsCoinFront = false;
 	else
@@ -99,10 +103,17 @@ void ACreateCoinUIActor::UpdateWeaponClass(EWeaponClass weponClass)
 void ACreateCoinUIActor::InitCoin(FCoinTypeStructure CoinValue, EWeaponClass weponClass)
 {
 	CoinInfo = CoinValue;
+	UpdateWeaponClass(weponClass);
+	
 	FrontFaceData = nullptr;
 	BackFaceData = nullptr;
+	FrontWeaponIndex = -1;
+	BackWeaponIndex = -1;
 	IsCoinFront = true;
-	UpdateWeaponClass(weponClass);
+
+	//최적화를 위해 ID를 무기배열의 Index로 변경
+	FrontWeaponIndex = WeaponDataSubSystem->GetWeaponIndexByID(weponClass, CoinInfo.FrontWeaponID);
+	BackWeaponIndex = WeaponDataSubSystem->GetWeaponIndexByID(weponClass, CoinInfo.BackWeaponID);
 
 	if(weponClass == EWeaponClass::None)
 	{
@@ -110,56 +121,43 @@ void ACreateCoinUIActor::InitCoin(FCoinTypeStructure CoinValue, EWeaponClass wep
 	}
 	else
 	{
-		SetCoinSide(FrontFaceData, CoinInfo.FrontWeaponID);
-
-		SetCoinSide(BackFaceData, CoinInfo.BackWeaponID);	
+		SetCoinSideWeaponData(FrontFaceData, FrontWeaponIndex);
+		SetCoinSideWeaponData(BackFaceData, BackWeaponIndex);	
 
 		SetCoinSideMatarial();
 	}
 }
 
-void ACreateCoinUIActor::UpdateCoinWeapon(int32 WeaponID)
+void ACreateCoinUIActor::UpdateCoinWeapon(int32 WeaponIndex)
 {
 	PressMachineTimeline->PlayFromStart();
 
 	if(IsCoinFront)
 	{
-		CoinInfo.FrontWeaponID = WeaponID;
-		SetCoinSide(FrontFaceData, WeaponID);
+		FrontWeaponIndex = WeaponIndex;
+		CoinInfo.FrontWeaponID = WeaponDataSubSystem->GetWeaponDataByIndex(WeaponType, WeaponIndex)->WeaponID;
+		SetCoinSideWeaponData(FrontFaceData, WeaponIndex);
 	}
 	else
 	{
-		CoinInfo.BackWeaponID = WeaponID;
-		SetCoinSide(BackFaceData, WeaponID);
+		CoinInfo.BackWeaponID = WeaponIndex;
+		CoinInfo.BackWeaponID = WeaponDataSubSystem->GetWeaponDataByIndex(WeaponType, WeaponIndex)->WeaponID;
+		SetCoinSideWeaponData(BackFaceData, WeaponIndex);
 	}
 
 
 }
 
 
-void ACreateCoinUIActor::SetCoinSide(const FFaceData*& FaceData , int32 ID)
+void ACreateCoinUIActor::SetCoinSideWeaponData(const FFaceData*& FaceData , int32 Index)
 {
-	if(ID == -1)
-		FaceData = nullptr;
-	
-
-	if(WeaponType == EWeaponClass::Tank)
-	{
-		FaceData = CoinCreateWSubSystem->GetTankWeaponData(ID);
-	}
-	else if(WeaponType == EWeaponClass::Deal)
-	{	
-		FaceData = CoinCreateWSubSystem->GetDealWeaponData(ID);
-	}
-	else if(WeaponType == EWeaponClass::Heal)
-	{
-		FaceData = CoinCreateWSubSystem->GetUtilWeaponData(ID);
-	}
-	else
+	if(Index == -1)
 	{
 		FaceData = nullptr;
+		return;
 	}
-
+	//인덱스를 기반으로 무기 데이터 설정
+	FaceData = WeaponDataSubSystem->GetWeaponDataByIndex(WeaponType, Index);
 }
 
 void ACreateCoinUIActor::SetCoinSideMatarial()

@@ -20,6 +20,9 @@ class FLIP_SIDE_API UW_SelectWeaponButton : public UUserWidget
 private:
 	class UCoinCreateWSubsystem* CoinCreateWSubSystem;
 	
+	class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
+
+	
 protected:
 	virtual void NativeConstruct() override;
 
@@ -57,7 +60,7 @@ public:
 	UFUNCTION()
 	void SelectWeapon();
 	
-	void InitButton();
+	void InitButton(EWeaponClass SettingWeaponClass, int32 ID);
 
 
 	//찾는 버튼인지 판단

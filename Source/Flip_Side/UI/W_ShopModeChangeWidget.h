@@ -29,6 +29,8 @@ class FLIP_SIDE_API UW_ShopModeChangeWidget : public UUserWidget
 	class UButton* CheckBossModeButton;
 	UPROPERTY(meta = (BindWidget))
 	class UButton* ShopMainModeButton;
+	UPROPERTY(meta = (BindWidget))
+	class UButton* UnlockWeaponButton;
 
 	class AGameMode_Shop* ShopGameMode;
 
@@ -44,4 +46,6 @@ class FLIP_SIDE_API UW_ShopModeChangeWidget : public UUserWidget
 	void OpenWidget();
 	UFUNCTION()
 	void ClickShopMainModeButton();
+	UFUNCTION()
+	void ClickUnlockWeaponMode();
 };

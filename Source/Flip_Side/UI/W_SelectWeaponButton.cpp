@@ -6,6 +6,8 @@
 #include "Player/ShopController_FlipSide.h"
 #include "Components/Button.h"
 #include "Subsystem/CoinCreateWSubsystem.h"
+
+#include "Subsystem/ShopWeaponDataWSubsystem.h"
 #include "Subsystems/WorldSubsystem.h" 
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
@@ -22,15 +24,14 @@ void UW_SelectWeaponButton::NativeConstruct()
         
     }*/
     CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
+	WeaponDataSubSystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
+
     if(CoinCreateWSubSystem)
     {
         if(WeaponButton)
         {
             WeaponButton->OnClicked.AddDynamic(this, &UW_SelectWeaponButton::SelectWeapon);
         }
-        
-        
-        InitButton();
     }
 }
 void UW_SelectWeaponButton::SelectWeapon()
@@ -38,23 +39,15 @@ void UW_SelectWeaponButton::SelectWeapon()
     CoinCreateWSubSystem->ChangeSelectedCoinWeapon(WeaponID);
 }
 
-void UW_SelectWeaponButton::InitButton()
+void UW_SelectWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 Index)
 {
-    if(WeaponClass == EWeaponClass::Tank)
-    {
-        WeaponData = CoinCreateWSubSystem->GetTankWeaponData(WeaponID);
-    }
-    else if(WeaponClass == EWeaponClass::Deal)
-    {
-        WeaponData = CoinCreateWSubSystem->GetDealWeaponData(WeaponID);
-    }
-    else if(WeaponClass == EWeaponClass::Heal)
-    {
-        WeaponData = CoinCreateWSubSystem->GetUtilWeaponData(WeaponID);
-    }
+    WeaponID = Index;
+    WeaponClass =SettingWeaponClass;
 
+    WeaponData = WeaponDataSubSystem->GetWeaponDataByIndex(WeaponClass, WeaponID);
     if(WeaponData)
     {
+        
         FButtonStyle ButtonStyle = WeaponButton->GetStyle();
         ButtonStyle.Normal.SetResourceObject(WeaponData->WeaponIcon);
         WeaponButton->SetStyle(ButtonStyle);

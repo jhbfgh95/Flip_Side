@@ -23,7 +23,7 @@ bool UCoinCreateWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 void UCoinCreateWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
-
+    /*
     if (UGameInstance* GI = GetWorld()->GetGameInstance())
     {
         DM = GI->GetSubsystem<UDataManagerSubsystem>();
@@ -40,6 +40,10 @@ void UCoinCreateWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         }
         if (DM->TryGetWeaponsByType(2, DealWeapons))
         {
+            if(DealWeapons)
+            {
+                UE_LOG(LogTemp, Log, TEXT("WeaponID"));
+            }
             for (const FFaceData& Weapon : *DealWeapons)
             {
                 UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
@@ -52,10 +56,15 @@ void UCoinCreateWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
                 UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
             }
         } 
-    }
+    }*/
 }
 
+void UCoinCreateWSubsystem::OnWorldBeginPlay(UWorld& World)
+{
+    Super::OnWorldBeginPlay(World);
 
+    
+}
 
 //코인의 앞뒤를 변경
 void UCoinCreateWSubsystem::ChangeCoinSide()
@@ -91,17 +100,17 @@ void UCoinCreateWSubsystem::SelectCoin(FCoinTypeStructure SelectCoinInfo, EWeapo
 }
 
 //선택된 코인 면의 ID를 변경
-void UCoinCreateWSubsystem::ChangeSelectedCoinWeapon(int32 WeaponID)
+void UCoinCreateWSubsystem::ChangeSelectedCoinWeapon(int32 WeaponIndex)
 {
     if(bIsCreateCoinFront)
     {
-        SelectedCoin.FrontWeaponID = WeaponID;
+        SelectedCoin.FrontWeaponID = WeaponIndex;
     }
     else
     {
-        SelectedCoin.BackWeaponID = WeaponID;
+        SelectedCoin.BackWeaponID = WeaponIndex;
     }
-    OnSelectedCoinUpdate.Broadcast(WeaponID);
+    OnSelectedCoinUpdate.Broadcast(WeaponIndex);
 }
 
 
@@ -139,31 +148,4 @@ void UCoinCreateWSubsystem::OnClassSelectMode()
 void UCoinCreateWSubsystem::OffClassSelectMode()
 {
     OffCoinClassSelectMode.Broadcast();
-}
-
-
-const FFaceData* UCoinCreateWSubsystem::GetTankWeaponData(int32 ID) const
-{
-    if (!TankWeapons || !TankWeapons->IsValidIndex(ID))
-        return nullptr;
-    else 
-        return &(*TankWeapons)[ID];
-    
-    
-}
-
-const FFaceData* UCoinCreateWSubsystem::GetDealWeaponData(int32 ID) const
-{
-    if (!DealWeapons || !DealWeapons->IsValidIndex(ID))
-        return nullptr;
-    else 
-        return &(*DealWeapons)[ID];
-}
-
-const FFaceData* UCoinCreateWSubsystem::GetUtilWeaponData(int32 ID) const
-{
-    if (!UtilWeapons || !UtilWeapons->IsValidIndex(ID))
-        return nullptr;
-    else 
-        return &(*UtilWeapons)[ID];
 }
