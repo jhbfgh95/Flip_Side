@@ -4,18 +4,20 @@
 #include "CrossingLevelGISubsystem.h"
 
 #define COIN_SLOT_SIZE 10
+#define CARD_SLOT_SIZE 3
+#define USEABLE_SLOT_SIZE 3
 
 void UCrossingLevelGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
-    InitCointSlot();
+    InitSlots();
 
     GenerateTestCoin();
 }
 
 //코인 초기화
-void UCrossingLevelGISubsystem::InitCointSlot()
+void UCrossingLevelGISubsystem::InitSlots()
 {
     //디폴트 코인 값 생성
     DefaultCoin.BackWeaponID = -1;
@@ -28,6 +30,18 @@ void UCrossingLevelGISubsystem::InitCointSlot()
         //코인 배열에 추가
         DefaultCoin.SlotNum = i;
         SlotCoinArray.Add(DefaultCoin);
+    }
+
+    //-1 3개 추가 -> 아이디가 -1은 없으니까 없는거로 판정
+    for(int i = 0; i<CARD_SLOT_SIZE; i++)
+    {
+        CardIDArray.Add(-1);
+    }
+
+    //-1 3개 추가 -> 아이디가 -1은 없으니까 없는거로 판정
+    for(int i = 0; i<USEABLE_SLOT_SIZE; i++)
+    {
+        UseableItemIDArray.Add(-1);
     }
 }
 
@@ -50,6 +64,22 @@ void UCrossingLevelGISubsystem::SetSlotCoin(int SlotNum, FCoinTypeStructure Coin
 
 }
 
+void UCrossingLevelGISubsystem::SetBattleCardID(int32 CardID, int32 CardSlot)
+{
+    if(CardIDArray.IsValidIndex(CardSlot))
+    {
+        CardIDArray[CardSlot] = CardID;
+    }
+}
+
+void UCrossingLevelGISubsystem::SetBattleUseItemID(int32 UseableItemID, int32 ItemSlot)
+{
+    if(UseableItemIDArray.IsValidIndex(ItemSlot))
+    {
+        UseableItemIDArray[ItemSlot] = UseableItemID;
+    }
+}
+
 //정해진 슬롯에 위치한 코인구조체를 반환
 FCoinTypeStructure UCrossingLevelGISubsystem::GetSlotCoin(int SlotNum)
 {
@@ -70,6 +100,16 @@ int32 UCrossingLevelGISubsystem::GetMakedCoinNum()
     return MakedCoinNum;
 }
 
+TArray<int32> UCrossingLevelGISubsystem::GetBattleCardIDs()
+{
+    return CardIDArray;
+}
+
+TArray<int32> UCrossingLevelGISubsystem::GetBattleUseItemIDs()
+{
+    return UseableItemIDArray;
+}
+
 //테스트용 코인 생성
 void UCrossingLevelGISubsystem::GenerateTestCoin()
 {
@@ -85,4 +125,11 @@ void UCrossingLevelGISubsystem::GenerateTestCoin()
 
             SetSlotCoin(t, SlotTestCoin);
         }
+
+        //걍 id 1, 2, 3만 불러오게 설정
+    for(int32 k = 0; k<3;k++)
+    {
+        //SetBattleCardID(k,k);
+        SetBattleUseItemID(k,k);
+    }
 }

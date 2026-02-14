@@ -108,14 +108,24 @@ void ACoinActor::IncrementSameTypeIndex()
     SameTypeIndex++;
 }
 
+void ACoinActor::SetCoinIsReady(bool IsReady)
+{
+	bIsReady = IsReady;
+}
+
+bool ACoinActor::GetCoinIsReady() const
+{
+	return bIsReady;
+}
+
 int32 ACoinActor::GetCoinID()
 {
 	return CoinID;
 }
 
-EFaceState ACoinActor::GetCoinFace()
+int32 ACoinActor::GetCoinFaceID()
 {
-	return CurrentFace;
+	return DecidedWeaponID;
 }
 
 void ACoinActor::SetCoinFace(EFaceState DecidedFace)

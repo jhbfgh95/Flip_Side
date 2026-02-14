@@ -8,6 +8,8 @@
 #include "CoinDataTypes.h"
 #include "BattleManagerWSubsystem.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTurnChanged, ETurnState, NewTurn);
+
 UCLASS()
 class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
 {
@@ -19,6 +21,13 @@ class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
 	UPROPERTY()
 	TArray<FBattleCoinInfo> CoinOrderArray;
 
+	//코인ID가 키, 코인의 CurrentID가 value
+	UPROPERTY()
+	TMap<int32, int32> MatchedArray;
+
+	UPROPERTY()
+	TArray<FRandomState> RandomStateArray;
+
 	ETurnState CurrentTurn;
 
 protected:
@@ -28,12 +37,25 @@ protected:
 
 	void TurnStackInit();
 
+	void GenerateRandomStates();
+
+/* CoinReadyTurn */	
+protected:
+	
+
+/* CoinSelectTurn */
+protected:
+	void MatchCoinsToRandomState();
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 
 public:
+	UPROPERTY(BlueprintAssignable)
+	FOnTurnChanged OnTurnChanged;
+
 	ETurnState GetCurrentTurn();
 
 	void StartBattleFromLever();

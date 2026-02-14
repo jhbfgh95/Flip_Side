@@ -2,10 +2,14 @@
 
 
 #include "Subsystem/BattleManagerWSubsystem.h"
+#include "CoinActor.h"
 #include "FlipSide_Enum.h"
 #include "CoinDataTypes.h"
 #include "LevelGISubsystem.h"
 #include "CoinManagementWSubsystem.h"
+#include "CrossingLevelGISubsystem.h"
+#include "GridManagerSubsystem.h"
+#include "TemplateFunction_Utils.h"
 
 #define BATTLE_COIN_MAX 10
 
@@ -15,7 +19,6 @@ void UBattleManagerWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
     CoinOrderArrayInit();
     TurnStackInit();
-
 }
 
 bool UBattleManagerWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -50,11 +53,13 @@ void UBattleManagerWSubsystem::CoinOrderArrayInit()
 
 void UBattleManagerWSubsystem::TurnStackInit()
 {
-    //TurnManageMentStack.Push(ETurnState::SettingTurn);
+    TurnManageMentStack.Push(ETurnState::SettingTurn);
     TurnManageMentStack.Push(ETurnState::BossTurn);
     TurnManageMentStack.Push(ETurnState::BehaviorTurn);
     TurnManageMentStack.Push(ETurnState::CoinSelectTurn);
     TurnManageMentStack.Push(ETurnState::CoinReadyTurn);
+
+    CurrentTurn = TurnManageMentStack.Top();
 }
 
 ETurnState UBattleManagerWSubsystem::GetCurrentTurn()
@@ -70,7 +75,10 @@ void UBattleManagerWSubsystem::TurnProgressing()
     ETurnState PreviousTurn = CurrentTurn;
 
     // 코인 레디턴 -> 코인 설렉트턴 -> 비헤이비어 턴 -> 보스 턴 -> 세팅 턴
-    CurrentTurn = TurnManageMentStack.Pop();
+    TurnManageMentStack.Pop();
+    CurrentTurn = TurnManageMentStack.Top();
+
+    OnTurnChanged.Broadcast(CurrentTurn);
 
     // 로그 출력: 어떤 턴에서 어떤 턴으로 넘어갔는지 명시
     const UEnum* EnumPtr = StaticEnum<ETurnState>();
@@ -85,6 +93,7 @@ void UBattleManagerWSubsystem::TurnProgressing()
         break;
         
     case ETurnState::CoinSelectTurn:
+        MatchCoinsToRandomState();
         break;
     
     case ETurnState::BehaviorTurn:
@@ -92,12 +101,45 @@ void UBattleManagerWSubsystem::TurnProgressing()
     
     case ETurnState::BossTurn:
         break;
-
-    /*
     case ETurnState::SettingTurn:
         CoinOrderArrayInit();
         TurnStackInit();
-        break();
-    */
+        GenerateRandomStates();
+        break;
+    }
+}
+
+void UBattleManagerWSubsystem::GenerateRandomStates()
+{
+    UGridManagerSubsystem* GridManager = GetWorld()->GetSubsystem<UGridManagerSubsystem>();
+    if(!GridManager) return;
+
+    if(GridManager->GridXSize <= 0 || GridManager->GridYSize <= 0) return;
+
+    for(int i =0; i<BATTLE_COIN_MAX; i++)
+    {
+        EFaceState DecidedFace = UTemplateFunction_Utils::GetRandomENum<EFaceState>();
+        int32 RandomX = FMath::RandRange(0, GridManager->GridXSize);
+        int32 RandomY = FMath::RandRange(0, GridManager->GridYSize);
+
+        RandomStateArray[i].RandomFace = DecidedFace;
+        RandomStateArray[i].RandomGrid.GridX = RandomX;
+        RandomStateArray[i].RandomGrid.GridY = RandomY;
+    }
+}
+
+void UBattleManagerWSubsystem::MatchCoinsToRandomState()
+{
+    UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>();
+    if(!CoinManager) return;    
+
+    TArray<ACoinActor*> ReadyCoins = CoinManager->GetReadyCoins();
+
+    for(int i = 0; i<CoinManager->GetBattleReadyCoinNum(); i++)
+    {
+        ReadyCoins[i]->SetCoinFace(RandomStateArray[i].RandomFace);
+        ReadyCoins[i]->SetGridPoint(RandomStateArray[i].RandomGrid);
+        //UBehavior 실행할 때 이거에서 빼오려고 쓴거긴 함.
+        MatchedArray.Add(ReadyCoins[i]->GetCoinID(), ReadyCoins[i]->GetCoinFaceID());
     }
 }
