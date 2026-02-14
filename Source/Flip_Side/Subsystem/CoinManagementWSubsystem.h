@@ -23,11 +23,6 @@ class FLIP_SIDE_API UCoinManagementWSubsystem : public UWorldSubsystem
 
 	int32 BattleReadyCoinNum = 0;
 
-/*
-public:
-	TArray<FRandomState> RandomStateArray;
-*/
-	
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
@@ -51,6 +46,10 @@ public:
 
 	// 서랍에 들어간 코인을 다시 클릭 시 취소 로직
     void RemoveBattleReadyCoins(ACoinActor* SelectCoinActor);
+
+	TArray<int32> GetReadyCoinIDs() const;
+
+	TArray<ACoinActor*> GetReadyCoins() const;
 
 	int32 GetBattleReadyCoinNum();
 

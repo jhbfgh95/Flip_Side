@@ -87,6 +87,7 @@ void UCoinManagementWSubsystem::AddBattleReadyCoins(ACoinActor* SelectCoinActor)
         {
             TargetIdx = i;
             BattleReadyCoins[i] = SelectCoinActor;
+            SelectCoinActor->SetCoinIsReady(true);
             break;
         }
     }
@@ -239,22 +240,7 @@ int32 UCoinManagementWSubsystem::GetBattleReadyCoinNum() { return BattleReadyCoi
 
 bool UCoinManagementWSubsystem::IsCoinInBattleReady(ACoinActor* InCoin) const
 {
-    //return BattleReadyCoins.Contains(InCoin);
-    if (!InCoin) return false;
-
-    for (int32 i = 0; i < BattleReadyCoins.Num(); i++)
-    {
-        if (BattleReadyCoins[i])
-        {
-            // [해결책] 주소 대신 이름을 비교하거나, 
-            // 사용자님이 만드신 고유 ID(예: WeaponID + 개별번호)를 비교하세요.
-            if (BattleReadyCoins[i]->GetName() == InCoin->GetName()) 
-            {
-                return true; 
-            }
-        }
-    }
-    return false;
+    return BattleReadyCoins.Contains(InCoin);
 }
 
 void UCoinManagementWSubsystem::LockCoinReady()
@@ -401,4 +387,24 @@ void UCoinManagementWSubsystem::InstanceCoins()
             }
         }
     }
+}
+
+TArray<int32> UCoinManagementWSubsystem::GetReadyCoinIDs() const
+{
+    if(BattleReadyCoins.IsEmpty()) return {0};
+
+    TArray<int32> ReadyCoinIDs;
+
+    for(int i = 0; i<BattleReadyCoinNum;i++)
+    {
+        int32 ID = BattleReadyCoins[i]->GetCoinID();
+        ReadyCoinIDs.Add(ID);
+    }
+
+    return ReadyCoinIDs;
+}
+
+TArray<ACoinActor*> UCoinManagementWSubsystem::GetReadyCoins() const
+{
+    return BattleReadyCoins;
 }

@@ -39,7 +39,7 @@ struct FFaceData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UTexture2D* WeaponIcon = nullptr;
 
-    // DB¿¡¼­ ÀÐÀº ÄÚµå ¹®ÀÚ¿­
+    // DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString BehaviorCode;
 
@@ -56,7 +56,7 @@ struct FFaceData
     FLinearColor TypeColor;
 };
 
-
+USTRUCT(BlueprintType)
 struct FWeaponType
 {
     GENERATED_BODY()
@@ -85,7 +85,7 @@ struct FWeaponIDArray
 
 
 /**
- * Çàµ¿ ÅÏ¿¡¼­ ½ÇÇàµÉ ÀÛ¾÷ ´ÜÀ§
+ * ï¿½àµ¿ ï¿½Ï¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ ï¿½ï¿½ï¿½ï¿½
  */
 USTRUCT(BlueprintType)
 struct FBehaviorTask
@@ -98,7 +98,7 @@ struct FBehaviorTask
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 SelectedWeaponID = 0;
 
-    // ½ÇÁ¦ ½ÇÇàµÉ Çàµ¿ °´Ã¼
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½àµ¿ ï¿½ï¿½Ã¼
     /*
     UPROPERTY()
     TObjectPtr<UBehavior> Behavior = nullptr;

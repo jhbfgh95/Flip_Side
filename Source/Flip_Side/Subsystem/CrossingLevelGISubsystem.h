@@ -20,10 +20,10 @@ private:
 	TArray<FCoinTypeStructure> SlotCoinArray;
 
 	//카드 구조체 저장하는 배열
-	//TArray<> CardArray;
+	TArray<int32> CardIDArray;
 
 	//아이템을 저장하는 배열
-	TArray<FItemData> ItemArray;
+	TArray<int32> UseableItemIDArray;
 
 	//디폴트 코인
 	FCoinTypeStructure DefaultCoin;
@@ -31,7 +31,7 @@ private:
 	int32 MakedCoinNum;
 
 	//슬롯에 코인을 제작함
-	void InitCointSlot();
+	void InitSlots();
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -40,6 +40,12 @@ public:
 	//슬롯에 코인을 제작함
 	UFUNCTION(BlueprintCallable)
 	void SetSlotCoin(int SlotNum, FCoinTypeStructure CoinStruct);
+
+	UFUNCTION(BlueprintCallable)
+	void SetBattleCardID(int32 CardID, int32 CardSlot);
+
+	UFUNCTION(BlueprintCallable)
+	void SetBattleUseItemID(int32 UseableItemID, int32 ItemSlot);	
 	
 	//슬롯에 해당하는 코인을 반환함
 	UFUNCTION(BlueprintCallable)
@@ -48,7 +54,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int32 GetMakedCoinNum();
 	
-	//테스트용 코인슬롯에 코인들을 채움
+	UFUNCTION(BlueprintCallable)
+	TArray<int32> GetBattleCardIDs();
+	
+	UFUNCTION(BlueprintCallable)
+	TArray<int32> GetBattleUseItemIDs();	
+
+	//테스트용 코인슬롯에 코인들을 채움 카드 및 소모품도 넣겠음.
 	void GenerateTestCoin();
 
 };

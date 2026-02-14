@@ -7,6 +7,7 @@
 #include "BattleArea.h"
 #include "CoinActor.h"
 #include "LeverActor.h"
+#include "BattleManagerWSubsystem.h"
 #include "Subsystem/CoinManagementWSubsystem.h"
 
 ABattlePlayerController_FlipSide::ABattlePlayerController_FlipSide()

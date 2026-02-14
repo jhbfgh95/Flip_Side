@@ -58,6 +58,8 @@ protected:
 	//랜덤 앞뒤 정해질 때 즉, SetCoinFace할 때 그냥 해당 WeaponID 넣어버림
 	int DecidedWeaponID = 0;
 
+	bool bIsReady = false;
+
 	//이거로 Getter, Setter로 앞뒤 판별
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Face")
 	EFaceState CurrentFace = EFaceState::None;
@@ -91,6 +93,9 @@ public:
 
 	int32 GetCoinID();
 
+	void SetCoinIsReady(bool IsReady);
+	bool GetCoinIsReady() const;
+
 	void SetCoinValues(
 		int CoinId,
 		int FrontId, 
@@ -101,7 +106,7 @@ public:
 	);
 
 	/* 앞,뒤 결정 */
-	EFaceState GetCoinFace();
+	int32 GetCoinFaceID();
 
 	void SetCoinFace(EFaceState DecidedFace);
 
