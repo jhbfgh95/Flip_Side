@@ -3,6 +3,7 @@
 
 #include "Subsystem/BattleManagerWSubsystem.h"
 #include "CoinActor.h"
+#include "GridActor.h"
 #include "FlipSide_Enum.h"
 #include "CoinDataTypes.h"
 #include "LevelGISubsystem.h"
@@ -15,9 +16,18 @@
 
 void UBattleManagerWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
+    Super::Initialize(Collection);
+
+    CoinOrderArray.SetNum(BATTLE_COIN_MAX);
+
+    CoinManager = Collection.InitializeDependency<UCoinManagementWSubsystem>();
+    GridManager = Collection.InitializeDependency<UGridManagerSubsystem>();
+
+    RandomStateArray.SetNum(BATTLE_COIN_MAX);
     CoinOrderArray.SetNum(BATTLE_COIN_MAX);
 
     CoinOrderArrayInit();
+    GenerateRandomStates();
     TurnStackInit();
 }
 
@@ -111,27 +121,41 @@ void UBattleManagerWSubsystem::TurnProgressing()
 
 void UBattleManagerWSubsystem::GenerateRandomStates()
 {
-    UGridManagerSubsystem* GridManager = GetWorld()->GetSubsystem<UGridManagerSubsystem>();
     if(!GridManager) return;
 
     if(GridManager->GridXSize <= 0 || GridManager->GridYSize <= 0) return;
 
+    TSet<FGridPoint> SelectedPoints;
     for(int i =0; i<BATTLE_COIN_MAX; i++)
     {
+        FGridPoint NewPoint;
+        bool bIsUnique = false;
+
         EFaceState DecidedFace = UTemplateFunction_Utils::GetRandomENum<EFaceState>();
-        int32 RandomX = FMath::RandRange(0, GridManager->GridXSize);
-        int32 RandomY = FMath::RandRange(0, GridManager->GridYSize);
+
+        //중복 좌표 예외처리
+        while (!bIsUnique)
+        {
+            NewPoint.GridX = FMath::RandRange(0, GridManager->GridXSize - 1);
+            NewPoint.GridY = FMath::RandRange(0, GridManager->GridYSize - 1);
+
+            if (!SelectedPoints.Contains(NewPoint))
+            {
+                SelectedPoints.Add(NewPoint);
+                bIsUnique = true;
+            }
+        }
 
         RandomStateArray[i].RandomFace = DecidedFace;
-        RandomStateArray[i].RandomGrid.GridX = RandomX;
-        RandomStateArray[i].RandomGrid.GridY = RandomY;
+        RandomStateArray[i].RandomGrid = NewPoint;
     }
 }
 
 void UBattleManagerWSubsystem::MatchCoinsToRandomState()
 {
-    UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>();
-    if(!CoinManager) return;    
+    if(!CoinManager) return;
+
+    MatchedArray.Empty();
 
     TArray<ACoinActor*> ReadyCoins = CoinManager->GetReadyCoins();
 
@@ -142,4 +166,40 @@ void UBattleManagerWSubsystem::MatchCoinsToRandomState()
         //UBehavior 실행할 때 이거에서 빼오려고 쓴거긴 함.
         MatchedArray.Add(ReadyCoins[i]->GetCoinID(), ReadyCoins[i]->GetCoinFaceID());
     }
+
+    GetWorld()->GetTimerManager().SetTimer(CoinTeleportHandler, this, &UBattleManagerWSubsystem::DoTeleportAct, 3.0f, false);
+}
+
+void UBattleManagerWSubsystem::DoTeleportAct()
+{
+    TArray<ACoinActor*> ReadyCoins = CoinManager->GetReadyCoins();
+
+    for(int i = 0; i<CoinManager->GetBattleReadyCoinNum(); i++)
+    {
+        TeleportReadyCoinsToDecidedGrid(ReadyCoins[i]);
+    }
+}
+
+void UBattleManagerWSubsystem::TeleportReadyCoinsToDecidedGrid(ACoinActor* ReadyCoin)
+{
+    if(ReadyCoin == nullptr) return;
+
+    if(!ReadyCoin->GetCoinIsReady()) return;
+
+    FGridPoint Grid = ReadyCoin->GetDecidedGrid();
+    
+    if(GridManager)
+    {
+        AGridActor* TheGrid = GridManager->GetGridActor(Grid);
+        if(TheGrid)
+        {
+            ReadyCoin->DoCoinActAtBattleStart(TheGrid->GetGridWorldXY().X, TheGrid->GetGridWorldXY().Y);
+        }
+    }
+}
+
+void UBattleManagerWSubsystem::AddCoinsToOrderArray(ACoinActor* TargetCoin)
+{
+    //진수가 하기로 함ㅇㅇ; -> 클릭하면 FBattleCoinInfo를 TargetCoin의 그거로 채워주는 거임ㅇㅇ;
+    //만약에 저거 그냥 FStruct로 모자랄거 같으면 걍 말하셈 근데 아마 내 설계대로면 딱히 문제없을거임ㅇㅇ
 }

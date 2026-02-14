@@ -30,31 +30,16 @@ void ACoinActor::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 
 	//TypeColors DB에서 받아오기 / HP도 마찬가지 -> DB만들어주면 이거 고치기
-	if(FrontIconTexture && BackIconTexture && TypeColors.Num() == 3)
+	if(FrontIconTexture && BackIconTexture)
 	{
 		UMaterialInstanceDynamic* MID = CoinMesh->CreateDynamicMaterialInstance(0);
+
 		if(MID)
 		{
 			MID->SetTextureParameterValue(FName("Front_Texture"), FrontIconTexture);
 			MID->SetTextureParameterValue(FName("Back_Texture"), BackIconTexture);
-			if(WeaponType == EWeaponClass::Tank)
-			{
-				MID->SetVectorParameterValue(FName("Front_Color"), TypeColors[0]);
-				MID->SetVectorParameterValue(FName("Back_Color"), TypeColors[0]);
-				HP = 10;
-			}
-			else if(WeaponType == EWeaponClass::Deal)
-			{
-				MID->SetVectorParameterValue(FName("Front_Color"), TypeColors[1]);
-				MID->SetVectorParameterValue(FName("Back_Color"), TypeColors[1]);
-				HP = 5;	
-			}
-			else if(WeaponType == EWeaponClass::Heal)
-			{
-				MID->SetVectorParameterValue(FName("Front_Color"), TypeColors[2]);
-				MID->SetVectorParameterValue(FName("Back_Color"), TypeColors[2]);
-				HP = 5;	
-			}
+			MID->SetVectorParameterValue(FName("Front_Color"), TypeColor);
+			MID->SetVectorParameterValue(FName("Back_Color"), TypeColor);
 		}
 	}
 }
@@ -118,14 +103,24 @@ bool ACoinActor::GetCoinIsReady() const
 	return bIsReady;
 }
 
-int32 ACoinActor::GetCoinID()
+int32 ACoinActor::GetCoinID() const
 {
 	return CoinID;
 }
 
-int32 ACoinActor::GetCoinFaceID()
+int32 ACoinActor::GetCoinFaceID() const
 {
 	return DecidedWeaponID;
+}
+
+EFaceState ACoinActor::GetCoinDecidedFace() const
+{
+	return CurrentFace;
+}
+
+FGridPoint ACoinActor::GetDecidedGrid() const
+{
+	return CurrentGridPoint;
 }
 
 void ACoinActor::SetCoinFace(EFaceState DecidedFace)
@@ -151,7 +146,7 @@ void ACoinActor::SetGridPoint(FGridPoint DecidedGridPoint)
 	CurrentGridPoint.GridY = DecidedGridPoint.GridY;
 }
 
-void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass WeaponTypes, UTexture2D* FrontTexture, UTexture2D* BackTexture)
+void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass WeaponTypes, UTexture2D* FrontTexture, UTexture2D* BackTexture, FLinearColor DecideColor, int32 CoinHP)
 {
 	if( WeaponTypes != EWeaponClass::None && FrontTexture && BackTexture)
 	{
@@ -161,6 +156,57 @@ void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass
 		WeaponType = WeaponTypes;
 		FrontIconTexture = FrontTexture;
 		BackIconTexture = BackTexture;
+		TypeColor = DecideColor;
+		HP = CoinHP;
 	} 
 
+}
+
+void ACoinActor::DoCoinActAtBattleStart(float XLocation, float YLocation)
+{
+	if(!bIsReady) return;
+
+	if(CurrentGridPoint.GridX == -1 && CurrentGridPoint.GridY == -1) return;
+
+	DecidedGridLocation = FVector(XLocation, YLocation, -110.f);
+	//앞뒤
+	switch(CurrentFace)
+	{
+		case EFaceState::Front:
+			AnimStartXRot = 1080.0f;
+			DecidedCoinRotation = FRotator(0.f,-180.f,0.f);
+			break;
+		case EFaceState::Back:
+			AnimStartXRot = -1260.0f;
+			DecidedCoinRotation = FRotator(-180.f,0.f,0.f);
+			break;
+	}
+
+	//텔포
+	TeleportTo(DecidedGridLocation, FRotator(AnimStartXRot, 0.f, 0.f));
+
+	//올라가는 연출
+	GetWorld()->GetTimerManager().SetTimer(JumpTimerHandle, this, &ACoinActor::UpdateJump, 0.01f, true);
+}
+
+void ACoinActor::UpdateJump()
+{
+	JumpElapsedTime += 0.01f;
+	float Alpha = JumpElapsedTime / JumpDuration;
+
+	if(Alpha >= 1.0f)
+	{
+		SetActorLocationAndRotation(DecidedGridLocation, DecidedCoinRotation);
+		GetWorld()->GetTimerManager().ClearTimer(JumpTimerHandle);
+		return;
+	}
+
+	//포물선 공식 (헉!)
+	float ZOffset = 4.0f * JumpHeight * Alpha * (1.0f - Alpha);
+	FVector NewLoc = DecidedGridLocation;
+	NewLoc.Z += ZOffset;
+
+	float CurrentPitch = FMath::Lerp(AnimStartXRot, DecidedCoinRotation.Pitch, Alpha);
+
+	SetActorLocationAndRotation(NewLoc, FRotator(CurrentPitch, 0.f, 0.f));
 }

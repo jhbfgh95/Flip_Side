@@ -28,7 +28,11 @@ public class Flip_Side : ModuleRules
 			"Flip_Side/Player",
 			"Flip_Side/Interface",
 			"Flip_Side/UI",
-			"Flip_Side/Subsystem"
+			"Flip_Side/Subsystem",
+			"Flip_Side/Objects",
+			"Flip_Side/Objects/Weapon",
+			"Flip_Side/Objects/Item",
+			"Flip_Side/Objects/Boss"
 		});
 
 

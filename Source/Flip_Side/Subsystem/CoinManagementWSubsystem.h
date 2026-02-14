@@ -33,8 +33,6 @@ protected:
 protected:
 	void InitCoinSlot();
 
-	void BuildRandomState();
-
 	void InstanceCoins();
 
 public:

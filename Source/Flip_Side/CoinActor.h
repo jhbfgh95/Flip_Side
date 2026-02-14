@@ -53,6 +53,9 @@ class ACoinActor : public AActor
 	UPROPERTY(VisibleAnywhere)
 	UTexture2D* BackIconTexture;
 
+	UPROPERTY(VisibleAnywhere)
+	FLinearColor TypeColor;
+
 /* Battle상태 변수들 */
 protected:
 	//랜덤 앞뒤 정해질 때 즉, SetCoinFace할 때 그냥 해당 WeaponID 넣어버림
@@ -91,7 +94,7 @@ public:
     void SetSameTypeIndex(int32 NewIndex);
     void IncrementSameTypeIndex();
 
-	int32 GetCoinID();
+	int32 GetCoinID() const;
 
 	void SetCoinIsReady(bool IsReady);
 	bool GetCoinIsReady() const;
@@ -102,20 +105,46 @@ public:
 		int BackId,
 		EWeaponClass WeaponTypes, 
 		UTexture2D* FrontTexture, 
-		UTexture2D* BackTexture
+		UTexture2D* BackTexture,
+		FLinearColor DecideColor,
+		int32 CoinHP
 	);
 
 	/* 앞,뒤 결정 */
-	int32 GetCoinFaceID();
+	int32 GetCoinFaceID() const;
+
+	EFaceState GetCoinDecidedFace() const;
+
+	FGridPoint GetDecidedGrid() const;
 
 	void SetCoinFace(EFaceState DecidedFace);
 
 	/* BattleGrid에 나올 위치 설정 */
 	void SetGridPoint(FGridPoint DecidedGridPoint);
 
-	//순서대로 0 탱 1 딜 2 힐
-	UPROPERTY(EditAnywhere)
-	TArray<FLinearColor> TypeColors;
+
+/* 연출들 */
+public:
+	void DoCoinActAtBattleStart(float XLocation, float YLocation);
+
+protected:
+	FTimerHandle JumpTimerHandle;
+
+	FVector DecidedGridLocation;
+
+	FRotator DecidedCoinRotation;
+
+	float AnimStartXRot = 0.0f;
+
+	float JumpElapsedTime = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Jump", meta = (AllowPrivateAccess = "true"))
+    float JumpDuration = 0.5f; // 점프 지속 시간
+
+    UPROPERTY(EditAnywhere, Category = "Jump", meta = (AllowPrivateAccess = "true"))
+    float JumpHeight = 150.0f; // 튀어오를 높이	
+
+	void UpdateJump();
 
 protected:
 	virtual void BeginPlay() override;
