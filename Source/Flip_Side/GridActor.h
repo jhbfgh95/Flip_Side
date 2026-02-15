@@ -33,6 +33,12 @@ class FLIP_SIDE_API AGridActor : public AActor
 	TWeakObjectPtr<ACoinActor> CurrentCoin;
 
 protected:
+
+	UPROPERTY(Transient)
+	UMaterialInstanceDynamic* CachedMID = nullptr;
+
+	UMaterialInstanceDynamic* EnsureMID(int32 MaterialIndex = 0);
+
 	bool bIsOccupied = false;
 
 	//보스가 공격할건지? 보스가 공격하게 되면 머테리얼 변경
@@ -80,6 +86,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	ACoinActor* GetCurrentCoin() const;   // GridManager가 이걸로 ID 뽑음
 
+	UFUNCTION(BlueprintCallable)
+	void ApplyCellMaterialParams(const FLinearColor& OutlineColor, float FillIntensity, float DoorOpen);
 
 protected:
 	virtual void BeginPlay() override;
