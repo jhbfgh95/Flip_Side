@@ -25,6 +25,9 @@ void UCrossingLevelGISubsystem::InitSlots()
     DefaultCoin.SameTypeCoinNum = -1;
     DefaultCoin.SlotNum = -1;
 
+    DefaultItem.ItemID = -1;
+    DefaultItem.SameItemNum = -1;
+
     for(int i =0; i< COIN_SLOT_SIZE;i++)
     {
         //코인 배열에 추가
@@ -41,7 +44,7 @@ void UCrossingLevelGISubsystem::InitSlots()
     //-1 3개 추가 -> 아이디가 -1은 없으니까 없는거로 판정
     for(int i = 0; i<USEABLE_SLOT_SIZE; i++)
     {
-        UseableItemIDArray.Add(-1);
+        SelectedUseableItemArray.Add(DefaultItem);
     }
 }
 
@@ -72,16 +75,19 @@ void UCrossingLevelGISubsystem::SetBattleCardID(int32 CardID, int32 CardSlot)
     }
 }
 
-void UCrossingLevelGISubsystem::SetBattleUseItemID(int32 UseableItemID, int32 ItemSlot)
+void UCrossingLevelGISubsystem::SetBattleUseItemID(int32 UseableItemID, int32 ItemSlot, int32 ItemNum)
 {
-    if(UseableItemIDArray.IsValidIndex(ItemSlot))
+    if(SelectedUseableItemArray.IsValidIndex(ItemSlot))
     {
-        UseableItemIDArray[ItemSlot] = UseableItemID;
+        SelectedUseableItemArray[ItemSlot].ItemID = UseableItemID;
+        SelectedUseableItemArray[ItemSlot].SameItemNum = ItemNum;
+        if(UseableItemID == -1) { MakedUseItemNum--; }
+        else { MakedUseItemNum++; }
     }
 }
 
 //정해진 슬롯에 위치한 코인구조체를 반환
-FCoinTypeStructure UCrossingLevelGISubsystem::GetSlotCoin(int SlotNum)
+FCoinTypeStructure UCrossingLevelGISubsystem::GetSlotCoin(int SlotNum) const
 {
     //슬롯 크기가 넘는 것을 불러온다면
     if(SlotNum > COIN_SLOT_SIZE )
@@ -95,7 +101,7 @@ FCoinTypeStructure UCrossingLevelGISubsystem::GetSlotCoin(int SlotNum)
     
 }
 
-int32 UCrossingLevelGISubsystem::GetMakedCoinNum()
+int32 UCrossingLevelGISubsystem::GetMakedCoinNum() const
 {
     return MakedCoinNum;
 }
@@ -105,9 +111,19 @@ TArray<int32> UCrossingLevelGISubsystem::GetBattleCardIDs()
     return CardIDArray;
 }
 
-TArray<int32> UCrossingLevelGISubsystem::GetBattleUseItemIDs()
+FSelectItem UCrossingLevelGISubsystem::GetBattleUseItems(int SlotNum) const
 {
-    return UseableItemIDArray;
+    if(SlotNum > USEABLE_SLOT_SIZE)
+    {
+        return DefaultItem;
+    }
+
+    return SelectedUseableItemArray[SlotNum];
+}
+
+int32 UCrossingLevelGISubsystem::GetMakedItemNum() const
+{
+    return MakedUseItemNum;
 }
 
 //테스트용 코인 생성
@@ -130,6 +146,6 @@ void UCrossingLevelGISubsystem::GenerateTestCoin()
     for(int32 k = 0; k<3;k++)
     {
         //SetBattleCardID(k,k);
-        SetBattleUseItemID(k,k);
+        SetBattleUseItemID(k+1,k,3);
     }
 }

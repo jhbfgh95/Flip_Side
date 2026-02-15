@@ -10,6 +10,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTurnChanged, ETurnState, NewTurn);
 
+class ACoinActor;
+
 UCLASS()
 class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
 {
@@ -30,6 +32,14 @@ class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
 
 	ETurnState CurrentTurn;
 
+	/* Subsystem Caches */
+	/* 배틀매니저 한정으로 타 매니저들 캐시하는 이유 : 중앙 매니저라서 캐시가 더 이득이라고 생각 */
+	UPROPERTY()
+	class UCoinManagementWSubsystem* CoinManager;
+
+	UPROPERTY()
+	class UGridManagerSubsystem* GridManager;
+
 protected:
 	void TurnProgressing();
 
@@ -43,9 +53,16 @@ protected:
 protected:
 	
 
-/* CoinSelectTurn */
+/* CoinSelectTurn (순서대로) */
 protected:
 	void MatchCoinsToRandomState();
+
+	void DoTeleportAct();
+	FTimerHandle CoinTeleportHandler;
+
+	void TeleportReadyCoinsToDecidedGrid(ACoinActor* ReadyCoin);
+
+	void AddCoinsToOrderArray(ACoinActor* TargetCoin);
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

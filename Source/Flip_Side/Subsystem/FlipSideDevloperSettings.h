@@ -8,6 +8,7 @@
 
 class ACoinActor;
 class ASlotActor;
+class AUseableItemActor;
 
 UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="My Manager Settings"))
 class FLIP_SIDE_API UFlipSideDevloperSettings : public UDeveloperSettings
@@ -20,6 +21,12 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "CoinSpawn")
 	TSoftClassPtr<ASlotActor> SlotActor;
+
+	UPROPERTY(Config, EditAnywhere, Category = "UseableItemSpawn")
+	TSoftClassPtr<AUseableItemActor> UseableItemActor;
+
+	UPROPERTY(Config, EditAnywhere, Category = "UseableItemSpawn")
+	TSoftClassPtr<ASlotActor> UseableItemSlotActor;
 
 	UPROPERTY(EditAnywhere, Config, Category = "GridSpawn")
 	TSoftClassPtr<class AGridActor> GridActor;

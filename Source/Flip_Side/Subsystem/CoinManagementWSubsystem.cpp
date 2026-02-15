@@ -328,6 +328,7 @@ void UCoinManagementWSubsystem::InstanceCoins()
             FFaceData FrontWP;
             FFaceData BackWP;
             EWeaponClass CoinType = EWeaponClass::None;
+            FWeaponType TypeDatas; 
 
             if(DM->TryGetWeapon(CoinData.FrontWeaponID, FrontWP) && DM->TryGetWeapon(CoinData.BackWeaponID, BackWP))
             {
@@ -355,6 +356,7 @@ void UCoinManagementWSubsystem::InstanceCoins()
                                 if(FrontWP.WeaponType == BackWP.WeaponType)
                                 {
                                     CoinType = FrontWP.WeaponType;
+                                    TypeDatas = DM->WeaponTypes[FrontWP.TypeID - 1];
                                 }
                                 int32 FinalIndex = i;
 
@@ -364,7 +366,9 @@ void UCoinManagementWSubsystem::InstanceCoins()
                                     CoinData.BackWeaponID,
                                     CoinType,
                                     FrontWP.WeaponIcon,
-                                    BackWP.WeaponIcon
+                                    BackWP.WeaponIcon,
+                                    TypeDatas.TypeColor,
+                                    TypeDatas.HP
                                 );
 
                                 // 슬롯의 순수 시작 위치(i=0일 때의 위치)를 저장

@@ -69,13 +69,13 @@ bool AGridActor::GetIsOccupied() { return bIsOccupied; }
 EGridOccupyingType AGridActor::GetCurrentOccupyingThing() {  return CurrentOccupying; }
 
 //코인 "순간이동"
-FVector AGridActor::GetGridWorldXY()
+FVector2D AGridActor::GetGridWorldXY()
 {
 	FTransform GridTransform = GridRootComp->GetComponentTransform();
 	
 	GridWorldXY = GridTransform.GetLocation();
 
-	return GridWorldXY;
+	return FVector2D(GridWorldXY.X, GridWorldXY.Y);
 }
 
 void AGridActor::SetOccupiedCoin(ACoinActor* Coin)

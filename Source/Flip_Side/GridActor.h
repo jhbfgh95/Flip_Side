@@ -69,7 +69,7 @@ public:
 	EGridOccupyingType GetCurrentOccupyingThing();
 
 	UFUNCTION()
-	FVector GetGridWorldXY();
+	FVector2D GetGridWorldXY();
 
 	UFUNCTION(BlueprintCallable)
 	void SetOccupiedCoin(ACoinActor* Coin);
