@@ -10,6 +10,7 @@
 #include "CoinManagementWSubsystem.h"
 #include "CrossingLevelGISubsystem.h"
 #include "GridManagerSubsystem.h"
+#include "BattleLevelActingWSubsystem.h"
 #include "TemplateFunction_Utils.h"
 
 #define BATTLE_COIN_MAX 10
@@ -22,6 +23,7 @@ void UBattleManagerWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
     CoinManager = Collection.InitializeDependency<UCoinManagementWSubsystem>();
     GridManager = Collection.InitializeDependency<UGridManagerSubsystem>();
+    ActingManager = Collection.InitializeDependency<UBattleLevelActingWSubsystem>();
 
     RandomStateArray.SetNum(BATTLE_COIN_MAX);
     CoinOrderArray.SetNum(BATTLE_COIN_MAX);
@@ -40,7 +42,6 @@ bool UBattleManagerWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
         FString MapName = World->GetName();
         if(MapName.Contains(TEXT("L_Stage")))
         {
-            UE_LOG(LogTemp, Warning, TEXT("BattleManagerOn"));
             return true;
         }
     }
@@ -159,44 +160,22 @@ void UBattleManagerWSubsystem::MatchCoinsToRandomState()
 
     TArray<ACoinActor*> ReadyCoins = CoinManager->GetReadyCoins();
 
-    for(int i = 0; i<CoinManager->GetBattleReadyCoinNum(); i++)
+    int32 StateIndex = 0;
+    for (ACoinActor* Coin : ReadyCoins)
     {
-        ReadyCoins[i]->SetCoinFace(RandomStateArray[i].RandomFace);
-        ReadyCoins[i]->SetGridPoint(RandomStateArray[i].RandomGrid);
-        //UBehavior 실행할 때 이거에서 빼오려고 쓴거긴 함.
-        MatchedArray.Add(ReadyCoins[i]->GetCoinID(), ReadyCoins[i]->GetCoinFaceID());
-    }
-
-    GetWorld()->GetTimerManager().SetTimer(CoinTeleportHandler, this, &UBattleManagerWSubsystem::DoTeleportAct, 3.0f, false);
-}
-
-void UBattleManagerWSubsystem::DoTeleportAct()
-{
-    TArray<ACoinActor*> ReadyCoins = CoinManager->GetReadyCoins();
-
-    for(int i = 0; i<CoinManager->GetBattleReadyCoinNum(); i++)
-    {
-        TeleportReadyCoinsToDecidedGrid(ReadyCoins[i]);
-    }
-}
-
-void UBattleManagerWSubsystem::TeleportReadyCoinsToDecidedGrid(ACoinActor* ReadyCoin)
-{
-    if(ReadyCoin == nullptr) return;
-
-    if(!ReadyCoin->GetCoinIsReady()) return;
-
-    FGridPoint Grid = ReadyCoin->GetDecidedGrid();
-    
-    if(GridManager)
-    {
-        AGridActor* TheGrid = GridManager->GetGridActor(Grid);
-        if(TheGrid)
+        if (IsValid(Coin))
         {
-            ReadyCoin->DoCoinActAtBattleStart(TheGrid->GetGridWorldXY().X, TheGrid->GetGridWorldXY().Y);
+            Coin->SetCoinFace(RandomStateArray[StateIndex].RandomFace);
+            Coin->SetGridPoint(RandomStateArray[StateIndex].RandomGrid);
+            
+            MatchedArray.Add(Coin->GetCoinID(), Coin->GetCoinFaceID());
+            StateIndex++; // 코인을 찾았을 때만 다음 랜덤 상태로
         }
     }
+
+    ActingManager->WaitTeleportUntilLeverDown();
 }
+
 
 void UBattleManagerWSubsystem::AddCoinsToOrderArray(ACoinActor* TargetCoin)
 {

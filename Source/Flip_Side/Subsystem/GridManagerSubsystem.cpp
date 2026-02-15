@@ -54,7 +54,7 @@ void UGridManagerSubsystem::InstanceGrid()
 	const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
 	if (!Settings) return;
 
-	// DeveloperSettings¿¡¼­ BP_Grid SoftClass ·Îµå
+	// DeveloperSettingsï¿½ï¿½ï¿½ï¿½ BP_Grid SoftClass ï¿½Îµï¿½
 	UClass* BPGridClass = Settings->GridActor.LoadSynchronous();
 	if (!BPGridClass || !BPGridClass->IsChildOf(AGridActor::StaticClass()))
 	{
@@ -62,9 +62,9 @@ void UGridManagerSubsystem::InstanceGrid()
 		return;
 	}
 
-	for (int32 Y = 0; Y < GridYSize; ++Y)       // ¼¼·Î
+	for (int32 Y = 0; Y < GridYSize; ++Y)       // ï¿½ï¿½ï¿½ï¿½
 	{
-		for (int32 X = 0; X < GridXSize; ++X)   // °¡·Î
+		for (int32 X = 0; X < GridXSize; ++X)   // ï¿½ï¿½ï¿½ï¿½
 		{
 			const FVector SpawnLoc = GridOrigin + FVector(Y * SpacingY, X * SpacingX, 0.f);
 			const FTransform SpawnTM(FRotator::ZeroRotator, SpawnLoc);
@@ -88,6 +88,15 @@ void UGridManagerSubsystem::InstanceGrid()
 	}
 
 	UE_LOG(LogTemp, Log, TEXT("GridManager: Spawned grids %dx%d"), GridXSize, GridYSize);
+}
+
+AGridActor* UGridManagerSubsystem::GetGridActor(const FGridPoint& P) const
+{
+    if (const TObjectPtr<AGridActor>* Found = GridActors.Find(P))
+	{
+		return Found->Get();
+	}
+	return nullptr;
 }
 
 AGridActor* UGridManagerSubsystem::GetGridActorAt(int32 X, int32 Y) const
@@ -141,7 +150,7 @@ void UGridManagerSubsystem::BuildBossAttackCells(const FAttackAreaSpec& Spec, TA
 // Boss Attack Preview (Telegraph)
 // ======================
 
-// ÇöÀç »ç¿ë ¾È ÇÔ
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½
 /*
 void UGridManagerSubsystem::PreviewBossAttack(const FAttackAreaSpec& Spec)
 {
@@ -198,9 +207,7 @@ void UGridManagerSubsystem::BuildCoinTargetCells(
 
 bool UGridManagerSubsystem::IsInGrid(int32 X, int32 Y) const
 {
-    constexpr int32 W = 5;
-    constexpr int32 H = 8;
-    return (0 <= X && X < W) && (0 <= Y && Y < H);
+    return (0 <= X && X < GridXSize) && (0 <= Y && Y < GridYSize);
 }
 
 void UGridManagerSubsystem::StopDoorFx(const FGridPoint& Cell)
@@ -225,7 +232,7 @@ void UGridManagerSubsystem::PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, f
 
     const FGridPoint Cell{ GridX, GridY };
 
-    // °°Àº Ä­ ¿¬Ãâ ÁßÀÌ¸é Á¤¸® ÈÄ Àç½ÃÀÛ
+    // ï¿½ï¿½ï¿½ï¿½ Ä­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
     StopDoorFx(Cell);
 
     FCellDoorFxState State;
@@ -239,7 +246,7 @@ void UGridManagerSubsystem::PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, f
         0.0f                                // Door_Open
     );
 
-    // Phase1 Tick ½ÃÀÛ
+    // Phase1 Tick ï¿½ï¿½ï¿½ï¿½
     GetWorld()->GetTimerManager().SetTimer(
         DoorFxByCell[Cell].Phase1Tick,
         FTimerDelegate::CreateUObject(this, &UGridManagerSubsystem::TickPhase1, Cell),
@@ -287,10 +294,10 @@ void UGridManagerSubsystem::StartPhase2(FGridPoint Cell)
     AGridActor* CellActor = GetGridActorAt(Cell.GridX, Cell.GridY);
     if (!CellActor) { StopDoorFx(Cell); return; }
 
-    // Phase2 ½ÃÀÛ ½Ã°£ ±â·Ï
+    // Phase2 ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½
     State->Phase2StartTime = GetWorld()->GetTimeSeconds();
 
-    // Phase2 Tick ½ÃÀÛ (Door_Open: 0.4 -> 0 + »ö/°­µµ ¿øº¹)
+    // Phase2 Tick ï¿½ï¿½ï¿½ï¿½ (Door_Open: 0.4 -> 0 + ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
     GetWorld()->GetTimerManager().SetTimer(
         State->Phase2Tick,
         FTimerDelegate::CreateUObject(this, &UGridManagerSubsystem::TickPhase2, Cell),
@@ -317,7 +324,7 @@ void UGridManagerSubsystem::TickPhase2(FGridPoint Cell)
 
     CellActor->ApplyCellMaterialParams(
         FLinearColor(1.f, 1.f, 1.f, 1.f),  // Outline FFFFFFFF
-        0.4f,                               // Fill_intensity ¿øº¹
+        0.4f,                               // Fill_intensity ï¿½ï¿½ï¿½ï¿½
         Door
     );
 

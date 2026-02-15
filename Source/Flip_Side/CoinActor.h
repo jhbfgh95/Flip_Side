@@ -62,7 +62,6 @@ protected:
 	int DecidedWeaponID = 0;
 
 	bool bIsReady = false;
-
 	//이거로 Getter, Setter로 앞뒤 판별
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Face")
 	EFaceState CurrentFace = EFaceState::None;
@@ -127,7 +126,9 @@ public:
 public:
 	void DoCoinActAtBattleStart(float XLocation, float YLocation);
 
+	void DoCoinActAtBattleStartLeverDown();
 protected:
+	/* 레디 코인 튀어 오름 */
 	FTimerHandle JumpTimerHandle;
 
 	FVector DecidedGridLocation;
@@ -145,6 +146,17 @@ protected:
     float JumpHeight = 150.0f; // 튀어오를 높이	
 
 	void UpdateJump();
+
+	/* 레디 코인 서랍 움직임 */
+	FTimerHandle LeverMoveTimerHandle;
+	float MoveElapsedTime = 0.0f;
+
+	float MoveTime = 0.6f; 
+
+    float StartX = 0.0f;
+    float TargetX = 0.0f;
+
+	void UpdateCoinMoveAtBattleStart();
 
 protected:
 	virtual void BeginPlay() override;

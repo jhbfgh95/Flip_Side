@@ -162,6 +162,34 @@ void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass
 
 }
 
+void ACoinActor::DoCoinActAtBattleStartLeverDown()
+{
+	StartX = GetActorLocation().X;
+    TargetX = StartX + 1040.f; // 목표: 현재 위치 + 1040
+    MoveElapsedTime = 0.0f;
+
+    GetWorld()->GetTimerManager().ClearTimer(LeverMoveTimerHandle);
+    
+    GetWorld()->GetTimerManager().SetTimer(LeverMoveTimerHandle, this, &ACoinActor::UpdateCoinMoveAtBattleStart, 0.01f, true);
+}
+
+void ACoinActor::UpdateCoinMoveAtBattleStart()
+{
+	MoveElapsedTime += 0.01f;
+    
+    float Alpha = FMath::Clamp(MoveElapsedTime / MoveTime, 0.0f, 1.0f);
+
+    float NewX = FMath::Lerp(StartX, TargetX, Alpha);
+
+    FVector CurrentLoc = GetActorLocation();
+    SetActorLocation(FVector(NewX, CurrentLoc.Y, CurrentLoc.Z));
+
+    if (Alpha >= 1.0f)
+    {
+        GetWorld()->GetTimerManager().ClearTimer(LeverMoveTimerHandle);
+    }
+}
+
 void ACoinActor::DoCoinActAtBattleStart(float XLocation, float YLocation)
 {
 	if(!bIsReady) return;

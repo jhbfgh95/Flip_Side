@@ -97,7 +97,7 @@ void UDataManagerSubsystem::BuildWeaponTypeMap(const TArray<FFaceData>& AllWeapo
 
     for (const FFaceData& Weapon : AllWeapons)
     {
-        // TypeID ±âÁØÀ¸·Î ÀÚµ¿ ±×·ìÇÎ
+        // TypeID ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½×·ï¿½ï¿½ï¿½
         WeaponByTypeID.FindOrAdd(Weapon.TypeID).Add(Weapon);
     }
 }
@@ -408,7 +408,7 @@ static bool TryParseHexColor_RRGGBBAA(const FString& InHex, FLinearColor& Out)
     const FString B = Hex.Mid(4, 2);
     const FString A = Hex.Mid(6, 2);
 
-    const FString AARRGGBB = A + R + G + B;
+    const FString AARRGGBB = R + G + B + A;
 
     const FColor SRGB = FColor::FromHex(AARRGGBB);
     Out = FLinearColor::FromSRGBColor(SRGB);

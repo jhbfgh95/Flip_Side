@@ -51,20 +51,11 @@ void UCrossingLevelGISubsystem::InitSlots()
 //코인슬롯에 코인 할당
 void UCrossingLevelGISubsystem::SetSlotCoin(int SlotNum, FCoinTypeStructure CoinStruct)
 {
-    //슬롯 크기보다 작다면
-    if(SlotNum < COIN_SLOT_SIZE)
+    if (SlotCoinArray.IsValidIndex(SlotNum))
     {
-        //새로 넣는 코인의 슬롯값을 매개변수값으로 변경
         CoinStruct.SlotNum = SlotNum;
-
-        //새로 셋팅할 코인슬롯이 배열 안에 있는 경우에만
-        if(SlotNum<SlotCoinArray.Num())
-        {
-            SlotCoinArray[SlotNum] = CoinStruct;
-            MakedCoinNum++;
-        }
+        SlotCoinArray[SlotNum] = CoinStruct;
     }
-
 }
 
 void UCrossingLevelGISubsystem::SetBattleCardID(int32 CardID, int32 CardSlot)
@@ -81,8 +72,6 @@ void UCrossingLevelGISubsystem::SetBattleUseItemID(int32 UseableItemID, int32 It
     {
         SelectedUseableItemArray[ItemSlot].ItemID = UseableItemID;
         SelectedUseableItemArray[ItemSlot].SameItemNum = ItemNum;
-        if(UseableItemID == -1) { MakedUseItemNum--; }
-        else { MakedUseItemNum++; }
     }
 }
 
@@ -103,7 +92,15 @@ FCoinTypeStructure UCrossingLevelGISubsystem::GetSlotCoin(int SlotNum) const
 
 int32 UCrossingLevelGISubsystem::GetMakedCoinNum() const
 {
-    return MakedCoinNum;
+    int32 Count = 0;
+    for (const FCoinTypeStructure& Slot : SlotCoinArray)
+    {
+        if (Slot.FrontWeaponID != -1)
+        {
+            Count++;
+        }
+    }
+    return Count;
 }
 
 TArray<int32> UCrossingLevelGISubsystem::GetBattleCardIDs()
@@ -123,7 +120,15 @@ FSelectItem UCrossingLevelGISubsystem::GetBattleUseItems(int SlotNum) const
 
 int32 UCrossingLevelGISubsystem::GetMakedItemNum() const
 {
-    return MakedUseItemNum;
+    int32 Count = 0;
+    for (const FSelectItem& Item : SelectedUseableItemArray)
+    {
+        if (Item.ItemID != -1)
+        {
+            Count++;
+        }
+    }
+    return Count;
 }
 
 //테스트용 코인 생성
