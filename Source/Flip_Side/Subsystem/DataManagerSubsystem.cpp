@@ -143,6 +143,7 @@ void UDataManagerSubsystem::ClearCache()
     BossByID.Reset();
     BossIDByStage.Reset();
     ItemByID.Reset();
+    WeaponTypes.Reset();
 }
 
 bool UDataManagerSubsystem::OpenDbReadWrite()
