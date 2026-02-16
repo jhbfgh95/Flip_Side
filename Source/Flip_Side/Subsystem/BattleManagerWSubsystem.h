@@ -40,6 +40,9 @@ class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
 	UPROPERTY()
 	class UGridManagerSubsystem* GridManager;
 
+	UPROPERTY()
+	class UBattleLevelActingWSubsystem* ActingManager;
+
 protected:
 	void TurnProgressing();
 
@@ -56,11 +59,6 @@ protected:
 /* CoinSelectTurn (순서대로) */
 protected:
 	void MatchCoinsToRandomState();
-
-	void DoTeleportAct();
-	FTimerHandle CoinTeleportHandler;
-
-	void TeleportReadyCoinsToDecidedGrid(ACoinActor* ReadyCoin);
 
 	void AddCoinsToOrderArray(ACoinActor* TargetCoin);
 

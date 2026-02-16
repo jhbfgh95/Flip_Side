@@ -102,3 +102,25 @@ ACoinActor* AGridActor::GetCurrentCoin() const
 {
 	return CurrentCoin.Get();
 }
+
+UMaterialInstanceDynamic* AGridActor::EnsureMID(int32 MaterialIndex)
+{
+	if (!CachedMID)
+	{
+		if (GridMesh)
+		{
+			CachedMID = GridMesh->CreateDynamicMaterialInstance(MaterialIndex);
+		}
+	}
+	return CachedMID;
+}
+
+void AGridActor::ApplyCellMaterialParams(const FLinearColor& OutlineColor, float FillIntensity, float DoorOpen)
+{
+	UMaterialInstanceDynamic* MID = EnsureMID(0);
+	if (!MID) return;
+
+	MID->SetVectorParameterValue(TEXT("Outline_Color"), OutlineColor);
+	MID->SetScalarParameterValue(TEXT("Fill_intensity"), FillIntensity);
+	MID->SetScalarParameterValue(TEXT("Door_Open"), DoorOpen);
+}

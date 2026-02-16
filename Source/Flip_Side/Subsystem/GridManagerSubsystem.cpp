@@ -1,7 +1,7 @@
 #include "GridManagerSubsystem.h"
-
 #include "Engine/World.h"
 #include "GridActor.h"
+#include "GridAreaBuilder.h"
 #include "CoinActor.h"
 #include "FlipSideDevloperSettings.h"
 
@@ -54,7 +54,7 @@ void UGridManagerSubsystem::InstanceGrid()
 	const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
 	if (!Settings) return;
 
-	// DeveloperSettings¿¡¼­ BP_Grid SoftClass ·Îµå
+	// DeveloperSettingsï¿½ï¿½ï¿½ï¿½ BP_Grid SoftClass ï¿½Îµï¿½
 	UClass* BPGridClass = Settings->GridActor.LoadSynchronous();
 	if (!BPGridClass || !BPGridClass->IsChildOf(AGridActor::StaticClass()))
 	{
@@ -62,9 +62,9 @@ void UGridManagerSubsystem::InstanceGrid()
 		return;
 	}
 
-	for (int32 Y = 0; Y < GridYSize; ++Y)       // ¼¼·Î
+	for (int32 Y = 0; Y < GridYSize; ++Y)       // ï¿½ï¿½ï¿½ï¿½
 	{
-		for (int32 X = 0; X < GridXSize; ++X)   // °¡·Î
+		for (int32 X = 0; X < GridXSize; ++X)   // ï¿½ï¿½ï¿½ï¿½
 		{
 			const FVector SpawnLoc = GridOrigin + FVector(Y * SpacingY, X * SpacingX, 0.f);
 			const FTransform SpawnTM(FRotator::ZeroRotator, SpawnLoc);
@@ -92,11 +92,21 @@ void UGridManagerSubsystem::InstanceGrid()
 
 AGridActor* UGridManagerSubsystem::GetGridActor(const FGridPoint& P) const
 {
-	if (const TObjectPtr<AGridActor>* Found = GridActors.Find(P))
+    if (const TObjectPtr<AGridActor>* Found = GridActors.Find(P))
 	{
 		return Found->Get();
 	}
 	return nullptr;
+}
+
+AGridActor* UGridManagerSubsystem::GetGridActorAt(int32 X, int32 Y) const
+{
+    const FGridPoint P{ X, Y };
+    if (const TObjectPtr<AGridActor>* Found = GridActors.Find(P))
+    {
+        return Found->Get();
+    }
+    return nullptr;
 }
 
 void UGridManagerSubsystem::CollectOccupiedCoins(TArray<FCoinOnGridInfo>& OutCoins) const
@@ -129,153 +139,27 @@ void UGridManagerSubsystem::CollectOccupiedCoins(TArray<FCoinOnGridInfo>& OutCoi
 // Boss Attack Cell Build
 // ======================
 
-static inline bool IsInGrid(const FGridPoint& P, int32 W, int32 H)
-{
-    return (0 <= P.GridX && P.GridX < W) && (0 <= P.GridY && P.GridY < H);
-}
-
-static inline void AddIfIn(TArray<FGridPoint>& Out, const FGridPoint& P, int32 W, int32 H)
-{
-    if (IsInGrid(P, W, H))
-        Out.Add(P);
-}
-
-void UGridManagerSubsystem::BuildBossAttackCells(const FBossAttackSpec& Spec, TArray<FGridPoint>& OutCells) const
+void UGridManagerSubsystem::BuildBossAttackCells(const FAttackAreaSpec& Spec, TArray<FGridPoint>& OutCells) const
 {
     OutCells.Reset();
 
-    const int32 W = GridXSize; // 8
-    const int32 H = GridYSize; // 5
-
-    auto Add = [&](int32 X, int32 Y)
-        {
-            FGridPoint P; P.GridX = X; P.GridY = Y;
-            AddIfIn(OutCells, P, W, H);
-        };
-
-    const FGridPoint T = Spec.bUseTargetCell ? Spec.TargetCell : FGridPoint{ Spec.Index, 0 };
-
-    switch (Spec.Pattern)
-    {
-    case EBossAttackPattern::Column:
-    {
-        const int32 Col = Spec.Index;
-        for (int32 Y = 0; Y < H; ++Y) Add(Col, Y);
-        break;
-    }
-    case EBossAttackPattern::Row:
-    {
-        const int32 Row = Spec.Index;
-        for (int32 X = 0; X < W; ++X) Add(X, Row);
-        break;
-    }
-    case EBossAttackPattern::CrossOnCell:
-    {
-        Add(T.GridX, T.GridY);
-        Add(T.GridX + 1, T.GridY);
-        Add(T.GridX - 1, T.GridY);
-        Add(T.GridX, T.GridY + 1);
-        Add(T.GridX, T.GridY - 1);
-        break;
-    }
-    case EBossAttackPattern::CircleOnCell:
-    {
-        const int32 R = Spec.ParamA;
-        for (int32 dy = -R; dy <= R; ++dy)
-            for (int32 dx = -R; dx <= R; ++dx)
-                Add(T.GridX + dx, T.GridY + dy);
-        break;
-    }
-    case EBossAttackPattern::DiagonalMain:
-    {
-        const int32 N = FMath::Min(W, H);
-        for (int32 i = 0; i < N; ++i) Add(i, i);
-        break;
-    }
-    case EBossAttackPattern::DiagonalAnti:
-    {
-        const int32 N = FMath::Min(W, H);
-        for (int32 i = 0; i < N; ++i) Add((W - 1) - i, i);
-        break;
-    }
-    case EBossAttackPattern::Border:
-    {
-        for (int32 X = 0; X < W; ++X) { Add(X, 0); Add(X, H - 1); }
-        for (int32 Y = 1; Y < H - 1; ++Y) { Add(0, Y); Add(W - 1, Y); }
-        break;
-    }
-    case EBossAttackPattern::ConeFromSide:
-    {
-        const int32 HalfWidth0 = Spec.ParamA; // ½ÃÀÛ Æø
-        const int32 Depth = Spec.ParamB;      // ±íÀÌ
-
-        if (Spec.Side == EBossSide::Up)
-        {
-            const int32 CenterX = Spec.Index;
-            for (int32 d = 0; d < Depth && d < H; ++d)
-            {
-                const int32 hw = HalfWidth0 + d;
-                const int32 Y = d;
-                for (int32 X = CenterX - hw; X <= CenterX + hw; ++X) Add(X, Y);
-            }
-        }
-        else if (Spec.Side == EBossSide::Down)
-        {
-            const int32 CenterX = Spec.Index;
-            for (int32 d = 0; d < Depth && d < H; ++d)
-            {
-                const int32 hw = HalfWidth0 + d;
-                const int32 Y = (H - 1) - d;
-                for (int32 X = CenterX - hw; X <= CenterX + hw; ++X) Add(X, Y);
-            }
-        }
-        else if (Spec.Side == EBossSide::Left)
-        {
-            const int32 CenterY = Spec.Index;
-            for (int32 d = 0; d < Depth && d < W; ++d)
-            {
-                const int32 hw = HalfWidth0 + d;
-                const int32 X = d;
-                for (int32 Y = CenterY - hw; Y <= CenterY + hw; ++Y) Add(X, Y);
-            }
-        }
-        else // Right
-        {
-            const int32 CenterY = Spec.Index;
-            for (int32 d = 0; d < Depth && d < W; ++d)
-            {
-                const int32 hw = HalfWidth0 + d;
-                const int32 X = (W - 1) - d;
-                for (int32 Y = CenterY - hw; Y <= CenterY + hw; ++Y) Add(X, Y);
-            }
-        }
-        break;
-    }
-    case EBossAttackPattern::SingleTargetCoin:
-    {
-        if (Spec.bUseTargetCell)
-            Add(Spec.TargetCell.GridX, Spec.TargetCell.GridY);
-        break;
-    }
-    default:
-        break;
-    }
+	FGridAreaBuilder::BuildCells(Spec, GridXSize, GridYSize, OutCells);
 }
 
 // ======================
 // Boss Attack Preview (Telegraph)
 // ======================
 
-// ÇöÀç »ç¿ë ¾È ÇÔ
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½
 /*
-void UGridManagerSubsystem::PreviewBossAttack(const FBossAttackSpec& Spec)
+void UGridManagerSubsystem::PreviewBossAttack(const FAttackAreaSpec& Spec)
 {
     TArray<FGridPoint> AttackCells;
     BuildBossAttackCells(Spec, AttackCells);
 
     for (const FGridPoint& P : AttackCells)
     {
-        if (AGridActor* Grid = GetGridActor(P))
+        if (AGridActor* Grid = GetGridActorAt(P))
         {
             // Grid->SetDanger(true);
             // Grid->SetPreviewColor(FLinearColor::Red);
@@ -316,5 +200,136 @@ void UGridManagerSubsystem::BuildCoinTargetCells(
         {
             OutCells.Add(C.GridXY); 
         }
+    }
+}
+
+// GridManagerSubsystem.cpp
+
+bool UGridManagerSubsystem::IsInGrid(int32 X, int32 Y) const
+{
+    return (0 <= X && X < GridXSize) && (0 <= Y && Y < GridYSize);
+}
+
+void UGridManagerSubsystem::StopDoorFx(const FGridPoint& Cell)
+{
+    if (!GetWorld()) return;
+
+    if (FCellDoorFxState* State = DoorFxByCell.Find(Cell))
+    {
+        GetWorld()->GetTimerManager().ClearTimer(State->Phase1Tick);
+        GetWorld()->GetTimerManager().ClearTimer(State->Phase2Tick);
+        DoorFxByCell.Remove(Cell);
+    }
+}
+
+void UGridManagerSubsystem::PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, float PhaseDuration)
+{
+    if (!GetWorld()) return;
+    if (!IsInGrid(GridX, GridY)) return;
+
+    AGridActor* CellActor = GetGridActorAt(GridX, GridY);
+    if (!CellActor) return;
+
+    const FGridPoint Cell{ GridX, GridY };
+
+    // ï¿½ï¿½ï¿½ï¿½ Ä­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+    StopDoorFx(Cell);
+
+    FCellDoorFxState State;
+    State.PhaseDuration = FMath::Max(0.01f, PhaseDuration);
+    State.Phase1StartTime = GetWorld()->GetTimeSeconds();
+    DoorFxByCell.Add(Cell, State);
+
+    CellActor->ApplyCellMaterialParams(
+        FLinearColor(0.f, 0.f, 0.f, 1.f),  // Outline 000000FF
+        0.8f,                               // Fill_intensity
+        0.0f                                // Door_Open
+    );
+
+    // Phase1 Tick ï¿½ï¿½ï¿½ï¿½
+    GetWorld()->GetTimerManager().SetTimer(
+        DoorFxByCell[Cell].Phase1Tick,
+        FTimerDelegate::CreateUObject(this, &UGridManagerSubsystem::TickPhase1, Cell),
+        0.016f,
+        true
+    );
+}
+
+void UGridManagerSubsystem::TickPhase1(FGridPoint Cell)
+{
+    if (!GetWorld()) { StopDoorFx(Cell); return; }
+
+    FCellDoorFxState* State = DoorFxByCell.Find(Cell);
+    if (!State) return;
+
+    AGridActor* CellActor = GetGridActorAt(Cell.GridX, Cell.GridY);
+    if (!CellActor) { StopDoorFx(Cell); return; }
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    const float Alpha = FMath::Clamp((Now - State->Phase1StartTime) / State->PhaseDuration, 0.f, 1.f);
+
+    // Door_Open: 0 -> 0.4
+    const float Door = FMath::Lerp(0.0f, 0.4f, Alpha);
+
+    CellActor->ApplyCellMaterialParams(
+        FLinearColor(0.f, 0.f, 0.f, 1.f),
+        0.8f,
+        Door
+    );
+
+    if (Alpha >= 1.f)
+    {
+        GetWorld()->GetTimerManager().ClearTimer(State->Phase1Tick);
+        StartPhase2(Cell);
+    }
+}
+
+void UGridManagerSubsystem::StartPhase2(FGridPoint Cell)
+{
+    if (!GetWorld()) { StopDoorFx(Cell); return; }
+
+    FCellDoorFxState* State = DoorFxByCell.Find(Cell);
+    if (!State) return;
+
+    AGridActor* CellActor = GetGridActorAt(Cell.GridX, Cell.GridY);
+    if (!CellActor) { StopDoorFx(Cell); return; }
+
+    // Phase2 ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½
+    State->Phase2StartTime = GetWorld()->GetTimeSeconds();
+
+    // Phase2 Tick ï¿½ï¿½ï¿½ï¿½ (Door_Open: 0.4 -> 0 + ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+    GetWorld()->GetTimerManager().SetTimer(
+        State->Phase2Tick,
+        FTimerDelegate::CreateUObject(this, &UGridManagerSubsystem::TickPhase2, Cell),
+        0.016f,
+        true
+    );
+}
+
+void UGridManagerSubsystem::TickPhase2(FGridPoint Cell)
+{
+    if (!GetWorld()) { StopDoorFx(Cell); return; }
+
+    FCellDoorFxState* State = DoorFxByCell.Find(Cell);
+    if (!State) return;
+
+    AGridActor* CellActor = GetGridActorAt(Cell.GridX, Cell.GridY);
+    if (!CellActor) { StopDoorFx(Cell); return; }
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    const float Alpha = FMath::Clamp((Now - State->Phase2StartTime) / State->PhaseDuration, 0.f, 1.f);
+
+    // Door_Open: 0.4 -> 0
+    const float Door = FMath::Lerp(0.4f, 0.0f, Alpha);
+
+    CellActor->ApplyCellMaterialParams(
+        FLinearColor(1.f, 1.f, 1.f, 1.f),  // Outline FFFFFFFF
+        0.4f,                               // Fill_intensity ï¿½ï¿½ï¿½ï¿½
+        Door
+    );
+
+    if (Alpha >= 1.f)
+    {
+        StopDoorFx(Cell);
     }
 }

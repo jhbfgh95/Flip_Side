@@ -4,7 +4,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "GridTypes.h"
-#include "BossAttackTypes.h"
+#include "AttackAreaTypes.h"
 #include "GridManagerSubsystem.generated.h"
 
 class AGridActor;
@@ -20,6 +20,21 @@ struct FCoinOnGridInfo
 	ACoinActor* CoinActor = nullptr;
 };
 
+USTRUCT()
+struct FCellDoorFxState
+{
+	GENERATED_BODY()
+
+public:
+	FTimerHandle Phase1Tick;
+	FTimerHandle Phase2Tick;
+
+	float PhaseDuration = 1.5f;
+
+	float Phase1StartTime = 0.f;
+	float Phase2StartTime = 0.f;
+};
+
 UCLASS()
 class FLIP_SIDE_API UGridManagerSubsystem : public UWorldSubsystem
 {
@@ -30,7 +45,7 @@ public:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")
-	FVector GridOrigin = FVector(1440.f, -2460.f, -70.f);
+	FVector GridOrigin = FVector(1340.f, -2560.f, -100.f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")
 	float SpacingX = 440.f;
@@ -39,10 +54,10 @@ public:
 	float SpacingY = 440.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")
-	int32 GridXSize = 8; // °¡·Î
+	int32 GridXSize = 8; // ï¿½ï¿½ï¿½ï¿½
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")
-	int32 GridYSize = 5; // ¼¼·Î
+	int32 GridYSize = 5; // ï¿½ï¿½ï¿½ï¿½
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void InitGrid(int32 InGridXSize, int32 InGridYSize);
@@ -50,20 +65,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void ClearGrid();
 
-	
+	UFUNCTION(BlueprintCallable)
+	void PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, float PhaseDuration = 1.5f);
+
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void CollectOccupiedCoins(TArray<FCoinOnGridInfo>& OutCoins) const;
 
-	
+
+	UFUNCTION(BlueprintCallable, Category = "Grid|Boss")
+	void BuildBossAttackCells(const FAttackAreaSpec& Spec, TArray<FGridPoint>& OutCells) const;
+
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	AGridActor* GetGridActor(const FGridPoint& P) const;
 
-	UFUNCTION(BlueprintCallable, Category = "Grid|Boss")
-	void BuildBossAttackCells(const FBossAttackSpec& Spec, TArray<FGridPoint>& OutCells) const;
-
 	/*
 	UFUNCTION(BlueprintCallable, Category="Grid|Boss")
-	void PreviewBossAttack(const FBossAttackSpec& Spec);
+	void PreviewBossAttack(const FAttackAreaSpec& Spec);
 
 	UFUNCTION(BlueprintCallable, Category="Grid|Boss")
 	void ClearBossAttackPreview();
@@ -78,6 +95,19 @@ public:
 
 private:
 	void InstanceGrid();
+
+	UPROPERTY(Transient)
+	TMap<FGridPoint, FCellDoorFxState> DoorFxByCell;
+
+	bool IsInGrid(int32 X, int32 Y) const;
+
+	AGridActor* GetGridActorAt(int32 X, int32 Y) const;
+
+	void StopDoorFx(const FGridPoint& Cell);
+
+	void TickPhase1(FGridPoint Cell);
+	void StartPhase2(FGridPoint Cell);
+	void TickPhase2(FGridPoint Cell);
 
 private:
 	UPROPERTY()

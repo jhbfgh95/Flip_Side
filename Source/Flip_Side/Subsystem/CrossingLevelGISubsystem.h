@@ -30,10 +30,6 @@ private:
 
 	FSelectItem DefaultItem; 
 
-	int32 MakedCoinNum;
-
-	int32 MakedUseItemNum;
-
 	//슬롯에 코인을 제작함
 	void InitSlots();
 
