@@ -17,11 +17,9 @@ void UW_CoinCreateWidget::NativeConstruct()
 	{
 		//코인클래스 변경됬을때
 		CoinCreateWSubSystem->OnCoinClassUpdate.AddDynamic(this, &UW_CoinCreateWidget::SetClassGrid);
-		CoinCreateWSubSystem->OffCoinClassSelectMode.AddDynamic(this, &UW_CoinCreateWidget::CloseClassSelectPannel);
 	}
 
     FinishButton->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::FinishCreate);
-    ClassSelectButton->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::OpenClassSelectPannel);
 
     TestClass->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetDeal);
     
@@ -51,21 +49,6 @@ void UW_CoinCreateWidget::FinishCreate()
     ShopGameMode->SetCoinManageMode();
 }
 
-void UW_CoinCreateWidget::OpenClassSelectPannel()
-{
-    
-    CoinCreateWSubSystem->OnClassSelectMode();
-    dealClassGrid->SetVisibility(ESlateVisibility::Collapsed);
-    utilClassGrid->SetVisibility(ESlateVisibility::Collapsed);
-    tankClassGrid->SetVisibility(ESlateVisibility::Collapsed);
-    FinishButton->SetVisibility(ESlateVisibility::Collapsed);
-}
-
-void UW_CoinCreateWidget::CloseClassSelectPannel()
-{
-    FinishButton->SetVisibility(ESlateVisibility::Visible);
-}
-
 //코드가 안 예쁨 수정해야할듯 
 void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
 {
@@ -85,7 +68,6 @@ void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
         utilClassGrid->SetVisibility(ESlateVisibility::Visible);
         break;
     default:
-        OpenClassSelectPannel();
         break;
     }
 }

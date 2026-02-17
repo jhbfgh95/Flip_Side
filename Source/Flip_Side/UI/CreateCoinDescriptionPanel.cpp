@@ -5,6 +5,8 @@
 #include "Components/TimelineComponent.h"
 #include "Subsystem/CoinCreateWSubsystem.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/WidgetComponent.h"
+#include "UI/W_ExplainWidget.h"
 
 // Sets default values
 ACreateCoinDescriptionPanel::ACreateCoinDescriptionPanel()
@@ -26,6 +28,9 @@ ACreateCoinDescriptionPanel::ACreateCoinDescriptionPanel()
 
 	CircularTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("CircualrTimeline"));
 	LinearTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("LinearTimeline"));
+	
+	ExplainWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("ExplainWidget"));
+	ExplainWidget->SetupAttachment(ShowPanelMesh);
 }
 
 // Called when the game starts or when spawned
@@ -105,6 +110,10 @@ void ACreateCoinDescriptionPanel::FinishedMoveLinear()
 		Radius = ShowPanelMesh->GetRelativeLocation().Size();
 		
 		CircularTimeline->PlayFromStart();
+	}
+	else
+	{
+		//ExplainWidget->SetExplainText(TEXT("test"));
 	}
 }
 

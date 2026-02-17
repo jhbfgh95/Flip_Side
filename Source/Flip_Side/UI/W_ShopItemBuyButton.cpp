@@ -18,20 +18,20 @@ void UW_ShopItemBuyButton::NativeConstruct()
 
 void UW_ShopItemBuyButton::SelectItem()
 {
-    ShopSubsystem->AddItem(SelectButtonNum);
+    //ShopSubsystem->AddItem(SelectButtonNum);
 }
 
 void UW_ShopItemBuyButton::HoverItem()
 {
-    ShopSubsystem->HoverShopItem(SelectButtonNum);
+    //ShopSubsystem->HoverShopItem(SelectButtonNum);
 }
 
 void UW_ShopItemBuyButton::UnHoverItem()
 {
-    ShopSubsystem->UnHoverShopItem();
+    //ShopSubsystem->UnHoverShopItem();
 }
 
 void UW_ShopItemBuyButton::UnSelectItem()
 {
-    ShopSubsystem->ReduceItem(SelectButtonNum);
+    //ShopSubsystem->ReduceItem(SelectButtonNum);
 }

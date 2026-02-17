@@ -19,20 +19,20 @@ void UW_ShopItemInvenButton::NativeConstruct()
 
 void UW_ShopItemInvenButton::SelectItem()
 {
-    ShopSubsystem->AddItemByInven(SelectButtonNum);
+    //ShopSubsystem->AddItemByInven(SelectButtonNum);
 }
 
 void UW_ShopItemInvenButton::HoverItem()
 {
-    ShopSubsystem->HoverShopItem(SelectButtonNum);
+    //ShopSubsystem->HoverShopItem(SelectButtonNum);
 }
 
 void UW_ShopItemInvenButton::UnHoverItem()
 {
-    ShopSubsystem->UnHoverShopItem();
+    //ShopSubsystem->UnHoverShopItem();
 }
 
 void UW_ShopItemInvenButton::UnSelectItem()
 {
-    ShopSubsystem->ReduceItemByInven(SelectButtonNum);
+    //ShopSubsystem->ReduceItemByInven(SelectButtonNum);
 }

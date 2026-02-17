@@ -52,4 +52,6 @@ public:
 	FCardData GetCurrentCard();
 
 	void RemoveHandCard(int32 HandIndex);
+
+	int32 GetPlayerCardID(int32 index); 
 };

@@ -18,15 +18,15 @@ bool UShopItemWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
     return MapName.Contains(TEXT("L_ShopLevel"));
 } 
 
+//초기화
 void UShopItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
-    FSelectItem DefaultsItem;
-    DefaultsItem.ItemID = -1;
-    DefaultsItem.SameItemNum = 0;
-    for(int i =0; i<3; i++)
-        PlayerItemArray.Add(DefaultsItem);
+    DefaultItemData.ItemID = -1;
+
+    DefaultSelecttemData.ItemID = -1;
+    DefaultSelecttemData.SameItemNum = 0;
 
     if (UGameInstance* GI = GetWorld()->GetGameInstance())
     {
@@ -37,6 +37,7 @@ void UShopItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     {
         
     }
+
 }
 
 
@@ -58,143 +59,59 @@ void UShopItemWSubsystem::UnHoverPlayerItem(int32 ItemNum)
 
 }
 
-
-void UShopItemWSubsystem::AddItemByInven(int32 IndexNum)
+void UShopItemWSubsystem::BuyItemByIndex(int32 Index)
 {
-    if(PlayerItemArray[IndexNum].ItemID == -1)
+    if(ShopItemArray.Num()<=Index) 
         return;
 
-    if(MAX_ITEM_COUNT<= TotalItemCount)
-        return;
-
-    PlayerItemArray[IndexNum].SameItemNum++;
-    TotalItemCount++;
-
-    UE_LOG(LogTemp, Warning, TEXT("전체 개수 : %d, 인벤 %d의 개수 : %d, 인벤 %d의2개수 : %d, 인벤 %d의3 개수 : %d"),
-    PlayerItemArray.Num(), 
-    PlayerItemArray[0].ItemID,PlayerItemArray[0].SameItemNum,
-    PlayerItemArray[1].ItemID,PlayerItemArray[1].SameItemNum,
-    PlayerItemArray[2].ItemID,PlayerItemArray[2].SameItemNum);
-}
-
-void UShopItemWSubsystem::ReduceItemByInven(int32 IndexNum)
-{
-    if(PlayerItemArray[IndexNum].ItemID == -1)
-        return;
-
-    if(PlayerItemArray[IndexNum].SameItemNum<=0)
-    {
-        PlayerItemArray[IndexNum].ItemID = -1;
-        return;
-    }
-    if(TotalItemCount <= 0)
-        return;
+    int32 InvenIndex = GetPlayerInvenIndexByItemID(ShopItemArray[Index].ItemID);
     
-        
-
-    PlayerItemArray[IndexNum].SameItemNum--;
-    TotalItemCount--;
-
-        UE_LOG(LogTemp, Warning, TEXT("전체 개수 : %d, 인벤 %d의 개수 : %d, 인벤 %d의2개수 : %d, 인벤 %d의3 개수 : %d"),
-    PlayerItemArray.Num(), 
-    PlayerItemArray[0].ItemID,PlayerItemArray[0].SameItemNum,
-    PlayerItemArray[1].ItemID,PlayerItemArray[1].SameItemNum,
-    PlayerItemArray[2].ItemID,PlayerItemArray[2].SameItemNum);
+    if(InvenIndex == -1)
+    {
+        FSelectItem AddItemData;
+        AddItemData.ItemID = ShopItemArray[Index].ItemID;
+        PlayerItemArray.Add(AddItemData);
+    }
+    else
+    {
+        PlayerItemArray[InvenIndex].SameItemNum++;
+    }
 }
 
-void UShopItemWSubsystem::AddItem(int32 GetItemID)
+int32 UShopItemWSubsystem::GetPlayerInvenIndexByItemID(int32 FindItemID)
 {
-    int32 ItemSlot =0;
-    ItemSlot =GetCanAddItemIndex(GetItemID);
-    UE_LOG(LogTemp, Warning, TEXT("전체 개수 : %d"),ItemSlot);
-    if(ItemSlot == -1)
-    {
-        return ;
-    }
-
-    if(PlayerItemArray[ItemSlot].ItemID != GetItemID)
-    {
-        PlayerItemArray[ItemSlot].ItemID = GetItemID;
-        
-    }
-
-    PlayerItemArray[ItemSlot].SameItemNum++;
-    TotalItemCount++;
-    UE_LOG(LogTemp, Warning, TEXT("전체 개수 : %d, 인벤 %d의 개수 : %d, 인벤 %d의2개수 : %d, 인벤 %d의3 개수 : %d"),
-    PlayerItemArray.Num(), 
-    PlayerItemArray[0].ItemID,PlayerItemArray[0].SameItemNum,
-    PlayerItemArray[1].ItemID,PlayerItemArray[1].SameItemNum,
-    PlayerItemArray[2].ItemID,PlayerItemArray[2].SameItemNum);
-    
-}
-
-void UShopItemWSubsystem::ReduceItem(int32 GetItemID)
-{
-    int32 ItemSlot =0;
-    ItemSlot =GetCanReduceItemIndex(GetItemID);
-
-    if(ItemSlot == -1)
-    {
-        return ;
-    }
-
-    if(PlayerItemArray[ItemSlot].ItemID == GetItemID)
-    {
-        PlayerItemArray[ItemSlot].SameItemNum--;
-        TotalItemCount--;
-    }
-
-    
-    UE_LOG(LogTemp, Warning, TEXT("전체 개수 : %d, 인벤 %d의 개수 : %d, 인벤 %d의2개수 : %d, 인벤 %d의3 개수 : %d"),
-    PlayerItemArray.Num(), 
-    PlayerItemArray[0].ItemID,PlayerItemArray[0].SameItemNum,
-    PlayerItemArray[1].ItemID,PlayerItemArray[1].SameItemNum,
-    PlayerItemArray[2].ItemID,PlayerItemArray[2].SameItemNum);
-}
-
-int32 UShopItemWSubsystem::GetCanReduceItemIndex(int32 GetItemID)
-{
-    //1. 개수가 늘어날 수 있는지?
-    if(TotalItemCount <= 0)
-    {
+    if(FindItemID ==-1)
         return -1;
-    }
-    //2.종류가 3종류미만 인가?
-    for(int i =0; i < PlayerItemArray.Num(); i++)
-    {
-        if(PlayerItemArray[i].ItemID == GetItemID)
-        {
-            if(0<PlayerItemArray[i].SameItemNum)
-            {
-                return i;
-            }
-            else
-            {
-                return -1;
-            }
-        }
-    }
-    return -1;
-}
 
-int32 UShopItemWSubsystem::GetCanAddItemIndex(int32 GetItemID)
-{
-    //1. 개수가 늘어날 수 있는지?
-    if(MAX_ITEM_COUNT <= TotalItemCount)
+    for(int i=0; i< PlayerItemArray.Num();i++)
     {
-        return -1;
-    }
-    //2.종류가 3종류미만 인가?
-    for(int i =0; i < PlayerItemArray.Num(); i++)
-    {
-        if(PlayerItemArray[i].ItemID == -1)
-        {
-            return i;
-        }
-        if(PlayerItemArray[i].ItemID == GetItemID)
+        if(PlayerItemArray[i].ItemID == FindItemID)
         {
             return i;
         }
     }
     return -1;
+}
+
+FItemData UShopItemWSubsystem::GetItemDataByShopIndex(int32 ShopIndex)
+{
+    if(ShopIndex < ShopItemArray.Num())
+    {
+        return ShopItemArray[ShopIndex];
+    }
+    
+    return DefaultItemData;//나중에 -1로 변경
+}
+
+int32 UShopItemWSubsystem::GetPlayerItemNum()
+{
+    return PlayerItemArray.Num();
+}
+FSelectItem UShopItemWSubsystem::GetPlayerItem(int32 index)
+{
+    if(index < PlayerItemArray.Num())
+    {
+        return PlayerItemArray[index];
+    }
+    return DefaultSelecttemData;
 }

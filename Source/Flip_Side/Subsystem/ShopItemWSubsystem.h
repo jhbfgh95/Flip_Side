@@ -29,53 +29,44 @@ private:
 	class UDataManagerSubsystem* DM;
 
 public:
+	//아이템 선택 됬을때 델리게이트
 	FItemSelecte OnItemSelected;
-
+	//아이템을 올려둘 시
 	FItemHovere OnItemHovered;
-	
+	//아이템에서 마우스를 땔때
 	FItemUnHovere OnItemUnHovered;
 
 private:
 
-	int32 TotalItemCount = 0;
-
 	//상점 아이템 구매 목록
-	TArray<FSelectItem> ShopItemArray;
-
+	TArray<FItemData> ShopItemArray;
 	//플레이어 아이템 목록
 	TArray<FSelectItem> PlayerItemArray;
+	//해당 아이디를 가진 아이템이 플레이어의 인벤토리에 있는지
+	int32 GetPlayerInvenIndexByItemID(int32 ItemID);
 
-	//아이템 선택 함수
-	FSelectItem GetSelectItem();
+private:
 
-	//아이템 정보 반환 함수
-
+	//기본 아이템 데이터
+	FSelectItem DefaultSelecttemData;
+	FItemData DefaultItemData;
 public:
 	//상점 아이템에 마우스를 올려놧을 때
 	void HoverShopItem(int32 ItemNum);
 	//상점 아이템에서 마우스를 땠을떄
 	void UnHoverShopItem();	
+
 	//플레이어 인벤토리에 있는아이템에 마우스를 올렸을 때
 	void HoverPlayerItem(int32 ItemNum);
 	//플레이어 인벤토리에 있는 아이템에 마우스가 벗어 놨을 때
 	void UnHoverPlayerItem(int32 ItemNum);
-	//아이템 아이디에 해당하는 아이템을 가져옴
-	void GetItem(int32 GetItemID);
+	
+	FItemData GetItemDataByShopIndex(int32 ShopIndex);
+	
+	FSelectItem GetItemDataByItemID(int32 ItemID);
 
+	void BuyItemByIndex(int32 Index);
 
-	//아이템 구매
-	//플레이어가 소지중인 인덱스를 눌러서 추가함
-	void AddItemByInven(int32 IndexNum);
-	//플레이어가 소지중인 인덱스를 눌러서 삭제함
-	void ReduceItemByInven(int32 IndexNum);
-
-	//아이템을 좌클릭 했을 때 추가됨
-	void AddItem(int32 GetItemID);
-	//아이템을 우클릭 했을 떄 추가됨
-	void ReduceItem(int32 GetItemID);
-
-	//아이템을 추가할 수 있는 위치를 받음
-	int32 GetCanAddItemIndex(int32 GetItemID);
-	//아이템을 제거 할 수 있는 위치를 받음
-	int32 GetCanReduceItemIndex(int32 GetItemID);
+	int32 GetPlayerItemNum();
+	FSelectItem GetPlayerItem(int32 index);
 };

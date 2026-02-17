@@ -33,6 +33,7 @@ public:
 protected:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* RootSecen;
+	
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* ShowPanelMesh;
 
@@ -46,6 +47,10 @@ protected:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UTimelineComponent* LinearTimeline;
 
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	class UWidgetComponent* ExplainWidget;
+
+	class UW_ExplainWidget* ExplainWidgetClass;
 	/*
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* ExplainWidget;

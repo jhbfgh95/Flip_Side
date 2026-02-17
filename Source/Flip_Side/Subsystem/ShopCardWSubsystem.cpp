@@ -31,23 +31,37 @@ void UShopCardWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     if(DM)
     {
         //TryGetCard나오면 받아오도록 추후 추가
+        FCardData CardData;
+        for(int i = 0; i<6 ; i++)
+        {
+            if(DM->TryGetCard(0,CardData))
+            {
+                CardList.Add(CardData);
+            }
+        }
+        
     }
-
-    FCardData testCard;
+    FCardData DefaultCard;
     
     for(int i =0; i<6; i++)
     {
-        testCard.CardID = i;
-        testCard.CardName = FString::FromInt(i);
-        testCard.Card_Description= FString::FromInt(i);
-        CardList.Add(testCard);
+        DefaultCard.CardID = i;
+        DefaultCard.CardName = FString::FromInt(i);
+        DefaultCard.Card_Description= FString::FromInt(i);
+        CardList.Add(DefaultCard);
     }
+
     for(int i =0; i<3; i++)
     {
-        testCard.CardID = -1;
-        PlayerCardList.Add(testCard);
+        DefaultCard.CardID = -1;
+        PlayerCardList.Add(DefaultCard);
     }
-    OnCardChanged.Broadcast(CardList[CurrentCardListNum]);
+
+    if(0<CardList.Num())
+    {
+        OnCardChanged.Broadcast(CardList[CurrentCardListNum]);
+    }
+    
 }
 
 
@@ -78,6 +92,7 @@ void UShopCardWSubsystem::SetPreviousCard()
 
 void UShopCardWSubsystem::SelectCard()
 {
+    
     if(!CanSelectCard())
         return;
         
@@ -85,6 +100,7 @@ void UShopCardWSubsystem::SelectCard()
     {
         if(PlayerCardList[i].CardID ==-1)
         {
+            
             PlayerCardList[i] = CardList[CurrentCardListNum];
             OnCardSelected.Broadcast(i, PlayerCardList[i]);
             return;
@@ -110,13 +126,20 @@ bool UShopCardWSubsystem::CanSelectCard()
             return true;
         }
     }
-
     return false;
 }
 
 FCardData UShopCardWSubsystem::GetCurrentCard()
 {
-    return CardList[CurrentCardListNum];
+    if(0<CurrentCardListNum)
+        return CardList[CurrentCardListNum];
+    else
+    {
+        FCardData DefaultCard;
+        DefaultCard.CardID =-1;
+        return DefaultCard;
+    }
+          
 }
 
 
@@ -125,5 +148,15 @@ void UShopCardWSubsystem::RemoveHandCard(int32 HandIndex)
     if(HandIndex<PlayerCardList.Num())
     {
         PlayerCardList[HandIndex].CardID = -1;
+        UE_LOG(LogTemp, Warning, TEXT("삭제한 번호 아이디%d"),PlayerCardList[HandIndex].CardID);
     }
+}
+
+
+int32 UShopCardWSubsystem::GetPlayerCardID(int32 index)
+{
+    if(index<PlayerCardList.Num())
+        return PlayerCardList[index].CardID;
+    else 
+        return -1;
 }

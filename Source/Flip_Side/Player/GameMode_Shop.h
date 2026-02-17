@@ -55,6 +55,7 @@ public:
 	void SetShopItemMode();
 	void SetCardSelectMode();
 	void SetUnlockWeaponMode();
-
+	
+	void ChangeBattleLevel();
 	void CheckCanGameStart();
 };

@@ -22,6 +22,35 @@ protected:
 
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent) override;
 
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent) override;
+
+    virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+
+protected:
+	
+    UPROPERTY(meta = (BindWidgetAnim), Transient)
+    UWidgetAnimation* SelectCardAnim;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+    UWidgetAnimation* UnSelectCardAnim;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+    UWidgetAnimation* AddCardAnim;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+    UWidgetAnimation* RemoveCardAnim;
+
+
+	void PlayCardAnim(UWidgetAnimation* Anim);
+private:
+	
+	UFUNCTION()
+    void OnUnSelectCardAnimFinished();
+
+
+private:
+	bool CanControl;
+
 public:
 	UPROPERTY(EditAnywhere)
 	int32 HandIndex;

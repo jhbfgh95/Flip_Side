@@ -46,7 +46,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetBattleUseItemID(int32 UseableItemID, int32 ItemSlot, int32 ItemNum);	
-	
+	//void SetBattleUseItemID(FSelectItem UseItem);	<< 아이템 수정코드
 	//슬롯에 해당하는 코인을 반환함
 	UFUNCTION(BlueprintCallable)
 	FCoinTypeStructure GetSlotCoin(int SlotNum) const;
