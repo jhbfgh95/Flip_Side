@@ -15,22 +15,30 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void ExecuteLeverLogic(); // 자식 고유 로직 구현
+
+	virtual void PlayLeverAnimation();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Lever | State")
+    bool bIsPulled = false;
+
+	UPROPERTY(EditAnywhere, Category = "Lever | Animation")
+    FRotator StartRotation = FRotator(-60.f, 0.f, 0.f);
+
+    UPROPERTY(EditAnywhere, Category = "Lever | Animation")
+    FRotator TargetRotation = FRotator(60.f, 0.f, 0.f);
+
+    UPROPERTY(EditAnywhere, Category = "Lever | Animation")
+    float AnimationSpeed = 0.5f;
+
 public:	
 	// 레버 고정부
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UStaticMeshComponent* BaseMesh;
 
-	// 실제로 회전할 손잡이
+	// 손잡이
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UStaticMeshComponent* LeverMesh;
 
-    // 레이저에 맞았을 때 외부에서 호출해줄 함수
     void OnLeverInteracted();
-
-private:
-	// 레버가 이미 당겨졌는지 확인하는 변수
-	bool bIsPulled = false;
-
-	// 레버를 부드럽게 돌리는 함수
-	void PlayLeverAnimation();
 };
