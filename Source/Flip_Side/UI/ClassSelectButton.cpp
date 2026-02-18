@@ -23,6 +23,7 @@ void AClassSelectButton::BeginPlay()
 {
 	Super::BeginPlay();
 	coinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
+	//coinCreateWSubSystem->OffCoinClassSelectMode.AddDynamic(this, &AClassSelectButton::SelectedClass);
 }
 
 // Called every frame

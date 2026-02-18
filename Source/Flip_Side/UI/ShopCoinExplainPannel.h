@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "UI/ExplainPannel.h"
+#include "DataTypes/CoinDataTypes.h"
+#include "DataTypes/FlipSide_Enum.h"
 #include "ShopCoinExplainPannel.generated.h"
 
 /**
@@ -25,5 +27,6 @@ protected:
 public:
 
 	virtual void GetExplainByID(int32 ID) override;
-
+	UFUNCTION()
+	void InitPannel(FCoinTypeStructure CoinInfo, EWeaponClass CoinClass);
 };

@@ -24,12 +24,16 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* SelectButton;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* UnSelectButton;
+
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	int32 SelectButtonNum;
 public:
 	UFUNCTION()
 	void SelectItem();
-
+	UFUNCTION()
+	void UnSelectItem();
 	
 	UFUNCTION()
 	void HoverItem();

@@ -12,6 +12,7 @@ void UW_ShopMainWidget::NativeConstruct()
     CoinCreateButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickCoinCreateButton);
     ShopItemButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickShopItemButton);
     CardSelectButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickCardSelectButton);
+    UnlockWeaponButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickUnlockWeaponButton);
 }
 
 
@@ -38,5 +39,13 @@ void UW_ShopMainWidget::ClickCardSelectButton()
     if(shopGameMode)
     {
         shopGameMode->SetCardSelectMode();
+    }
+}
+
+void UW_ShopMainWidget::ClickUnlockWeaponButton()
+{
+    if(shopGameMode)
+    {
+        shopGameMode->SetUnlockWeaponMode();
     }
 }

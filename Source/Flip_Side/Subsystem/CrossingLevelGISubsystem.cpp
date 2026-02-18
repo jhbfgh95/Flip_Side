@@ -75,6 +75,14 @@ void UCrossingLevelGISubsystem::SetBattleUseItemID(int32 UseableItemID, int32 It
     }
 }
 
+/*
+void UCrossingLevelGISubsystem::SetBattleUseItemID(FSelectItem UseItem)
+{
+    SelectedUseableItemArray.Empty();
+    SelectedUseableItemArray.Add(UseItem);
+}*/
+
+
 //정해진 슬롯에 위치한 코인구조체를 반환
 FCoinTypeStructure UCrossingLevelGISubsystem::GetSlotCoin(int SlotNum) const
 {

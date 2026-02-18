@@ -40,23 +40,24 @@ public:
 	//슬롯에 코인을 제작함
 	UFUNCTION(BlueprintCallable)
 	void SetSlotCoin(int SlotNum, FCoinTypeStructure CoinStruct);
-
+	//카드 아이디 값을 셋팅함
 	UFUNCTION(BlueprintCallable)
 	void SetBattleCardID(int32 CardID, int32 CardSlot);
-
+	//사용아이템을 셋팅함
 	UFUNCTION(BlueprintCallable)
 	void SetBattleUseItemID(int32 UseableItemID, int32 ItemSlot, int32 ItemNum);	
-	
+	//void SetBattleUseItemID(FSelectItem UseItem);	<< 아이템 수정코드
+
 	//슬롯에 해당하는 코인을 반환함
 	UFUNCTION(BlueprintCallable)
 	FCoinTypeStructure GetSlotCoin(int SlotNum) const;
-
+	
 	UFUNCTION(BlueprintCallable)
 	int32 GetMakedCoinNum() const;
-	
+	//카드 아이디를 배열로 반환
 	UFUNCTION(BlueprintCallable)
 	TArray<int32> GetBattleCardIDs();
-	
+	//아이템을 반환
 	UFUNCTION(BlueprintCallable)
 	FSelectItem GetBattleUseItems(int SlotNum) const;
 

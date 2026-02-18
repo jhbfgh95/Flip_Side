@@ -20,7 +20,6 @@ private:
 
 	class UCoinCreateWSubsystem* CoinCreateWSubSystem;
 	
-
 	class UShopCoinWSubsystem* ShopCoinSubSystem;
 
 	class AGameMode_Shop* ShopGameMode;
@@ -55,10 +54,22 @@ private:
 
 	
     UPROPERTY(meta = (BindWidget))
-    class UButton* FinishButton;
+	class UButton* TestClass;
+    UPROPERTY(meta = (BindWidget))
+	class UButton* TestClass2;
+    UPROPERTY(meta = (BindWidget))
+	class UButton* TestClass3;
+	
+	UFUNCTION()
+	void SetDeal();
+	UFUNCTION()
+	void SetTank();
+	UFUNCTION()
+	void SetUtil();
+
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* ClassSelectButton;
+    class UButton* FinishButton;
 
 private:
 	UFUNCTION()
@@ -66,8 +77,4 @@ private:
 
 	UFUNCTION()
 	void FinishCreate();
-
-	UFUNCTION()
-	void OpenClassSelectPannel();
-
 };

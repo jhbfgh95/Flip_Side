@@ -14,6 +14,7 @@ void AShopCoinExplainPannel::BeginPlay()
 	if(CoinCreateWSubSystem)
 	{
 		CoinCreateWSubSystem->OnSelectedCoinUpdate.AddDynamic(this, &AShopCoinExplainPannel::GetExplainByID);
+        CoinCreateWSubSystem->OnSelectedCoin.AddDynamic(this, &AShopCoinExplainPannel::InitPannel);
 	}
 }
 
@@ -23,4 +24,9 @@ void AShopCoinExplainPannel::GetExplainByID(int32 ID)
     //Super::GetExplainByID(ID);
     FString text = FString::Printf(TEXT("Score: %d"), ID);
     UpdateExplanationText(text);
+}
+
+void AShopCoinExplainPannel::InitPannel(FCoinTypeStructure CoinInfo, EWeaponClass CoinClass)
+{
+    GetExplainByID(CoinInfo.FrontWeaponID);
 }

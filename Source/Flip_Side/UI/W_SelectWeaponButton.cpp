@@ -6,8 +6,11 @@
 #include "Player/ShopController_FlipSide.h"
 #include "Components/Button.h"
 #include "Subsystem/CoinCreateWSubsystem.h"
+
+#include "Subsystem/ShopWeaponDataWSubsystem.h"
 #include "Subsystems/WorldSubsystem.h" 
 #include "Components/Image.h"
+#include "Components/TextBlock.h"
 void UW_SelectWeaponButton::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -21,6 +24,8 @@ void UW_SelectWeaponButton::NativeConstruct()
         
     }*/
     CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
+	WeaponDataSubSystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
+
     if(CoinCreateWSubSystem)
     {
         if(WeaponButton)
@@ -28,25 +33,40 @@ void UW_SelectWeaponButton::NativeConstruct()
             WeaponButton->OnClicked.AddDynamic(this, &UW_SelectWeaponButton::SelectWeapon);
         }
     }
-    
-    InitButton();
 }
 void UW_SelectWeaponButton::SelectWeapon()
 {
     CoinCreateWSubSystem->ChangeSelectedCoinWeapon(WeaponID);
 }
 
-void UW_SelectWeaponButton::InitButton()
+void UW_SelectWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 Index)
 {
-    FButtonStyle ButtonStyle = WeaponButton->GetStyle();
+    WeaponID = Index;
+    WeaponClass =SettingWeaponClass;
 
-    ButtonStyle.Normal.SetResourceObject(WeapoTexture);
-    //ButtonStyle.Normal.ImageSize = FVector2D(64.f, 64.f);
+    WeaponData = WeaponDataSubSystem->GetWeaponDataByIndex(WeaponClass, WeaponID);
+    if(WeaponData)
+    {
+        
+        FButtonStyle ButtonStyle = WeaponButton->GetStyle();
+        ButtonStyle.Normal.SetResourceObject(WeaponData->WeaponIcon);
+        WeaponButton->SetStyle(ButtonStyle);
+        WeaponNameBlock->SetText(FText::FromString(WeaponName));
+    }
+    else
+    {
+        /*
+        FButtonStyle ButtonStyle = WeaponButton->GetStyle();
 
-    // Pressed
-    //ButtonStyle.Pressed.SetResourceObject(WeapoTexture);
-    //NewStyle.Pressed.ImageSize = FVector2D(64.f, 64.f);
+        ButtonStyle.Normal.SetResourceObject(WeapoTexture);
+        //ButtonStyle.Normal.ImageSize = FVector2D(64.f, 64.f);
 
-    WeaponButton->SetStyle(ButtonStyle);
+        // Pressed
+        //ButtonStyle.Pressed.SetResourceObject(WeapoTexture);
+        //NewStyle.Pressed.ImageSize = FVector2D(64.f, 64.f);
 
+        WeaponButton->SetStyle(ButtonStyle);
+
+        WeaponNameBlock->SetText(FText::FromString(WeaponName));*/
+    }
 }

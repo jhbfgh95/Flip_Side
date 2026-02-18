@@ -33,11 +33,12 @@ void UShopCoinWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         //코인 배열에 추가
         DefaultCoin.SlotNum = i;
         CoinArray.Add(DefaultCoin);
+        CoinClassArray.Add(EWeaponClass::None);
     }
 }
 
 
-bool UShopCoinWSubsystem::CanAddCoin(int32 SlotNum)
+bool UShopCoinWSubsystem::CanIncreaseCoin(int32 SlotNum)
 {
     if(CoinArray.Num()-1<SlotNum)
         return false;
@@ -47,12 +48,13 @@ bool UShopCoinWSubsystem::CanAddCoin(int32 SlotNum)
 
     if(MAX_TOTAL_COIN <= TotalCoinCount)
         return false;
-        
+    if(CoinArray[SlotNum].FrontWeaponID == -1 ||CoinArray[SlotNum].BackWeaponID == -1)
+        return false;
 
     return true;
 }
 
-bool UShopCoinWSubsystem::CanRemoveCoin(int32 SlotNum)
+bool UShopCoinWSubsystem::CanDecreaseCoin(int32 SlotNum)
 {
     if(CoinArray.Num()-1<SlotNum)
         return false;
@@ -66,41 +68,70 @@ bool UShopCoinWSubsystem::CanRemoveCoin(int32 SlotNum)
     return true;
 }
 
-void UShopCoinWSubsystem::AddSlotCoin(int32 SlotNum)
+void UShopCoinWSubsystem::IncreaseSlotCoinCount(int32 SlotNum)
 {
-    if(CanAddCoin(SlotNum))
+    if(CanIncreaseCoin(SlotNum))
     {
+        UE_LOG(LogTemp, Warning, TEXT("증가 시작"));
         TotalCoinCount++;
         CoinArray[SlotNum].SameTypeCoinNum++;
     }
-    
+    UE_LOG(LogTemp, Warning, TEXT("증가 실행 : 총 개수 %d 슬롯 : %d, 슬롯 개수 : %d")
+    ,TotalCoinCount, CoinArray[SlotNum].SlotNum, CoinArray[SlotNum].SameTypeCoinNum);
 }
 
-void UShopCoinWSubsystem::RemoveSlotCoin(int32 SlotNum)
+void UShopCoinWSubsystem::DecreaseSlotCoinCount(int32 SlotNum)
 {
-    if(CanRemoveCoin(SlotNum))
+    if(CanDecreaseCoin(SlotNum))
     {
         TotalCoinCount--;
         CoinArray[SlotNum].SameTypeCoinNum--;
     }
+    UE_LOG(LogTemp, Warning, TEXT("감소 실행 : 총 개수 %d 슬롯 : %d, 슬롯 개수 : %d")
+    ,TotalCoinCount, CoinArray[SlotNum].SlotNum, CoinArray[SlotNum].SameTypeCoinNum);
 }
 
 
 FCoinTypeStructure UShopCoinWSubsystem::GetSlotCoin(int32 SlotNum)
 {
     FCoinTypeStructure CoinInfo;
+
     if(CoinArray.Num()-1<SlotNum)
         return CoinInfo;
-    CoinInfo = CoinArray[SlotNum];
-    
-    return CoinInfo;
 
+    CoinInfo = CoinArray[SlotNum];
+    UE_LOG(LogTemp, Log,TEXT("선택한 코인 아이디 : %d"), CoinInfo.FrontWeaponID);
+    return CoinInfo;
 }
 
-void UShopCoinWSubsystem::SetSlotCoin(FCoinTypeStructure SetCoinInfo)
+
+EWeaponClass UShopCoinWSubsystem::GetSlotCoinClass(int32 SlotNum)
+{
+    if(CoinClassArray.Num()<=SlotNum)
+        return EWeaponClass::None;
+    
+    return CoinClassArray[SlotNum];
+        
+}
+
+void UShopCoinWSubsystem::SetSlotCoin(FCoinTypeStructure SetCoinInfo, EWeaponClass CoinClass)
 {
     if(CoinArray.Num()-1<SetCoinInfo.SlotNum)
         return;
 
     CoinArray[SetCoinInfo.SlotNum] = SetCoinInfo;
+    CoinClassArray[SetCoinInfo.SlotNum] = CoinClass;
+}
+
+
+void UShopCoinWSubsystem::ResetCoin(int32 SlotNum)
+{
+    CoinArray[SlotNum].FrontWeaponID = -1;
+    CoinArray[SlotNum].BackWeaponID = -1;
+    CoinClassArray[SlotNum] = EWeaponClass::None;
+    for(int i = CoinArray[SlotNum].SameTypeCoinNum;  0<= i; i--)
+    {
+        DecreaseSlotCoinCount(SlotNum);
+    }
+    
 }

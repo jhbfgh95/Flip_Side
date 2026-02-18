@@ -36,6 +36,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* CheckBossButton;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* UnlockWeaponButton;
+
 public:
 	UFUNCTION()
 	void ClickCoinCreateButton();
@@ -46,4 +49,7 @@ public:
 
 	UFUNCTION()
 	void ClickCardSelectButton();
+
+	UFUNCTION()
+	void ClickUnlockWeaponButton();
 };

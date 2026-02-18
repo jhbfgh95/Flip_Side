@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "DataTypes/FlipSide_Enum.h"
+#include "DataTypes/WeaponDataTypes.h"
 #include "W_SelectWeaponButton.generated.h"
 
 /**
@@ -19,10 +20,15 @@ class FLIP_SIDE_API UW_SelectWeaponButton : public UUserWidget
 private:
 	class UCoinCreateWSubsystem* CoinCreateWSubSystem;
 	
+	class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
+
+	
 protected:
 	virtual void NativeConstruct() override;
 
 public:
+
+	const FFaceData* WeaponData;
 
 	//아이콘
 	UPROPERTY(EditAnywhere, Category = "Info")
@@ -31,12 +37,21 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Info")
 	EWeaponClass WeaponClass;
 
+	UPROPERTY(EditAnywhere, Category = "Info")
+	FString WeaponName;
+
 	//아이디
     UPROPERTY(meta = (BindWidget))
     class UButton* WeaponButton;
 
+	
+    UPROPERTY(meta = (BindWidget))
+    class UTextBlock* WeaponNameBlock;
+
 	UPROPERTY(EditAnywhere, Category="Button")
 	class UTexture2D* WeapoTexture;
+
+
 
 	//함수
 	//class UW_CoinCreateWidget* CoinCreateWidget;
@@ -45,7 +60,7 @@ public:
 	UFUNCTION()
 	void SelectWeapon();
 	
-	void InitButton();
+	void InitButton(EWeaponClass SettingWeaponClass, int32 ID);
 
 
 	//찾는 버튼인지 판단

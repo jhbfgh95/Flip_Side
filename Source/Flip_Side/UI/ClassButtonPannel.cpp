@@ -26,6 +26,10 @@ void AClassButtonPannel::BeginPlay()
 	EndLocation = StartLocation + FVector(0,10,0);*/
     coinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
 
+
+	coinCreateWSubSystem->OnCoinClassSelectMode.AddDynamic(this, &AClassButtonPannel::WorkPannel);
+	coinCreateWSubSystem->OffCoinClassSelectMode.AddDynamic(this, &AClassButtonPannel::WorkPannel);
+	
 	FOnTimelineFloat UpdateDelegate;
 	UpdateDelegate.BindUFunction(this, FName("MovePannel"));
 	Timeline->AddInterpFloat(PannelMoveCurve, UpdateDelegate);	

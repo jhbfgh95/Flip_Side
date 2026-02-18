@@ -14,15 +14,32 @@ class FLIP_SIDE_API UW_CardSelectWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
-
+protected:
+	virtual void NativeConstruct() override;
+private:
+	class UShopCardWSubsystem* ShopCardSubSystem;
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* LeftCardButton;
 	
 	UPROPERTY(meta = (BindWidget))
 	class UButton* RightCardButton;
-
 	
 	UPROPERTY(meta = (BindWidget))
-	class UImage* CardImage;
+	class UButton* SelectCardButton;
+
+	UPROPERTY(meta = (BindWidget))
+	class UW_CardWidget* CurrentCardWidget;
+public:
+	UFUNCTION()
+	void ClickLeftCardButton();
+	
+	UFUNCTION()
+	void ClickRightCardButton();
+
+	UFUNCTION()
+	void ClickSelectCardButton();
+	
+	UFUNCTION()
+	void InitCard(FCardData CardData);
 };

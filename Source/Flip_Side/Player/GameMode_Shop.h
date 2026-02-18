@@ -20,6 +20,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCoinManageMode);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FShopItemMode);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSelectCardMode);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockWeaponMode);
 UCLASS()
 class FLIP_SIDE_API AGameMode_Shop : public AGameModeBase
 {
@@ -43,6 +45,8 @@ public:
 	
 	FSelectCardMode OnSelectCardMode;
 	
+	FUnlockWeaponMode OnUnlockWeaponMode;
+	
 public:
 	void SetShopMainMode();
 	void SetCheckBossMode();
@@ -50,7 +54,8 @@ public:
 	void SetCoinCreateMode();
 	void SetShopItemMode();
 	void SetCardSelectMode();
-
-
+	void SetUnlockWeaponMode();
+	
+	void ChangeBattleLevel();
 	void CheckCanGameStart();
 };

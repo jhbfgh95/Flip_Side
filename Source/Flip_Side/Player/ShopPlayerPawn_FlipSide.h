@@ -39,6 +39,12 @@ private:
 
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	FVector ShopItemLocation;
+
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	FVector UnlockWeaponLocation;
+	
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	FVector ShopMainLocation;
 private:
 	UFUNCTION()
 	void MoveCoinCreateMode();
@@ -51,4 +57,10 @@ private:
 
 	UFUNCTION()
 	void MoveShopItemMode();
+	
+	UFUNCTION()
+	void MoveUnlockWeaponMode();
+	
+	UFUNCTION()
+	void MoveShopMainMode();
 };

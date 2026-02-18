@@ -21,6 +21,11 @@ void UW_CoinCreateWidget::NativeConstruct()
 
     FinishButton->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::FinishCreate);
 
+    TestClass->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetDeal);
+    
+    TestClass2->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetTank);
+    
+    TestClass3->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetUtil);
 }
 
 
@@ -40,38 +45,45 @@ void UW_CoinCreateWidget::UpdateCoinState(struct FCoinTypeStructure UpdateCoinIn
 
 void UW_CoinCreateWidget::FinishCreate()
 {
-    ShopCoinSubSystem->SetSlotCoin(CoinCreateWSubSystem->GetSelectCoin());
+    ShopCoinSubSystem->SetSlotCoin(CoinCreateWSubSystem->GetSelectCoin(), CoinCreateWSubSystem->GetSelectCoinClass());
     ShopGameMode->SetCoinManageMode();
 }
-
-void UW_CoinCreateWidget::OpenClassSelectPannel()
-{
-
-}
-
-
 
 //코드가 안 예쁨 수정해야할듯 
 void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
 {
-    UE_LOG(LogTemp, Warning, TEXT("값설정됨"));
-
+    FinishButton->SetVisibility(ESlateVisibility::Visible);
+    dealClassGrid->SetVisibility(ESlateVisibility::Collapsed);
+    utilClassGrid->SetVisibility(ESlateVisibility::Collapsed);
+    tankClassGrid->SetVisibility(ESlateVisibility::Collapsed);
     switch (weaponClass)
     {
     case EWeaponClass::Deal:
         dealClassGrid->SetVisibility(ESlateVisibility::Visible);
-        UE_LOG(LogTemp, Warning, TEXT("딜"));
         break;
     case EWeaponClass::Tank:
         tankClassGrid->SetVisibility(ESlateVisibility::Visible);
-        UE_LOG(LogTemp, Warning, TEXT("텡"));
         break;
     case EWeaponClass::Heal:
         utilClassGrid->SetVisibility(ESlateVisibility::Visible);
-        UE_LOG(LogTemp, Warning, TEXT("힐"));
         break;
-    
     default:
         break;
     }
+}
+
+void UW_CoinCreateWidget::SetDeal()
+{
+    CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Deal);
+    CoinCreateWSubSystem->OffClassSelectMode();
+}
+void UW_CoinCreateWidget::SetTank()
+{
+    CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Tank);
+    CoinCreateWSubSystem->OffClassSelectMode();
+}
+void UW_CoinCreateWidget::SetUtil()
+{
+    CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Heal);
+    CoinCreateWSubSystem->OffClassSelectMode();
 }
