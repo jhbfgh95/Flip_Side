@@ -24,25 +24,26 @@ void UW_ShopCoinButton::NativeConstruct()
 
 void UW_ShopCoinButton::CreateCoin()
 {
-
-    UE_LOG(LogTemp,Warning, TEXT("선택한 코인 클래스 : %s"),*UEnum::GetValueAsString(ShopCoinSubsystem->GetSlotCoinClass(0)));
-    CoinCreateSubsystem->SelectCoin(ShopCoinSubsystem->GetSlotCoin(CoinIndex), ShopCoinSubsystem->GetSlotCoinClass(CoinIndex));
-    AGameMode_Shop* gamemode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
-    gamemode->SetCoinCreateMode();
+    //UE_LOG(LogTemp,Warning, TEXT("선택한 코인 클래스 : %s"),*UEnum::GetValueAsString(ShopCoinSubsystem->GetSlotCoinClass(0)));
+    //CoinCreateSubsystem->SelectCoin(ShopCoinSubsystem->GetSlotCoin(CoinIndex), ShopCoinSubsystem->GetSlotCoinClass(CoinIndex));
+    ShopCoinSubsystem->UnlockCoin();
+    //AGameMode_Shop* gamemode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
+    //gamemode->SetCoinCreateMode();
 }
 
 void UW_ShopCoinButton::IncreaseCoin()
 {
-
-    ShopCoinSubsystem->IncreaseSlotCoinCount(CoinIndex);
+    //ShopCoinSubsystem->IncreaseSlotCoinCount(CoinIndex);
+    ShopCoinSubsystem->IncreaseSlotCoinCount();
 }
 void UW_ShopCoinButton::DecreaseCoin()
 {
-    ShopCoinSubsystem->DecreaseSlotCoinCount(CoinIndex);
+    //ShopCoinSubsystem->DecreaseSlotCoinCount(CoinIndex);
+    ShopCoinSubsystem->DecreaseSlotCoinCount();
 }
 
 void UW_ShopCoinButton::ResetCoin()
 {
-
-    ShopCoinSubsystem->ResetCoin(CoinIndex);
+    ShopCoinSubsystem->ChangeCoinSlotRight();
+   // ShopCoinSubsystem->ResetCoin(CoinIndex);
 }
