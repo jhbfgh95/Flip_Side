@@ -40,7 +40,6 @@ protected:
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
     UWidgetAnimation* RemoveCardAnim;
 
-
 	void PlayCardAnim(UWidgetAnimation* Anim);
 private:
 	
