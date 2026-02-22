@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "DataTypes/FlipSide_Enum.h"
 #include "DataTypes/WeaponDataTypes.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "W_SelectWeaponButton.generated.h"
 
 /**
@@ -51,6 +52,11 @@ public:
 	UPROPERTY(EditAnywhere, Category="Button")
 	class UTexture2D* WeapoTexture;
 
+    UPROPERTY(EditAnywhere, Category = "UI")
+    class UMaterialInterface* MaskMaterialBase; 
+
+    UPROPERTY()
+    class UMaterialInstanceDynamic* DynamicMaskMaterial;
 
 
 	//함수

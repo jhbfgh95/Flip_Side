@@ -45,6 +45,35 @@ void UW_SelectWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 In
     WeaponClass =SettingWeaponClass;
 
     WeaponData = WeaponDataSubSystem->GetWeaponDataByIndex(WeaponClass, WeaponID);
+
+    if(WeaponData && WeaponButton)
+    {
+        FButtonStyle ButtonStyle = WeaponButton->GetStyle();
+
+        if (MaskMaterialBase)
+        {
+            DynamicMaskMaterial = UMaterialInstanceDynamic::Create(MaskMaterialBase, this);
+
+            if (DynamicMaskMaterial)
+            {
+                DynamicMaskMaterial->SetTextureParameterValue(FName("IconTexture"), WeaponData->WeaponIcon);
+
+                ButtonStyle.Normal.SetResourceObject(DynamicMaskMaterial);
+                
+                ButtonStyle.Hovered.SetResourceObject(DynamicMaskMaterial);
+                ButtonStyle.Pressed.SetResourceObject(DynamicMaskMaterial);
+            }
+        }
+        else
+        {
+            ButtonStyle.Normal.SetResourceObject(WeaponData->WeaponIcon);
+        }
+
+        WeaponButton->SetStyle(ButtonStyle);
+        
+        WeaponNameBlock->SetText(FText::FromString(WeaponName));
+    }
+    /*
     if(WeaponData)
     {
         
@@ -67,6 +96,7 @@ void UW_SelectWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 In
 
         WeaponButton->SetStyle(ButtonStyle);
 
-        WeaponNameBlock->SetText(FText::FromString(WeaponName));*/
+        WeaponNameBlock->SetText(FText::FromString(WeaponName));
     }
+    */
 }
