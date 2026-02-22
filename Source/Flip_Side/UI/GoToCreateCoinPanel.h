@@ -55,7 +55,7 @@ private:
 private:
 
 	UFUNCTION()
-	void InitLockPanel();
+	void InitLockPanel(bool IsChangetoBottom);
 
 	UFUNCTION(BlueprintCallAble)
 	void OpenlockPanel();

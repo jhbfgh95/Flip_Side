@@ -26,19 +26,20 @@ AShopCoinManagePanel::AShopCoinManagePanel()
 	LockPanelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LockPanel"));
     LockPanelMesh->SetupAttachment(PanelMesh);
 	
-	DescribeMesh= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DescribeMesh"));
-	DescribeMesh->SetupAttachment(PanelMesh);
+	DescritionMesh= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DescritionMesh"));
+	DescritionMesh->SetupAttachment(PanelMesh);
 
-	PanelTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("PanelTimeLine"));
 	UnlockTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("UnlockPanelTimeLine"));
-	
+
+	GearTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("GearlTimeline"));
+
 	PanelWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PanelWidget"));
 	PanelWidget->SetupAttachment(PanelMesh);
 
 	DescribeWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DescribeWidget"));
-	DescribeWidget->SetupAttachment(DescribeMesh);
+	DescribeWidget->SetupAttachment(DescritionMesh);
 
-	PaneDownlTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("PanelDownTimeLine"));
+	DescriptionTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("PanelDownTimeLine"));
 
 }
 
@@ -48,27 +49,34 @@ void AShopCoinManagePanel::BeginPlay()
 	Super::BeginPlay();
 
 	ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
+	ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AShopCoinManagePanel::ActiveGear);
+	ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &AShopCoinManagePanel::UnlockPanel);
 
-	ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AShopCoinManagePanel::ChangeSlot);
-	//판넬 운동 타임라인
-	FOnTimelineFloat PanelTimeLineCallBack;
-	PanelTimeLineCallBack.BindUFunction(this, FName("RotatePanel"));
-	PanelTimeLine->AddInterpFloat(PanelRotateCurve, PanelTimeLineCallBack);	
 
+	//잠김 판넬 운동 타임라인
+	FOnTimelineFloat LockPanelMoveCallBack;
+	LockPanelMoveCallBack.BindUFunction(this, FName("LockPanelMove"));
+	UnlockTimeLine->AddInterpFloat(PanelRotateCurve, LockPanelMoveCallBack);	
+
+	//설명 판넬 운동 타임라인
+	FOnTimelineFloat DescriptionPanelMoveCallBack;
+	DescriptionPanelMoveCallBack.BindUFunction(this, FName("MoveDescriptionPanel"));
+	DescriptionTimeLine->AddInterpFloat(PanelRotateCurve, DescriptionPanelMoveCallBack);
+
+	FOnTimelineFloat GearMoveCallBack;
+	GearMoveCallBack.BindUFunction(this, FName("RotateGear"));
+	GearTimeline->AddInterpFloat(GearCurve, GearMoveCallBack);
+
+
+	LockPanelStartVec = LockPanelMesh->GetRelativeLocation();
+	LockPanelArriveVec = LockPanelStartVec+ LockPanelMoveDirection;
+/*
 	//판넬 운동 끝났을 때 타임라인
-	FOnTimelineEvent FinishPanelTimeLineCallBack;
-	FinishPanelTimeLineCallBack.BindUFunction(this, FName("FinishedPanelMove"));
-	PanelTimeLine->SetTimelineFinishedFunc(FinishPanelTimeLineCallBack);
+	FOnTimelineEvent FinishLockPanelMoveCallBack;
+	FinishLockPanelMoveCallBack.BindUFunction(this, FName("FinishedPanelMove"));
+	UnlockTimeLine->SetTimelineFinishedFunc(FinishLockPanelMoveCallBack);*/
 
-	
-	PanelStartVector = PanelMesh->GetRelativeLocation();
-	PanelTopArriveVector = PanelStartVector + PanelMoveTopDirect; 
-	PanelBottomArriveVector = PanelStartVector - PanelMoveTopDirect; 
-
-	StartVector = LockPanelMesh->GetRelativeLocation();
-	ArriveVector = StartVector + TargetVector;
 }
-
 
 // Called every frame
 void AShopCoinManagePanel::Tick(float DeltaTime)
@@ -77,61 +85,46 @@ void AShopCoinManagePanel::Tick(float DeltaTime)
 
 }
 
-
-void AShopCoinManagePanel::ChangeSlot()
-{
-	PanelTimeLine->PlayFromStart();
-}
-
-void AShopCoinManagePanel::InitPanel()
-{
-	if(ShopCoinSubsystem->GetCurrentCoinUnlock())
-	{
-		UnlockPanel();
-	}
-	else
-	{
-
-	}
-}
-
-void AShopCoinManagePanel::RunPanel(bool IsInCrease)
-{
-
-}
-
-
-
-void AShopCoinManagePanel::MovePanelUp(float Value)
-{
-	FVector MoveVector = FMath::Lerp(PanelStartVector,PanelTopArriveVector,Value);
-	LockPanelMesh->SetRelativeLocation(MoveVector);
-}
-
-void AShopCoinManagePanel::RotatePanel(float Value)
-{
-	//루트 씬 컴포넌트가 회전되도록
-	//FRotator MoveRotate = FMath::Lerp(StartRotate,TargetRotate,Value);
-	//RootScene->SetWorldRotation(MoveRotate);
-}
-
-void AShopCoinManagePanel::FinishedPanelMove()
-{
-	
-}	
-void AShopCoinManagePanel::MovePanelDown(float Value)
-{
-	
-}
-
 void AShopCoinManagePanel::UnlockPanel()
 {
-	ShopCoinSubsystem->UnlockCoin();
 	UnlockTimeLine->PlayFromStart();
 }
 
 void AShopCoinManagePanel::LockPanelMove(float Value)
 {
-	FVector MoveVector = FMath::Lerp(StartVector,ArriveVector,Value);
-	LockPanelMesh->SetRelativeLocation(MoveVector);
+	FVector MoveVec = FMath::Lerp(LockPanelStartVec, LockPanelArriveVec,Value);
+	LockPanelMesh->SetRelativeLocation(MoveVec);
+}
+
+void AShopCoinManagePanel::MoveDescriptionPanel(float Value)
+{
+	FVector MoveVec = FMath::Lerp(DescriptionPanelStartVec, DescriptionPanelArriveVec,Value);
+	DescritionMesh->SetRelativeLocation(MoveVec);
+}
+
+
+void AShopCoinManagePanel::RotateGear(float Value)
+{
+	float Pitch = Value * GearRotateAngle;
+    FRotator GearRotator = FRotator(0,0,0) + FRotator(0,0, Pitch);
+
+	GearMesh->SetRelativeRotation(GearRotator);
+}
+
+
+void AShopCoinManagePanel::ActiveGear(bool IsPanelMoveToBottom)
+{
+	if(IsPanelMoveToBottom)
+		GearTimeline->ReverseFromEnd();
+	else
+		GearTimeline->PlayFromStart();
+}
+
+
+void AShopCoinManagePanel::InitPanel()
+{
+	if(!ShopCoinSubsystem->GetCurrentCoinUnlock())
+		LockPanelMesh->SetRelativeLocation(LockPanelStartVec);
+	else
+		LockPanelMesh->SetRelativeLocation(LockPanelArriveVec);
 }

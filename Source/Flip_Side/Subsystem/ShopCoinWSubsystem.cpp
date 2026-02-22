@@ -79,7 +79,7 @@ void UShopCoinWSubsystem::IncreaseSlotCoinCount()
         UE_LOG(LogTemp, Warning, TEXT("증가 시작"));
         TotalCoinCount++;
         ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum++;
-        OnCoinCountUpdate.Broadcast(ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
+        OnCoinCountUpdate.Broadcast(CurrentCoinSlotNum,ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
     }
     /*
     UE_LOG(LogTemp, Warning, TEXT("증가 실행 : 총 개수 %d 슬롯 : %d, 슬롯 개수 : %d")
@@ -92,7 +92,7 @@ void UShopCoinWSubsystem::DecreaseSlotCoinCount()
     {
         TotalCoinCount--;
         ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum--;
-        OnCoinCountUpdate.Broadcast(ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
+        OnCoinCountUpdate.Broadcast(CurrentCoinSlotNum,ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
     }
     /*
     UE_LOG(LogTemp, Warning, TEXT("감소 실행 : 총 개수 %d 슬롯 : %d, 슬롯 개수 : %d")
@@ -157,17 +157,18 @@ void UShopCoinWSubsystem::ChangeCoinSlotRight()
 {
     if(CurrentCoinSlotNum+1<ShopCoinSlotArray.Num())
     {
+        
         CurrentCoinSlotNum++;
-        OnCoinSlotChange.Broadcast();
+        OnCoinSlotChange.Broadcast(true);
     }
 }
 //코인슬롯을 감소 시키는 방향으로 변경
 void UShopCoinWSubsystem::ChangeCoinSlotLeft()
 {
-    if(0<CurrentCoinSlotNum-1)
+    if(0<=CurrentCoinSlotNum-1)
     {
         CurrentCoinSlotNum--;
-        OnCoinSlotChange.Broadcast();
+        OnCoinSlotChange.Broadcast(false);
     }
 }
 
@@ -176,16 +177,30 @@ void UShopCoinWSubsystem::ChangeCoinSlotByIndex(int32 SlotNum)
 {
     if(SlotNum< ShopCoinSlotArray.Num())
     {
+        if(CurrentCoinSlotNum<SlotNum)
+        {
+            OnCoinSlotChange.Broadcast(true);
+        }
+        else
+        {
+            OnCoinSlotChange.Broadcast(false);
+        }
         CurrentCoinSlotNum = SlotNum;
-        OnCoinSlotChange.Broadcast();
     }
 }
 
 //현재 코인슬롯을 개방
 void UShopCoinWSubsystem::UnlockCurrentCoinSlot()
 {
-    ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock = true;
-    OnUnlockCoinSlot.Broadcast();
+    UE_LOG(LogTemp, Warning, TEXT("%d"), ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock);
+    if(!ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("%d"), ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock);
+        ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock = true;
+        OnUnlockCoinSlot.Broadcast();
+    }
+    
+    
 }
 
 bool UShopCoinWSubsystem::GetCurrentCoinUnlock()

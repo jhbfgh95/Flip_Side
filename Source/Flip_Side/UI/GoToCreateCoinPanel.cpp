@@ -55,7 +55,7 @@ void AGoToCreateCoinPanel::Tick(float DeltaTime)
 
 }
 
-void AGoToCreateCoinPanel::InitLockPanel()
+void AGoToCreateCoinPanel::InitLockPanel(bool IsChangetoBottom)
 {
 	if(ShopCoinSubsystem->GetCurrentCoinUnlock())
 	{

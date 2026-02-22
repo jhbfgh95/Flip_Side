@@ -37,6 +37,17 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* CoindistroyButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* SlotUpButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* SlotDownButton;
+
+	
+	UPROPERTY(meta = (BindWidget))
+	UButton* UnlockCoinSlotButton;
+
 public:
 	UPROPERTY(EditAnywhere)
 	int32 CoinIndex;
@@ -53,4 +64,13 @@ public:
 	UFUNCTION()
 	void ResetCoin();
 	
+	UFUNCTION()
+	void ChangeSlotUp();
+
+	UFUNCTION()
+	void ChangeSlotDown();
+
+	
+	UFUNCTION()
+	void UnlockCoinSlot();
 };

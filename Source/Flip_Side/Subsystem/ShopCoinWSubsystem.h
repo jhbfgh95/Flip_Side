@@ -18,7 +18,7 @@ struct FShopCoinSlotData
     GENERATED_BODY()
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    bool IsUnlock;
+    bool IsUnlock = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FCoinTypeStructure CoinData;
@@ -30,11 +30,10 @@ struct FShopCoinSlotData
 
 
 
-//코인이 클래스가 선택 됬을 때 델리게이트
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCoinCountUpdate , int32 , CountNum);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCoinCountUpdate , int32 , CoinSlotIndex, int32, CoinCount);
 
 //코인 슬롯 변경델리게이트
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangeCoinSlot);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeCoinSlot, bool, IsChangeToBottom);
 
 //코인슬롯 해금 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockCoinSlot);
@@ -71,7 +70,6 @@ public:
 	FCoinCountUpdate OnCoinCountUpdate;
 	//코인슬롯을 해금 했을 때
 	FUnlockCoinSlot OnUnlockCoinSlot;
-
 public:
 	//코인슬롯을 증가시키는 방향으로 변경
 	void ChangeCoinSlotRight();

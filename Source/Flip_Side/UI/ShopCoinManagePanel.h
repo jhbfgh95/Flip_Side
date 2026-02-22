@@ -32,27 +32,17 @@ private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
 	class UStaticMeshComponent* PanelMesh;
 	
-	// 몸통 메쉬
+	// 기어 메쉬
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
 	class UStaticMeshComponent* GearMesh;
 
-	// 몸통 메쉬
+	// 설명 메쉬 메쉬
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
-	class UStaticMeshComponent* DescribeMesh;
+	class UStaticMeshComponent* DescritionMesh;
 
 	//잠긴 판넬 표시 메쉬
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
 	class UStaticMeshComponent* LockPanelMesh;
-	
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UTimelineComponent* PanelTimeLine;
-
-	
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UTimelineComponent* PaneDownlTimeLine;
-
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UTimelineComponent* UnlockTimeLine;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* PanelWidget;
@@ -61,6 +51,14 @@ private:
 	class UWidgetComponent* DescribeWidget;
 
 private:
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UTimelineComponent* DescriptionTimeLine;
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UTimelineComponent* UnlockTimeLine;
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UTimelineComponent* GearTimeline;
 
 	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
 	class UCurveFloat* PanelRotateCurve;
@@ -68,57 +66,46 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
 	class UCurveFloat* UnlockPanelCurve;
 
-	//판넬움직임
-	UFUNCTION()
-	void RotatePanel(float Value);
+	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
+	class UCurveFloat* GearCurve;
+private:
+	class UShopCoinWSubsystem* ShopCoinSubsystem;
+private:
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	FVector LockPanelStartVec;
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	FVector LockPanelArriveVec;
 	
-	UFUNCTION()
-	void RunPanel(bool IsInCrease);
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	FVector LockPanelMoveDirection;
 
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	FVector DescriptionPanelStartVec;
 
-	UFUNCTION()
-	void MovePanelUp(float Value);
-
-	UFUNCTION()
-	void MovePanelDown(float Value);
-
-	UFUNCTION()
-	void FinishedPanelMove();
-
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	FVector DescriptionPanelArriveVec;
 	
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	float GearRotateAngle;
+
+
+public:
+
+	void InitPanel();
+
+	UFUNCTION(BlueprintCallAble)
+	void UnlockPanel();
 
 	UFUNCTION()
 	void LockPanelMove(float Value);
-	
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	FVector TargetVector;
 
-	FVector StartVector;
-	FVector ArriveVector;
+	UFUNCTION()
+	void MoveDescriptionPanel(float Value);
 
-private:
-	
-	//판넬설정
-	void InitPanel();
+	UFUNCTION()
+	void RotateGear(float Value);
+	UFUNCTION()
+	void ActiveGear(bool IsPanelMoveToBottom);
 
-	//타임라인 추가
-	// 잠금 판넬
-	// 동전 클래스?
-	// 코인 능력 설명 클래스
-	// 판넬 내부 UI
-
-private:
-	class UShopCoinWSubsystem* ShopCoinSubsystem;
-
-private:
-
-	FVector PanelStartVector;
-	FVector PanelBottomArriveVector;
-	FVector PanelTopArriveVector;
-	FVector PanelMoveTopDirect;
-public:
-	UFUNCTION(BlueprintCallAble)
-	void ChangeSlot();
-	UFUNCTION(BlueprintCallAble)
-	void UnlockPanel();
 };

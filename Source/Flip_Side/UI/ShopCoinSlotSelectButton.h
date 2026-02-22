@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "ShopCoinMSelectButton.generated.h"
+#include "ShopCoinSlotSelectButton.generated.h"
 
 UCLASS()
-class FLIP_SIDE_API AShopCoinMSelectButton : public AActor
+class FLIP_SIDE_API AShopCoinSlotSelectButton : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AShopCoinMSelectButton();
+	AShopCoinSlotSelectButton();
 
 protected:
 	// Called when the game starts or when spawned
@@ -46,8 +46,10 @@ public:
 
 	void InitButton();
 
-
-private:
+	UPROPERTY(EditAnywhere)
 	int32 SlotIndexNum;
-
+private:
+	UFUNCTION()
+	void SetCountWidget(int32 SlotIndex, int32 Count);
+	
 };
