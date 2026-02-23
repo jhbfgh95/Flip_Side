@@ -108,7 +108,7 @@ const FFaceData* UShopWeaponDataWSubsystem::GetWeaponDataByIndex(EWeaponClass We
     {
         if (DealWeapons)
         {
-            if (!DealWeapons->IsValidIndex(Index))
+            if (DealWeapons->IsValidIndex(Index))
                 return &(*DealWeapons)[Index];
             else 
                 return nullptr;

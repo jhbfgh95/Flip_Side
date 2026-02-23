@@ -41,3 +41,8 @@ void UShopUnlockWeaponWSubsystem::UnlockCurrentWeapon()
     }
     
 }
+
+EWeaponClass UShopUnlockWeaponWSubsystem::GetCurrentWeaponClass()
+{
+    return CurrentUnlockWeaponClass;
+}

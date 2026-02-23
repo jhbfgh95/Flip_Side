@@ -35,12 +35,14 @@ private:
 public:
 	FSelectUnlockWeapon OnSelectUnlockWeapon;
 
-//무기 해금
-void UnlockWeaponByIndex(int32 WeaponIndex);
-//무기 선택
-void SelectUnlockWeaponByIndex(EWeaponClass WeaponClass, int32 WeaponIndex, bool IsWeaponUnlock);
+	//무기 해금
+	void UnlockWeaponByIndex(int32 WeaponIndex);
+	//무기 선택
+	void SelectUnlockWeaponByIndex(EWeaponClass WeaponClass, int32 WeaponIndex, bool IsWeaponUnlock);
 
-void UnlockCurrentWeapon();
+	void UnlockCurrentWeapon();
 
-int32 GetCurrentUnlockWeaponIndex();
+	int32 GetCurrentUnlockWeaponIndex();
+
+	EWeaponClass GetCurrentWeaponClass();
 };

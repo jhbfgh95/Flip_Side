@@ -30,6 +30,7 @@ private:
 	class UShopWeaponDataWSubsystem* WeaponDataSubsystem;
 
 private:
+	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* CoinMesh;
 
 private:

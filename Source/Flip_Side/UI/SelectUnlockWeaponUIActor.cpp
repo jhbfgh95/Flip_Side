@@ -20,7 +20,7 @@ void ASelectUnlockWeaponUIActor::BeginPlay()
 	ShopUnlockWeaponSubSystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
 	WeaponDataSubsystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
 
-	
+	ShopUnlockWeaponSubSystem->OnSelectUnlockWeapon.AddDynamic(this , &ASelectUnlockWeaponUIActor::SetUnlockCoin);
 }
 
 // Called every frame
@@ -33,4 +33,24 @@ void ASelectUnlockWeaponUIActor::Tick(float DeltaTime)
 
 void ASelectUnlockWeaponUIActor::SetUnlockCoin(EWeaponClass WeaponClass, int32 index, bool IsItemUnlock)
 {
+	UMaterialInstanceDynamic* MID = CoinMesh->CreateDynamicMaterialInstance(0);
+
+	if(MID)
+	{
+		const FFaceData* FrontFaceData = WeaponDataSubsystem->GetWeaponDataByIndex(ShopUnlockWeaponSubSystem->GetCurrentWeaponClass()
+		, ShopUnlockWeaponSubSystem->GetCurrentUnlockWeaponIndex());
+		
+		if(FrontFaceData)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("앞면 아이콘 설정"));
+			MID->SetTextureParameterValue(FName("Front_Texture"), FrontFaceData->WeaponIcon);
+			MID->SetVectorParameterValue(FName("Front_Color"), FrontFaceData->TypeColor);
+
+		}
+
+		if(ShopUnlockWeaponSubSystem->GetCurrentUnlockWeaponIndex() == -1)
+		{
+			MID->SetVectorParameterValue(FName("Front_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		}
+	}
 }
