@@ -38,7 +38,7 @@ private:
 
 	// 설명 메쉬 메쉬
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
-	class UStaticMeshComponent* DescritionMesh;
+	class UStaticMeshComponent* DescriptionMesh;
 
 	//잠긴 판넬 표시 메쉬
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
@@ -60,12 +60,13 @@ private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UTimelineComponent* GearTimeline;
 
-	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
-	class UCurveFloat* PanelRotateCurve;
 	
 	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
 	class UCurveFloat* UnlockPanelCurve;
 
+	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
+	class UCurveFloat* DescriptionPanelCurve;
+	
 	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
 	class UCurveFloat* GearCurve;
 private:
@@ -81,8 +82,10 @@ private:
 	FVector LockPanelMoveDirection;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	FVector DescriptionPanelStartVec;
+	FVector DescriptionPanelMoveDirection;
 
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	FVector DescriptionPanelStartVec;
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	FVector DescriptionPanelArriveVec;
 	
@@ -93,6 +96,8 @@ private:
 public:
 
 	void InitPanel();
+	void InitPanelAfterArrive();
+	void InitPanelToStart();
 
 	UFUNCTION(BlueprintCallAble)
 	void UnlockPanel();
@@ -107,5 +112,10 @@ public:
 	void RotateGear(float Value);
 	UFUNCTION()
 	void ActiveGear(bool IsPanelMoveToBottom);
+
+	UFUNCTION()
+	void OpenDescriptionPanel();
+
+	void ActiveDescriptionPanel(bool IsPanelShow);
 
 };

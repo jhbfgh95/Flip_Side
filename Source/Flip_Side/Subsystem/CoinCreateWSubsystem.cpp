@@ -79,7 +79,7 @@ void UCoinCreateWSubsystem::ChangeCoinSide()
         bIsCreateCoinFront = true;
         //OnSelectedCoinUpdate.Broadcast(SelectedCoin.BackWeaponID);
     }
-        
+    UE_LOG(LogTemp, Warning, TEXT("무기 앞면 인가? : %d"), bIsCreateCoinFront);
 
 }
 

@@ -14,4 +14,11 @@ class FLIP_SIDE_API AUnlockWeaponLever : public ALeverActor
 {
 	GENERATED_BODY()
 	
+private:
+	class UShopUnlockWeaponWSubsystem* UnlockWeaponSubsystem;
+	
+	protected:
+	virtual void BeginPlay() override;
+public:
+	virtual void ExecuteLeverLogic() override;
 };

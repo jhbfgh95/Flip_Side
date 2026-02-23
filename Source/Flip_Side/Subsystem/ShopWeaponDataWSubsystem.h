@@ -29,6 +29,10 @@ private:
 	const TArray<FFaceData>* DealWeapons;
 	const TArray<FFaceData>* UtilWeapons;
 
+	class UUnlockGISubsystem* UnlockSubsystem;
+	TArray<bool> TankWeaponUnlockArray;
+	TArray<bool> DealWeaponUnlockArray;
+	TArray<bool> UtilWeaponUnlockArray;
 
 public:
 	
@@ -39,4 +43,8 @@ public:
 	int32 GetWeaponIndexByID(EWeaponClass weponClass, int32 ID);
 
 	int32 GetWeaponArrayNum(EWeaponClass weponClass);
+
+	bool IsWeaponUnlockByIndex(EWeaponClass WeaponClass, int32 Index);
+
+	void UnlockWeaponByIndex(EWeaponClass WeaponClass, int32 Index);
 };

@@ -76,7 +76,6 @@ void UShopCoinWSubsystem::IncreaseSlotCoinCount()
 {
     if(CanIncreaseCoin(CurrentCoinSlotNum))
     {
-        UE_LOG(LogTemp, Warning, TEXT("증가 시작"));
         TotalCoinCount++;
         ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum++;
         OnCoinCountUpdate.Broadcast(CurrentCoinSlotNum,ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
@@ -94,9 +93,6 @@ void UShopCoinWSubsystem::DecreaseSlotCoinCount()
         ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum--;
         OnCoinCountUpdate.Broadcast(CurrentCoinSlotNum,ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
     }
-    /*
-    UE_LOG(LogTemp, Warning, TEXT("감소 실행 : 총 개수 %d 슬롯 : %d, 슬롯 개수 : %d")
-    ,TotalCoinCount, CoinArray[SlotNum].SlotNum, CoinArray[SlotNum].SameTypeCoinNum);*/
 }
 
 
@@ -120,8 +116,10 @@ void UShopCoinWSubsystem::SetSlotCoin(FCoinTypeStructure SetCoinInfo, EWeaponCla
     if(ShopCoinSlotArray.Num()-1<SetCoinInfo.SlotNum)
         return;
 
-    ShopCoinSlotArray[SetCoinInfo.SlotNum].CoinData = SetCoinInfo;
-    ShopCoinSlotArray[SetCoinInfo.SlotNum].CoinClass = CoinClass;
+    ShopCoinSlotArray[CurrentCoinSlotNum].CoinData = SetCoinInfo;
+    ShopCoinSlotArray[CurrentCoinSlotNum].CoinClass = CoinClass;
+
+    OnCoinCreated.Broadcast(CurrentCoinSlotNum, CoinClass);
 }
 
 
@@ -177,6 +175,7 @@ void UShopCoinWSubsystem::ChangeCoinSlotByIndex(int32 SlotNum)
 {
     if(SlotNum< ShopCoinSlotArray.Num())
     {
+        CurrentCoinSlotNum = SlotNum;
         if(CurrentCoinSlotNum<SlotNum)
         {
             OnCoinSlotChange.Broadcast(true);
@@ -185,7 +184,7 @@ void UShopCoinWSubsystem::ChangeCoinSlotByIndex(int32 SlotNum)
         {
             OnCoinSlotChange.Broadcast(false);
         }
-        CurrentCoinSlotNum = SlotNum;
+        
     }
 }
 

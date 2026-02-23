@@ -102,7 +102,6 @@ int32 UUnlockGISubsystem::GetWeaponUnlockIndexByIndex(EWeaponClass WeaponClass, 
     }
     else if(EWeaponClass::Deal == WeaponClass)
     {
-        
         return DealUnlockArray.Find(index);
     }
     else if(EWeaponClass::Heal == WeaponClass)

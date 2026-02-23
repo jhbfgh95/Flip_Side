@@ -51,7 +51,9 @@ private:
     UUserWidget* tankClassGrid;
     UPROPERTY(meta = (BindWidget))
     UUserWidget* utilClassGrid;
-
+	
+    UPROPERTY(meta = (BindWidget))
+	class UButton* ChangeCoinSideButton;
 	
     UPROPERTY(meta = (BindWidget))
 	class UButton* TestClass;
@@ -72,6 +74,9 @@ private:
     class UButton* FinishButton;
 
 private:
+	UFUNCTION()
+	void ChangeCoinSide();
+
 	UFUNCTION()
 	void SetClassGrid(EWeaponClass weaponClass);
 

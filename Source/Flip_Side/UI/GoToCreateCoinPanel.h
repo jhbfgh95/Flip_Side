@@ -63,6 +63,9 @@ private:
 	UFUNCTION()
 	void MoveLockPanel(float Value);
 
+	UFUNCTION()
+	void FinishMoveLockPanel();
+
 	void ChangeCreateCoinMode();
 
 private:
@@ -71,4 +74,6 @@ private:
 
 	FVector ArriveVector;
 	FVector StartVector;
+
+	bool IsLockPanelOpen = false;
 };

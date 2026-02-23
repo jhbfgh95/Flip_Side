@@ -82,10 +82,14 @@ public:
 	UFUNCTION()
 	void FinishMovePanelToTop();
 	
+	UFUNCTION(BlueprintCallAble)
+	void UnlockCurrentPanel();
 	
 	UFUNCTION(BlueprintCallAble)
 	void ClickChangeSlotTop();
 	
 	UFUNCTION(BlueprintCallAble)
 	void ClickChangeSlotBottom();
+
+
 };

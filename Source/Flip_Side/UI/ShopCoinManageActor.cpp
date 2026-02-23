@@ -48,6 +48,7 @@ void AShopCoinManageActor::BeginPlay()
 	FinishMoveToTopCallBack.BindUFunction(this, FName("FinishMovePanelToTop"));
 	MoveToTopTimeline->SetTimelineFinishedFunc(FinishMoveToTopCallBack);
 
+	ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &AShopCoinManageActor::UnlockCurrentPanel);
 
 
 	CoinMPanel1->SetRelativeLocation(ReadyTopVector);
@@ -65,27 +66,32 @@ void AShopCoinManageActor::BeginPlay()
 
 void AShopCoinManageActor::ChangePanelToBottom()
 {
-	if(CurrentTopPanel == CoinMPanel1)
+	if(CurrentShowPanel == CoinMPanel1)
 	{
-		Panel1Class->InitPanel();
+		Panel2Class->InitPanel();
+		Panel1Class->InitPanelToStart();
 	}
 	else
 	{
-		Panel2Class->InitPanel();
+		Panel1Class->InitPanel();
+		Panel2Class->InitPanelToStart();
 	}
 	MoveToBottomTimeline->PlayFromStart();
 }
 
 void AShopCoinManageActor::ChangePanelToTop()
 {
-	if(CurrentBottomPanel == CoinMPanel1)
+	if(CurrentShowPanel == CoinMPanel1)
 	{
-		Panel1Class->InitPanel();
+		Panel2Class->InitPanel();
+		Panel1Class->InitPanelToStart();
 	}
 	else
 	{
-		Panel2Class->InitPanel();
+		Panel1Class->InitPanel();
+		Panel2Class->InitPanelToStart();
 	}
+	
 	MoveToTopTimeline->PlayFromStart();
 }
 
@@ -104,6 +110,15 @@ void AShopCoinManageActor::FinishMovePanelToBottom()
 	CurrentBottomPanel = CurrentShowPanel;
 	CurrentShowPanel = CurrentTopPanel; 
 	CurrentTopPanel = CurrentBottomPanel;
+
+	if(CurrentShowPanel == CoinMPanel1)
+	{
+		Panel1Class->InitPanelAfterArrive();
+	}
+	else
+	{
+		Panel2Class->InitPanelAfterArrive();
+	}
 }
 
 
@@ -121,6 +136,15 @@ void AShopCoinManageActor::FinishMovePanelToTop()
 	CurrentTopPanel = CurrentShowPanel;
 	CurrentShowPanel = CurrentBottomPanel;
 	CurrentBottomPanel = CurrentTopPanel;
+
+	if(CurrentShowPanel == CoinMPanel1)
+	{
+		Panel1Class->InitPanelAfterArrive();
+	}
+	else
+	{
+		Panel2Class->InitPanelAfterArrive();
+	}
 }
 
 void AShopCoinManageActor::ChangePanel(bool IsChangeToBottom)
@@ -132,6 +156,17 @@ void AShopCoinManageActor::ChangePanel(bool IsChangeToBottom)
 }
 
 
+void AShopCoinManageActor::UnlockCurrentPanel()
+{
+	if(CurrentShowPanel == CoinMPanel1)
+	{
+		Panel1Class->UnlockPanel();
+	}
+	else
+	{
+		Panel2Class->UnlockPanel();
+	}
+}
 
 void AShopCoinManageActor::ClickChangeSlotTop()
 {

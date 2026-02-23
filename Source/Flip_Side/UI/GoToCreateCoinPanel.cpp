@@ -41,6 +41,10 @@ void AGoToCreateCoinPanel::BeginPlay()
 	LockPanelTimeLineCallBack.BindUFunction(this, FName("MoveLockPanel"));
 	LockPanelTimeLine->AddInterpFloat(LockPanelCurve, LockPanelTimeLineCallBack);	
 
+	FOnTimelineEvent FinishLockPanelCallBack;
+	FinishLockPanelCallBack.BindUFunction(this, FName("FinishMoveLockPanel"));
+	LockPanelTimeLine->SetTimelineFinishedFunc(FinishLockPanelCallBack);
+
 	StartVector = LockPanelMesh->GetRelativeLocation();
 	ArriveVector = StartVector + TargetVector;
 
@@ -59,11 +63,19 @@ void AGoToCreateCoinPanel::InitLockPanel(bool IsChangetoBottom)
 {
 	if(ShopCoinSubsystem->GetCurrentCoinUnlock())
 	{
-		LockPanelMesh->SetRelativeLocation(ArriveVector);
+		//LockPanelMesh->SetRelativeLocation(ArriveVector);
+		if(!IsLockPanelOpen)
+		{
+			LockPanelTimeLine->PlayFromStart();
+		}
 	}
 	else
 	{
-		LockPanelMesh->SetRelativeLocation(StartVector);
+		if(IsLockPanelOpen)
+		{
+			LockPanelTimeLine->ReverseFromEnd();
+		}
+		//LockPanelMesh->SetRelativeLocation(StartVector);
 	}
 }
 
@@ -81,4 +93,16 @@ void AGoToCreateCoinPanel::MoveLockPanel(float Value)
 void AGoToCreateCoinPanel::ChangeCreateCoinMode()
 {
 	ShopGameMode->SetCoinCreateMode();
+}
+
+void AGoToCreateCoinPanel::FinishMoveLockPanel()
+{
+	if (0.f<LockPanelTimeLine->GetPlaybackPosition())
+	{
+		IsLockPanelOpen = true;
+	}
+	else
+	{
+		IsLockPanelOpen = false;
+	}
 }

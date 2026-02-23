@@ -37,6 +37,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeCoinSlot, bool, IsChangeToBot
 
 //코인슬롯 해금 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockCoinSlot);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCoinCreated, int32, CreatedCoinIndex, EWeaponClass, CreateWeaponClass );
+
 UCLASS()
 class FLIP_SIDE_API UShopCoinWSubsystem : public UWorldSubsystem
 {
@@ -70,6 +73,8 @@ public:
 	FCoinCountUpdate OnCoinCountUpdate;
 	//코인슬롯을 해금 했을 때
 	FUnlockCoinSlot OnUnlockCoinSlot;
+
+	FCoinCreated OnCoinCreated;
 public:
 	//코인슬롯을 증가시키는 방향으로 변경
 	void ChangeCoinSlotRight();

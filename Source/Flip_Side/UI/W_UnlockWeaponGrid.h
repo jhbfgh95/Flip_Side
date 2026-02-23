@@ -33,6 +33,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	EWeaponClass GridWeaponClass;
+	
 	UPROPERTY(EditAnywhere)
 	int32 ColumnCount;
 };

@@ -26,6 +26,8 @@ void UW_CoinCreateWidget::NativeConstruct()
     TestClass2->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetTank);
     
     TestClass3->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetUtil);
+
+    ChangeCoinSideButton->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::ChangeCoinSide);
 }
 
 
@@ -86,4 +88,9 @@ void UW_CoinCreateWidget::SetUtil()
 {
     CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Heal);
     CoinCreateWSubSystem->OffClassSelectMode();
+}
+
+void UW_CoinCreateWidget::ChangeCoinSide()
+{
+    CoinCreateWSubSystem->ChangeCoinSide();
 }
