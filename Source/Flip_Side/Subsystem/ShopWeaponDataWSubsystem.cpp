@@ -98,30 +98,30 @@ const FFaceData* UShopWeaponDataWSubsystem::GetWeaponDataByIndex(EWeaponClass We
     {
         if (TankWeapons)
         {
-            if (!TankWeapons && !TankWeapons->IsValidIndex(Index))
-                return nullptr;
-            else 
+            if (TankWeapons->IsValidIndex(Index))
                 return &(*TankWeapons)[Index];
+            else 
+                return nullptr;
         }
     }
     else if(WeponClass == EWeaponClass::Deal )
     {
         if (DealWeapons)
         {
-            if (!DealWeapons && !DealWeapons->IsValidIndex(Index))
-                return nullptr;
-            else 
+            if (!DealWeapons->IsValidIndex(Index))
                 return &(*DealWeapons)[Index];
+            else 
+                return nullptr;
         }
     }
     else if(WeponClass == EWeaponClass::Heal )
     {
         if (UtilWeapons)
         {
-            if (!UtilWeapons && !UtilWeapons->IsValidIndex(Index))
-                return nullptr;
-            else 
+            if (UtilWeapons->IsValidIndex(Index))
                 return &(*UtilWeapons)[Index];
+            else 
+                return nullptr;
         }
     }
 

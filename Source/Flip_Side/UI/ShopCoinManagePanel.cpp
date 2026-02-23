@@ -9,6 +9,10 @@
 #include "Components/TimelineComponent.h"
 #include "Subsystem/ShopCoinWSubsystem.h"
 #include "Components/WidgetComponent.h"
+#include "DataTypes/CoinDataTypes.h"
+
+#include "WeaponDataTypes.h"
+#include "Subsystem/ShopWeaponDataWSubsystem.h"
 // Sets default values
 AShopCoinManagePanel::AShopCoinManagePanel()
 {
@@ -17,7 +21,7 @@ AShopCoinManagePanel::AShopCoinManagePanel()
 	
     RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(RootScene);
-    
+    //스태틱 메쉬들
 	PanelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Panel"));
     PanelMesh->SetupAttachment(RootScene);
 
@@ -29,17 +33,25 @@ AShopCoinManagePanel::AShopCoinManagePanel()
 	DescriptionMesh= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DescriptionMesh"));
 	DescriptionMesh->SetupAttachment(RootScene);
 
+	PanelCoinMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PanelCoinMesh"));
+	PanelCoinMesh->SetupAttachment(RootScene);
+
+	//x타임라인들//
 	UnlockTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("UnlockPanelTimeLine"));
 
 	GearTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("GearlTimeline"));
 
+	PanelCoinTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("PanelCoinTimeline"));
+	DescriptionTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("PanelDownTimeLine"));
+
+	//위젯들
 	PanelWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PanelWidget"));
 	PanelWidget->SetupAttachment(RootScene);
 
 	DescribeWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DescribeWidget"));
 	DescribeWidget->SetupAttachment(DescriptionMesh);
 
-	DescriptionTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("PanelDownTimeLine"));
+	
 
 }
 
@@ -49,9 +61,11 @@ void AShopCoinManagePanel::BeginPlay()
 	Super::BeginPlay();
 
 	ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
+	ShopWeaponDataSubsystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
+
 	ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AShopCoinManagePanel::ActiveGear);
 	//ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &AShopCoinManagePanel::UnlockPanel);
-
+	
 
 	//잠김 판넬 운동 타임라인
 	FOnTimelineFloat LockPanelMoveCallBack;
@@ -140,6 +154,7 @@ void AShopCoinManagePanel::InitPanel()
 		LockPanelMesh->SetRelativeLocation(LockPanelArriveVec);
 
 	DescriptionMesh->SetRelativeLocation(DescriptionPanelStartVec);
+	InitPanelCoin();
 }
 
 void AShopCoinManagePanel::InitPanelAfterArrive()
@@ -158,4 +173,43 @@ void AShopCoinManagePanel::InitPanelToStart()
 {
 	if(0 < DescriptionTimeLine->GetPlaybackPosition())
 		ActiveDescriptionPanel(false);
+}
+
+
+void AShopCoinManagePanel::InitPanelCoin()
+{
+	
+	UMaterialInstanceDynamic* MID = PanelCoinMesh->CreateDynamicMaterialInstance(0);
+
+	if(MID)
+	{
+		FCoinTypeStructure CoinData = ShopCoinSubsystem->GetCurrentSlotCoin();
+		EWeaponClass CurrentWeaponClass = ShopCoinSubsystem->GetCurrentSlotCoinClass();
+		const FFaceData* FrontFaceData = ShopWeaponDataSubsystem->GetWeaponDataByIndex(CurrentWeaponClass, CoinData.FrontWeaponID);	
+		const FFaceData* BackFaceData = ShopWeaponDataSubsystem->GetWeaponDataByIndex(CurrentWeaponClass, CoinData.BackWeaponID);
+		UE_LOG(LogTemp, Warning, TEXT("코인 아이콘 설정 / 앞면 아이디 %d"), CoinData.FrontWeaponID);
+		UE_LOG(LogTemp, Warning, TEXT("코인 아이콘 설정 / 뒷면 아이디 %d"), CoinData.BackWeaponID);
+		if(FrontFaceData)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("앞면 아이콘 설정"));
+			MID->SetTextureParameterValue(FName("Front_Texture"), FrontFaceData->WeaponIcon);
+			MID->SetVectorParameterValue(FName("Front_Color"), FrontFaceData->TypeColor);
+
+		}
+		if(BackFaceData)
+		{	
+			UE_LOG(LogTemp, Warning, TEXT("뒷면아이콘  설정"));
+			MID->SetTextureParameterValue(FName("Back_Texture"), BackFaceData->WeaponIcon);
+			MID->SetVectorParameterValue(FName("Back_Color"), BackFaceData->TypeColor);
+		}
+	
+		if(CoinData.FrontWeaponID == -1)
+		{
+			MID->SetVectorParameterValue(FName("Front_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		}
+		if(CoinData.BackWeaponID == -1)
+		{
+			MID->SetVectorParameterValue(FName("Back_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		}
+	}
 }

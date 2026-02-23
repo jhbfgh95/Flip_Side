@@ -31,7 +31,7 @@ void AShopCoinManageActor::BeginPlay()
 	
 	ShopCoinSubsystem= GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
 	ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AShopCoinManageActor::ChangePanel);
-
+	ShopCoinSubsystem->OnCoinCreated.AddDynamic(this, &AShopCoinManageActor::InitSlotPanelCoin);
 	FOnTimelineFloat MoveToBottomCallBack;
 	MoveToBottomCallBack.BindUFunction(this,FName("MovePanelToBottom"));
 	MoveToBottomTimeline->AddInterpFloat(PanelMoveCurve, MoveToBottomCallBack);	
@@ -176,4 +176,16 @@ void AShopCoinManageActor::ClickChangeSlotTop()
 void AShopCoinManageActor::ClickChangeSlotBottom()
 {
 	ShopCoinSubsystem->ChangeCoinSlotRight();
+}
+
+void AShopCoinManageActor::InitSlotPanelCoin(int32 CreateCoinIndex, EWeaponClass WeaponClass)
+{
+	if(CurrentShowPanel == CoinMPanel1)
+	{
+		Panel1Class->InitPanelCoin();
+	}
+	else
+	{
+		Panel2Class->InitPanelCoin();
+	}
 }

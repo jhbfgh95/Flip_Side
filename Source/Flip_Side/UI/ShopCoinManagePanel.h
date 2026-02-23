@@ -44,6 +44,10 @@ private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
 	class UStaticMeshComponent* LockPanelMesh;
 
+	//코인 표시 메쉬
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
+	class UStaticMeshComponent* PanelCoinMesh;
+
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* PanelWidget;
 
@@ -60,6 +64,8 @@ private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UTimelineComponent* GearTimeline;
 
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UTimelineComponent* PanelCoinTimeline;
 	
 	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
 	class UCurveFloat* UnlockPanelCurve;
@@ -71,6 +77,8 @@ private:
 	class UCurveFloat* GearCurve;
 private:
 	class UShopCoinWSubsystem* ShopCoinSubsystem;
+	class UShopWeaponDataWSubsystem* ShopWeaponDataSubsystem;
+
 private:
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
@@ -91,6 +99,10 @@ private:
 	
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	float GearRotateAngle;
+
+private:
+	//코인 관련
+	
 
 
 public:
@@ -118,4 +130,5 @@ public:
 
 	void ActiveDescriptionPanel(bool IsPanelShow);
 
+	void InitPanelCoin();
 };

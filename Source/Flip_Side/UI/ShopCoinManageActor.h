@@ -82,14 +82,16 @@ public:
 	UFUNCTION()
 	void FinishMovePanelToTop();
 	
-	UFUNCTION(BlueprintCallAble)
+	UFUNCTION()
 	void UnlockCurrentPanel();
 	
-	UFUNCTION(BlueprintCallAble)
+	UFUNCTION()
 	void ClickChangeSlotTop();
 	
-	UFUNCTION(BlueprintCallAble)
+	UFUNCTION()
 	void ClickChangeSlotBottom();
 
+	UFUNCTION()
+	void InitSlotPanelCoin(int32 CreateCoinIndex, EWeaponClass WeaponClass);
 
 };
