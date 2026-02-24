@@ -29,6 +29,8 @@ public class Flip_Side : ModuleRules
 			"Flip_Side/Interface",
 			"Flip_Side/UI",
 			"Flip_Side/Subsystem",
+			"Flip_Side/Subsystem/BattleLevel",
+			"Flip_Side/Subsystem/ShopLevel",
 			"Flip_Side/Objects",
 			"Flip_Side/Objects/Weapon",
 			"Flip_Side/Objects/Item",
