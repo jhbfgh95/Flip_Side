@@ -31,4 +31,7 @@ public:
 	UPROPERTY(EditAnywhere, Config, Category = "GridSpawn")
 	TSoftClassPtr<class AGridActor> GridActor;
 
+	UPROPERTY(EditAnywhere, config, Category = "Stage UI",
+		meta = (AllowedClasses = "/Script/UMG.UserWidget"))
+	TSoftClassPtr<UUserWidget> StageHUDWidgetClass;
 };
