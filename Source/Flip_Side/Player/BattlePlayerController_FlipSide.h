@@ -25,20 +25,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputMappingContext* InputContext;
 
-	virtual void BeginPlay() override; // 기본값 저장을 위해 필요 (260204 추가)
-	// 디폴트 카메라 위치로 복귀
+	virtual void BeginPlay() override;
+
 	void ReturnToDefaultCamera();
 
-	// 마우스 좌클릭
     void OnLeftClick();
 
-	// 마우스 우클릭
 	void OnRightClick();
 
-    // for 마우스 대상 감지
     void CheckMouseHover();
 
-    // 현재 마우스가 올라가 있는 영역 액터 저장
     UPROPERTY()
     class ABattleArea* CurrentHoveredArea;
 
