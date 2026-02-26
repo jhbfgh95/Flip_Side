@@ -94,6 +94,10 @@ void UW_UnlockWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 In
             LockImage->SetVisibility(ESlateVisibility::Collapsed);
         }
     }
+    else
+    {
+        SetVisibility(ESlateVisibility::Hidden);
+    }
 }
 
 void UW_UnlockWeaponButton::ClickWeaponButton()

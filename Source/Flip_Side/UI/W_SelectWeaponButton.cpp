@@ -72,31 +72,11 @@ void UW_SelectWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 In
         WeaponButton->SetStyle(ButtonStyle);
         
         WeaponNameBlock->SetText(FText::FromString(WeaponName));
-    }
-    /*
-    if(WeaponData)
-    {
-        
-        FButtonStyle ButtonStyle = WeaponButton->GetStyle();
-        ButtonStyle.Normal.SetResourceObject(WeaponData->WeaponIcon);
-        WeaponButton->SetStyle(ButtonStyle);
-        WeaponNameBlock->SetText(FText::FromString(WeaponName));
+
+        SetVisibility(ESlateVisibility::Visible);
     }
     else
     {
-        /*
-        FButtonStyle ButtonStyle = WeaponButton->GetStyle();
-
-        ButtonStyle.Normal.SetResourceObject(WeapoTexture);
-        //ButtonStyle.Normal.ImageSize = FVector2D(64.f, 64.f);
-
-        // Pressed
-        //ButtonStyle.Pressed.SetResourceObject(WeapoTexture);
-        //NewStyle.Pressed.ImageSize = FVector2D(64.f, 64.f);
-
-        WeaponButton->SetStyle(ButtonStyle);
-
-        WeaponNameBlock->SetText(FText::FromString(WeaponName));
+        SetVisibility(ESlateVisibility::Hidden);
     }
-    */
 }

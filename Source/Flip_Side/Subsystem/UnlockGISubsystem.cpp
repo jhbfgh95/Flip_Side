@@ -113,3 +113,21 @@ int32 UUnlockGISubsystem::GetWeaponUnlockIndexByIndex(EWeaponClass WeaponClass, 
         return -1;
     }
 }
+
+
+int32 UUnlockGISubsystem::GetUnlockWeaponIndex(EWeaponClass WeaponClass, int32 index)
+{
+    if(EWeaponClass::Tank == WeaponClass &&TankUnlockArray.IsValidIndex(index))
+    {
+        return TankUnlockArray[index];
+    }
+    else if(EWeaponClass::Deal == WeaponClass&&DealUnlockArray.IsValidIndex(index))
+    {
+        return DealUnlockArray[index];
+    }
+    else if(EWeaponClass::Heal == WeaponClass&&UtilUnlockArray.IsValidIndex(index))
+    {
+        return UtilUnlockArray[index];
+    }
+    return -1;
+}

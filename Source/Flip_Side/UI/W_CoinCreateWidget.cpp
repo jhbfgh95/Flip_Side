@@ -7,6 +7,7 @@
 #include "Subsystems/WorldSubsystem.h" 
 #include "Components/Button.h"
 #include "Player/GameMode_Shop.h"
+#include "UI/W_WeaponSelectGrid.h"
 void UW_CoinCreateWidget::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -55,19 +56,29 @@ void UW_CoinCreateWidget::FinishCreate()
 void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
 {
     FinishButton->SetVisibility(ESlateVisibility::Visible);
-    dealClassGrid->SetVisibility(ESlateVisibility::Collapsed);
-    utilClassGrid->SetVisibility(ESlateVisibility::Collapsed);
-    tankClassGrid->SetVisibility(ESlateVisibility::Collapsed);
+
+
+    //dealClassGrid->SetVisibility(ESlateVisibility::Collapsed);
+    //utilClassGrid->SetVisibility(ESlateVisibility::Collapsed);
+    //tankClassGrid->SetVisibility(ESlateVisibility::Collapsed);
     switch (weaponClass)
     {
     case EWeaponClass::Deal:
         dealClassGrid->SetVisibility(ESlateVisibility::Visible);
+        dealClassGrid->OpenWeaponGrid();
+        tankClassGrid->CloseWeaponGrid();
+        utilClassGrid->CloseWeaponGrid();
         break;
     case EWeaponClass::Tank:
         tankClassGrid->SetVisibility(ESlateVisibility::Visible);
+        tankClassGrid->OpenWeaponGrid();dealClassGrid->CloseWeaponGrid();
+        utilClassGrid->CloseWeaponGrid();
         break;
     case EWeaponClass::Heal:
         utilClassGrid->SetVisibility(ESlateVisibility::Visible);
+        utilClassGrid->OpenWeaponGrid();
+        dealClassGrid->CloseWeaponGrid();
+        tankClassGrid->CloseWeaponGrid();
         break;
     default:
         break;

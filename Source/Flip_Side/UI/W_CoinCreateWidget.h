@@ -46,11 +46,11 @@ public:
 private:
 	    
 	UPROPERTY(meta = (BindWidget))
-    UUserWidget* dealClassGrid;
+    class UW_WeaponSelectGrid* dealClassGrid;
     UPROPERTY(meta = (BindWidget))
-    UUserWidget* tankClassGrid;
+    class UW_WeaponSelectGrid* tankClassGrid;
     UPROPERTY(meta = (BindWidget))
-    UUserWidget* utilClassGrid;
+    class UW_WeaponSelectGrid* utilClassGrid;
 	
     UPROPERTY(meta = (BindWidget))
 	class UButton* ChangeCoinSideButton;
