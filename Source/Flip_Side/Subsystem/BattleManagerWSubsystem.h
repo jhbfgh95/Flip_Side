@@ -23,10 +23,11 @@ class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
 	UPROPERTY()
 	TArray<FBattleCoinInfo> CoinOrderArray;
 
+	/*
 	//코인ID가 키, 코인의 CurrentID가 value
 	UPROPERTY()
 	TMap<int32, int32> MatchedArray;
-
+	*/
 	UPROPERTY()
 	TArray<FRandomState> RandomStateArray;
 

@@ -15,7 +15,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	virtual void ExecuteLeverLogic(); // 자식 고유 로직 구현
+	virtual void ExecuteLeverLogic();
 
 	virtual void PlayLeverAnimation();
 

@@ -96,8 +96,6 @@ void UBattleManagerWSubsystem::TurnProgressing()
     FString PrevName = EnumPtr ? EnumPtr->GetNameStringByValue((int64)PreviousTurn) : TEXT("None");
     FString NextName = EnumPtr ? EnumPtr->GetNameStringByValue((int64)CurrentTurn) : TEXT("None");
 
-    UE_LOG(LogTemp, Warning, TEXT("#### [턴 전환] %s ===> %s ####"), *PrevName, *NextName);
-
     switch(CurrentTurn)
     {
     case ETurnState::CoinReadyTurn:
@@ -156,7 +154,7 @@ void UBattleManagerWSubsystem::MatchCoinsToRandomState()
 {
     if(!CoinManager) return;
 
-    MatchedArray.Empty();
+    //MatchedArray.Empty();
 
     TArray<ACoinActor*> ReadyCoins = CoinManager->GetReadyCoins();
 
@@ -168,7 +166,7 @@ void UBattleManagerWSubsystem::MatchCoinsToRandomState()
             Coin->SetCoinFace(RandomStateArray[StateIndex].RandomFace);
             Coin->SetGridPoint(RandomStateArray[StateIndex].RandomGrid);
             
-            MatchedArray.Add(Coin->GetCoinID(), Coin->GetCoinFaceID());
+            //MatchedArray.Add(Coin->GetCoinID(), Coin->GetCoinFaceID());
             StateIndex++; // 코인을 찾았을 때만 다음 랜덤 상태로
         }
     }
