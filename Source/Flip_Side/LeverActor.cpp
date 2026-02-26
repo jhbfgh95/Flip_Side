@@ -44,20 +44,48 @@ void ALeverActor::ExecuteLeverLogic()
 
 void ALeverActor::PlayLeverAnimation()
 {
+    if (bIsPulled) return; 
+    bIsPulled = true;
+
     FLatentActionInfo LatentInfo;
     LatentInfo.CallbackTarget = this;
     LatentInfo.UUID = GetUniqueID();
     LatentInfo.Linkage = 0;
 
+    // 레버 내려가는 연출
     UKismetSystemLibrary::MoveComponentTo(
-        LeverMesh,
-        FVector::ZeroVector,      
-        TargetRotation,  
-        false,
-        true,
+        LeverMesh, 
+        FVector::ZeroVector, 
+        TargetRotation, 
+        false, 
+        true, 
         AnimationSpeed, 
         false, 
         EMoveComponentAction::Move, 
         LatentInfo
     );
+
+    // 레버 다시 원래대로
+    float ReturnDelay = 2.0f; 
+    FTimerHandle TimerHandle;
+    GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
+    {
+        FLatentActionInfo ReturnInfo;
+        ReturnInfo.CallbackTarget = this;
+        ReturnInfo.UUID = GetUniqueID() + 1;
+        
+        UKismetSystemLibrary::MoveComponentTo(
+            LeverMesh, 
+            FVector::ZeroVector, 
+            StartRotation, 
+            false, 
+            true, 
+            AnimationSpeed, 
+            false, 
+            EMoveComponentAction::Move, 
+            ReturnInfo
+        );
+
+        bIsPulled = false; 
+    }, ReturnDelay, false);
 }

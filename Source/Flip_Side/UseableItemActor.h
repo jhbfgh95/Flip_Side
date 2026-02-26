@@ -32,6 +32,12 @@ public:
 	int32 GetItemID() const;
 
 	void SetItemValues(int TheItemID, UTexture2D* ItemTex, FLinearColor Color);
+
+    void SetGrabbed(bool bGrab);
+    bool GetIsGrabbed() const { return bIsGrabbed; }
+
+    void SetOriginLocation(FVector InLoc) { OriginLocation = InLoc; }
+    FVector GetOriginLocation() const { return OriginLocation; }
 protected:
 	virtual void BeginPlay() override;
 
@@ -39,4 +45,9 @@ protected:
 	
 	virtual void Tick(float DeltaTime) override;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | State")
+    bool bIsGrabbed = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | State")
+    FVector OriginLocation;
 };

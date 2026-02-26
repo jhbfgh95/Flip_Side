@@ -53,7 +53,7 @@ public:
 
 	bool IsCoinInBattleReady(ACoinActor* InCoin) const;
 
-	ACoinActor* GetCoinByName(FString TargetName);
+	//ACoinActor* GetCoinByName(FString TargetName);
 
 	bool IsCoinIdInBattleReady(int32 TargetID) const;
 
