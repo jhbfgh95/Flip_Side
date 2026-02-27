@@ -23,40 +23,6 @@ bool UCoinCreateWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 void UCoinCreateWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
-    /*
-    if (UGameInstance* GI = GetWorld()->GetGameInstance())
-    {
-        DM = GI->GetSubsystem<UDataManagerSubsystem>();
-    }
-
-    if(DM)
-    {
-        if (DM->TryGetWeaponsByType(1, TankWeapons))
-        {
-            for (const FFaceData& Weapon : *TankWeapons)
-            {
-                UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
-            }
-        }
-        if (DM->TryGetWeaponsByType(2, DealWeapons))
-        {
-            if(DealWeapons)
-            {
-                UE_LOG(LogTemp, Log, TEXT("WeaponID"));
-            }
-            for (const FFaceData& Weapon : *DealWeapons)
-            {
-                UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
-            }
-        } 
-        if (DM->TryGetWeaponsByType(3, UtilWeapons))
-        {
-            for (const FFaceData& Weapon : *UtilWeapons)
-            {
-                UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
-            }
-        } 
-    }*/
 }
 
 void UCoinCreateWSubsystem::OnWorldBeginPlay(UWorld& World)
@@ -72,12 +38,10 @@ void UCoinCreateWSubsystem::ChangeCoinSide()
     if(bIsCreateCoinFront)
     {
         bIsCreateCoinFront = false;
-        //OnSelectedCoinUpdate.Broadcast(SelectedCoin.FrontWeaponID);
     }
     else
     {
         bIsCreateCoinFront = true;
-        //OnSelectedCoinUpdate.Broadcast(SelectedCoin.BackWeaponID);
     }
     UE_LOG(LogTemp, Warning, TEXT("무기 앞면 인가? : %d"), bIsCreateCoinFront);
 
@@ -136,16 +100,4 @@ bool UCoinCreateWSubsystem::GetIsCreateCoinFront()
 EWeaponClass UCoinCreateWSubsystem::GetSelectCoinClass()
 {
     return SelectedCoinClass;
-}
-
-
-void UCoinCreateWSubsystem::OnClassSelectMode()
-{
-    OnCoinClassSelectMode.Broadcast();
-}
-
-
-void UCoinCreateWSubsystem::OffClassSelectMode()
-{
-    OffCoinClassSelectMode.Broadcast();
 }

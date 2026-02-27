@@ -88,17 +88,14 @@ void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
 void UW_CoinCreateWidget::SetDeal()
 {
     CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Deal);
-    CoinCreateWSubSystem->OffClassSelectMode();
 }
 void UW_CoinCreateWidget::SetTank()
 {
     CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Tank);
-    CoinCreateWSubSystem->OffClassSelectMode();
 }
 void UW_CoinCreateWidget::SetUtil()
 {
     CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Heal);
-    CoinCreateWSubSystem->OffClassSelectMode();
 }
 
 void UW_CoinCreateWidget::ChangeCoinSide()

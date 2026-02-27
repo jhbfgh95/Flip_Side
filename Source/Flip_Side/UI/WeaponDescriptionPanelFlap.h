@@ -18,11 +18,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
 	class UCoinCreateWSubsystem* CoinCreateSubsystem;
@@ -54,16 +50,16 @@ private:
 
 
 
-public:
+private:
 
 	UFUNCTION(BlueprintCallAble)
-	void OpenFlap();
+	void OpenFlap(int index);
 	UFUNCTION(BlueprintCallAble)
 	void CloseFlap();
 	UFUNCTION()
 	void FlapMove(float Value);
 
-	
+
 	UFUNCTION()
 	void FinishOpenFlap();
 

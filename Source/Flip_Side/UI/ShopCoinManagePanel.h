@@ -102,7 +102,10 @@ private:
 
 private:
 	//코인 관련
-	
+	FRotator StartGearRotator;
+	FRotator ArriveGearRotator;
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	FRotator GearRotateDirection;
 
 
 public:

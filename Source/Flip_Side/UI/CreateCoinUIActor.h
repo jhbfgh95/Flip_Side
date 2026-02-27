@@ -37,10 +37,9 @@ private:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
+	//코인 면 변경
 	void ChangeCoinSide();
 
 
@@ -52,10 +51,12 @@ private: //코인정보
 	//현재 코인 면 데이터
 	const FFaceData* FrontFaceData; 
 	const FFaceData* BackFaceData;
-	//참조할 코인 인덱스
+
+	//참조할 무기 인덱스
 	int32 FrontWeaponIndex = -1;
 	int32 BackWeaponIndex = -1;
 
+	//코인정보
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	FCoinTypeStructure CoinInfo;
 
@@ -63,7 +64,7 @@ private: //코인정보
 	EWeaponClass WeaponType = EWeaponClass::Tank;
 
 
-private: //코인정보
+private:
 	//코인무기가 업데이트 됬을 때 설정하는 함수
 	UFUNCTION()
 	void UpdateCoinWeapon(int32 WeaponIndex);

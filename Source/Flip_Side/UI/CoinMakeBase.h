@@ -25,13 +25,12 @@ private:
 private:
 	class UCoinCreateWSubsystem* CoinCreateSubsystem;
 
-
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 private:
-
+	/*딜탱힐 색깔*/
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	FLinearColor DealClassColor;
 	
@@ -43,7 +42,7 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	FLinearColor DefaultColor;
-
+	//색변경 코드
 	UFUNCTION()
 	void SetMaterial(EWeaponClass WeaponClass);
 };

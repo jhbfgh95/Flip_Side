@@ -9,7 +9,7 @@
 AWeaponDescriptionPanelFlap::AWeaponDescriptionPanelFlap()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
 	SetRootComponent(RootScene);
@@ -31,7 +31,7 @@ void AWeaponDescriptionPanelFlap::BeginPlay()
 	Super::BeginPlay();
 	
 	CoinCreateSubsystem = GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
-	//CoinCreateSubsystem->OnWeapo.AddDynamic(this, AWeaponDescriptionPanelFlap::OpenFlap);
+	CoinCreateSubsystem->OnSelectedCoinUpdate.AddDynamic(this, &AWeaponDescriptionPanelFlap::OpenFlap);
 
 	FOnTimelineFloat FlapCallback;
 	FlapCallback.BindUFunction(this, FName("FlapMove"));
@@ -50,13 +50,14 @@ void AWeaponDescriptionPanelFlap::BeginPlay()
 	ArriveRotatorR= StartRotatorR+ (-1*TargetRotator);
 }
 
-// Called every frame
-void AWeaponDescriptionPanelFlap::Tick(float DeltaTime)
+void AWeaponDescriptionPanelFlap::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Super::Tick(DeltaTime);
 
+	Super::EndPlay(EndPlayReason);
 }
-void AWeaponDescriptionPanelFlap::OpenFlap()
+
+
+void AWeaponDescriptionPanelFlap::OpenFlap(int Index)
 {
 	FlapTimeline->PlayFromStart();
 }
@@ -64,6 +65,7 @@ void AWeaponDescriptionPanelFlap::CloseFlap()
 {
 	FlapTimeline->ReverseFromEnd();
 }
+
 void AWeaponDescriptionPanelFlap::FlapMove(float Value)
 {
 	FQuat StartQL = StartRotatorL.Quaternion();

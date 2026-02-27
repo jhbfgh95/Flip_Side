@@ -87,6 +87,10 @@ void AShopCoinManagePanel::BeginPlay()
 
 	DescriptionPanelStartVec = DescriptionMesh->GetRelativeLocation();
 	DescriptionPanelArriveVec = DescriptionPanelStartVec + DescriptionPanelMoveDirection;
+
+
+	StartGearRotator = GearMesh->GetRelativeRotation();
+	ArriveGearRotator = StartGearRotator + GearRotateDirection;
 /*
 	//판넬 운동 끝났을 때 타임라인
 	FOnTimelineEvent FinishLockPanelMoveCallBack;
@@ -130,10 +134,13 @@ void AShopCoinManagePanel::MoveDescriptionPanel(float Value)
 
 void AShopCoinManagePanel::RotateGear(float Value)
 {
-	float Pitch = Value * GearRotateAngle;
-    FRotator GearRotator = FRotator(0,0,0) + FRotator(0,0, Pitch);
+	FQuat GearStartQ = StartGearRotator.Quaternion();
 
-	GearMesh->SetRelativeRotation(GearRotator);
+	FQuat GearArriveQ = ArriveGearRotator.Quaternion();
+
+    FQuat MoveQ = FQuat::Slerp(GearStartQ, GearArriveQ, Value);
+
+	GearMesh->SetWorldRotation(MoveQ);
 }
 
 

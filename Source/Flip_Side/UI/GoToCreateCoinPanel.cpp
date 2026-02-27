@@ -52,18 +52,18 @@ void AGoToCreateCoinPanel::BeginPlay()
 	ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &AGoToCreateCoinPanel::OpenlockPanel);
 }
 
-// Called every frame
-void AGoToCreateCoinPanel::Tick(float DeltaTime)
+void AGoToCreateCoinPanel::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Super::Tick(DeltaTime);
+	ShopCoinSubsystem->OnCoinSlotChange.RemoveAll(this);
+	ShopCoinSubsystem->OnUnlockCoinSlot.RemoveAll(this);
 
+	Super::EndPlay(EndPlayReason);
 }
 
 void AGoToCreateCoinPanel::InitLockPanel(bool IsChangetoBottom)
 {
 	if(ShopCoinSubsystem->GetCurrentCoinUnlock())
 	{
-		//LockPanelMesh->SetRelativeLocation(ArriveVector);
 		if(!IsLockPanelOpen)
 		{
 			LockPanelTimeLine->PlayFromStart();
@@ -75,7 +75,6 @@ void AGoToCreateCoinPanel::InitLockPanel(bool IsChangetoBottom)
 		{
 			LockPanelTimeLine->ReverseFromEnd();
 		}
-		//LockPanelMesh->SetRelativeLocation(StartVector);
 	}
 }
 
