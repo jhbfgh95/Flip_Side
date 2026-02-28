@@ -30,8 +30,8 @@ protected:
 	//보스, 소모품, 코인 셋 모두 공통으로 쓰는 ActionRange(코인은 한 칸이겠죠?)->버프 생각해서 FinalActionRange라고 칭함
 	FGridPoint FinalActionRange;
 
-	//실제 로직의 ID
-	int32 ActionLogicID = -1;
+	//실제 로직의 ID -> 무기 ID랑 똑같음 보스, 아이템도 동일
+	int32 LogicID = -1;
 
 public:
 	virtual FGridPoint GetActionRange() const;
@@ -39,6 +39,8 @@ public:
 	virtual void SetActionRange(FGridPoint& ActionRange);
 
 	virtual void SetInRangeCoins(ACoinActor* TargetCoin);
+
+	virtual void SetLogicID(const int32 ID);
 
 	//virtual void SetInRangeBoss(const ABossActor* TargetBoss);
 
@@ -48,8 +50,4 @@ public:
 
 	virtual void ExecuteAction();
 
-private:
-	bool CheckInCoinArray() const;
-	//bool CheckInBossArray() const;
-	//bool CheckInOthersArray() const;
 };

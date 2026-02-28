@@ -20,6 +20,24 @@ struct FCoinOnGridInfo
 	ACoinActor* CoinActor = nullptr;
 };
 
+//Park Added
+USTRUCT(BlueprintType)
+struct FObjectOnGridInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<AActor*> Coins;
+
+	/*
+	UPROPERTY(BlueprintReadOnly)
+	AActor* Boss;
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<AActor*> Others;
+	*/
+};
+
 USTRUCT()
 struct FCellDoorFxState
 {
@@ -71,12 +89,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void CollectOccupiedCoins(TArray<FCoinOnGridInfo>& OutCoins) const;
 
+	UFUNCTION(BlueprintCallable, Category = "Grid")
+	void GetObjectsAtRange(const FAttackAreaSpec& Spec, const FGridPoint& FinalRange, TArray<FGridPoint>& OutCells, FObjectOnGridInfo& Infos) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Grid|Boss")
 	void BuildBossAttackCells(const FAttackAreaSpec& Spec, TArray<FGridPoint>& OutCells) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	AGridActor* GetGridActor(const FGridPoint& P) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Grid")
+	void InitCoinOccupied();
+
+	UFUNCTION(BlueprintCallable, Category = "Grid")
+	void GetValidGridsForSingleCell(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, TArray<FGridPoint>& VadlidCells);
 
 	/*
 	UFUNCTION(BlueprintCallable, Category="Grid|Boss")

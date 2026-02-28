@@ -27,12 +27,15 @@ void UActionBase::SetInRangeCoins(ACoinActor* TargetCoin)
     {
         InRangeCoins.Add(TargetCoin);
     }
+    else
+    {
+        InRangeCoins.Empty();
+    }
 }
 
-//이거로 편하게 배열검사하시라고..ㅎㅎ
-bool UActionBase::CheckInCoinArray() const
+void UActionBase::SetLogicID(const int32 ID)
 {
-    return InRangeCoins.IsEmpty();
+    LogicID = ID;
 }
 
 void UActionBase::ExecuteAction()

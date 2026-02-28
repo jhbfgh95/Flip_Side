@@ -6,7 +6,7 @@
 #include "FlipSide_Enum.generated.h"
 
 /**
- * ¹«±â ¿ªÇÒ±º
+ * ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ò±ï¿½
  */
 UENUM(BlueprintType)
 enum class EWeaponClass : uint8
@@ -18,7 +18,7 @@ enum class EWeaponClass : uint8
 };
 
 /**
- * ÄÚÀÎ(À¯´Ö)ÀÇ ¾Õ/µÚ »óÅÂ
+ * ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½)ï¿½ï¿½ ï¿½ï¿½/ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
  */
 UENUM(BlueprintType)
 enum class EFaceState : uint8
@@ -29,7 +29,7 @@ enum class EFaceState : uint8
 };
 
 /**
- * ÅÏ ÁøÇà »óÅÂ
+ * ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
  */
 UENUM(BlueprintType)
 enum class ETurnState : uint8
@@ -43,7 +43,7 @@ enum class ETurnState : uint8
 };
 
 /**
- * ±×¸®µå Á¡À¯ Å¸ÀÔ
+ * ï¿½×¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
  */
 UENUM(BlueprintType)
 enum class EGridOccupyingType : uint8
@@ -52,4 +52,30 @@ enum class EGridOccupyingType : uint8
     Coin UMETA(DisplayName = "Coin"),
     Wall UMETA(DisplayName = "Wall"),
     Item UMETA(DisplayName = "Item"),
+};
+
+UENUM(BlueprintType)
+enum class ECCTypes : uint8
+{
+    None UMETA(DisplayName = "None"),
+    Stun UMETA(DisplayName = "Stun"),
+    Sleep UMETA(DisplayName = "Sleep")
+};
+
+UENUM(BlueprintType)
+enum class EActionInputState : uint8
+{
+    None,
+    WaitingForGridClick, //ê¸°ë‹¤ë¦¬ê¸°
+    ExecutingAction, //ë°”ë¡œ ì‹¤í–‰
+    WaitingForGridClickForItem //ì•„ì´í…œ ì…ë ¥ë°›ê³ , ê·¸ë¦¬ë“œ ì…ë ¥ ê¸°ë‹¤ë¦¼
+};
+
+UENUM(BlueprintType)
+enum class EActionRepeatType : uint8
+{
+    None,
+    Fix,
+    Behavior, 
+    Attack
 };

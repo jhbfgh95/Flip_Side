@@ -43,10 +43,6 @@ class ACoinActor : public AActor
 	UPROPERTY(VisibleAnywhere, Category = "Coin | WeaponID")
 	int BackWeaponID = 0;
 
-	//코인 전체 HP
-	UPROPERTY(VisibleAnywhere, Category = "Coin | Mesh", meta = (AllowPrivateAccess = "true"))
-	int32 HP = 0;
-
 	UPROPERTY(VisibleAnywhere)
 	UTexture2D* FrontIconTexture;
 
@@ -76,6 +72,9 @@ protected:
 
 public:	
 	ACoinActor();
+
+	UPROPERTY(EditAnywhere, Category = "Coin | Component")
+	class UComponent_Status* StatComponent;
 
 	// 같은 타입 코인들 중에서 몇 번째 코인인지 나타내는 인덱스
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Battle")

@@ -14,22 +14,21 @@ class FLIP_SIDE_API UWeapon_Action : public UActionBase
 {
 	GENERATED_BODY()
 	
-	//받아오기 전에 float로 고쳐서 계산해서 주세요~ StatComponent님
-	float FinalAttackPoint = 0.f; 
+	int32 FinalAttackPoint = 0; 
 
-	float FinalBehaviorPoint = 0.f;
+	int32 FinalBehaviorPoint = 0;
 
 public:
 	/*Set은 CoinAcionManagementWSubsystem이*/
-	virtual void SetFinalAttackPoint(const float AttackPoint);
+	virtual void SetFinalAttackPoint(const int32 AttackPoint);
 
-	virtual void SetFinalBehaviorPoint(const float BehaviorPoint);
+	virtual void SetFinalBehaviorPoint(const int32 BehaviorPoint);
 
 	/*Get은 CoinActionStaticLibrary에서 */
 
-	virtual float GetFinalAttackPoint() const;
+	virtual int32 GetFinalAttackPoint() const;
 
-	virtual float GetFinalBehaviorPoint() const;
+	virtual int32 GetFinalBehaviorPoint() const;
 
 	virtual void ExecuteAction() override;
 };

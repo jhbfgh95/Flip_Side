@@ -1,6 +1,6 @@
 #include "BattleLeverActor.h"
 #include "Subsystem/CoinManagementWSubsystem.h" 
-#include "Subsystem/BattleManagerWSubsystem.h" 
+#include "Subsystem/BattleLevel/BattleManagerWSubsystem.h" 
 #include "FlipSide_Enum.h" // ETurnState 정의가 포함된 헤더를 반드시 포함하세요.
 
 void ABattleLeverActor::ExecuteLeverLogic()

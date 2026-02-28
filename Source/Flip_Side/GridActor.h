@@ -30,7 +30,7 @@ class FLIP_SIDE_API AGridActor : public AActor
 	TArray<FLinearColor> TypeColors;
 
 	UPROPERTY()
-	TWeakObjectPtr<ACoinActor> CurrentCoin;
+	class AActor* CurrentObject;
 
 protected:
 
@@ -58,7 +58,7 @@ public:
 	void SetGridXY(int32 GridX, int32 GridY);
 
 	UFUNCTION()
-	void SetOccupied(bool IsOccupied, EGridOccupyingType OccupyType);
+	void SetOccupied(bool IsOccupied, EGridOccupyingType OccupyType, AActor* OccupieActor);
 
 	UFUNCTION()
 	void SetBossAttack(bool bWillAttack);
@@ -78,13 +78,14 @@ public:
 	FVector2D GetGridWorldXY();
 
 	UFUNCTION(BlueprintCallable)
-	void SetOccupiedCoin(ACoinActor* Coin);
-
-	UFUNCTION(BlueprintCallable)
 	void ClearOccupied();
 
+	//나중에 다운캐스트
 	UFUNCTION(BlueprintCallable)
-	ACoinActor* GetCurrentCoin() const;   // GridManager가 이걸로 ID 뽑음
+	AActor* GetCurrentOccupied() const;
+
+	UFUNCTION()
+	FGridPoint GetGridPoint() const;
 
 	UFUNCTION(BlueprintCallable)
 	void ApplyCellMaterialParams(const FLinearColor& OutlineColor, float FillIntensity, float DoorOpen);
