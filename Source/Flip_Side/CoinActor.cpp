@@ -2,6 +2,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Component_Status.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "DataTypes/GridTypes.h"
 #include "FlipSide_Enum.h"
@@ -16,6 +17,8 @@ ACoinActor::ACoinActor()
 
 	CoinMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Coin Mesh"));
 	CoinMesh->SetupAttachment(RootComponent);
+	
+	StatComponent = CreateDefaultSubobject<UComponent_Status>(TEXT("StatComponent"));
 
 	CoinHPUI = CreateDefaultSubobject<UWidgetComponent>(TEXT("Coin HP UI"));
 	CoinHPUI->SetupAttachment(RootComponent);
@@ -157,7 +160,7 @@ void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass
 		FrontIconTexture = FrontTexture;
 		BackIconTexture = BackTexture;
 		TypeColor = DecideColor;
-		HP = CoinHP;
+		StatComponent->SetHP(CoinHP);
 	} 
 
 }

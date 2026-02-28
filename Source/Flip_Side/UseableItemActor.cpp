@@ -48,3 +48,8 @@ void AUseableItemActor::SetItemValues(int32 TheItemID, UTexture2D* ItemTex, FLin
 	ItemTexture = ItemTex;
 	ItemColor = Color;
 }
+
+int32 AUseableItemActor::GetItemID() const
+{
+	return ItemID;
+}

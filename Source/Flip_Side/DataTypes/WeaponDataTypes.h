@@ -88,20 +88,16 @@ struct FWeaponIDArray
  * �ൿ �Ͽ��� ����� �۾� ����
  */
 USTRUCT(BlueprintType)
-struct FBehaviorTask
+struct FActionTask
 {
     GENERATED_BODY()
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    int32 CoinID = 0;
+    int32 WeaponID = -1;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    int32 SelectedWeaponID = 0;
+    FGridPoint ModifiedRange;
 
-    // ���� ����� �ൿ ��ü
-    /*
-    UPROPERTY()
-    TObjectPtr<UBehavior> Behavior = nullptr;
-    */
+    int32 ModifiedAttackPoint = 0;
+
+    int32 ModifiedBehaviorPoint = 0;
 };
 
