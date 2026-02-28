@@ -22,6 +22,10 @@ void UW_ShopModeChangeWidget::NativeConstruct()
     UnlockWeaponButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickUnlockWeaponMode);
 }
 
+void UW_ShopModeChangeWidget::NativeDestruct()
+{
+
+}
 void UW_ShopModeChangeWidget::ClickCoinCreateMode()
 {
     if(ShopGameMode)
@@ -53,7 +57,16 @@ void UW_ShopModeChangeWidget::ClickCheckBossMode()
 }
 void UW_ShopModeChangeWidget::OpenWidget()
 {
-
+    if(IsSlidePanelOpen)
+    {
+        IsSlidePanelOpen = false;
+        PlayAnimation(SlidePanelCloseAnim);
+    }
+    else
+    {
+        IsSlidePanelOpen = true;
+        PlayAnimation(SlidePanelOpenAnim);
+    }
 }
 
 void UW_ShopModeChangeWidget::ClickShopMainModeButton()

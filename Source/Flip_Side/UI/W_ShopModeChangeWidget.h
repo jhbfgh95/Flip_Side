@@ -14,9 +14,13 @@ class FLIP_SIDE_API UW_ShopModeChangeWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-	protected:
-	virtual void NativeConstruct() override;
 
+
+protected:
+	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
+
+protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* WidgetOpenButton;
 	UPROPERTY(meta = (BindWidget))
@@ -34,6 +38,14 @@ class FLIP_SIDE_API UW_ShopModeChangeWidget : public UUserWidget
 
 	class AGameMode_Shop* ShopGameMode;
 
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* SlidePanelOpenAnim;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* SlidePanelCloseAnim;
+
+	bool IsSlidePanelOpen = false;
+
 	UFUNCTION()
 	void ClickCoinCreateMode();
 	UFUNCTION()
@@ -48,4 +60,5 @@ class FLIP_SIDE_API UW_ShopModeChangeWidget : public UUserWidget
 	void ClickShopMainModeButton();
 	UFUNCTION()
 	void ClickUnlockWeaponMode();
+
 };
