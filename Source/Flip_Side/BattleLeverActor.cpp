@@ -1,21 +1,30 @@
 #include "BattleLeverActor.h"
 #include "Subsystem/CoinManagementWSubsystem.h" 
 #include "Subsystem/BattleManagerWSubsystem.h" 
+#include "FlipSide_Enum.h" // ETurnState 정의가 포함된 헤더를 반드시 포함하세요.
 
 void ABattleLeverActor::ExecuteLeverLogic()
 {
     UWorld* World = GetWorld();
     if (!World) return;
 
-    // 코인락
-    if (UCoinManagementWSubsystem* CoinSubsystem = World->GetSubsystem<UCoinManagementWSubsystem>())
+    auto* BattleSub = World->GetSubsystem<UBattleManagerWSubsystem>();
+    auto* CoinSub = World->GetSubsystem<UCoinManagementWSubsystem>();
+    
+    if (!BattleSub || !CoinSub) return;
+
+    ETurnState CurrentState = BattleSub->GetCurrentTurn();
+
+    // 서랍에 코인 세팅 후 레버 당김
+    if (CurrentState == ETurnState::CoinReadyTurn)
     {
-        CoinSubsystem->LockCoinReady();
+        CoinSub->LockCoinReady(); 
+        BattleSub->StartBattleFromLever(); // CoinReadyTurn -> CoinSelectTurn
     }
 
-    // 턴 전환
-    if (UBattleManagerWSubsystem* BattleSubsystem = World->GetSubsystem<UBattleManagerWSubsystem>())
+    // 원하는 행동 다 하고 레버 당김
+    else if (CurrentState == ETurnState::CoinSelectTurn)
     {
-        BattleSubsystem->StartBattleFromLever();
+        BattleSub->StartBattleFromLever(); // CoinSelecTurn -> BehaviorTurn
     }
 }
