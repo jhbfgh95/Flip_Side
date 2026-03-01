@@ -33,9 +33,8 @@ void UW_ShopCoinButton::NativeConstruct()
 
 void UW_ShopCoinButton::CreateCoin()
 {
-    //UE_LOG(LogTemp,Warning, TEXT("선택한 코인 클래스 : %s"),*UEnum::GetValueAsString(ShopCoinSubsystem->GetSlotCoinClass(0)));
-    CoinCreateSubsystem->SelectCoin(ShopCoinSubsystem->GetSlotCoin(CoinIndex), ShopCoinSubsystem->GetCurrentSlotCoinClass());
-    //ShopCoinSubsystem->UnlockCoin();
+    //UE_LOG(LogTemp,Warning, TEXT("선택한 코인 클래스 : %s"),*UEnum::GetValueAsString(ShopCoinSubsystem->GetCurrentSlotCoinClass()));
+    CoinCreateSubsystem->SelectCoin(ShopCoinSubsystem->GetCurrentSlotCoin(), ShopCoinSubsystem->GetCurrentSlotCoinClass());
     AGameMode_Shop* gamemode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
     gamemode->SetCoinCreateMode();
 }

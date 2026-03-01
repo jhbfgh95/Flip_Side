@@ -64,17 +64,17 @@ void UCoinCreateWSubsystem::SelectCoin(FCoinTypeStructure SelectCoinInfo, EWeapo
 }
 
 //선택된 코인 면의 ID를 변경
-void UCoinCreateWSubsystem::ChangeSelectedCoinWeapon(int32 WeaponIndex)
+void UCoinCreateWSubsystem::ChangeSelectedCoinWeapon(int32 WeaponID)
 {
     if(bIsCreateCoinFront)
     {
-        SelectedCoin.FrontWeaponID = WeaponIndex;
+        SelectedCoin.FrontWeaponID = WeaponID;
     }
     else
     {
-        SelectedCoin.BackWeaponID = WeaponIndex;
+        SelectedCoin.BackWeaponID = WeaponID;
     }
-    OnSelectedCoinUpdate.Broadcast(WeaponIndex);
+    OnSelectedCoinUpdate.Broadcast(WeaponID);
 }
 
 
@@ -83,9 +83,6 @@ void UCoinCreateWSubsystem::SetCoinClass(EWeaponClass weponClass)
     if(SelectedCoinClass != weponClass)
     {
         SelectedCoinClass = weponClass;
-        
-        //SelectedCoin.FrontWeaponID = -1;
-        //SelectedCoin.BackWeaponID = -1;
     }
     OnCoinClassUpdate.Broadcast(weponClass);
 }

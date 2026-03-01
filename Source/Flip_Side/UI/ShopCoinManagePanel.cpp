@@ -13,6 +13,9 @@
 
 #include "WeaponDataTypes.h"
 #include "Subsystem/ShopWeaponDataWSubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
+
+
 // Sets default values
 AShopCoinManagePanel::AShopCoinManagePanel()
 {
@@ -62,7 +65,7 @@ void AShopCoinManagePanel::BeginPlay()
 
 	ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
 	ShopWeaponDataSubsystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
-
+	DataManagerSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 	ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AShopCoinManagePanel::ActiveGear);
 	//ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &AShopCoinManagePanel::UnlockPanel);
 	
@@ -192,29 +195,31 @@ void AShopCoinManagePanel::InitPanelCoin()
 	{
 		FCoinTypeStructure CoinData = ShopCoinSubsystem->GetCurrentSlotCoin();
 		EWeaponClass CurrentWeaponClass = ShopCoinSubsystem->GetCurrentSlotCoinClass();
-		const FFaceData* FrontFaceData = ShopWeaponDataSubsystem->GetWeaponDataByIndex(CurrentWeaponClass, CoinData.FrontWeaponID);	
-		const FFaceData* BackFaceData = ShopWeaponDataSubsystem->GetWeaponDataByIndex(CurrentWeaponClass, CoinData.BackWeaponID);
-		UE_LOG(LogTemp, Warning, TEXT("코인 아이콘 설정 / 앞면 아이디 %d"), CoinData.FrontWeaponID);
-		UE_LOG(LogTemp, Warning, TEXT("코인 아이콘 설정 / 뒷면 아이디 %d"), CoinData.BackWeaponID);
-		if(FrontFaceData)
+
+		FFaceData FrontFaceData; 
+		FFaceData BackFaceData;
+
+		
+		
+		
+		if(DataManagerSubsystem->TryGetWeapon(CoinData.FrontWeaponID, FrontFaceData))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("앞면 아이콘 설정"));
-			MID->SetTextureParameterValue(FName("Front_Texture"), FrontFaceData->WeaponIcon);
-			MID->SetVectorParameterValue(FName("Front_Color"), FrontFaceData->TypeColor);
-
+			MID->SetTextureParameterValue(FName("Front_Texture"), FrontFaceData.WeaponIcon);
+			MID->SetVectorParameterValue(FName("Front_Color"), FrontFaceData.TypeColor);
 		}
-		if(BackFaceData)
-		{	
-			UE_LOG(LogTemp, Warning, TEXT("뒷면아이콘  설정"));
-			MID->SetTextureParameterValue(FName("Back_Texture"), BackFaceData->WeaponIcon);
-			MID->SetVectorParameterValue(FName("Back_Color"), BackFaceData->TypeColor);
-		}
-	
-		if(CoinData.FrontWeaponID == -1)
+		else
 		{
 			MID->SetVectorParameterValue(FName("Front_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
 		}
-		if(CoinData.BackWeaponID == -1)
+
+		if(DataManagerSubsystem->TryGetWeapon(CoinData.BackWeaponID, BackFaceData))
+		{	
+			UE_LOG(LogTemp, Warning, TEXT("뒷면아이콘  설정"));
+			MID->SetTextureParameterValue(FName("Back_Texture"), BackFaceData.WeaponIcon);
+			MID->SetVectorParameterValue(FName("Back_Color"), BackFaceData.TypeColor);
+		}
+		else
 		{
 			MID->SetVectorParameterValue(FName("Back_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
 		}

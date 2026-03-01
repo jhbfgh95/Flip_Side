@@ -18,8 +18,8 @@ private:
 	//코인 제작 서브 시스템
 	class UCoinCreateWSubsystem* CoinCreateWSubSystem;
 	//무기 정보 서브시스템
-	class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
-
+	//class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
+	class UDataManagerSubsystem* WeaponDataSubSystem;
 private: // 컴포넌트	
 //원 콜리전
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
@@ -49,12 +49,8 @@ private: //코인정보
 	bool IsCoinFront = true;
 
 	//현재 코인 면 데이터
-	const FFaceData* FrontFaceData; 
-	const FFaceData* BackFaceData;
-
-	//참조할 무기 인덱스
-	int32 FrontWeaponIndex = -1;
-	int32 BackWeaponIndex = -1;
+	FFaceData FrontFaceData; 
+	FFaceData BackFaceData;
 
 	//코인정보
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
@@ -91,8 +87,6 @@ private:
 	//코안 면 초기화
 	void ResetSideTexture();
 
-	//코인 면의 무기 데이터 설정
-	void SetCoinSideWeaponData(const FFaceData*& faceData , int32 ID);
 private:
 	//코인 회전 애니메이션 타임라인 컴포넌트
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))

@@ -78,6 +78,7 @@ private:
 private:
 	class UShopCoinWSubsystem* ShopCoinSubsystem;
 	class UShopWeaponDataWSubsystem* ShopWeaponDataSubsystem;
+	class UDataManagerSubsystem* DataManagerSubsystem;
 
 private:
 

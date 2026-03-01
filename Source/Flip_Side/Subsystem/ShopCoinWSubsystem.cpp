@@ -80,9 +80,6 @@ void UShopCoinWSubsystem::IncreaseSlotCoinCount()
         ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum++;
         OnCoinCountUpdate.Broadcast(CurrentCoinSlotNum,ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
     }
-    /*
-    UE_LOG(LogTemp, Warning, TEXT("증가 실행 : 총 개수 %d 슬롯 : %d, 슬롯 개수 : %d")
-    ,TotalCoinCount, CoinArray[SlotNum].SlotNum, CoinArray[SlotNum].SameTypeCoinNum);*/
 }
 
 void UShopCoinWSubsystem::DecreaseSlotCoinCount()
@@ -100,15 +97,12 @@ FCoinTypeStructure UShopCoinWSubsystem::GetCurrentSlotCoin()
 {
     FCoinTypeStructure CoinInfo;
     CoinInfo = ShopCoinSlotArray[CurrentCoinSlotNum].CoinData;
-    UE_LOG(LogTemp, Log,TEXT("선택한 코인 아이디 : %d"), CoinInfo.FrontWeaponID);
     return CoinInfo;
 }
 
 EWeaponClass UShopCoinWSubsystem::GetCurrentSlotCoinClass()
 {
-
-    return ShopCoinSlotArray[CurrentCoinSlotNum].CoinClass;
-        
+    return ShopCoinSlotArray[CurrentCoinSlotNum].CoinClass; 
 }
 
 void UShopCoinWSubsystem::SetSlotCoin(FCoinTypeStructure SetCoinInfo, EWeaponClass CoinClass)

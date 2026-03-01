@@ -14,15 +14,7 @@
 void UW_SelectWeaponButton::NativeConstruct()
 {
     Super::NativeConstruct();
-    //게임 컨트롤러 등에서 참조coinCreateWidget 
-    /*
-    AShopController_FlipSide* controller = Cast<AShopController_FlipSide>(GetWorld()->GetFirstPlayerController());
-    if(controller)
-    {
-        coinCreateWidget = controller->GetCoinCreateWidget();
-        
-        
-    }*/
+
     CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
 	WeaponDataSubSystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
 
@@ -34,9 +26,10 @@ void UW_SelectWeaponButton::NativeConstruct()
         }
     }
 }
+
 void UW_SelectWeaponButton::SelectWeapon()
 {
-    CoinCreateWSubSystem->ChangeSelectedCoinWeapon(WeaponID);
+    CoinCreateWSubSystem->ChangeSelectedCoinWeapon(WeaponData->WeaponID);
 }
 
 void UW_SelectWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 Index)

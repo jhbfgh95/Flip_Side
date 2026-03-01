@@ -16,7 +16,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSelectedCoin, FCoinTypeStructure, CoinInfo, EWeaponClass, CoinClass);
 
 //무기가 변경되었을 때 델리게이트
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectedCoinUpdate, int32, WeaponIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectedCoinUpdate, int32, WeaponID);
 
 //코인이 클래스가 선택 됬을 때 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCoinClassUpdate,EWeaponClass, SelectedClass);
@@ -34,8 +34,10 @@ protected:
 private:
 	//선택된 코인
 	FCoinTypeStructure SelectedCoin;
+
 	/*선택된 코인 클래스*/
 	EWeaponClass SelectedCoinClass;
+
 	//제작중인 코인이 앞인지
 	bool bIsCreateCoinFront;
 
@@ -57,7 +59,7 @@ public:
 	void SelectCoin(FCoinTypeStructure SelectCoinInfo, EWeaponClass CoinClass);
 
 	//선택된 코인 면의 무기를 변경
-	void ChangeSelectedCoinWeapon(int32 WeaponIndex);
+	void ChangeSelectedCoinWeapon(int32 WeaponID);
 
 	//코인의 역할군 선택
 	void SetCoinClass(enum EWeaponClass weponClass);
