@@ -36,11 +36,14 @@ void UW_UnlockWeaponGrid::NativeConstruct()
     }
     
     SetPageButton();
-
-
 }
 
-
+ void UW_UnlockWeaponGrid::InitPanelAnimation()
+ {
+    PlayAnimation(OpenPanelAnim, 0.f, 1);
+    PauseAnimation(OpenPanelAnim);
+    SetAnimationCurrentTime(OpenPanelAnim, 0.f);
+ }
 void UW_UnlockWeaponGrid::SetNextPageGrid()
 {
     if(CurrentPage+ 9<= WeaponDataSubSystem->GetWeaponArrayNum(GridWeaponClass))
@@ -84,4 +87,15 @@ void UW_UnlockWeaponGrid::SetPageButton()
     {
         PreviousPageButton->SetVisibility(ESlateVisibility::Hidden);
     }
+}
+
+
+void UW_UnlockWeaponGrid::OpenUnlockPanel()
+{
+    PlayAnimation(OpenPanelAnim);
+}
+    
+void UW_UnlockWeaponGrid::CloseUnlockPanel()
+{
+    PlayAnimation(ClosePanelAnim);
 }

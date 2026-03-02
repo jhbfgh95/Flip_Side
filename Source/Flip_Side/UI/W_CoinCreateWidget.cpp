@@ -30,9 +30,9 @@ void UW_CoinCreateWidget::NativeConstruct()
 
     ChangeCoinSideButton->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::ChangeCoinSide);
 
-    dealClassGrid->CloseWeaponGrid();
-    tankClassGrid->CloseWeaponGrid();
-    utilClassGrid->CloseWeaponGrid();
+    dealClassGrid->InitPanelAnimation();
+    tankClassGrid->InitPanelAnimation();
+    utilClassGrid->InitPanelAnimation();
     CurrentOpenGrid =nullptr;
 }
 
@@ -60,12 +60,17 @@ void UW_CoinCreateWidget::FinishCreate()
 //코드가 안 예쁨 수정해야할듯 
 void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
 {
-    FinishButton->SetVisibility(ESlateVisibility::Visible);
-
     if(weaponClass == EWeaponClass::None)
     {
+        
+        UE_LOG(LogTemp, Warning, TEXT("aaaaaaaaaa"));
         if(CurrentOpenGrid)
+        {
             CurrentOpenGrid->CloseWeaponGrid();
+            
+            UE_LOG(LogTemp, Warning, TEXT("aaaaaa111a11aa1a"));
+        }
+            
         CurrentOpenGrid = nullptr;
     }
 

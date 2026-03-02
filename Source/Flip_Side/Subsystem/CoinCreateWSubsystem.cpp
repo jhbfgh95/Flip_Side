@@ -60,7 +60,6 @@ void UCoinCreateWSubsystem::SelectCoin(FCoinTypeStructure SelectCoinInfo, EWeapo
     bIsCreateCoinFront = true;
 
     OnSelectedCoin.Broadcast(SelectedCoin, CoinClass);
-    OnCoinClassUpdate.Broadcast(CoinClass);
 }
 
 //선택된 코인 면의 ID를 변경

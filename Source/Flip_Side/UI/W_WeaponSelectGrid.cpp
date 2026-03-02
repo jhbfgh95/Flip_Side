@@ -45,7 +45,6 @@ void UW_WeaponSelectGrid::NativeConstruct()
     //그리고 무기 해금 상황에 접근해 버튼을 셋팅한다.
     InitWeaponGrid(GridWeaponClass, -1);
     SetPageButton();
-    CloseWeaponGrid();
 }
 
 void UW_WeaponSelectGrid::InitWeaponGrid(EWeaponClass WeaponClass,int32 Index)
@@ -60,6 +59,15 @@ void UW_WeaponSelectGrid::InitWeaponGrid(EWeaponClass WeaponClass,int32 Index)
         SelectWeaponButtons[i]->InitButton(GridWeaponClass, WeaponIndex);
     }
 }
+
+
+void UW_WeaponSelectGrid::InitPanelAnimation()
+{
+    PlayAnimation(OpenWeaponGridAnim, 0.f, 1);
+    PauseAnimation(OpenWeaponGridAnim);
+    SetAnimationCurrentTime(OpenWeaponGridAnim, 0.f);
+}
+
 
 void UW_WeaponSelectGrid::SetNextPageGrid()
 {

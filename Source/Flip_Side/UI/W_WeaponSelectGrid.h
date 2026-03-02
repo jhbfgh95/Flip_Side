@@ -85,4 +85,6 @@ public:
 
     void OpenWeaponGrid();
     void CloseWeaponGrid();
+
+    void InitPanelAnimation();
 };

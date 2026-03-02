@@ -22,7 +22,6 @@ private:
 private:
 	virtual void NativeConstruct() override;
 
-
 private:
 
     UPROPERTY(meta = (BindWidget))
@@ -53,9 +52,17 @@ private:
 	TArray<class UW_UnlockWeaponButton*> UnlockButtons;
 
 	int32 CurrentPage = 0;
+
+
+private:
+
+    UPROPERTY(meta = (BindWidgetAnim), Transient)
+    UWidgetAnimation* OpenPanelAnim;
+
+    UPROPERTY(meta = (BindWidgetAnim), Transient)
+    UWidgetAnimation* ClosePanelAnim;
+
 public:
-
-
 
     UPROPERTY(EditAnywhere)
     TSubclassOf<class UW_UnlockWeaponButton> WeaponUnlockButton;
@@ -73,4 +80,11 @@ public:
 	void SetPreviousPageGrid();
 
 	void SetPageButton();
+
+
+    void OpenUnlockPanel();
+    
+    void CloseUnlockPanel();
+
+    void InitPanelAnimation();
 };

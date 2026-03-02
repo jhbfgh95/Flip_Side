@@ -23,7 +23,7 @@ void UShopCardWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
     
-
+    /*
     if (UGameInstance* GI = GetWorld()->GetGameInstance())
     {
         DM = GI->GetSubsystem<UDataManagerSubsystem>();
@@ -41,6 +41,7 @@ void UShopCardWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         }
         
     }
+    */
     FCardData DefaultCard;
     
     for(int i =0; i<6; i++)

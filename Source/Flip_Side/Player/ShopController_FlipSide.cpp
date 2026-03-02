@@ -14,16 +14,7 @@ AShopController_FlipSide::AShopController_FlipSide()
 void AShopController_FlipSide::BeginPlay()
 {
     Super::BeginPlay();
-    /*
-    if(ShopWigetClass)
-    {
-        HudShopWidget = CreateWidget<UW_ShopWidget>(this, ShopWigetClass);
-        if(HudShopWidget)
-        {
-            HudShopWidget->AddToViewport(0);
-        }
-    }
-*/
+    
     //게임모드에서 델리게이트에 등록
     ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
     this->bShowMouseCursor = true;
@@ -38,10 +29,8 @@ void AShopController_FlipSide::BeginPlay()
         ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopController_FlipSide::SetUnlockWeaponModeWidget);
     }
 
-    //상점 메인
-    InitWidget(ShopMainWigetClass, ShopMainWiget);
-    AddOpenWidgetList(ShopMainWiget);
-    ViewWidgetList();
+    
+    
 
     //코인 관리 UI 초기 설정
     InitWidget(CoinManageWidgetClass, CoinManageWidget);
@@ -51,11 +40,13 @@ void AShopController_FlipSide::BeginPlay()
     InitWidget(CoinCreateWidgetClass, CoinCreateWidget);
     //상점 UI 클래스
     InitWidget(ShopItemWidgetClass, ShopItemWidget);
-    //코인 관리 위젯
-    InitWidget(CoinManageWidgetClass, CoinManageWidget);
     //무기 해금 위젯
     InitWidget(UnlockWeaponWidgetClass, UnlockWeaponWidget);
 
+    //상점 메인
+    InitWidget(ShopMainWigetClass, ShopMainWiget);
+    AddOpenWidgetList(ShopMainWiget);
+    ViewWidgetList();
 }
 
 
@@ -67,7 +58,7 @@ void AShopController_FlipSide::InitWidget(TSubclassOf<UUserWidget> WidgetClass, 
         if(Widget)
         {
             Widget->AddToViewport(0);
-            Widget->SetVisibility(ESlateVisibility::Collapsed);
+            Widget->SetVisibility(ESlateVisibility::Hidden);
         }
     }
 }
@@ -110,7 +101,7 @@ void AShopController_FlipSide::HideWidgetList()
     {
         for(int i =0; i<openWidgetList.Num();i++)
         {
-            openWidgetList[i]->SetVisibility(ESlateVisibility::Collapsed);
+            openWidgetList[i]->SetVisibility(ESlateVisibility::Hidden);
         }
         openWidgetList.Empty();
     }

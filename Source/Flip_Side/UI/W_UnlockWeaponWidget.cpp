@@ -16,43 +16,48 @@ void UW_UnlockWeaponWidget::NativeConstruct()
     UtilWGridButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponWidget::SetUtilWUnlockGrid);	
 
     UnlockWeaponButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponWidget::ClickUnlockWeaponButton);
-    HideAllUnlockGrid();
-    DealWUnlockGrid->SetVisibility(ESlateVisibility::Visible);
+    
+    CurrentUnlockGrid = DealWUnlockGrid;
+    
+    TankWUnlockGrid->InitPanelAnimation();
+    UtilWUnlockGrid->InitPanelAnimation();
 }
-
 void UW_UnlockWeaponWidget::SetDealWUnlockGrid()
 {
-    if(DealWUnlockGrid->GetVisibility() != ESlateVisibility::Visible)
+    if(CurrentUnlockGrid != DealWUnlockGrid)
     {
-        HideAllUnlockGrid();
-        DealWUnlockGrid->SetVisibility(ESlateVisibility::Visible);
+        CurrentUnlockGrid->CloseUnlockPanel();
+        DealWUnlockGrid->OpenUnlockPanel();
+        CurrentUnlockGrid=DealWUnlockGrid;
     }
 
 }
     
 void UW_UnlockWeaponWidget::SetTankWUnlockGrid()
 {
-    if(TankWUnlockGrid->GetVisibility()!= ESlateVisibility::Visible)
+    if(CurrentUnlockGrid != TankWUnlockGrid)
     {
-        HideAllUnlockGrid();
-        TankWUnlockGrid->SetVisibility(ESlateVisibility::Visible);
+        CurrentUnlockGrid->CloseUnlockPanel();
+        TankWUnlockGrid->OpenUnlockPanel();
+        CurrentUnlockGrid=TankWUnlockGrid;
     }
 }
     
 void UW_UnlockWeaponWidget::SetUtilWUnlockGrid()
 {
-    if(UtilWUnlockGrid->GetVisibility()!= ESlateVisibility::Visible)
+    if(CurrentUnlockGrid != UtilWUnlockGrid)
     {
-        HideAllUnlockGrid();
-        UtilWUnlockGrid->SetVisibility(ESlateVisibility::Visible);
+        CurrentUnlockGrid->CloseUnlockPanel();
+        UtilWUnlockGrid->OpenUnlockPanel();
+        CurrentUnlockGrid=UtilWUnlockGrid;
     }
 }
 
 void UW_UnlockWeaponWidget::HideAllUnlockGrid()
 {
-    DealWUnlockGrid->SetVisibility(ESlateVisibility::Collapsed);
-    TankWUnlockGrid->SetVisibility(ESlateVisibility::Collapsed);
-    UtilWUnlockGrid->SetVisibility(ESlateVisibility::Collapsed);
+    DealWUnlockGrid->CloseUnlockPanel();
+    TankWUnlockGrid->CloseUnlockPanel();
+    UtilWUnlockGrid->CloseUnlockPanel();
 }
 
 

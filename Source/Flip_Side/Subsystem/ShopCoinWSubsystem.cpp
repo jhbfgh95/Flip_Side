@@ -39,6 +39,8 @@ void UShopCoinWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         ShopCoinSlotArray[i].CoinData = DefaultCoin;
         ShopCoinSlotArray[i].CoinClass = EWeaponClass::None;
     }
+
+    
 }
 
 
