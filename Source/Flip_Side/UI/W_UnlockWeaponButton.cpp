@@ -30,6 +30,7 @@ void UW_UnlockWeaponButton::NativeOnInitialized()
     }
 
     WeaponButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponButton::ClickWeaponButton);
+    PlayAnimation(FadeAnim,0,0);
 }
 
 void UW_UnlockWeaponButton::NativeDestruct()

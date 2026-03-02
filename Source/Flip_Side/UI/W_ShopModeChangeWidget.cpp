@@ -28,6 +28,7 @@ void UW_ShopModeChangeWidget::NativeDestruct()
 }
 void UW_ShopModeChangeWidget::ClickCoinCreateMode()
 {
+    OpenWidget();
     if(ShopGameMode)
     {
         ShopGameMode->SetCoinManageMode();
@@ -36,6 +37,7 @@ void UW_ShopModeChangeWidget::ClickCoinCreateMode()
 
 void UW_ShopModeChangeWidget::ClickCardSelecrMode()
 {
+    OpenWidget();
     if(ShopGameMode)
     {
         ShopGameMode->SetCardSelectMode();
@@ -43,6 +45,7 @@ void UW_ShopModeChangeWidget::ClickCardSelecrMode()
 }
 void UW_ShopModeChangeWidget::ClickShopItemMode()
 {
+    OpenWidget();
     if(ShopGameMode)
     {
         ShopGameMode->SetShopItemMode();
@@ -50,6 +53,7 @@ void UW_ShopModeChangeWidget::ClickShopItemMode()
 }
 void UW_ShopModeChangeWidget::ClickCheckBossMode()
 {
+    OpenWidget();
     if(ShopGameMode)
     {
         //ShopGameMode->SetCheckBossMode();
@@ -71,6 +75,7 @@ void UW_ShopModeChangeWidget::OpenWidget()
 
 void UW_ShopModeChangeWidget::ClickShopMainModeButton()
 {
+    OpenWidget();
     if(ShopGameMode)
     {
         ShopGameMode->SetShopMainMode();
@@ -80,6 +85,7 @@ void UW_ShopModeChangeWidget::ClickShopMainModeButton()
 
 void UW_ShopModeChangeWidget::ClickUnlockWeaponMode()
 {
+    OpenWidget();
     if(ShopGameMode)
     {
         ShopGameMode->SetUnlockWeaponMode();

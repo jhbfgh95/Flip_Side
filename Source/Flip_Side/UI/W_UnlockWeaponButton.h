@@ -52,7 +52,10 @@ private:
     class UMaterialInstanceDynamic* DynamicMaskMaterial;
 
 	
-
+private:
+	
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+    UWidgetAnimation* FadeAnim;
 
 public:
 	UPROPERTY(EditAnywhere)

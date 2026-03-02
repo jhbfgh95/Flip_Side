@@ -14,11 +14,17 @@ AWeaponDescriptionPanelFlap::AWeaponDescriptionPanelFlap()
 	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
 	SetRootComponent(RootScene);
 
+	LeftFlapRootScene = CreateDefaultSubobject<USceneComponent>(TEXT("LeftFlapRootScene"));
+	LeftFlapRootScene->SetupAttachment(RootScene);
+	
+	RightFlapRootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RightFlapRootScene"));
+	RightFlapRootScene->SetupAttachment(RootScene);
+
 	LeftFlap= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftFlap"));
-	LeftFlap->SetupAttachment(RootScene);
+	LeftFlap->SetupAttachment(LeftFlapRootScene);
 
 	RightFlap= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightFlap"));
-	RightFlap->SetupAttachment(RootScene);
+	RightFlap->SetupAttachment(RightFlapRootScene);
 
 
 	FlapTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("FlapTimeline"));
@@ -42,17 +48,17 @@ void AWeaponDescriptionPanelFlap::BeginPlay()
 	FlapTimeline->SetTimelineFinishedFunc(FinishFlapCallBack);
 
 
-	StartRotatorL = LeftFlap->GetRelativeRotation();
+	StartRotatorL = LeftFlapRootScene->GetRelativeRotation();
 	ArriveRotatorL = StartRotatorL+ TargetRotator;
 
 	
-	StartRotatorR= RightFlap->GetRelativeRotation();
+	StartRotatorR= RightFlapRootScene->GetRelativeRotation();
 	ArriveRotatorR= StartRotatorR+ (-1*TargetRotator);
 }
 
 void AWeaponDescriptionPanelFlap::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-
+	CoinCreateSubsystem->OnSelectedCoinUpdate.RemoveAll(this);
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -78,14 +84,14 @@ void AWeaponDescriptionPanelFlap::FlapMove(float Value)
     FQuat MoveQR = FQuat::Slerp(StartQR, ArriveQR, Value);
 
 
-    LeftFlap->SetRelativeRotation(MoveQL);
-	RightFlap->SetRelativeRotation(MoveQR);
+    LeftFlapRootScene->SetRelativeRotation(MoveQL);
+	RightFlapRootScene->SetRelativeRotation(MoveQR);
 }
 
 
 void AWeaponDescriptionPanelFlap::FinishOpenFlap()
 {
-	if(!FlapTimeline->IsReversing())
+	if((0.f<FlapTimeline->GetPlaybackPosition()))
 	{
 		CloseFlap();
 	}

@@ -26,6 +26,12 @@ private:
 private:
 	UPROPERTY(EditAnywhere, meta= (AllowPrivateAccess = "true"))
 	class USceneComponent* RootScene;
+
+	UPROPERTY(EditAnywhere, meta= (AllowPrivateAccess = "true"))
+	class USceneComponent* LeftFlapRootScene;
+	UPROPERTY(EditAnywhere, meta= (AllowPrivateAccess = "true"))
+	class USceneComponent* RightFlapRootScene;
+
 	UPROPERTY(EditAnywhere, meta= (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* LeftFlap;
 	UPROPERTY(EditAnywhere, meta= (AllowPrivateAccess = "true"))

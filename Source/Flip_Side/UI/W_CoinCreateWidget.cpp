@@ -29,6 +29,11 @@ void UW_CoinCreateWidget::NativeConstruct()
     TestClass3->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetUtil);
 
     ChangeCoinSideButton->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::ChangeCoinSide);
+
+    dealClassGrid->CloseWeaponGrid();
+    tankClassGrid->CloseWeaponGrid();
+    utilClassGrid->CloseWeaponGrid();
+    CurrentOpenGrid =nullptr;
 }
 
 
@@ -57,32 +62,35 @@ void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
 {
     FinishButton->SetVisibility(ESlateVisibility::Visible);
 
-
-    //dealClassGrid->SetVisibility(ESlateVisibility::Collapsed);
-    //utilClassGrid->SetVisibility(ESlateVisibility::Collapsed);
-    //tankClassGrid->SetVisibility(ESlateVisibility::Collapsed);
-    switch (weaponClass)
+    if(weaponClass == EWeaponClass::None)
     {
-    case EWeaponClass::Deal:
-        dealClassGrid->SetVisibility(ESlateVisibility::Visible);
-        dealClassGrid->OpenWeaponGrid();
-        tankClassGrid->CloseWeaponGrid();
-        utilClassGrid->CloseWeaponGrid();
-        break;
-    case EWeaponClass::Tank:
-        tankClassGrid->SetVisibility(ESlateVisibility::Visible);
-        tankClassGrid->OpenWeaponGrid();dealClassGrid->CloseWeaponGrid();
-        utilClassGrid->CloseWeaponGrid();
-        break;
-    case EWeaponClass::Heal:
-        utilClassGrid->SetVisibility(ESlateVisibility::Visible);
-        utilClassGrid->OpenWeaponGrid();
-        dealClassGrid->CloseWeaponGrid();
-        tankClassGrid->CloseWeaponGrid();
-        break;
-    default:
-        break;
+        if(CurrentOpenGrid)
+            CurrentOpenGrid->CloseWeaponGrid();
+        CurrentOpenGrid = nullptr;
     }
+
+    if(weaponClass == EWeaponClass::Deal&& CurrentOpenGrid != dealClassGrid)
+    {
+        if(CurrentOpenGrid)
+            CurrentOpenGrid->CloseWeaponGrid();
+        dealClassGrid->OpenWeaponGrid();
+        CurrentOpenGrid = dealClassGrid;
+    }
+    else if(weaponClass == EWeaponClass::Tank&& CurrentOpenGrid != tankClassGrid)
+    {
+        if(CurrentOpenGrid)
+            CurrentOpenGrid->CloseWeaponGrid();
+        tankClassGrid->OpenWeaponGrid();
+        CurrentOpenGrid = tankClassGrid;
+    }
+    else if(weaponClass == EWeaponClass::Heal&& CurrentOpenGrid != utilClassGrid)
+    {
+        if(CurrentOpenGrid)
+            CurrentOpenGrid->CloseWeaponGrid();
+        utilClassGrid->OpenWeaponGrid();
+        CurrentOpenGrid = utilClassGrid;
+    }
+
 }
 
 void UW_CoinCreateWidget::SetDeal()

@@ -73,6 +73,8 @@ private:
     UPROPERTY(meta = (BindWidget))
     class UButton* FinishButton;
 
+	class UW_WeaponSelectGrid* CurrentOpenGrid;
+
 private:
 	UFUNCTION()
 	void ChangeCoinSide();
