@@ -122,7 +122,7 @@ void UGridManagerSubsystem::CollectOccupiedCoins(TArray<FCoinOnGridInfo>& OutCoi
 		if (Grid->GetCurrentOccupyingThing() != EGridOccupyingType::Coin)
 			continue;
 
-		ACoinActor* Coin = Grid->GetCurrentCoin();
+		ACoinActor* Coin = Cast<ACoinActor>(Grid->GetCurrentOccupied());
 		if (!IsValid(Coin))
 			continue;
 
@@ -133,6 +133,68 @@ void UGridManagerSubsystem::CollectOccupiedCoins(TArray<FCoinOnGridInfo>& OutCoi
 
 		OutCoins.Add(Info);
 	}
+}
+
+//park
+void UGridManagerSubsystem::InitCoinOccupied()
+{
+    for (const auto& Pair : GridActors)
+	{
+		const FGridPoint& GridP = Pair.Key;
+		AGridActor* Grid = Pair.Value.Get();
+		if (!IsValid(Grid)) continue;
+
+		if (Grid->GetCurrentOccupyingThing() != EGridOccupyingType::Coin)
+			continue;
+
+		Grid->ClearOccupied();
+	}
+}
+
+//park
+void UGridManagerSubsystem::GetObjectsAtRange(const FAttackAreaSpec& Spec, const FGridPoint& FinalRange,TArray<FGridPoint>& OutCells, FObjectOnGridInfo& Infos) const
+{
+    OutCells.Reset();
+
+	FGridAreaBuilder::BuildCells(Spec, FinalRange.GridX, FinalRange.GridY, OutCells);
+
+    AGridActor* TargetGrid = nullptr;
+
+    for(FGridPoint& Grid : OutCells)
+    {
+        TargetGrid = GetGridActor(Grid);
+        if(TargetGrid->GetIsOccupied())
+        {
+            switch(TargetGrid->GetCurrentOccupyingThing())
+            {
+                case EGridOccupyingType::Coin:
+                {
+                    Infos.Coins.Add(TargetGrid->GetCurrentOccupied());
+                    break;
+                }
+                //이거 코인이 보스가 범위내의 판정하는 것은 어떻게 되는지? -> 나랑 논의 필요함
+                //개인적인 생각으로는 GridActor상속받는 특별한 그리드 하나 만들고 좌표는 뭐..(-1,6)이라고 치고 0,0이 밑인지 위인지는 모르겠지만
+                //좌측 구석이 0 0이라 생각하면, Range가 GridYSize를 넘어가면 그냥 Info구조체에 보스액터 넘기는 방식으로 가면 좋겠는데
+                /*
+                case EGridOccupyingType::Boss
+                {
+                    Infos.Boss = TargetGrid->GetCurrentOccupied();
+                }
+                case EGridOccupyingType::Others
+                {
+                    //장애물이나 포탑같은거는 Others 하나 만들어서 거기서 상속시킬 생각임
+                    Infos.Others.Add(TargetGrid->GetCurrentOccupied());
+                }
+                */
+                
+            }
+        }
+    }
+}
+
+void UGridManagerSubsystem::GetValidGridsForSingleCell(const FGridPoint & CoinXY, const FAttackAreaSpec & Spec, TArray<FGridPoint>& VadlidCells)
+{
+    //Plz
 }
 
 // ======================

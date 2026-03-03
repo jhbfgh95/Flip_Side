@@ -26,13 +26,11 @@ public class Flip_Side : ModuleRules
 			"Flip_Side",
 			"Flip_Side/DataTypes",
 			"Flip_Side/Player",
-			"Flip_Side/Interface",
 			"Flip_Side/UI",
 			"Flip_Side/Subsystem",
-			"Flip_Side/Objects",
-			"Flip_Side/Objects/Weapon",
-			"Flip_Side/Objects/Item",
-			"Flip_Side/Objects/Boss"
+			"Flip_Side/Subsystem/BattleLevel",
+			"Flip_Side/Subsystem/ShopLevel",
+			"Flip_Side/Objects"
 		});
 
 

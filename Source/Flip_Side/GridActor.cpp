@@ -37,14 +37,13 @@ void AGridActor::SetGridXY(int32 GridX, int32 GridY)
 	}
 }
 
-void AGridActor::SetOccupied(bool IsOccupied, EGridOccupyingType OccupyType)
-{
-	bIsOccupied = IsOccupied;
-	CurrentOccupying= OccupyType;
-
-	if (OccupyType != EGridOccupyingType::Coin)
+void AGridActor::SetOccupied(bool IsOccupied, EGridOccupyingType OccupyType, AActor* OccupieActor)
+{	
+	if(OccupieActor)
 	{
-		CurrentCoin.Reset();
+		bIsOccupied = IsOccupied;
+		CurrentOccupying= OccupyType;
+		CurrentObject = OccupieActor;
 	}
 }
 
@@ -78,29 +77,17 @@ FVector2D AGridActor::GetGridWorldXY()
 	return FVector2D(GridWorldXY.X, GridWorldXY.Y);
 }
 
-void AGridActor::SetOccupiedCoin(ACoinActor* Coin)
-{
-	if (!IsValid(Coin))
-	{
-		ClearOccupied();
-		return;
-	}
-
-	bIsOccupied = true;
-	CurrentOccupying = EGridOccupyingType::Coin; 
-	CurrentCoin = Coin;
-}
-
 void AGridActor::ClearOccupied()
 {
 	bIsOccupied = false;
 	CurrentOccupying = EGridOccupyingType::None;
-	CurrentCoin.Reset();
+	CurrentObject->Destroy();
+	CurrentObject = nullptr;
 }
 
-ACoinActor* AGridActor::GetCurrentCoin() const
+AActor* AGridActor::GetCurrentOccupied() const
 {
-	return CurrentCoin.Get();
+	return CurrentObject;
 }
 
 UMaterialInstanceDynamic* AGridActor::EnsureMID(int32 MaterialIndex)
@@ -123,4 +110,9 @@ void AGridActor::ApplyCellMaterialParams(const FLinearColor& OutlineColor, float
 	MID->SetVectorParameterValue(TEXT("Outline_Color"), OutlineColor);
 	MID->SetScalarParameterValue(TEXT("Fill_intensity"), FillIntensity);
 	MID->SetScalarParameterValue(TEXT("Door_Open"), DoorOpen);
+}
+
+FGridPoint AGridActor::GetGridPoint() const
+{
+	return GridXY;
 }

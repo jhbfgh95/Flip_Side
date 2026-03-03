@@ -1,9 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "ItemDataTypes.h"
+#include "AttackAreaTypes.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "UseableItemWSubsystem.generated.h"
 
@@ -17,8 +16,13 @@ class FLIP_SIDE_API UUseableItemWSubsystem : public UWorldSubsystem
 	UPROPERTY()
 	TArray<FSelectItem> ItemSlotArray;
 
-	//ItemSlotArray에서 Item ID걍 꺼내와서 비헤이비어들 일단 인스턴스화시키기. instacneUseItem이랑 함께하면 될듯
-	//TArray<TSubclassOf<class UUseItemAction>> UseItemActionArray;
+	struct FAttackAreaSpec ItemAreaSpec;
+
+	class UItem_Action* SelectedItemAction;
+
+	TArray<struct FGridPoint> OutCells;
+
+	FGridPoint DefaultItemRange = {1, 1};
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -32,6 +36,15 @@ protected:
 
 	void InstanceUseItems();
 
+	void InitSelectedItem();
+
+	void ApplyRangedThings();
 public:
 	void SelectWantUseItem(AUseableItemActor* TargetItem);
+
+	void CancelWantUseItem();
+
+	void ExecuteItem(class AGridActor* TargetGrid);
+
+	bool IsItemSetupInGrid() const;
 };
