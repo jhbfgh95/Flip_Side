@@ -14,15 +14,7 @@
 void UW_SelectWeaponButton::NativeConstruct()
 {
     Super::NativeConstruct();
-    //게임 컨트롤러 등에서 참조coinCreateWidget 
-    /*
-    AShopController_FlipSide* controller = Cast<AShopController_FlipSide>(GetWorld()->GetFirstPlayerController());
-    if(controller)
-    {
-        coinCreateWidget = controller->GetCoinCreateWidget();
-        
-        
-    }*/
+
     CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
 	WeaponDataSubSystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
 
@@ -34,9 +26,10 @@ void UW_SelectWeaponButton::NativeConstruct()
         }
     }
 }
+
 void UW_SelectWeaponButton::SelectWeapon()
 {
-    CoinCreateWSubSystem->ChangeSelectedCoinWeapon(WeaponID);
+    CoinCreateWSubSystem->ChangeSelectedCoinWeapon(WeaponData->WeaponID);
 }
 
 void UW_SelectWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 Index)
@@ -72,31 +65,11 @@ void UW_SelectWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 In
         WeaponButton->SetStyle(ButtonStyle);
         
         WeaponNameBlock->SetText(FText::FromString(WeaponName));
-    }
-    /*
-    if(WeaponData)
-    {
-        
-        FButtonStyle ButtonStyle = WeaponButton->GetStyle();
-        ButtonStyle.Normal.SetResourceObject(WeaponData->WeaponIcon);
-        WeaponButton->SetStyle(ButtonStyle);
-        WeaponNameBlock->SetText(FText::FromString(WeaponName));
+
+        SetVisibility(ESlateVisibility::Visible);
     }
     else
     {
-        /*
-        FButtonStyle ButtonStyle = WeaponButton->GetStyle();
-
-        ButtonStyle.Normal.SetResourceObject(WeapoTexture);
-        //ButtonStyle.Normal.ImageSize = FVector2D(64.f, 64.f);
-
-        // Pressed
-        //ButtonStyle.Pressed.SetResourceObject(WeapoTexture);
-        //NewStyle.Pressed.ImageSize = FVector2D(64.f, 64.f);
-
-        WeaponButton->SetStyle(ButtonStyle);
-
-        WeaponNameBlock->SetText(FText::FromString(WeaponName));
+        SetVisibility(ESlateVisibility::Hidden);
     }
-    */
 }

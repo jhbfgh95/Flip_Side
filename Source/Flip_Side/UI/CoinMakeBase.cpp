@@ -31,13 +31,16 @@ void ACoinMakeBase::BeginPlay()
 	}
 }
 
+void ACoinMakeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	
+	CoinCreateSubsystem->OnCoinClassUpdate.RemoveAll(this);
+	Super::EndPlay(EndPlayReason);
+}
 
 void ACoinMakeBase::SetMaterial(EWeaponClass WeaponClass)
 {
-	
-	
 	UMaterialInstanceDynamic* MID = CoinBaseMesh->CreateDynamicMaterialInstance(1);
-
 	if(MID)
 	{
 		switch(WeaponClass)

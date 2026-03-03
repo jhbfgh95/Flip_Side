@@ -18,8 +18,8 @@ private:
 	//코인 제작 서브 시스템
 	class UCoinCreateWSubsystem* CoinCreateWSubSystem;
 	//무기 정보 서브시스템
-	class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
-
+	//class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
+	class UDataManagerSubsystem* WeaponDataSubSystem;
 private: // 컴포넌트	
 //원 콜리전
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
@@ -37,10 +37,9 @@ private:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
+	//코인 면 변경
 	void ChangeCoinSide();
 
 
@@ -50,12 +49,10 @@ private: //코인정보
 	bool IsCoinFront = true;
 
 	//현재 코인 면 데이터
-	const FFaceData* FrontFaceData; 
-	const FFaceData* BackFaceData;
-	//참조할 코인 인덱스
-	int32 FrontWeaponIndex = -1;
-	int32 BackWeaponIndex = -1;
+	FFaceData FrontFaceData; 
+	FFaceData BackFaceData;
 
+	//코인정보
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	FCoinTypeStructure CoinInfo;
 
@@ -63,7 +60,7 @@ private: //코인정보
 	EWeaponClass WeaponType = EWeaponClass::Tank;
 
 
-private: //코인정보
+private:
 	//코인무기가 업데이트 됬을 때 설정하는 함수
 	UFUNCTION()
 	void UpdateCoinWeapon(int32 WeaponIndex);
@@ -90,8 +87,6 @@ private: //코인정보
 	//코안 면 초기화
 	void ResetSideTexture();
 
-	//코인 면의 무기 데이터 설정
-	void SetCoinSideWeaponData(const FFaceData*& faceData , int32 ID);
 private:
 	//코인 회전 애니메이션 타임라인 컴포넌트
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))

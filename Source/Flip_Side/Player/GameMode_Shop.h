@@ -47,6 +47,7 @@ public:
 	
 	FUnlockWeaponMode OnUnlockWeaponMode;
 	
+
 public:
 	void SetShopMainMode();
 	void SetCheckBossMode();
@@ -55,7 +56,7 @@ public:
 	void SetShopItemMode();
 	void SetCardSelectMode();
 	void SetUnlockWeaponMode();
-	
+
 	void ChangeBattleLevel();
 	void CheckCanGameStart();
 };

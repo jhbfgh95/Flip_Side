@@ -18,18 +18,11 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	
+private:
 	class UCoinCreateWSubsystem* CoinCreateWSubSystem;
-	UFUNCTION()
-	void InitPannel(FCoinTypeStructure CoinInfo, EWeaponClass CoinClass);
 
-	UFUNCTION()
-	void GetExplainByID(int32 ID);
 protected:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* RootSecen;
@@ -40,6 +33,7 @@ protected:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* ReadyPanelMesh;
 
+private:
 	//타임라인들
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UTimelineComponent* CircularTimeline;
@@ -47,16 +41,19 @@ protected:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UTimelineComponent* LinearTimeline;
 
+private:
+	//설명 위젯
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* ExplainWidget;
 
 	class UW_ExplainWidget* ExplainWidgetClass;
-	/*
-	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
-	class UWidgetComponent* ExplainWidget;
 
-	class UW_ExplainWidget* ExplainWidgetClass;
-	*/
+public:
+	UFUNCTION()
+	void InitPannel(FCoinTypeStructure CoinInfo, EWeaponClass CoinClass);
+	UFUNCTION()
+	void GetExplainByID(int32 ID);
+
 protected:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	FRotator ShowRotation;
@@ -68,37 +65,34 @@ protected:
 	class UCurveFloat* LinearCurve;
 	
 
-public:
+private:
+	//패널 직선움직임
 	UFUNCTION()
 	void MoveLinearPanel(float Value);
-
+	//직선움직임이 끝났을 떄
 	UFUNCTION()
 	void FinishedMoveLinear();
-
+	//원형 움직임
 	UFUNCTION()
 	void MoveCircularPanel(float Angle);
-
+	//원형 움직임이 끝났을 때
 	UFUNCTION()
 	void FinishedMoveCirCular();
 
-public:
-
+// 움직임 내부값들 
+private:
 	FVector ShowPanelLocation;
 	FVector ReadyPanelLocation;
-
-	FVector ShowToReadyPanelGap;
-
 	FVector PanelArriveLocation;
 	FVector PanelStartLocation;
-
-	float ReadyPanelStartAngle; 
-
-	float ReadyPanelArriveAngle;
+	FVector ShowToReadyPanelGap;
 
 	float Radius;
-
 	float ShowPanelRadius;
 
+
+public:
+//설명 판넬이 직선 방향으로 얼마나 움직이게 할 것인가?
 	UPROPERTY(EditAnywhere, Category = "AnimSetting")
 	float PanelLinearMoveValue;
 	

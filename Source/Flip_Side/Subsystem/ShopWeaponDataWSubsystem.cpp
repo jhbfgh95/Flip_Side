@@ -3,7 +3,7 @@
 
 #include "Subsystem/ShopWeaponDataWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
-
+#include "Subsystem/UnlockGISubsystem.h"
 bool UShopWeaponDataWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     Super::ShouldCreateSubsystem(Outer);
@@ -32,14 +32,14 @@ void UShopWeaponDataWSubsystem::OnWorldBeginPlay(UWorld& World)
     {
         DM = GI->GetSubsystem<UDataManagerSubsystem>();
     }
-
+    
     if(DM)
     {
         if (DM->TryGetWeaponsByType(1, TankWeapons))
         {
             for (const FFaceData& Weapon : *TankWeapons)
             {
-                UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
+                TankWeaponUnlockArray.Add(false);
             }
         }
         if (DM->TryGetWeaponsByType(2, DealWeapons))
@@ -47,17 +47,48 @@ void UShopWeaponDataWSubsystem::OnWorldBeginPlay(UWorld& World)
    
             for (const FFaceData& Weapon : *DealWeapons)
             {
-                UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
+                DealWeaponUnlockArray.Add(false);
             }
         } 
         if (DM->TryGetWeaponsByType(3, UtilWeapons))
         {
             for (const FFaceData& Weapon : *UtilWeapons)
             {
-                UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
+                UtilWeaponUnlockArray.Add(false);
             }
         } 
     }
+
+    if (UGameInstance* WGI = GetWorld()->GetGameInstance())
+    {
+        UnlockSubsystem = WGI->GetSubsystem<UUnlockGISubsystem>();
+    }
+
+    if(UnlockSubsystem)
+    {
+        for(int i =0; i< TankWeaponUnlockArray.Num();i++)
+        {
+            if(UnlockSubsystem->GetWeaponUnlockIndexByIndex(EWeaponClass::Tank, i)!= -1)
+            {
+                TankWeaponUnlockArray[i] = true;
+            }
+        }
+        for(int i =0; i< DealWeaponUnlockArray.Num();i++)
+        {
+            if(UnlockSubsystem->GetWeaponUnlockIndexByIndex(EWeaponClass::Deal, i)!= -1)
+            {
+                DealWeaponUnlockArray[i] = true;
+            }
+        }
+        for(int i =0; i< UtilWeaponUnlockArray.Num();i++)
+        {
+            if(UnlockSubsystem->GetWeaponUnlockIndexByIndex(EWeaponClass::Heal, i)!= -1)
+            {
+                UtilWeaponUnlockArray[i] = true;
+            }
+        }
+    }
+
 }
 
 
@@ -67,30 +98,30 @@ const FFaceData* UShopWeaponDataWSubsystem::GetWeaponDataByIndex(EWeaponClass We
     {
         if (TankWeapons)
         {
-            if (!TankWeapons && !TankWeapons->IsValidIndex(Index))
-                return nullptr;
-            else 
+            if (TankWeapons->IsValidIndex(Index))
                 return &(*TankWeapons)[Index];
+            else 
+                return nullptr;
         }
     }
     else if(WeponClass == EWeaponClass::Deal )
     {
         if (DealWeapons)
         {
-            if (!DealWeapons && !DealWeapons->IsValidIndex(Index))
-                return nullptr;
-            else 
+            if (DealWeapons->IsValidIndex(Index))
                 return &(*DealWeapons)[Index];
+            else 
+                return nullptr;
         }
     }
     else if(WeponClass == EWeaponClass::Heal )
     {
         if (UtilWeapons)
         {
-            if (!UtilWeapons && !UtilWeapons->IsValidIndex(Index))
-                return nullptr;
-            else 
+            if (UtilWeapons->IsValidIndex(Index))
                 return &(*UtilWeapons)[Index];
+            else 
+                return nullptr;
         }
     }
 
@@ -218,4 +249,60 @@ int32 UShopWeaponDataWSubsystem::GetWeaponArrayNum(EWeaponClass weponClass)
     }
 
     return -1;
+}
+
+
+bool UShopWeaponDataWSubsystem::IsWeaponUnlockByIndex(EWeaponClass WeaponClass, int32 Index)
+{
+    if(WeaponClass == EWeaponClass::Tank )
+    {
+        if (Index<TankWeaponUnlockArray.Num())
+        {
+            return TankWeaponUnlockArray[Index];
+        }
+    }
+    else if(WeaponClass == EWeaponClass::Deal )
+    {
+       if (Index<DealWeaponUnlockArray.Num())
+        {
+            return DealWeaponUnlockArray[Index];
+        }
+
+    }
+    else if(WeaponClass == EWeaponClass::Heal )
+    {
+        if (Index<UtilWeaponUnlockArray.Num())
+        {
+            return UtilWeaponUnlockArray[Index];
+        }
+    }
+
+    return false;
+}
+
+
+void UShopWeaponDataWSubsystem::UnlockWeaponByIndex(EWeaponClass WeaponClass, int32 Index)
+{
+    if(WeaponClass == EWeaponClass::Tank )
+    {
+        if (Index<TankWeaponUnlockArray.Num())
+        {
+            TankWeaponUnlockArray[Index] =true;
+        }
+    }
+    else if(WeaponClass == EWeaponClass::Deal )
+    {
+       if (Index<DealWeaponUnlockArray.Num())
+        {
+            DealWeaponUnlockArray[Index]=true;
+        }
+
+    }
+    else if(WeaponClass == EWeaponClass::Heal )
+    {
+        if (Index<UtilWeaponUnlockArray.Num())
+        {
+            UtilWeaponUnlockArray[Index]=true;
+        }
+    }
 }

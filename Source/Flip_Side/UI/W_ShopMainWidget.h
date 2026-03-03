@@ -52,4 +52,8 @@ public:
 
 	UFUNCTION()
 	void ClickUnlockWeaponButton();
+
+	
+	UFUNCTION()
+	void ClickBattleStartButton();
 };

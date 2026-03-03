@@ -36,6 +36,9 @@ public:
 	
 	int32 GetUnlockWeaponID(EWeaponClass WeaponClass, int32 index);
 
+	
+	int32 GetUnlockWeaponIndex(EWeaponClass WeaponClass, int32 index);
+
 	void UnlockWeapon(EWeaponClass WeaponClass, int32 ID);
 
 	void UnlockCard(int32 ID);

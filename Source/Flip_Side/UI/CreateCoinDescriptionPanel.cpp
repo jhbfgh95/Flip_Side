@@ -12,7 +12,7 @@
 ACreateCoinDescriptionPanel::ACreateCoinDescriptionPanel()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	
 	RootSecen =CreateDefaultSubobject<USceneComponent>(TEXT("RootSceneCompoenent"));
@@ -50,22 +50,22 @@ void ACreateCoinDescriptionPanel::BeginPlay()
 	FOnTimelineFloat UpdateCircualrCallBack;
 	UpdateCircualrCallBack.BindUFunction(this, FName("MoveCircularPanel"));
 	CircularTimeline->AddInterpFloat(CircularCurve, UpdateCircualrCallBack);	
-
+	//원운동 끝났을 떄
 	FOnTimelineEvent FinishCircularCallBack;
 	FinishCircularCallBack.BindUFunction(this, FName("FinishedMoveCirCular"));
 	CircularTimeline->SetTimelineFinishedFunc(FinishCircularCallBack);
-
+	//직선운동
 	FOnTimelineFloat UpdateLinearCallBack;
 	UpdateLinearCallBack.BindUFunction(this, FName("MoveLinearPanel"));
 	LinearTimeline->AddInterpFloat(LinearCurve, UpdateLinearCallBack);	
-
+	//직선 운동이 끝났을 떄
 	FOnTimelineEvent FinishLinearCallBack;
 	FinishLinearCallBack.BindUFunction(this, FName("FinishedMoveLinear"));
 	LinearTimeline->SetTimelineFinishedFunc(FinishLinearCallBack);
 
 
 
-	//
+	//움직임 초기 값들 설정 
 	PanelArriveLocation = ShowPanelMesh->GetRelativeLocation() + FVector(100,0,0);
 	PanelStartLocation = GetActorLocation();
 
@@ -78,10 +78,15 @@ void ACreateCoinDescriptionPanel::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("좌표 %f, %f, %f"), ShowToReadyPanelGap.X, ShowToReadyPanelGap.Y, ShowToReadyPanelGap.Z);
 
-	
+}
 
-	
 
+void ACreateCoinDescriptionPanel::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	
+    CoinCreateWSubSystem->OnSelectedCoin.RemoveAll(this);
+	CoinCreateWSubSystem->OnSelectedCoinUpdate.RemoveAll(this);
+	Super::EndPlay(EndPlayReason);
 }
 
 void ACreateCoinDescriptionPanel::InitPannel(FCoinTypeStructure CoinInfo, EWeaponClass CoinClass)
@@ -89,12 +94,6 @@ void ACreateCoinDescriptionPanel::InitPannel(FCoinTypeStructure CoinInfo, EWeapo
 	LinearTimeline->PlayFromStart();
 }
 
-// Called every frame
-void ACreateCoinDescriptionPanel::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
 
 
 void ACreateCoinDescriptionPanel::MoveLinearPanel(float Value)
@@ -110,10 +109,6 @@ void ACreateCoinDescriptionPanel::FinishedMoveLinear()
 		Radius = ShowPanelMesh->GetRelativeLocation().Size();
 		
 		CircularTimeline->PlayFromStart();
-	}
-	else
-	{
-		//ExplainWidget->SetExplainText(TEXT("test"));
 	}
 }
 

@@ -23,40 +23,6 @@ bool UCoinCreateWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 void UCoinCreateWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
-    /*
-    if (UGameInstance* GI = GetWorld()->GetGameInstance())
-    {
-        DM = GI->GetSubsystem<UDataManagerSubsystem>();
-    }
-
-    if(DM)
-    {
-        if (DM->TryGetWeaponsByType(1, TankWeapons))
-        {
-            for (const FFaceData& Weapon : *TankWeapons)
-            {
-                UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
-            }
-        }
-        if (DM->TryGetWeaponsByType(2, DealWeapons))
-        {
-            if(DealWeapons)
-            {
-                UE_LOG(LogTemp, Log, TEXT("WeaponID"));
-            }
-            for (const FFaceData& Weapon : *DealWeapons)
-            {
-                UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
-            }
-        } 
-        if (DM->TryGetWeaponsByType(3, UtilWeapons))
-        {
-            for (const FFaceData& Weapon : *UtilWeapons)
-            {
-                UE_LOG(LogTemp, Log, TEXT("WeaponID=%d"), Weapon.WeaponID);
-            }
-        } 
-    }*/
 }
 
 void UCoinCreateWSubsystem::OnWorldBeginPlay(UWorld& World)
@@ -72,14 +38,12 @@ void UCoinCreateWSubsystem::ChangeCoinSide()
     if(bIsCreateCoinFront)
     {
         bIsCreateCoinFront = false;
-        //OnSelectedCoinUpdate.Broadcast(SelectedCoin.FrontWeaponID);
     }
     else
     {
         bIsCreateCoinFront = true;
-        //OnSelectedCoinUpdate.Broadcast(SelectedCoin.BackWeaponID);
     }
-        
+    UE_LOG(LogTemp, Warning, TEXT("무기 앞면 인가? : %d"), bIsCreateCoinFront);
 
 }
 
@@ -96,21 +60,20 @@ void UCoinCreateWSubsystem::SelectCoin(FCoinTypeStructure SelectCoinInfo, EWeapo
     bIsCreateCoinFront = true;
 
     OnSelectedCoin.Broadcast(SelectedCoin, CoinClass);
-    OnCoinClassUpdate.Broadcast(CoinClass);
 }
 
 //선택된 코인 면의 ID를 변경
-void UCoinCreateWSubsystem::ChangeSelectedCoinWeapon(int32 WeaponIndex)
+void UCoinCreateWSubsystem::ChangeSelectedCoinWeapon(int32 WeaponID)
 {
     if(bIsCreateCoinFront)
     {
-        SelectedCoin.FrontWeaponID = WeaponIndex;
+        SelectedCoin.FrontWeaponID = WeaponID;
     }
     else
     {
-        SelectedCoin.BackWeaponID = WeaponIndex;
+        SelectedCoin.BackWeaponID = WeaponID;
     }
-    OnSelectedCoinUpdate.Broadcast(WeaponIndex);
+    OnSelectedCoinUpdate.Broadcast(WeaponID);
 }
 
 
@@ -119,9 +82,6 @@ void UCoinCreateWSubsystem::SetCoinClass(EWeaponClass weponClass)
     if(SelectedCoinClass != weponClass)
     {
         SelectedCoinClass = weponClass;
-        
-        //SelectedCoin.FrontWeaponID = -1;
-        //SelectedCoin.BackWeaponID = -1;
     }
     OnCoinClassUpdate.Broadcast(weponClass);
 }
@@ -136,16 +96,4 @@ bool UCoinCreateWSubsystem::GetIsCreateCoinFront()
 EWeaponClass UCoinCreateWSubsystem::GetSelectCoinClass()
 {
     return SelectedCoinClass;
-}
-
-
-void UCoinCreateWSubsystem::OnClassSelectMode()
-{
-    OnCoinClassSelectMode.Broadcast();
-}
-
-
-void UCoinCreateWSubsystem::OffClassSelectMode()
-{
-    OffCoinClassSelectMode.Broadcast();
 }

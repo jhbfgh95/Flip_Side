@@ -19,34 +19,54 @@ class FLIP_SIDE_API UW_UnlockWeaponButton : public UUserWidget
 protected:
 	
 	virtual void NativeOnInitialized() override;
+	virtual void NativeDestruct() override;
 
 private:
-	class UUnlockGISubsystem* UnlockSubSystem; 
-	class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
 
+	class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
+	class UShopUnlockWeaponWSubsystem* UnlockWeaponSubsystem;
 
 private:
 
 	UPROPERTY(meta = (BindWidget))
 	class UImage* LockImage;
 	
-	
 	UPROPERTY(meta = (BindWidget))
-	class UButton* UnlockButton;
+	class UButton* WeaponButton;
 
 	const FFaceData* WeaponData;
+
+    UPROPERTY(meta = (BindWidget))
+    class UTextBlock* WeaponNameBlock;
+
+	UPROPERTY(EditAnywhere, Category = "Info")
+	FString WeaponName;
+
+	UPROPERTY(EditAnywhere, Category="Button")
+	class UTexture2D* WeaponTexture;
+
+    UPROPERTY(EditAnywhere, Category = "UI")
+    class UMaterialInterface* MaskMaterialBase; 
+
+    UPROPERTY()
+    class UMaterialInstanceDynamic* DynamicMaskMaterial;
+
+	
+private:
+	
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+    UWidgetAnimation* FadeAnim;
 
 public:
 	UPROPERTY(EditAnywhere)
 	EWeaponClass WeaponClass;
 
 	UPROPERTY(EditAnywhere)
-	int32 Index;
+	int32 WeaponIndex;
 
 	UFUNCTION()
-	void UnlockWeapon();
-
-	void InitButton(EWeaponClass WeaponClassValue, int32 IndexValue);
-
-	void SetButtonLock();
+	void UnlockWeapon(EWeaponClass SettingWeaponClass, int32 Index);
+	void InitButton(EWeaponClass SettingWeaponClass, int32 Index);
+	UFUNCTION()
+	void ClickWeaponButton();
 };

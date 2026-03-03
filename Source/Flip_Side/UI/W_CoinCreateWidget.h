@@ -46,12 +46,14 @@ public:
 private:
 	    
 	UPROPERTY(meta = (BindWidget))
-    UUserWidget* dealClassGrid;
+    class UW_WeaponSelectGrid* dealClassGrid;
     UPROPERTY(meta = (BindWidget))
-    UUserWidget* tankClassGrid;
+    class UW_WeaponSelectGrid* tankClassGrid;
     UPROPERTY(meta = (BindWidget))
-    UUserWidget* utilClassGrid;
-
+    class UW_WeaponSelectGrid* utilClassGrid;
+	
+    UPROPERTY(meta = (BindWidget))
+	class UButton* ChangeCoinSideButton;
 	
     UPROPERTY(meta = (BindWidget))
 	class UButton* TestClass;
@@ -71,7 +73,12 @@ private:
     UPROPERTY(meta = (BindWidget))
     class UButton* FinishButton;
 
+	class UW_WeaponSelectGrid* CurrentOpenGrid;
+
 private:
+	UFUNCTION()
+	void ChangeCoinSide();
+
 	UFUNCTION()
 	void SetClassGrid(EWeaponClass weaponClass);
 

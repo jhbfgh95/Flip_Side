@@ -7,6 +7,7 @@
 #include "Subsystems/WorldSubsystem.h" 
 #include "Components/Button.h"
 #include "Player/GameMode_Shop.h"
+#include "UI/W_WeaponSelectGrid.h"
 void UW_CoinCreateWidget::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -26,6 +27,13 @@ void UW_CoinCreateWidget::NativeConstruct()
     TestClass2->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetTank);
     
     TestClass3->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetUtil);
+
+    ChangeCoinSideButton->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::ChangeCoinSide);
+
+    dealClassGrid->InitPanelAnimation();
+    tankClassGrid->InitPanelAnimation();
+    utilClassGrid->InitPanelAnimation();
+    CurrentOpenGrid =nullptr;
 }
 
 
@@ -52,38 +60,58 @@ void UW_CoinCreateWidget::FinishCreate()
 //코드가 안 예쁨 수정해야할듯 
 void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
 {
-    FinishButton->SetVisibility(ESlateVisibility::Visible);
-    dealClassGrid->SetVisibility(ESlateVisibility::Collapsed);
-    utilClassGrid->SetVisibility(ESlateVisibility::Collapsed);
-    tankClassGrid->SetVisibility(ESlateVisibility::Collapsed);
-    switch (weaponClass)
+    if(weaponClass == EWeaponClass::None)
     {
-    case EWeaponClass::Deal:
-        dealClassGrid->SetVisibility(ESlateVisibility::Visible);
-        break;
-    case EWeaponClass::Tank:
-        tankClassGrid->SetVisibility(ESlateVisibility::Visible);
-        break;
-    case EWeaponClass::Heal:
-        utilClassGrid->SetVisibility(ESlateVisibility::Visible);
-        break;
-    default:
-        break;
+        
+        UE_LOG(LogTemp, Warning, TEXT("aaaaaaaaaa"));
+        if(CurrentOpenGrid)
+        {
+            CurrentOpenGrid->CloseWeaponGrid();
+            
+            UE_LOG(LogTemp, Warning, TEXT("aaaaaa111a11aa1a"));
+        }
+            
+        CurrentOpenGrid = nullptr;
     }
+
+    if(weaponClass == EWeaponClass::Deal&& CurrentOpenGrid != dealClassGrid)
+    {
+        if(CurrentOpenGrid)
+            CurrentOpenGrid->CloseWeaponGrid();
+        dealClassGrid->OpenWeaponGrid();
+        CurrentOpenGrid = dealClassGrid;
+    }
+    else if(weaponClass == EWeaponClass::Tank&& CurrentOpenGrid != tankClassGrid)
+    {
+        if(CurrentOpenGrid)
+            CurrentOpenGrid->CloseWeaponGrid();
+        tankClassGrid->OpenWeaponGrid();
+        CurrentOpenGrid = tankClassGrid;
+    }
+    else if(weaponClass == EWeaponClass::Heal&& CurrentOpenGrid != utilClassGrid)
+    {
+        if(CurrentOpenGrid)
+            CurrentOpenGrid->CloseWeaponGrid();
+        utilClassGrid->OpenWeaponGrid();
+        CurrentOpenGrid = utilClassGrid;
+    }
+
 }
 
 void UW_CoinCreateWidget::SetDeal()
 {
     CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Deal);
-    CoinCreateWSubSystem->OffClassSelectMode();
 }
 void UW_CoinCreateWidget::SetTank()
 {
     CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Tank);
-    CoinCreateWSubSystem->OffClassSelectMode();
 }
 void UW_CoinCreateWidget::SetUtil()
 {
     CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Heal);
-    CoinCreateWSubSystem->OffClassSelectMode();
+}
+
+void UW_CoinCreateWidget::ChangeCoinSide()
+{
+    CoinCreateWSubSystem->ChangeCoinSide();
 }

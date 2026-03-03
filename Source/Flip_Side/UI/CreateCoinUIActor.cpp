@@ -5,14 +5,19 @@
 #include "Subsystem/CoinCreateWSubsystem.h"
 #include "Subsystems/WorldSubsystem.h" 
 #include "Subsystem/ShopWeaponDataWSubsystem.h" 
+
+#include "Subsystem/DataManagerSubsystem.h" 
+
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TimelineComponent.h"
+
+
 // Sets default values
 ACreateCoinUIActor::ACreateCoinUIActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
 	SetRootComponent(SphereCollision);
 	
@@ -32,7 +37,7 @@ void ACreateCoinUIActor::BeginPlay()
 {
 	Super::BeginPlay();
     CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
-	WeaponDataSubSystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
+	WeaponDataSubSystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 
 	if(CoinCreateWSubSystem)
 	{
@@ -63,11 +68,12 @@ void ACreateCoinUIActor::BeginPlay()
 
 }
 
-// Called every frame
-void ACreateCoinUIActor::Tick(float DeltaTime)
+void ACreateCoinUIActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Super::Tick(DeltaTime);
-
+	CoinCreateWSubSystem->OnCoinClassUpdate.RemoveAll(this);
+	CoinCreateWSubSystem->OnSelectedCoinUpdate.RemoveAll(this);
+	CoinCreateWSubSystem->OnSelectedCoin.RemoveAll(this);
+	Super::EndPlay(EndPlayReason);
 }
 
 void ACreateCoinUIActor::ClickCoin()
@@ -98,22 +104,23 @@ void ACreateCoinUIActor::UpdateWeaponClass(EWeaponClass weponClass)
 	WeaponType = weponClass;
 }
 
-
 //코인 선택됬을 때 초기화
 void ACreateCoinUIActor::InitCoin(FCoinTypeStructure CoinValue, EWeaponClass weponClass)
 {
 	CoinInfo = CoinValue;
 	UpdateWeaponClass(weponClass);
-	
-	FrontFaceData = nullptr;
-	BackFaceData = nullptr;
-	FrontWeaponIndex = -1;
-	BackWeaponIndex = -1;
+
 	IsCoinFront = true;
 
-	//최적화를 위해 ID를 무기배열의 Index로 변경
-	FrontWeaponIndex = WeaponDataSubSystem->GetWeaponIndexByID(weponClass, CoinInfo.FrontWeaponID);
-	BackWeaponIndex = WeaponDataSubSystem->GetWeaponIndexByID(weponClass, CoinInfo.BackWeaponID);
+	//1.ID에 맞는 값을 할당함
+	if(!WeaponDataSubSystem->TryGetWeapon(CoinValue.FrontWeaponID, FrontFaceData))
+	{
+		FrontFaceData.WeaponID = -1;
+	}
+	if(!WeaponDataSubSystem->TryGetWeapon(CoinValue.BackWeaponID, BackFaceData))
+	{
+		BackFaceData.WeaponID = -1;
+	}
 
 	if(weponClass == EWeaponClass::None)
 	{
@@ -121,68 +128,57 @@ void ACreateCoinUIActor::InitCoin(FCoinTypeStructure CoinValue, EWeaponClass wep
 	}
 	else
 	{
-		SetCoinSideWeaponData(FrontFaceData, FrontWeaponIndex);
-		SetCoinSideWeaponData(BackFaceData, BackWeaponIndex);	
-
 		SetCoinSideMatarial();
 	}
 }
 
-void ACreateCoinUIActor::UpdateCoinWeapon(int32 WeaponIndex)
+void ACreateCoinUIActor::UpdateCoinWeapon(int32 WeaponID)
 {
 	PressMachineTimeline->PlayFromStart();
 
 	if(IsCoinFront)
 	{
-		FrontWeaponIndex = WeaponIndex;
-		CoinInfo.FrontWeaponID = WeaponDataSubSystem->GetWeaponDataByIndex(WeaponType, WeaponIndex)->WeaponID;
-		SetCoinSideWeaponData(FrontFaceData, WeaponIndex);
+		if(!WeaponDataSubSystem->TryGetWeapon(WeaponID, FrontFaceData))
+		{
+			FrontFaceData.WeaponID = -1;
+		}
 	}
 	else
 	{
-		CoinInfo.BackWeaponID = WeaponIndex;
-		CoinInfo.BackWeaponID = WeaponDataSubSystem->GetWeaponDataByIndex(WeaponType, WeaponIndex)->WeaponID;
-		SetCoinSideWeaponData(BackFaceData, WeaponIndex);
+		if(!WeaponDataSubSystem->TryGetWeapon(WeaponID, BackFaceData))
+		{
+			BackFaceData.WeaponID = -1;
+		}
 	}
-
-
 }
 
-
-void ACreateCoinUIActor::SetCoinSideWeaponData(const FFaceData*& FaceData , int32 Index)
-{
-	if(Index == -1)
-	{
-		FaceData = nullptr;
-		return;
-	}
-	//인덱스를 기반으로 무기 데이터 설정
-	FaceData = WeaponDataSubSystem->GetWeaponDataByIndex(WeaponType, Index);
-}
 
 void ACreateCoinUIActor::SetCoinSideMatarial()
 {
-	
 	UMaterialInstanceDynamic* MID = CoinMesh->CreateDynamicMaterialInstance(0);
 
 	if(MID)
 	{
-		if(FrontFaceData)
+		if(FrontFaceData.WeaponID != -1)
 		{
-			MID->SetTextureParameterValue(FName("Front_Texture"), FrontFaceData->WeaponIcon);
-			MID->SetVectorParameterValue(FName("Front_Color"), FrontFaceData->TypeColor);
+			MID->SetTextureParameterValue(FName("Front_Texture"), FrontFaceData.WeaponIcon);
+			MID->SetVectorParameterValue(FName("Front_Color"), FrontFaceData.TypeColor);
 
 		}
-		if(BackFaceData)
+		else
+		{
+			MID->SetVectorParameterValue(FName("Front_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		}
+		if(BackFaceData.WeaponID != -1)
 		{	
-			MID->SetTextureParameterValue(FName("Back_Texture"), BackFaceData->WeaponIcon);
-			MID->SetVectorParameterValue(FName("Back_Color"), BackFaceData->TypeColor);
+			MID->SetTextureParameterValue(FName("Back_Texture"), BackFaceData.WeaponIcon);
+			MID->SetVectorParameterValue(FName("Back_Color"), BackFaceData.TypeColor);
+		}
+		else
+		{
+			MID->SetVectorParameterValue(FName("Back_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
 		}
 	
-		if(FrontFaceData&&BackFaceData)
-		{
-			ResetSideTexture();
-		}
 	}
 }
 

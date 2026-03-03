@@ -8,35 +8,94 @@
 #include "UI/W_UnlockWeaponButton.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
+#include "Components/Button.h"
 void UW_UnlockWeaponGrid::NativeConstruct()
 {
     Super::NativeConstruct();
     WeaponDataSubSystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
     UnlockSubSystem= GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
 
-
+    NextPageButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponGrid::SetNextPageGrid);
+    PreviousPageButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponGrid::SetPreviousPageGrid);
 
     int32 WeaponCount = WeaponDataSubSystem->GetWeaponArrayNum(GridWeaponClass);
 
-    for(int32 i = 0; i < WeaponCount; i++)
+    UnlockButtons.Add(UnlockButton1);
+    UnlockButtons.Add(UnlockButton2);
+    UnlockButtons.Add(UnlockButton3);
+    UnlockButtons.Add(UnlockButton4);
+    UnlockButtons.Add(UnlockButton5);
+    UnlockButtons.Add(UnlockButton6);
+    UnlockButtons.Add(UnlockButton7);
+    UnlockButtons.Add(UnlockButton8);
+    UnlockButtons.Add(UnlockButton9);
+
+    for(int32 i = 0; i < 9; i++)
     {
-        UW_UnlockWeaponButton* UnlockButtonClass = CreateWidget<UW_UnlockWeaponButton>(GetWorld(), WeaponUnlockButton);
+        UnlockButtons[i]->InitButton(GridWeaponClass, i);
+    }
+    
+    SetPageButton();
+}
 
-        if (UnlockButtonClass)
+ void UW_UnlockWeaponGrid::InitPanelAnimation()
+ {
+    PlayAnimation(OpenPanelAnim, 0.f, 1);
+    PauseAnimation(OpenPanelAnim);
+    SetAnimationCurrentTime(OpenPanelAnim, 0.f);
+ }
+void UW_UnlockWeaponGrid::SetNextPageGrid()
+{
+    if(CurrentPage+ 9<= WeaponDataSubSystem->GetWeaponArrayNum(GridWeaponClass))
+    {
+        CurrentPage += 9;
+        for(int i =0; i< 9; i++)
         {
-           
-            int32 Row = i / ColumnCount;
-            int32 Col = i % ColumnCount;
-
-            UUniformGridSlot* SlotWidget = UnlockGrid->AddChildToUniformGrid(UnlockButtonClass, Row, Col);
-
-            UnlockButtonClass->InitButton(GridWeaponClass,i);
-            //UnlockSubSystem->IsWeaponUnlockByIndex(GridWeaponClass, i)
-            if (SlotWidget)
-            {
-                SlotWidget->SetHorizontalAlignment(HAlign_Fill);
-                SlotWidget->SetVerticalAlignment(VAlign_Fill);
-            }
+            UnlockButtons[i]->InitButton(GridWeaponClass, CurrentPage+i);
         }
     }
+}
+
+void UW_UnlockWeaponGrid::SetPreviousPageGrid()
+{
+    if(0<= CurrentPage- 9)
+    {
+        CurrentPage -= 9;
+        for(int i =0; i< 9; i++)
+        {
+            UnlockButtons[i]->InitButton(GridWeaponClass, CurrentPage+i);
+        }
+    }
+}
+
+void UW_UnlockWeaponGrid::SetPageButton()
+{
+    if(CurrentPage+ 9<= UnlockSubSystem->GetUnlockWeaponArrrayNum(GridWeaponClass))
+    {
+        NextPageButton->SetVisibility(ESlateVisibility::Visible);
+    }
+    else
+    {
+        NextPageButton->SetVisibility(ESlateVisibility::Hidden);
+    }
+
+    if(0<= CurrentPage- 9)
+    {
+        PreviousPageButton->SetVisibility(ESlateVisibility::Visible);
+    }
+    else
+    {
+        PreviousPageButton->SetVisibility(ESlateVisibility::Hidden);
+    }
+}
+
+
+void UW_UnlockWeaponGrid::OpenUnlockPanel()
+{
+    PlayAnimation(OpenPanelAnim);
+}
+    
+void UW_UnlockWeaponGrid::CloseUnlockPanel()
+{
+    PlayAnimation(ClosePanelAnim);
 }

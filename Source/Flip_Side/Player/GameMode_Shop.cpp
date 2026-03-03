@@ -20,15 +20,18 @@ void AGameMode_Shop::ChangeBattleLevel()
     for(int i =0; i<10; i++)
     {
         FCoinTypeStructure CoinData = ShopCoinSubsystem->GetSlotCoin(i);
-        if(CoinData.FrontWeaponID != -1 && CoinData.BackWeaponID != -1)
-            CrossSubsystem->SetSlotCoin(i, CoinData);
+        
+        UE_LOG(LogTemp, Warning, TEXT("앞면 정보 %d / 뒷면정보%d"), CoinData.FrontWeaponID,CoinData.BackWeaponID);
+
+
+        //if(CoinData.FrontWeaponID != -1 && CoinData.BackWeaponID != -1)
+        CrossSubsystem->SetSlotCoin(i, CoinData);
     }
     //카드값 넘겨줌
     for(int i =0; i<3; i++)
     {
         int32 CardID = ShopCardSubsystem->GetPlayerCardID(i);
-        if(CardID != -1)
-            CrossSubsystem->SetBattleCardID(i,CardID);
+        CrossSubsystem->SetBattleCardID(CardID,i);
     }
     //아이템값 넘겨줌
     for(int i =0; i<ShopItemSubsystem->GetPlayerItemNum(); i++)
@@ -39,7 +42,20 @@ void AGameMode_Shop::ChangeBattleLevel()
             CrossSubsystem->SetBattleUseItemID(i,PlayerItem.ItemID, PlayerItem.SameItemNum);
         }
     }
-    
+
+    for(int i =0; i<10; i++)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("%d 번쨰 코인 아이디 : 앞 %d, 뒤 %d, 개수 : %d"),i, 
+        CrossSubsystem->GetSlotCoin(i).FrontWeaponID,CrossSubsystem->GetSlotCoin(i).BackWeaponID,CrossSubsystem->GetSlotCoin(i).SameTypeCoinNum);
+    }
+
+    TArray<int32> CardArray =  CrossSubsystem->GetBattleCardIDs();
+    for(int i =0; i<3; i++)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("%d 번째 카드 아이디 :  %d"), i, CardArray[i]);
+    }
+
+
 }
 
 

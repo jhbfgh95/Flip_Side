@@ -13,6 +13,8 @@ void UW_ShopMainWidget::NativeConstruct()
     ShopItemButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickShopItemButton);
     CardSelectButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickCardSelectButton);
     UnlockWeaponButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickUnlockWeaponButton);
+    
+    GameStartButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickBattleStartButton);
 }
 
 
@@ -47,5 +49,14 @@ void UW_ShopMainWidget::ClickUnlockWeaponButton()
     if(shopGameMode)
     {
         shopGameMode->SetUnlockWeaponMode();
+    }
+}
+
+
+void UW_ShopMainWidget::ClickBattleStartButton()
+{
+    if(shopGameMode)
+    {
+        shopGameMode->ChangeBattleLevel();
     }
 }
