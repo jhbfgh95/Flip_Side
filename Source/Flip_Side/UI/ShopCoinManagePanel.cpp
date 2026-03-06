@@ -16,6 +16,8 @@
 #include "Subsystem/DataManagerSubsystem.h"
 
 
+#include "UI/W_CoinManagePanelWidget.h"
+
 // Sets default values
 AShopCoinManagePanel::AShopCoinManagePanel()
 {
@@ -68,7 +70,9 @@ void AShopCoinManagePanel::BeginPlay()
 	DataManagerSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 	ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AShopCoinManagePanel::ActiveGear);
 	//ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &AShopCoinManagePanel::UnlockPanel);
+	ShopCoinSubsystem->OnCoinCountUpdate.AddDynamic(this, &AShopCoinManagePanel::SetPanelWidget);
 	
+	PanelWidgetClass = Cast<UW_CoinManagePanelWidget>(PanelWidget->GetUserWidgetObject());
 
 	//잠김 판넬 운동 타임라인
 	FOnTimelineFloat LockPanelMoveCallBack;
@@ -167,6 +171,10 @@ void AShopCoinManagePanel::InitPanel()
 	InitPanelCoin();
 }
 
+void AShopCoinManagePanel::SetPanelWidget(int32 CoinSlotIndex, int32 CoinCount)
+{
+	PanelWidgetClass->SetCountText(CoinCount);
+}
 void AShopCoinManagePanel::InitPanelAfterArrive()
 {
 	if(ShopCoinSubsystem->GetCurrentCoinUnlock())

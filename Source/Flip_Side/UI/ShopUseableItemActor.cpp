@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Components/TimelineComponent.h"
 
 AShopUseableItemActor::AShopUseableItemActor()
 {
@@ -16,6 +17,11 @@ AShopUseableItemActor::AShopUseableItemActor()
 
 	UseableItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UseableItem Mesh"));
 	UseableItemMesh->SetupAttachment(RootComponent);
+
+	ItemExplainMesh= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemExplain Mesh"));
+	ItemExplainMesh->SetupAttachment(RootComponent);
+
+	ItemMeshTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ItemMeshTimeline"));
 }
 
 
@@ -32,19 +38,52 @@ void AShopUseableItemActor::BeginPlay()
         //ShopItemData = ShopItemSubSystem->GetItemDataByShopIndex(ShopItemIndex);
     }
     SetItemMaterial();
+
+    FOnTimelineFloat ItemMoveCallBack;
+	ItemMoveCallBack.BindUFunction(this, FName("ItemHoverMovement"));
+	ItemMeshTimeline->AddInterpFloat(ItemMoveCurve, ItemMoveCallBack);	
+	
+    FOnTimelineFloat ItemDescriptionMoveCallBack;
+	ItemDescriptionMoveCallBack.BindUFunction(this, FName("ItemDescriptionMovement"));
+	ItemMeshTimeline->AddInterpFloat(DescriptionMoveCurve, ItemDescriptionMoveCallBack);	
+	
+
+	StartLocation = UseableItemMesh->GetRelativeLocation();
+	ArriveLocation = StartLocation + ItemMoveDirection;
+
+	ItemDescriptionStartLocation = ItemExplainMesh->GetRelativeLocation();
+	ItemDescriptionArriveLocation = ItemDescriptionStartLocation + ItemDescriptionMoveDirection;
+
 }
 
+void AShopUseableItemActor::HoverdItem()
+{
+	ItemMeshTimeline->PlayFromStart();
+}
+void AShopUseableItemActor::UnHoverdItem()
+{
+	ItemMeshTimeline->Reverse();
+}
+
+void AShopUseableItemActor::ItemHoverMovement(float Value)
+{
+	FVector MoveVector = FMath::Lerp(StartLocation, ArriveLocation, Value);
+
+	UseableItemMesh->SetRelativeLocation(MoveVector);
+}
+
+void AShopUseableItemActor::ItemDescriptionMovement(float Value)
+{
+	FVector MoveVector = FMath::Lerp(ItemDescriptionStartLocation, ItemDescriptionArriveLocation, Value);
+
+	ItemExplainMesh->SetRelativeLocation(MoveVector);
+}
 
 void AShopUseableItemActor::LClickedUseAbleItem()
 {
     //상점 아이템 구입
     ShopItemSubSystem->BuyItemByIndex(ShopItemIndex);
 }    
-    
-void AShopUseableItemActor::RClickedUseAbleItem()
-{
-
-}
 
 void AShopUseableItemActor::HoveredUseAbleItem()
 {

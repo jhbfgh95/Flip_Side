@@ -30,6 +30,8 @@ private:
 private:
 	TArray<FCardData> CardList;
 
+	TArray<FCardData> UnlockCardList;
+
 	TArray<FCardData> PlayerCardList;
 
 	int32 CurrentCardListNum;
@@ -53,5 +55,5 @@ public:
 
 	void RemoveHandCard(int32 HandIndex);
 
-	int32 GetPlayerCardID(int32 index); 
+	int32 GetPlayerCardID(int32 index);
 };

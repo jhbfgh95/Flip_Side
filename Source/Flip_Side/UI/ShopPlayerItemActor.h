@@ -3,31 +3,40 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
 #include "DataTypes/ItemDataTypes.h"
-#include "ShopUseableItemActor.generated.h"
+#include "ShopPlayerItemActor.generated.h"
 
-/**
- * 
- */
 UCLASS()
-class FLIP_SIDE_API AShopUseableItemActor : public AActor
+class FLIP_SIDE_API AShopPlayerItemActor : public AActor
 {
 	GENERATED_BODY()
+	
+public:	
+	// Sets default values for this actor's properties
+	AShopPlayerItemActor();
 
-	AShopUseableItemActor();
 protected:
+	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
 private:
+
 	UPROPERTY(EditAnywhere, Category = "UseableItem | Component", meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* UseableItemRootComp;
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UStaticMeshComponent* ItemMesh;
 
-	UPROPERTY(EditAnywhere, Category = "UseableItem | Component", meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* UseableItemMesh;
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UStaticMeshComponent* ItemDescriptionMesh;
 
-	UPROPERTY(EditAnywhere, Category = "UseableItem | Component", meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* ItemExplainMesh;
-	
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UWidgetComponent* ItemWidget;
+
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UTimelineComponent* ItemMeshTimeline;
@@ -36,58 +45,52 @@ private:
 	class UCurveFloat* ItemMoveCurve;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UCurveFloat* DescriptionMoveCurve;
-
+	class UCurveFloat* DescriptionCurve;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	FVector ItemMoveDirection;
 
 	FVector StartLocation;
 	FVector ArriveLocation;
-
-
+	
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	FVector ItemDescriptionMoveDirection;
+	FVector DescriptionMoveDirection;
 
-	FVector ItemDescriptionStartLocation;
-	FVector ItemDescriptionArriveLocation;
-
+	FVector DescriptionStartLocation;
+	FVector DescriptionArriveLocation;
+	
 private:
 
 	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
 	int32 ShopItemIndex;
 
 	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
-    FItemData ShopItemData;
+    FItemData PlayerItemData;
+
+	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
+    FSelectItem PlayerSelectItemData;
 private:
-	class UShopItemWSubsystem* ShopItemSubSystem;
+	class UShopItemWSubsystem* ShopItemSubsystem;
+	
+	class UDataManagerSubsystem* ItemDataSubsystem;
 
-private:
-	//상호작용했을 떄 타임라인 추가.
 
-public:
-	//소모품이 좌 클릭됬을 때
-	UFUNCTION()
-	void LClickedUseAbleItem();
 
-	UFUNCTION()
-	void HoveredUseAbleItem();
-
-	//소모품위에 마우스가 내려 갔을 때
-	UFUNCTION()
-	void UnHoveredUseAbleItem();
-
-	void SetItemMaterial();
 private:
 	UFUNCTION()
 	void ItemHoverMovement(float Value);
-	UFUNCTION()
-	void ItemDescriptionMovement(float Value);
 
+	UFUNCTION()
+	void DescriptionMovement(float Value);
 
 public:
+	
 	UFUNCTION()
 	void HoverdItem();
 	UFUNCTION()
 	void UnHoverdItem();
+	
+	void InitItem(int32 Index);
+
+	void SetItemMaterial();
 };

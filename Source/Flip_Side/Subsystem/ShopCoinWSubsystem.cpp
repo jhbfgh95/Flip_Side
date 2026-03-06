@@ -208,3 +208,9 @@ void UShopCoinWSubsystem::UnlockCoin()
 {
     OnUnlockCoinSlot.Broadcast();
 }
+
+
+int32 UShopCoinWSubsystem::GetCurrentCoinCount()
+{
+    return ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum;
+}

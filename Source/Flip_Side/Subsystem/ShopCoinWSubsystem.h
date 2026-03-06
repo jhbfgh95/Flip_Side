@@ -107,4 +107,6 @@ public:
 
 	//현재 코인슬롯의 코인을 할당
 	void SetSlotCoin(FCoinTypeStructure SetCoinInfo, EWeaponClass CoinClass);
+
+	int32 GetCurrentCoinCount();
 };

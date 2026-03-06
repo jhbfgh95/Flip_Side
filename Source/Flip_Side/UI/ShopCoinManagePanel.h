@@ -81,6 +81,9 @@ private:
 	class UDataManagerSubsystem* DataManagerSubsystem;
 
 private:
+	class UW_CoinManagePanelWidget* PanelWidgetClass;
+
+private:
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	FVector LockPanelStartVec;
@@ -107,6 +110,10 @@ private:
 	FRotator ArriveGearRotator;
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	FRotator GearRotateDirection;
+
+private:
+	UFUNCTION()
+	void SetPanelWidget(int32 CoinSlotIndex, int32 CoinCount);
 
 
 public:
