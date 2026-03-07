@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interface/ShopClickInterface.h"
 #include "GoToCreateCoinPanel.generated.h"
 
 UCLASS()
-class FLIP_SIDE_API AGoToCreateCoinPanel : public AActor
+class FLIP_SIDE_API AGoToCreateCoinPanel : public AActor, public IShopClickInterface
 {
 	GENERATED_BODY()
 	
@@ -40,6 +41,9 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UTimelineComponent* ButtonTimeLine;
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* ItneractBox;
 
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "TimeLine")
@@ -74,4 +78,7 @@ private:
 	FVector StartVector;
 
 	bool IsLockPanelOpen = false;
+
+public:
+	virtual void InteractLeftClick_Implementation() override;
 };

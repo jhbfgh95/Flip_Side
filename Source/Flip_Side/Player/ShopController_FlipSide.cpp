@@ -6,6 +6,8 @@
 #include "W_ShopWidget.h"
 #include "ShopPlayerPawn_FlipSide.h"
 #include "Player/GameMode_Shop.h"
+#include "Interface/ShopClickInterface.h"
+
 AShopController_FlipSide::AShopController_FlipSide()
 {
     bShowMouseCursor = true;
@@ -68,11 +70,15 @@ void AShopController_FlipSide::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-    if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
-	{
-		Subsystem->AddMappingContext(InputContext, 0);
-	}
+    if (UEnhancedInputLocalPlayerSubsystem *Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+    {
+        Subsystem->AddMappingContext(InputContext, 0);
+    }
+
+    InputComponent->BindKey(EKeys::LeftMouseButton, IE_Pressed, this, &AShopController_FlipSide::OnLeftClick);
+    //InputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnRightClick);
 }
+
 //폰하고 연결
 void AShopController_FlipSide::OnPossess(APawn* InPawn)
 {
@@ -82,6 +88,11 @@ void AShopController_FlipSide::OnPossess(APawn* InPawn)
     check(ControlledPawn);
 }
 
+
+void AShopController_FlipSide::PlayerTick(float DeltaTime)
+{
+    Super::PlayerTick(DeltaTime);
+}
 //위젯 리스트에 넣고 보이게함
 void AShopController_FlipSide::ViewWidgetList()
 {
@@ -174,4 +185,62 @@ void AShopController_FlipSide::SetUnlockWeaponModeWidget()
         AddOpenWidgetList(UnlockWeaponWidget);
         ViewWidgetList();
     }
+}
+// 좌클릭: 선택, 카메라 이동
+void AShopController_FlipSide::OnLeftClick()
+{   
+    
+	UE_LOG(LogTemp, Warning, TEXT("클릭이벤트"));
+    FHitResult Hit;
+
+    if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+    {
+        if (Hit.Component->ComponentHasTag("LClickAble") && Hit.GetActor()->Implements<UShopClickInterface>())
+        {
+            IShopClickInterface::Execute_InteractLeftClick(Hit.GetActor());
+        }
+    }
+}
+
+// 우클릭: 디폴트 카메라 시점으로 복귀
+void AShopController_FlipSide::OnRightClick()
+{
+    //ReturnToDefaultCamera();
+}
+
+void AShopController_FlipSide::CheckMouseHover()
+{
+    /*
+    FHitResult Hit;
+    if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+    {
+        AActor *HitActor = Hit.GetActor();
+
+        ABattleArea *TargetArea = Cast<ABattleArea>(HitActor);
+
+        // 이전에 호버링하던 곳과 지금 마우스 아래 있는 곳이 다를 때
+        if (CurrentHoveredArea != TargetArea)
+        {
+            if (CurrentHoveredArea)
+            {
+                CurrentHoveredArea->SetHighlight(false);
+            }
+
+            CurrentHoveredArea = TargetArea;
+
+            if (CurrentHoveredArea)
+            {
+                CurrentHoveredArea->SetHighlight(true);
+            }
+        }
+    }
+    else
+    {
+        // 마우스가 허공을 보거나 아무 영역도 아닐 때
+        if (CurrentHoveredArea)
+        {
+            CurrentHoveredArea->SetHighlight(false);
+            CurrentHoveredArea = nullptr;
+        }
+    }*/
 }

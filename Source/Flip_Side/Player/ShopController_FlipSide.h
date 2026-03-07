@@ -23,6 +23,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputMappingContext* InputContext;
 
+public:
+
+	virtual void BeginPlay() override;
+
+	virtual void PlayerTick(float DeltaTime) override; // 매 프레임 마우스 호버 감지용
 /* UI */
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
@@ -109,6 +114,20 @@ public:
 	void HideModeChangeWidget();
 
 	void ShowModeChangeWidget();
+	
+private:
+    FVector DefaultCameraLocation;
+    FRotator DefaultCameraRotation;
+    float DefaultCameraArmLength;
+
 protected:
-	virtual void BeginPlay() override;
+
+    void OnLeftClick();
+
+	void OnRightClick();
+
+    void CheckMouseHover();
+public:
+
+
 };

@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/TimeLineComponent.h"
+#include "Components/BoxComponent.h"
 #include "Subsystem/ShopCoinWSubsystem.h"
 #include "Player/GameMode_Shop.h"
 // Sets default values
@@ -25,6 +26,9 @@ AGoToCreateCoinPanel::AGoToCreateCoinPanel()
 
 	ButtonMesh= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
     ButtonMesh->SetupAttachment(RootScene);
+
+	ItneractBox= CreateDefaultSubobject<UBoxComponent>(TEXT("InteractBox"));
+    ItneractBox->SetupAttachment(RootScene);
 
 	LockPanelTimeLine  = CreateDefaultSubobject<UTimelineComponent>(TEXT("LockPanelTimeLine"));
 }
@@ -104,4 +108,10 @@ void AGoToCreateCoinPanel::FinishMoveLockPanel()
 	{
 		IsLockPanelOpen = false;
 	}
+}
+
+
+void AGoToCreateCoinPanel::InteractLeftClick_Implementation()
+{
+	ChangeCreateCoinMode();
 }

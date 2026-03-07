@@ -7,10 +7,11 @@
 #include "DataTypes/CoinDataTypes.h"
 #include "DataTypes/FlipSide_Enum.h"
 #include "DataTypes/WeaponDataTypes.h"
+#include "Interface/ShopClickInterface.h"
 #include "CreateCoinUIActor.generated.h"
 
 UCLASS()
-class FLIP_SIDE_API ACreateCoinUIActor : public AActor
+class FLIP_SIDE_API ACreateCoinUIActor : public AActor, public IShopClickInterface
 {
 	GENERATED_BODY()
 	
@@ -121,4 +122,7 @@ private:
 	UFUNCTION()
 	void PressCoin(float Value);
 
+public:
+
+	virtual void InteractLeftClick_Implementation() override;
 };

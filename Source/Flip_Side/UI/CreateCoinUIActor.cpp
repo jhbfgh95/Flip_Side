@@ -80,11 +80,17 @@ void ACreateCoinUIActor::ClickCoin()
 {
 	//앞뒤 변경
 	if(IsCoinFront)
+	{
+		
 		IsCoinFront = false;
+		Timeline->PlayFromStart();
+	}
 	else
+	{
 		IsCoinFront = true;
+		Timeline->Reverse();
+	}
 
-	Timeline->PlayFromStart();
 	CoinCreateWSubSystem->ChangeCoinSide();
 }
 
@@ -194,3 +200,8 @@ void ACreateCoinUIActor::ResetSideTexture()
 	}
 }
 
+
+void ACreateCoinUIActor::InteractLeftClick_Implementation()
+{
+	ClickCoin();
+}
