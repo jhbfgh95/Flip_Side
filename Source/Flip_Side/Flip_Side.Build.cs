@@ -30,7 +30,14 @@ public class Flip_Side : ModuleRules
 			"Flip_Side/Subsystem",
 			"Flip_Side/Subsystem/BattleLevel",
 			"Flip_Side/Subsystem/ShopLevel",
-			"Flip_Side/Objects"
+			"Flip_Side/Objects",
+			"Flip_Side/Interface",
+			"Flip_Side/UI/ShopCard",
+			"Flip_Side/UI/ShopCoinCreate",
+			"Flip_Side/UI/ShopCoinManage",
+			"Flip_Side/UI/ShopItem",
+			"Flip_Side/UI/ShopUnlockCard",
+			"Flip_Side/UI/ShopUnlocWeapon"
 		});
 
 

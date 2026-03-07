@@ -2,9 +2,9 @@
 
 
 #include "Player/GameMode_Shop.h"
-#include "Subsystem/ShopCardWSubsystem.h"
-#include "Subsystem/ShopItemWSubsystem.h"
-#include "Subsystem/ShopCoinWSubsystem.h"
+#include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
+#include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
+#include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 #include "DataTypes/CoinDataTypes.h"
 #include "Subsystem/CrossingLevelGISubsystem.h"
 
