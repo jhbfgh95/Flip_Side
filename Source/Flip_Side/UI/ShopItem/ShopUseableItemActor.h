@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "DataTypes/ItemDataTypes.h"
+#include "Interface/ShopMouseInterface.h"
 #include "ShopUseableItemActor.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class FLIP_SIDE_API AShopUseableItemActor : public AActor
+class FLIP_SIDE_API AShopUseableItemActor : public AActor, public IShopMouseInterface
 {
 	GENERATED_BODY()
 
@@ -27,6 +28,11 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "UseableItem | Component", meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* ItemExplainMesh;
+
+	
+	UPROPERTY(EditAnywhere, Category = "UseableItem | Component", meta = (AllowPrivateAccess = "true"))
+	class USphereComponent* InteractSphere;
+
 	
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
@@ -90,4 +96,9 @@ public:
 	void HoverdItem();
 	UFUNCTION()
 	void UnHoverdItem();
+
+public:
+	virtual void InteractHover_Implementation() override;
+	virtual void InteractUnHover_Implementation() override;
+	virtual void InteractLeftClick_Implementation() override;
 };

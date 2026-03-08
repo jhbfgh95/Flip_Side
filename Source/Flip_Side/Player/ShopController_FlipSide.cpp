@@ -93,6 +93,7 @@ void AShopController_FlipSide::OnPossess(APawn* InPawn)
 void AShopController_FlipSide::PlayerTick(float DeltaTime)
 {
     Super::PlayerTick(DeltaTime);
+    CheckMouseHover();
 }
 //위젯 리스트에 넣고 보이게함
 void AShopController_FlipSide::ViewWidgetList()
@@ -211,26 +212,28 @@ void AShopController_FlipSide::OnRightClick()
 
 void AShopController_FlipSide::CheckMouseHover()
 {
-    
     FHitResult Hit;
+    AActor* NewHoverActor = nullptr;
     if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
     {
-        if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+        if (Hit.Component->ComponentHasTag("HoverAble") && Hit.GetActor()->Implements<UShopMouseInterface>())
         {
-            if (Hit.Component->ComponentHasTag("HoverAble") && Hit.GetActor()->Implements<UShopMouseInterface>())
-            {
-                IShopMouseInterface::Execute_InteractHover(Hit.GetActor());
-            }
+            NewHoverActor = Hit.GetActor();
         }
     }
-    /*
-    else
+
+    if (CurrentHoverActor != NewHoverActor)
     {
-        // 마우스가 허공을 보거나 아무 영역도 아닐 때
-        if (CurrentHoveredArea)
+        if (CurrentHoverActor && CurrentHoverActor->Implements<UShopMouseInterface>())
         {
-            CurrentHoveredArea->SetHighlight(false);
-            CurrentHoveredArea = nullptr;
+            IShopMouseInterface::Execute_InteractUnHover(CurrentHoverActor);
         }
-    }*/
+
+        CurrentHoverActor = NewHoverActor;
+
+        if (CurrentHoverActor)
+        {
+            IShopMouseInterface::Execute_InteractHover(CurrentHoverActor);
+        }
+    }
 }

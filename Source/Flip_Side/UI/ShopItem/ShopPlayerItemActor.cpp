@@ -82,6 +82,11 @@ void AShopPlayerItemActor::InitItem(int32 Index)
 		{
 			SetItemMaterial();
 		}
+		
+	}
+	else
+	{
+		//HideItem();
 	}
 }
 
@@ -98,7 +103,7 @@ void AShopPlayerItemActor::SetItemMaterial()
 
 void AShopPlayerItemActor::HoverdItem()
 {
-	ItemMeshTimeline->PlayFromStart();
+	ItemMeshTimeline->Play();
 }
 void AShopPlayerItemActor::UnHoverdItem()
 {
@@ -122,10 +127,15 @@ void AShopPlayerItemActor::DescriptionMovement(float Value)
 
 void AShopPlayerItemActor::InteractHover_Implementation()
 {
-
+	HoverdItem();
 }
 
 void AShopPlayerItemActor::InteractUnHover_Implementation()
 {
-
+	UnHoverdItem();
+}
+void AShopPlayerItemActor::HideItem()
+{
+	this->SetActorHiddenInGame(true);
+	this->SetActorEnableCollision(false);
 }

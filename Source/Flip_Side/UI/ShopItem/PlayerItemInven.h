@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Interface/ShopClickInterface.h"
+#include "Interface/ShopMouseInterface.h"
 #include "PlayerItemInven.generated.h"
 
 UCLASS()
-class FLIP_SIDE_API APlayerItemInven : public AActor, public IShopClickInterface
+class FLIP_SIDE_API APlayerItemInven : public AActor, public IShopMouseInterface
 {
 	GENERATED_BODY()
 	

@@ -7,6 +7,7 @@
 #include "Components/SceneComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/TimelineComponent.h"
+#include "Components/SphereComponent.h"
 
 AShopUseableItemActor::AShopUseableItemActor()
 {
@@ -20,6 +21,9 @@ AShopUseableItemActor::AShopUseableItemActor()
 
 	ItemExplainMesh= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemExplain Mesh"));
 	ItemExplainMesh->SetupAttachment(RootComponent);
+
+	InteractSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InteractSphere"));
+	InteractSphere->SetupAttachment(RootComponent);
 
 	ItemMeshTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ItemMeshTimeline"));
 }
@@ -61,7 +65,7 @@ void AShopUseableItemActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 }
 void AShopUseableItemActor::HoverdItem()
 {
-	ItemMeshTimeline->PlayFromStart();
+	ItemMeshTimeline->Play();
 }
 void AShopUseableItemActor::UnHoverdItem()
 {
@@ -112,4 +116,19 @@ void AShopUseableItemActor::SetItemMaterial()
 		MID->SetTextureParameterValue(FName("UseItem_Icon"), ShopItemData.ItemIcon);
 		MID->SetVectorParameterValue(FName("Front_Color"), ShopItemData.TypeColor);
 	}
+}
+
+void AShopUseableItemActor::InteractHover_Implementation()
+{
+	HoverdItem();
+}
+
+void AShopUseableItemActor::InteractUnHover_Implementation()
+{
+	UnHoverdItem();
+}
+
+void AShopUseableItemActor::InteractLeftClick_Implementation()
+{
+	ShopItemSubSystem->BuyItemByIndex(ShopItemIndex);
 }

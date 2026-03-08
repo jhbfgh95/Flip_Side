@@ -5,11 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "DataTypes/ItemDataTypes.h"
-#include "Interface/ShopHoverInterface.h"
+#include "Interface/ShopMouseInterface.h"
 #include "ShopPlayerItemActor.generated.h"
 
 UCLASS()
-class FLIP_SIDE_API AShopPlayerItemActor : public AActor, public IShopHoverInterface
+class FLIP_SIDE_API AShopPlayerItemActor : public AActor, public IShopMouseInterface
 {
 	GENERATED_BODY()
 	
@@ -98,6 +98,8 @@ public:
 	void InitItem(int32 Index);
 
 	void SetItemMaterial();
+
+	void HideItem();
 
 public:
 	virtual void InteractHover_Implementation() override;

@@ -127,7 +127,9 @@ protected:
 	void OnRightClick();
 
     void CheckMouseHover();
-public:
+
+private:
+	AActor* CurrentHoverActor;
 
 
 };
