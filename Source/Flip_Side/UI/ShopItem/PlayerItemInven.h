@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interface/ShopClickInterface.h"
 #include "PlayerItemInven.generated.h"
 
 UCLASS()
-class FLIP_SIDE_API APlayerItemInven : public AActor
+class FLIP_SIDE_API APlayerItemInven : public AActor, public IShopClickInterface
 {
 	GENERATED_BODY()
 	
@@ -18,10 +19,6 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 private:
 	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess))
@@ -48,7 +45,14 @@ private:
 	FVector ArriveVector;
 	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess))
 	FVector InvenMoveDirection;
+
+bool IsInvenOpen = false;
+
 private:
 	UFUNCTION()
 	void InvenMeshMovement(float Value);	
+
+	void ActiveInven();
+public:
+	virtual void InteractLeftClick_Implementation() override;
 };

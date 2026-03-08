@@ -6,7 +6,8 @@
 #include "W_ShopWidget.h"
 #include "ShopPlayerPawn_FlipSide.h"
 #include "Player/GameMode_Shop.h"
-#include "Interface/ShopClickInterface.h"
+
+#include "Interface/ShopMouseInterface.h"
 
 AShopController_FlipSide::AShopController_FlipSide()
 {
@@ -195,9 +196,9 @@ void AShopController_FlipSide::OnLeftClick()
 
     if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
     {
-        if (Hit.Component->ComponentHasTag("LClickAble") && Hit.GetActor()->Implements<UShopClickInterface>())
+        if (Hit.Component->ComponentHasTag("LClickAble") && Hit.GetActor()->Implements<UShopMouseInterface>())
         {
-            IShopClickInterface::Execute_InteractLeftClick(Hit.GetActor());
+            IShopMouseInterface::Execute_InteractLeftClick(Hit.GetActor());
         }
     }
 }
@@ -210,30 +211,19 @@ void AShopController_FlipSide::OnRightClick()
 
 void AShopController_FlipSide::CheckMouseHover()
 {
-    /*
+    
     FHitResult Hit;
     if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
     {
-        AActor *HitActor = Hit.GetActor();
-
-        ABattleArea *TargetArea = Cast<ABattleArea>(HitActor);
-
-        // 이전에 호버링하던 곳과 지금 마우스 아래 있는 곳이 다를 때
-        if (CurrentHoveredArea != TargetArea)
+        if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
         {
-            if (CurrentHoveredArea)
+            if (Hit.Component->ComponentHasTag("HoverAble") && Hit.GetActor()->Implements<UShopMouseInterface>())
             {
-                CurrentHoveredArea->SetHighlight(false);
-            }
-
-            CurrentHoveredArea = TargetArea;
-
-            if (CurrentHoveredArea)
-            {
-                CurrentHoveredArea->SetHighlight(true);
+                IShopMouseInterface::Execute_InteractHover(Hit.GetActor());
             }
         }
     }
+    /*
     else
     {
         // 마우스가 허공을 보거나 아무 영역도 아닐 때

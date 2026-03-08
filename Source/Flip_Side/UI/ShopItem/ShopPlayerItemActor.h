@@ -5,10 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "DataTypes/ItemDataTypes.h"
+#include "Interface/ShopHoverInterface.h"
 #include "ShopPlayerItemActor.generated.h"
 
 UCLASS()
-class FLIP_SIDE_API AShopPlayerItemActor : public AActor
+class FLIP_SIDE_API AShopPlayerItemActor : public AActor, public IShopHoverInterface
 {
 	GENERATED_BODY()
 	
@@ -28,11 +29,15 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "UseableItem | Component", meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* UseableItemRootComp;
+
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* ItemMesh;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* ItemDescriptionMesh;
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class USphereComponent* InteractSphere;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* ItemWidget;
@@ -93,4 +98,8 @@ public:
 	void InitItem(int32 Index);
 
 	void SetItemMaterial();
+
+public:
+	virtual void InteractHover_Implementation() override;
+	virtual void InteractUnHover_Implementation() override;
 };

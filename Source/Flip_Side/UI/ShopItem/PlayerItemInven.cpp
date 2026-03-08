@@ -12,8 +12,6 @@ APlayerItemInven::APlayerItemInven()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
-	
 	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
 	SetRootComponent(RootScene);
 	InvenMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("InveMesh"));
@@ -34,7 +32,7 @@ void APlayerItemInven::BeginPlay()
 	InveMoveCallBack.BindUFunction(this, FName("InvenMeshMovement"));
 	InvenMoveTimeline->AddInterpFloat(InvenMeshCurve, InveMoveCallBack);	
 
-	StartVector = InvenMesh->GetRelativeLocation();
+	StartVector = GetActorLocation();
 	ArriveVector = StartVector + InvenMoveDirection;
 
 
@@ -62,17 +60,29 @@ void APlayerItemInven::BeginPlay()
 	}
 }
 
-// Called every frame
-void APlayerItemInven::Tick(float DeltaTime)
+void APlayerItemInven::InteractLeftClick_Implementation()
 {
-	Super::Tick(DeltaTime);
-
+	ActiveInven();
 }
-
 
 void APlayerItemInven::InvenMeshMovement(float Value)
 {
 	FVector MoveVec = FMath::Lerp(StartVector, ArriveVector, Value);
 
-	InvenMesh->SetRelativeLocation(MoveVec);
+	SetActorLocation(MoveVec);
+}
+
+
+void APlayerItemInven::ActiveInven()
+{
+	if(IsInvenOpen)
+	{
+		InvenMoveTimeline->ReverseFromEnd();
+		IsInvenOpen = false;
+	}
+	else
+	{
+		InvenMoveTimeline->PlayFromStart();
+		IsInvenOpen = true;
+	}
 }

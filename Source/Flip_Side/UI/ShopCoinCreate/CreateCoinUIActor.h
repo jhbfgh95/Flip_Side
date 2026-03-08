@@ -7,11 +7,11 @@
 #include "DataTypes/CoinDataTypes.h"
 #include "DataTypes/FlipSide_Enum.h"
 #include "DataTypes/WeaponDataTypes.h"
-#include "Interface/ShopClickInterface.h"
+#include "Interface/ShopMouseInterface.h"
 #include "CreateCoinUIActor.generated.h"
 
 UCLASS()
-class FLIP_SIDE_API ACreateCoinUIActor : public AActor, public IShopClickInterface
+class FLIP_SIDE_API ACreateCoinUIActor : public AActor, public IShopMouseInterface
 {
 	GENERATED_BODY()
 	

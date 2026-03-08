@@ -38,8 +38,8 @@ void UW_CoinCreateWidget::NativeConstruct()
 
 void UW_CoinCreateWidget::NativeDestruct()
 {
-    Super::NativeDestruct();
     CoinCreateWSubSystem->OnCoinClassUpdate.RemoveAll(this);
+    Super::NativeDestruct();
 }
 
 

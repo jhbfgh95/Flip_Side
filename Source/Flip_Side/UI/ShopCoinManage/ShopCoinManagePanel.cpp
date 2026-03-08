@@ -17,12 +17,15 @@
 
 
 #include "UI/ShopCoinManage/W_CoinManagePanelWidget.h"
+#include "UI/ShopCoinManage/CoinSlotLockPanel.h"
+#include "UI/ShopCoinManage/ShopCoinManageCoin.h"
+#include "UI/ShopCoinManage/ShopCoinSlotCountButton.h"
 
 // Sets default values
 AShopCoinManagePanel::AShopCoinManagePanel()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	
     RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(RootScene);
@@ -32,26 +35,29 @@ AShopCoinManagePanel::AShopCoinManagePanel()
 
 	GearMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GearMesh"));
 	GearMesh->SetupAttachment(RootScene);
-	LockPanelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LockPanel"));
-    LockPanelMesh->SetupAttachment(RootScene);
 	
 	DescriptionMesh= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DescriptionMesh"));
 	DescriptionMesh->SetupAttachment(RootScene);
+	
+	IncreaseCountButton = CreateDefaultSubobject<UChildActorComponent>(TEXT("IncreaseCountButton"));
+	IncreaseCountButton->SetupAttachment(RootScene);
 
-	PanelCoinMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PanelCoinMesh"));
-	PanelCoinMesh->SetupAttachment(RootScene);
+	DecreaseCountButton= CreateDefaultSubobject<UChildActorComponent>(TEXT("DecreaseCountButton"));
+	DecreaseCountButton->SetupAttachment(RootScene);
 
-	/*
-	//박스 컴포넌트들
-	UnlockPanelBox;
-	IncreaseCountBox;
-	DecreaseCountBox;*/
+	CoinActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("CoinActor"));
+	CoinActor->SetupAttachment(RootScene);
+
+	LockPanel= CreateDefaultSubobject<UChildActorComponent>(TEXT("LockPanel"));
+	LockPanel->SetupAttachment(RootScene);
+
+
+
+
 	//x타임라인들//
-	UnlockTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("UnlockPanelTimeLine"));
 
 	GearTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("GearlTimeline"));
 
-	PanelCoinTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("PanelCoinTimeline"));
 	DescriptionTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("PanelDownTimeLine"));
 
 	//위젯들
@@ -74,15 +80,17 @@ void AShopCoinManagePanel::BeginPlay()
 	ShopWeaponDataSubsystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
 	DataManagerSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 	ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AShopCoinManagePanel::ActiveGear);
-	//ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &AShopCoinManagePanel::UnlockPanel);
 	ShopCoinSubsystem->OnCoinCountUpdate.AddDynamic(this, &AShopCoinManagePanel::SetPanelWidget);
 	
+	
+
+	//Set Actor Class
+	IncreaseCountButtonClass = Cast<AShopCoinSlotCountButton>(IncreaseCountButton->GetChildActor());;
+	DecreaseCountButtonClass = Cast<AShopCoinSlotCountButton>(DecreaseCountButton->GetChildActor());
+	LockPanelClass= Cast<ACoinSlotLockPanel>(LockPanel->GetChildActor());
+	CoinActorClass= Cast<AShopCoinManageCoin>(CoinActor->GetChildActor());
 	PanelWidgetClass = Cast<UW_CoinManagePanelWidget>(PanelWidget->GetUserWidgetObject());
 
-	//잠김 판넬 운동 타임라인
-	FOnTimelineFloat LockPanelMoveCallBack;
-	LockPanelMoveCallBack.BindUFunction(this, FName("LockPanelMove"));
-	UnlockTimeLine->AddInterpFloat(UnlockPanelCurve, LockPanelMoveCallBack);	
 
 	//설명 판넬 운동 타임라인
 	FOnTimelineFloat DescriptionPanelMoveCallBack;
@@ -94,36 +102,20 @@ void AShopCoinManagePanel::BeginPlay()
 	GearTimeline->AddInterpFloat(GearCurve, GearMoveCallBack);
 
 
-	LockPanelStartVec = LockPanelMesh->GetRelativeLocation();
-	LockPanelArriveVec = LockPanelStartVec+ LockPanelMoveDirection;
-
 	DescriptionPanelStartVec = DescriptionMesh->GetRelativeLocation();
 	DescriptionPanelArriveVec = DescriptionPanelStartVec + DescriptionPanelMoveDirection;
 
 
 	StartGearRotator = GearMesh->GetRelativeRotation();
 	ArriveGearRotator = StartGearRotator + GearRotateDirection;
-/*
-	//판넬 운동 끝났을 때 타임라인
-	FOnTimelineEvent FinishLockPanelMoveCallBack;
-	FinishLockPanelMoveCallBack.BindUFunction(this, FName("FinishedPanelMove"));
-	UnlockTimeLine->SetTimelineFinishedFunc(FinishLockPanelMoveCallBack);*/
 
 }
 
 void AShopCoinManagePanel::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Super::EndPlay(EndPlayReason);
-	
 	ShopCoinSubsystem->OnCoinSlotChange.RemoveAll(this);
-	//ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &AShopCoinManagePanel::UnlockPanel);
 	ShopCoinSubsystem->OnCoinCountUpdate.RemoveAll(this);
-}
-// Called every frame
-void AShopCoinManagePanel::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+	Super::EndPlay(EndPlayReason);
 }
 void AShopCoinManagePanel::ActiveDescriptionPanel(bool IsPanelShow)
 {
@@ -131,18 +123,6 @@ void AShopCoinManagePanel::ActiveDescriptionPanel(bool IsPanelShow)
 		DescriptionTimeLine->PlayFromStart();
 	else
 		DescriptionTimeLine->ReverseFromEnd();
-}
-
-void AShopCoinManagePanel::UnlockPanel()
-{
-	UnlockTimeLine->PlayFromStart();
-	DescriptionTimeLine->PlayFromStart();
-}
-
-void AShopCoinManagePanel::LockPanelMove(float Value)
-{
-	FVector MoveVec = FMath::Lerp(LockPanelStartVec, LockPanelArriveVec,Value);
-	LockPanelMesh->SetRelativeLocation(MoveVec);
 }
 
 void AShopCoinManagePanel::MoveDescriptionPanel(float Value)
@@ -175,13 +155,9 @@ void AShopCoinManagePanel::ActiveGear(bool IsPanelMoveToBottom)
 
 void AShopCoinManagePanel::InitPanel()
 {
-	if(!ShopCoinSubsystem->GetCurrentCoinUnlock())
-		LockPanelMesh->SetRelativeLocation(LockPanelStartVec);
-	else
-		LockPanelMesh->SetRelativeLocation(LockPanelArriveVec);
-
 	DescriptionMesh->SetRelativeLocation(DescriptionPanelStartVec);
-	InitPanelCoin();
+	LockPanelClass->InitLockPanel(!ShopCoinSubsystem->GetCurrentCoinUnlock());
+	CoinActorClass->InitCoin();
 }
 
 void AShopCoinManagePanel::SetPanelWidget(int32 CoinSlotIndex, int32 CoinCount)
@@ -209,40 +185,5 @@ void AShopCoinManagePanel::InitPanelToStart()
 
 void AShopCoinManagePanel::InitPanelCoin()
 {
-	
-	UMaterialInstanceDynamic* MID = PanelCoinMesh->CreateDynamicMaterialInstance(0);
-
-	if(MID)
-	{
-		FCoinTypeStructure CoinData = ShopCoinSubsystem->GetCurrentSlotCoin();
-		EWeaponClass CurrentWeaponClass = ShopCoinSubsystem->GetCurrentSlotCoinClass();
-
-		FFaceData FrontFaceData; 
-		FFaceData BackFaceData;
-
-		
-		
-		
-		if(DataManagerSubsystem->TryGetWeapon(CoinData.FrontWeaponID, FrontFaceData))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("앞면 아이콘 설정"));
-			MID->SetTextureParameterValue(FName("Front_Texture"), FrontFaceData.WeaponIcon);
-			MID->SetVectorParameterValue(FName("Front_Color"), FrontFaceData.TypeColor);
-		}
-		else
-		{
-			MID->SetVectorParameterValue(FName("Front_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
-		}
-
-		if(DataManagerSubsystem->TryGetWeapon(CoinData.BackWeaponID, BackFaceData))
-		{	
-			UE_LOG(LogTemp, Warning, TEXT("뒷면아이콘  설정"));
-			MID->SetTextureParameterValue(FName("Back_Texture"), BackFaceData.WeaponIcon);
-			MID->SetVectorParameterValue(FName("Back_Color"), BackFaceData.TypeColor);
-		}
-		else
-		{
-			MID->SetVectorParameterValue(FName("Back_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
-		}
-	}
+	CoinActorClass->InitCoin();
 }

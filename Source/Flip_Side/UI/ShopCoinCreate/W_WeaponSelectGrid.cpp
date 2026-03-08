@@ -50,8 +50,9 @@ void UW_WeaponSelectGrid::NativeConstruct()
 
 void UW_WeaponSelectGrid::NativeDestruct()
 {
-    Super::NativeDestruct();
+    
     UnlockSubSystem->OnWeaponUnlock.RemoveAll(this);
+    Super::NativeDestruct();
 }
 
 void UW_WeaponSelectGrid::InitWeaponGrid(EWeaponClass WeaponClass,int32 Index)

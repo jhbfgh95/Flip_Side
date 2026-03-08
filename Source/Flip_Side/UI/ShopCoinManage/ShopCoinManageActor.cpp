@@ -65,11 +65,12 @@ void AShopCoinManageActor::BeginPlay()
 
 void AShopCoinManageActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Super::EndPlay(EndPlayReason);
+	
 	
 	ShopCoinSubsystem->OnCoinSlotChange.RemoveAll(this);
 	ShopCoinSubsystem->OnCoinCreated.RemoveAll(this);
 	ShopCoinSubsystem->OnUnlockCoinSlot.RemoveAll(this);
+	Super::EndPlay(EndPlayReason);
 }
 
 void AShopCoinManageActor::ChangePanelToBottom()
@@ -168,11 +169,11 @@ void AShopCoinManageActor::UnlockCurrentPanel()
 {
 	if(CurrentShowPanel == CoinMPanel1)
 	{
-		Panel1Class->UnlockPanel();
+		//Panel1Class->UnlockPanel();
 	}
 	else
 	{
-		Panel2Class->UnlockPanel();
+		//Panel2Class->UnlockPanel();
 	}
 }
 

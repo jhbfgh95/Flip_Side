@@ -20,9 +20,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 private:
 	// 루트 씬
@@ -31,39 +28,30 @@ private:
 	// 몸통 메쉬
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
 	class UStaticMeshComponent* PanelMesh;
-	
 	// 기어 메쉬
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
 	class UStaticMeshComponent* GearMesh;
-
 	// 설명 메쉬 메쉬
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
 	class UStaticMeshComponent* DescriptionMesh;
 
-	//잠긴 판넬 표시 메쉬
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
-	class UStaticMeshComponent* LockPanelMesh;
-
-	//코인 표시 메쉬
+	class UChildActorComponent* IncreaseCountButton;
+	
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
-	class UStaticMeshComponent* PanelCoinMesh;
+	class UChildActorComponent* DecreaseCountButton;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
-	class UStaticMeshComponent* IncreaseCountMesh;
-
+	class UChildActorComponent* CoinActor;
+	
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
-	class UStaticMeshComponent* DecreaseCountMesh;
+	class UChildActorComponent* LockPanel;
 
 private:
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
-	class UBoxComponent* UnlockPanelBox;
-	
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
-	class UBoxComponent* IncreaseCountBox;
-	
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
-	class UBoxComponent* DecreaseCountBox;
-
+	class AShopCoinSlotCountButton* IncreaseCountButtonClass;
+	class AShopCoinSlotCountButton* DecreaseCountButtonClass;
+	class ACoinSlotLockPanel* LockPanelClass;
+	class AShopCoinManageCoin* CoinActorClass;
 
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
@@ -77,22 +65,14 @@ private:
 	class UTimelineComponent* DescriptionTimeLine;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UTimelineComponent* UnlockTimeLine;
-
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UTimelineComponent* GearTimeline;
-
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UTimelineComponent* PanelCoinTimeline;
 	
-	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
-	class UCurveFloat* UnlockPanelCurve;
-
 	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
 	class UCurveFloat* DescriptionPanelCurve;
 	
 	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
 	class UCurveFloat* GearCurve;
+
 private:
 	class UShopCoinWSubsystem* ShopCoinSubsystem;
 	class UShopWeaponDataWSubsystem* ShopWeaponDataSubsystem;
@@ -102,14 +82,6 @@ private:
 	class UW_CoinManagePanelWidget* PanelWidgetClass;
 
 private:
-
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	FVector LockPanelStartVec;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	FVector LockPanelArriveVec;
-	
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	FVector LockPanelMoveDirection;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	FVector DescriptionPanelMoveDirection;
@@ -133,18 +105,11 @@ private:
 	UFUNCTION()
 	void SetPanelWidget(int32 CoinSlotIndex, int32 CoinCount);
 
-
 public:
 
 	void InitPanel();
 	void InitPanelAfterArrive();
 	void InitPanelToStart();
-
-	UFUNCTION(BlueprintCallAble)
-	void UnlockPanel();
-
-	UFUNCTION()
-	void LockPanelMove(float Value);
 
 	UFUNCTION()
 	void MoveDescriptionPanel(float Value);

@@ -5,7 +5,7 @@
 #include "Components/WidgetComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TimelineComponent.h"
-
+#include "Components/SphereComponent.h"
 
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
 
@@ -24,6 +24,9 @@ AShopPlayerItemActor::AShopPlayerItemActor()
 
 	ItemWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("ItemCountWidget"));
 	ItemWidget->SetupAttachment(ItemMesh);
+
+	InteractSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InteractSphere"));
+	InteractSphere->SetupAttachment(RootComponent);
 
 	ItemDescriptionMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemDescriptionMesh"));
 	ItemDescriptionMesh->SetupAttachment(ItemMesh);
@@ -115,4 +118,14 @@ void AShopPlayerItemActor::DescriptionMovement(float Value)
 	FVector MoveVector = FMath::Lerp(DescriptionStartLocation, DescriptionArriveLocation, Value);
 
 	ItemDescriptionMesh->SetRelativeLocation(MoveVector);
+}
+
+void AShopPlayerItemActor::InteractHover_Implementation()
+{
+
+}
+
+void AShopPlayerItemActor::InteractUnHover_Implementation()
+{
+
 }
