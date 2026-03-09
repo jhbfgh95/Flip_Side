@@ -117,8 +117,7 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(const FActionTask& Actio
             SelectedAction->SetActionRange(LastGridPoint);
             SelectedAction->SetFinalAttackPoint(SelectWeapon.AttackPoint + ActionTask.ModifiedAttackPoint);
             SelectedAction->SetFinalBehaviorPoint(SelectWeapon.BehaviorPoint + ActionTask.ModifiedBehaviorPoint);
-            /*
-            switch(SelectWeapon.EActionRepeatType)
+            switch(SelectWeapon.ActionRepeatType)
             {
                 case EActionRepeatType::Behavior :
                     RepeatActionCnt = SelectWeapon.BehaviorPoint + ActionTask.ModifiedBehaviorPoint;
@@ -127,11 +126,10 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(const FActionTask& Actio
                     RepeatActionCnt = SelectWeapon.AttackPoint + ActionTask.ModifiedAttackPoint;
                     break;
             }
-            */
-            //AreaSpec = SelecteWeapon.Spec; 걍 이렇게 넣을 수 있게 만들어줘잉
-            //AreaSpec.AnchorCell = CoinGrid;
+            AreaSpec = SelectWeapon.AttackAreaSpec;
+            AreaSpec.AnchorCell = CoinGrid;
 
-            if(/*AreaSpec.Pattern == EAttackAreaPattern::SingleCell*/true)
+            if(AreaSpec.Pattern == EAttackAreaPattern::SingleCell)
             {
                 CurrentInputState = EActionInputState::WaitingForGridClick;
                 GridManager->GetValidGridsForSingleCell(CoinGrid,AreaSpec,ValidTargetGrids);

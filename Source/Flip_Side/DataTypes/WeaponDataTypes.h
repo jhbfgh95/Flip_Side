@@ -7,6 +7,7 @@
 #include "FlipSide_Enum.h"
 #include "Engine/Texture2D.h"
 #include "NiagaraSystem.h"
+#include "AttackAreaTypes.h" 
 class UBehavior; // forward declaration
 #include "WeaponDataTypes.generated.h"
 
@@ -39,7 +40,6 @@ struct FFaceData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UTexture2D* WeaponIcon = nullptr;
 
-    // DB���� ���� �ڵ� ���ڿ�
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString BehaviorCode;
 
@@ -54,6 +54,18 @@ struct FFaceData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FLinearColor TypeColor;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FAttackAreaSpec AttackAreaSpec;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FIntPoint AttackAnchorOffset = FIntPoint(0, 0);
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 AttackAreaFlags = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EActionRepeatType ActionRepeatType = EActionRepeatType::None;
 };
 
 USTRUCT(BlueprintType)
