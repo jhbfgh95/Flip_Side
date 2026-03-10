@@ -1,4 +1,6 @@
 #include "Objects/Item_Action.h"
+#include "Engine/World.h"
+#include "DataManagerSubsystem.h"
 #include "Subsystem/BattleLevel/ActionLogicRegistryGISubsystem.h"
 void UItem_Action::SetItemEffectValue(const int32 OnItemEffectValue)
 {
@@ -33,6 +35,12 @@ void UItem_Action::ExecuteAction()
 
     UWorld* World = GetWorld();
     if (!World) return;
+
+    auto* DM = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+    if (DM && DM->IsCacheReady())
+    {
+        DM->TryGetItem(LogicID, ItemInfo);
+    }
 
     UActionLogicRegistryGISubsystem* ActionRegistry = World->GetGameInstance()->GetSubsystem<UActionLogicRegistryGISubsystem>();
     if(!ActionRegistry) return;

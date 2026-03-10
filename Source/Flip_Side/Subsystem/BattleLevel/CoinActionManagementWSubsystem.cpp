@@ -3,6 +3,7 @@
 #include "WeaponDataTypes.h"
 #include "FlipSide_Enum.h"
 #include "CoinActor.h"
+#include "GridActor.h"
 #include "Weapon_Action.h"
 #include "GridManagerSubsystem.h"
 #include "DataManagerSubsystem.h"
@@ -180,6 +181,10 @@ void UCoinActionManagementWSubsystem::ExecuteTimeAction(const struct FGridPoint&
     {
         return;
     }
+
+    ACoinActor* TargetCoin = Cast<ACoinActor>(GridManager->GetGridActor(TargetGridPoint)->GetCurrentOccupied());
+    //클릭한거 하나 세팅
+    SelectedAction->SetSingleCellTargetCoin(TargetCoin);
 
     SelectedAction->ExecuteAction();
     RepeatActionCnt--;

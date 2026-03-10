@@ -3,6 +3,8 @@
 
 #include "Objects/Weapon_Action.h"
 #include "ActionLogicRegistryGISubsystem.h"
+#include "Engine/World.h"
+#include "DataManagerSubsystem.h"
 #include "WeaponLogicLibrary.h"
 
 void UWeapon_Action::SetFinalAttackPoint(const int32 AttackPoint)
@@ -38,11 +40,30 @@ void UWeapon_Action::ExecuteAction()
 
     UActionLogicRegistryGISubsystem* ActionRegistry = World->GetGameInstance()->GetSubsystem<UActionLogicRegistryGISubsystem>();
     if(!ActionRegistry) return;
+
+    SetWeaponData();
  
     FActionLogic WeaponLogic = ActionRegistry->GetWeaponLogic(this->LogicID);
 
     if(WeaponLogic)
     {
         WeaponLogic(this);
+    }
+}
+
+void UWeapon_Action::SetSingleCellTargetCoin(ACoinActor* TargetCoin)
+{
+    InRangeCoins.Empty();
+    InRangeCoins.Add(TargetCoin);
+
+    SetWeaponData();
+}
+
+void UWeapon_Action::SetWeaponData()
+{
+    auto* DM = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+    if (DM && DM->IsCacheReady())
+    {
+        DM->TryGetWeapon(LogicID, WeaponData);
     }
 }

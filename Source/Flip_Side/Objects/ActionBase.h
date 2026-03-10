@@ -46,6 +46,8 @@ public:
 
 	//virtual void SetInRangeOthers(const AOtherActor* TargetOthers);
 
+	virtual TArray<class ACoinActor*> GetInRangeCoins();
+
 	void CreateTestRange();
 
 	virtual void ExecuteAction();

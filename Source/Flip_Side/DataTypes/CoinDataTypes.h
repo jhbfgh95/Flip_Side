@@ -61,26 +61,6 @@ struct FRandomState
     FGridPoint RandomGrid;
 };
 
-//되면은 밑에 다 범용으로 옮겨주세용
-USTRUCT(BlueprintType)
-struct FBuffStructure
-{
-    GENERATED_BODY()
-
-    //지속시간
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    int32 BuffDuration = 0;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    int32 ModifiedAP = 0;   
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    int32 ModifiedBP = 0; 
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FGridPoint ModifiedRange = 0;
-};
-
 USTRUCT(BlueprintType)
 struct FCCStructure
 {
