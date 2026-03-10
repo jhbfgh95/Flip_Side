@@ -23,6 +23,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputMappingContext* InputContext;
 
+public:
+
+	virtual void BeginPlay() override;
+
+	virtual void PlayerTick(float DeltaTime) override; // 매 프레임 마우스 호버 감지용
 /* UI */
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
@@ -49,6 +54,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> UnlockWeaponWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> UnlockCardWidgetClass;
+
 //UI 스크립트
 private:
 	UPROPERTY()
@@ -65,6 +74,8 @@ private:
 	UUserWidget* SelectCardWidget;
 	UPROPERTY()
 	UUserWidget* UnlockWeaponWidget;
+	UPROPERTY()
+	UUserWidget* UnlockCardWidget;
 private:
 	void InitWidget(TSubclassOf<UUserWidget> WidgetClass, UUserWidget*& widget);
 
@@ -106,9 +117,28 @@ public:
 	UFUNCTION()
 	void SetUnlockWeaponModeWidget();
 
+	UFUNCTION()
+	void SetUnlockCardModeWidget();
+
 	void HideModeChangeWidget();
 
 	void ShowModeChangeWidget();
+	
+private:
+    FVector DefaultCameraLocation;
+    FRotator DefaultCameraRotation;
+    float DefaultCameraArmLength;
+
 protected:
-	virtual void BeginPlay() override;
+
+    void OnLeftClick();
+
+	void OnRightClick();
+
+    void CheckMouseHover();
+
+private:
+	AActor* CurrentHoverActor;
+
+
 };

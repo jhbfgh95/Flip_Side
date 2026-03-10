@@ -14,6 +14,7 @@
 
 //선택된 코인이 변경되었을 때 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FUnlockWeapon, EWeaponClass, WeaponClass, int32, AddIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockCard);
 
 UCLASS()
 class FLIP_SIDE_API UUnlockGISubsystem : public UGameInstanceSubsystem
@@ -30,12 +31,11 @@ private:
 
 public:
 	FUnlockWeapon OnWeaponUnlock; 
-
+	FUnlockCard OnUnlockCard;
 public:
 	int32 GetUnlockCardID(int32 index);
 	
 	int32 GetUnlockWeaponID(EWeaponClass WeaponClass, int32 index);
-
 	
 	int32 GetUnlockWeaponIndex(EWeaponClass WeaponClass, int32 index);
 
@@ -50,4 +50,6 @@ public:
 	int32 GetWeaponUnlockIndexByIndex(EWeaponClass WeaponClass, int32 index);
 	
 	bool IsWeaponUnlockByID(EWeaponClass WeaponClass, int32 index);
+
+	bool IsCardUnlockByID(int32 ID);
 };

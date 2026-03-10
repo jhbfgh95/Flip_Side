@@ -6,6 +6,9 @@
 #include "W_ShopWidget.h"
 #include "ShopPlayerPawn_FlipSide.h"
 #include "Player/GameMode_Shop.h"
+
+#include "Interface/ShopMouseInterface.h"
+
 AShopController_FlipSide::AShopController_FlipSide()
 {
     bShowMouseCursor = true;
@@ -27,6 +30,7 @@ void AShopController_FlipSide::BeginPlay()
         ShopGameMode->OnShopItemMode.AddDynamic(this, &AShopController_FlipSide::SetShopItemModeWidget);
         ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopController_FlipSide::SetSelectCardModeWidget);
         ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopController_FlipSide::SetUnlockWeaponModeWidget);
+        ShopGameMode->OnUnlockCardMode.AddDynamic(this, &AShopController_FlipSide::SetUnlockCardModeWidget);
     }
 
     
@@ -42,6 +46,8 @@ void AShopController_FlipSide::BeginPlay()
     InitWidget(ShopItemWidgetClass, ShopItemWidget);
     //무기 해금 위젯
     InitWidget(UnlockWeaponWidgetClass, UnlockWeaponWidget);
+
+    InitWidget(UnlockCardWidgetClass, UnlockCardWidget);
 
     //상점 메인
     InitWidget(ShopMainWigetClass, ShopMainWiget);
@@ -68,11 +74,15 @@ void AShopController_FlipSide::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-    if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
-	{
-		Subsystem->AddMappingContext(InputContext, 0);
-	}
+    if (UEnhancedInputLocalPlayerSubsystem *Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+    {
+        Subsystem->AddMappingContext(InputContext, 0);
+    }
+
+    InputComponent->BindKey(EKeys::LeftMouseButton, IE_Pressed, this, &AShopController_FlipSide::OnLeftClick);
+    //InputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnRightClick);
 }
+
 //폰하고 연결
 void AShopController_FlipSide::OnPossess(APawn* InPawn)
 {
@@ -82,6 +92,12 @@ void AShopController_FlipSide::OnPossess(APawn* InPawn)
     check(ControlledPawn);
 }
 
+
+void AShopController_FlipSide::PlayerTick(float DeltaTime)
+{
+    Super::PlayerTick(DeltaTime);
+    CheckMouseHover();
+}
 //위젯 리스트에 넣고 보이게함
 void AShopController_FlipSide::ViewWidgetList()
 {
@@ -173,5 +189,65 @@ void AShopController_FlipSide::SetUnlockWeaponModeWidget()
         HideWidgetList();
         AddOpenWidgetList(UnlockWeaponWidget);
         ViewWidgetList();
+    }
+}
+
+void AShopController_FlipSide::SetUnlockCardModeWidget()
+{
+    if(UnlockCardWidget)
+    {
+        HideWidgetList();
+        AddOpenWidgetList(UnlockCardWidget);
+        ViewWidgetList();
+    }
+}
+
+// 좌클릭: 선택, 카메라 이동
+void AShopController_FlipSide::OnLeftClick()
+{   
+    
+	UE_LOG(LogTemp, Warning, TEXT("클릭이벤트"));
+    FHitResult Hit;
+
+    if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+    {
+        if (Hit.Component->ComponentHasTag("LClickAble") && Hit.GetActor()->Implements<UShopMouseInterface>())
+        {
+            IShopMouseInterface::Execute_InteractLeftClick(Hit.GetActor());
+        }
+    }
+}
+
+// 우클릭: 디폴트 카메라 시점으로 복귀
+void AShopController_FlipSide::OnRightClick()
+{
+    //ReturnToDefaultCamera();
+}
+
+void AShopController_FlipSide::CheckMouseHover()
+{
+    FHitResult Hit;
+    AActor* NewHoverActor = nullptr;
+    if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+    {
+        if (Hit.Component->ComponentHasTag("HoverAble") && Hit.GetActor()->Implements<UShopMouseInterface>())
+        {
+            NewHoverActor = Hit.GetActor();
+        }
+    }
+
+    if (CurrentHoverActor != NewHoverActor)
+    {
+        if (CurrentHoverActor && CurrentHoverActor->Implements<UShopMouseInterface>())
+        {
+            IShopMouseInterface::Execute_InteractUnHover(CurrentHoverActor);
+        }
+
+        CurrentHoverActor = NewHoverActor;
+
+        if (CurrentHoverActor)
+        {
+            IShopMouseInterface::Execute_InteractHover(CurrentHoverActor);
+        }
     }
 }

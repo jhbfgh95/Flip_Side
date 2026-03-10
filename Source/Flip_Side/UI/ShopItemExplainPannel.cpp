@@ -3,7 +3,7 @@
 
 #include "UI/ShopItemExplainPannel.h"
 
-#include "Subsystem/ShopItemWSubSystem.h"
+#include "Subsystem/ShopLevel/ShopItemWSubSystem.h"
 
 
 void AShopItemExplainPannel::BeginPlay()
@@ -14,8 +14,8 @@ void AShopItemExplainPannel::BeginPlay()
 	if(ShopItemSubsystem)
 	{
 		//ShopItemSubsystem->OnSelectedCoinUpdate.AddDynamic(this, &AShopCoinExplainPannel::GetExplainByID);
-        ShopItemSubsystem->OnItemHovered.AddDynamic(this, &AShopItemExplainPannel::GetExplainByID);
-        ShopItemSubsystem->OnItemUnHovered.AddDynamic(this, &AShopItemExplainPannel::ResetPannel);
+        //ShopItemSubsystem->OnItemHovered.AddDynamic(this, &AShopItemExplainPannel::GetExplainByID);
+        //ShopItemSubsystem->OnItemUnHovered.AddDynamic(this, &AShopItemExplainPannel::ResetPannel);
 
 	}
 

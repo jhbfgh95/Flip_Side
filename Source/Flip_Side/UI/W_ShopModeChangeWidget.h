@@ -9,6 +9,8 @@
 /**
  * 
  */
+class UTexture2D;
+class UButton;
 UCLASS()
 class FLIP_SIDE_API UW_ShopModeChangeWidget : public UUserWidget
 {
@@ -20,21 +22,42 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
+
+private:
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
+	UTexture2D* T_CoinManageMode;
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
+	UTexture2D* T_CardSeletMode;
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
+	UTexture2D* T_ShopItemMode;
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
+	UTexture2D* T_CheckBossMode;
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
+	UTexture2D* T_ShopMaineMode;
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
+	UTexture2D* T_UnlockWeaponMode;
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
+	UTexture2D* T_UnlockCardMode;
+
+
 protected:
 	UPROPERTY(meta = (BindWidget))
-	class UButton* WidgetOpenButton;
+	UButton* WidgetOpenButton;
+
 	UPROPERTY(meta = (BindWidget))
-	class UButton* CoinCreateModeButton;
+	UButton* CoinCreateModeButton;
 	UPROPERTY(meta = (BindWidget))
-	class UButton* CardSelectModeButton;
+	UButton* CardSelectModeButton;
 	UPROPERTY(meta = (BindWidget))
-	class UButton* ShopItemModeButton;
+	UButton* ShopItemModeButton;
 	UPROPERTY(meta = (BindWidget))
-	class UButton* CheckBossModeButton;
+	UButton* CheckBossModeButton;
 	UPROPERTY(meta = (BindWidget))
-	class UButton* ShopMainModeButton;
+	UButton* ShopMainModeButton;
 	UPROPERTY(meta = (BindWidget))
-	class UButton* UnlockWeaponButton;
+	UButton* UnlockWeaponButton;
+	UPROPERTY(meta = (BindWidget))
+	UButton* UnlockCardButton;
 
 	class AGameMode_Shop* ShopGameMode;
 
@@ -60,5 +83,8 @@ protected:
 	void ClickShopMainModeButton();
 	UFUNCTION()
 	void ClickUnlockWeaponMode();
+	UFUNCTION()
+	void ClickUnlockCardMode();
 
+	void SetButtonTexture(UTexture2D* SetButtonTexture);
 };

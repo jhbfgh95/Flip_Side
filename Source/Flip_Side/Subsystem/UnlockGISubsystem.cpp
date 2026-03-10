@@ -65,6 +65,7 @@ void UUnlockGISubsystem::UnlockWeapon(EWeaponClass WeaponClass, int32 Index)
 void UUnlockGISubsystem::UnlockCard(int32 ID)
 {
     CardUnlockArray.Add(ID);
+    OnUnlockCard.Broadcast();
 }
 
 
@@ -130,4 +131,12 @@ int32 UUnlockGISubsystem::GetUnlockWeaponIndex(EWeaponClass WeaponClass, int32 i
         return UtilUnlockArray[index];
     }
     return -1;
+}
+
+bool UUnlockGISubsystem::IsCardUnlockByID(int32 ID)
+{
+    if(CardUnlockArray.Find(ID) ==-1)
+            return false;
+        else
+            return true;
 }
