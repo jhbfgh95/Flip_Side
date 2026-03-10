@@ -13,8 +13,17 @@ UCLASS()
 class FLIP_SIDE_API UW_UnlockCardModeWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
 
+
+private:
+	virtual void NativeConstruct() override;
+
+private:
+	class UShopUnlockCardWSubsystem* ShopUnlockCardSubsystem;
+
+
+private:
+	int32 CurrentPage = 0;
 
 private:
 	
@@ -29,9 +38,6 @@ private:
 	
 	UPROPERTY(meta =(BindWidget))
 	class UW_UnlockCardWidget* UnlockCardWidget4;
-	
-	UPROPERTY(meta =(BindWidget))
-	class UW_UnlockCardWidget* UnlockCardWidget5;
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* LeftPageButton;
@@ -42,4 +48,9 @@ private:
 private:
 	class UUnlockGISubsystem* UnlockSubsystem;
 
+	void InitUnlockCards();
+
+	void ChangeCardsLeft();
+
+	void ChangeCardsRight();
 };

@@ -17,16 +17,43 @@ class FLIP_SIDE_API UW_UnlockCardWidget : public UW_CardWidget
 
 protected:
 	virtual void NativeConstruct() override;
-
-	class UShopCardWSubsystem* CardSubsystem;
+	virtual void NativeDestruct() override;
 	class UUnlockGISubsystem* UnlockSubsystem;
+	class UShopUnlockCardWSubsystem* ShopUnlockCardSubsystem;
 
 private:
-	UPROPERTY(meta = (BindWidet))
+
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent) override;
+
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent) override;
+
+    virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+
+private:
+	UPROPERTY(meta = (BindWidget))
 	class UImage* LockImage;
 
+	FCardData UnlockCardData;
 
+private:
+	
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	class UWidgetAnimation* SelectAnim;
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	class UWidgetAnimation* UnSelectAnim;
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	class UWidgetAnimation* UnlockCardAnim;
 private:
 	void InitUnlockCard(FCardData CardData);
 
+	void CheckSelectCard();	
+	UFUNCTION()
+	void SetCardSelect(int32 SelctCardID);
+	UFUNCTION()
+	void SetUnlockCard(int32 UnlockCardID);
+private:
+
+public:
+	UFUNCTION(BlueprintCallable)
+	void HideLockIamge();
 };

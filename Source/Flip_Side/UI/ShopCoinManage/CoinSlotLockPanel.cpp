@@ -32,13 +32,9 @@ void ACoinSlotLockPanel::BeginPlay()
 	Super::BeginPlay();
 	ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
 
-	PanelStartLocation = GetActorLocation();
-	PanelArriveLocation = PanelStartLocation + PanelMoveDirection;
-
 	FOnTimelineFloat UnlockPanelCallBack;
 	UnlockPanelCallBack.BindUFunction(this, FName("MoveLockPanel"));
 	PanelMoveTimeline->AddInterpFloat(PanelMoveCurve, UnlockPanelCallBack);
-
 }
 
 void ACoinSlotLockPanel::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -53,12 +49,9 @@ void ACoinSlotLockPanel::Tick(float DeltaTime)
 
 }
 
-void ACoinSlotLockPanel::InitLockPanel(bool IsLock)
+void ACoinSlotLockPanel::InitLockPanel(FVector SetLocation)
 {
-	if(IsLock)
-		SetActorLocation(PanelStartLocation);
-	else
-		SetActorLocation(PanelArriveLocation);
+	SetActorLocation(SetLocation);
 }
 
 void ACoinSlotLockPanel::MoveLockPanel(float Value)
@@ -71,6 +64,8 @@ void ACoinSlotLockPanel::UnlockCoinSlot()
 {
 	if(!ShopCoinSubsystem->GetCurrentCoinUnlock())
 	{
+		PanelStartLocation = GetActorLocation();
+		PanelArriveLocation = PanelStartLocation + PanelMoveDirection;
 		ShopCoinSubsystem->UnlockCurrentCoinSlot();
 		PanelMoveTimeline->PlayFromStart();
 	}
@@ -80,3 +75,8 @@ void ACoinSlotLockPanel::InteractLeftClick_Implementation()
 {
 	UnlockCoinSlot();
 }	
+	
+FVector ACoinSlotLockPanel::GetUnlockPanelDirection()
+{
+	return PanelMoveDirection;
+}

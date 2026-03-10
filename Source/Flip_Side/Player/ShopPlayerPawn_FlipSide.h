@@ -45,6 +45,9 @@ private:
 	
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	FVector ShopMainLocation;
+
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	FVector UnlockCardLocation;
 private:
 	UFUNCTION()
 	void MoveCoinCreateMode();
@@ -63,4 +66,8 @@ private:
 	
 	UFUNCTION()
 	void MoveShopMainMode();
+
+	
+	UFUNCTION()
+	void MoveUnlockCardMode();
 };

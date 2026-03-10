@@ -30,6 +30,7 @@ void AShopController_FlipSide::BeginPlay()
         ShopGameMode->OnShopItemMode.AddDynamic(this, &AShopController_FlipSide::SetShopItemModeWidget);
         ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopController_FlipSide::SetSelectCardModeWidget);
         ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopController_FlipSide::SetUnlockWeaponModeWidget);
+        ShopGameMode->OnUnlockCardMode.AddDynamic(this, &AShopController_FlipSide::SetUnlockCardModeWidget);
     }
 
     
@@ -45,6 +46,8 @@ void AShopController_FlipSide::BeginPlay()
     InitWidget(ShopItemWidgetClass, ShopItemWidget);
     //무기 해금 위젯
     InitWidget(UnlockWeaponWidgetClass, UnlockWeaponWidget);
+
+    InitWidget(UnlockCardWidgetClass, UnlockCardWidget);
 
     //상점 메인
     InitWidget(ShopMainWigetClass, ShopMainWiget);
@@ -188,6 +191,17 @@ void AShopController_FlipSide::SetUnlockWeaponModeWidget()
         ViewWidgetList();
     }
 }
+
+void AShopController_FlipSide::SetUnlockCardModeWidget()
+{
+    if(UnlockCardWidget)
+    {
+        HideWidgetList();
+        AddOpenWidgetList(UnlockCardWidget);
+        ViewWidgetList();
+    }
+}
+
 // 좌클릭: 선택, 카메라 이동
 void AShopController_FlipSide::OnLeftClick()
 {   

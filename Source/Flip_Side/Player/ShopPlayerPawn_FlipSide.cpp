@@ -36,8 +36,9 @@ void AShopPlayerPawn_FlipSide::BeginPlay()
 		
 		ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveShopMainMode);
 
-		
 		ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveUnlockWeaponMode);
+		
+		ShopGameMode->OnUnlockCardMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveUnlockCardMode);
 	}
 }
 
@@ -76,4 +77,9 @@ void AShopPlayerPawn_FlipSide::MoveShopMainMode()
 void AShopPlayerPawn_FlipSide::MoveUnlockWeaponMode()
 {
 	SetActorLocation(UnlockWeaponLocation);
+}
+
+void AShopPlayerPawn_FlipSide::MoveUnlockCardMode()
+{
+	SetActorLocation(UnlockCardLocation);
 }

@@ -58,7 +58,8 @@ private:
 protected:
 	virtual void InteractLeftClick_Implementation() override;
 public:
-	void InitLockPanel(bool IsLock);
-
+	void InitLockPanel(FVector SetLocation);
+	
+	FVector GetUnlockPanelDirection();
 	
 };

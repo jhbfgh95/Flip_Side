@@ -14,8 +14,6 @@ void UW_UnlockWeaponWidget::NativeConstruct()
     TankWGridButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponWidget::SetTankWUnlockGrid);	
 	
     UtilWGridButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponWidget::SetUtilWUnlockGrid);	
-
-    UnlockWeaponButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponWidget::ClickUnlockWeaponButton);
     
     CurrentUnlockGrid = DealWUnlockGrid;
     
@@ -58,12 +56,4 @@ void UW_UnlockWeaponWidget::HideAllUnlockGrid()
     DealWUnlockGrid->CloseUnlockPanel();
     TankWUnlockGrid->CloseUnlockPanel();
     UtilWUnlockGrid->CloseUnlockPanel();
-}
-
-
-void UW_UnlockWeaponWidget::ClickUnlockWeaponButton()
-{
-    UE_LOG(LogTemp, Warning, TEXT("무기 해금 버튼 누름"));
-    UShopUnlockWeaponWSubsystem* subsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
-    subsystem->UnlockCurrentWeapon();
 }

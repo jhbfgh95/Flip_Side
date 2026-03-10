@@ -23,6 +23,33 @@ void UShopCardWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
     
+    
+    FCardData DefaultCard;
+    
+    for(int i =0; i<6; i++)
+    {
+        DefaultCard.CardID = i;
+        DefaultCard.CardName = FString::FromInt(i);
+        DefaultCard.Card_Description= FString::FromInt(i);
+        UnlockCardList.Add(DefaultCard);
+    }
+
+    for(int i =0; i<3; i++)
+    {
+        DefaultCard.CardID = -1;
+        PlayerCardList.Add(DefaultCard);
+    }
+
+    if(0<UnlockCardList.Num())
+    {
+        OnCardChanged.Broadcast(UnlockCardList[CurrentCardListNum]);
+    }
+    
+}
+
+void UShopCardWSubsystem::OnWorldBeginPlay(UWorld& World)
+{
+    Super::OnWorldBeginPlay(World);
     /*
     if (UGameInstance* GI = GetWorld()->GetGameInstance())
     {
@@ -36,46 +63,24 @@ void UShopCardWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         {
             if(DM->TryGetCard(0,CardData))
             {
-                CardList.Add(CardData);
+                UnlockCardList.Add(CardData);
             }
         }
         
     }
     */
-    FCardData DefaultCard;
-    
-    for(int i =0; i<6; i++)
-    {
-        DefaultCard.CardID = i;
-        DefaultCard.CardName = FString::FromInt(i);
-        DefaultCard.Card_Description= FString::FromInt(i);
-        CardList.Add(DefaultCard);
-    }
-
-    for(int i =0; i<3; i++)
-    {
-        DefaultCard.CardID = -1;
-        PlayerCardList.Add(DefaultCard);
-    }
-
-    if(0<CardList.Num())
-    {
-        OnCardChanged.Broadcast(CardList[CurrentCardListNum]);
-    }
-    
 }
-
 
 void UShopCardWSubsystem::SetNextCard()
 {
     //다음 버튼을 눌렀을 때 끝인지 검사
-    if(CardList.Num() <= CurrentCardListNum+1 )
+    if(UnlockCardList.Num() <= CurrentCardListNum+1 )
     {
         UE_LOG(LogTemp, Warning, TEXT("끝에 도달함"));
         return;
     }
     CurrentCardListNum++;
-    OnCardChanged.Broadcast(CardList[CurrentCardListNum]);
+    OnCardChanged.Broadcast(UnlockCardList[CurrentCardListNum]);
 }
 
 void UShopCardWSubsystem::SetPreviousCard()
@@ -87,7 +92,7 @@ void UShopCardWSubsystem::SetPreviousCard()
     }
 
     CurrentCardListNum--;
-    OnCardChanged.Broadcast(CardList[CurrentCardListNum]);
+    OnCardChanged.Broadcast(UnlockCardList[CurrentCardListNum]);
     UE_LOG(LogTemp, Warning, TEXT("%d"), CurrentCardListNum);
 }
 
@@ -102,7 +107,7 @@ void UShopCardWSubsystem::SelectCard()
         if(PlayerCardList[i].CardID ==-1)
         {
             
-            PlayerCardList[i] = CardList[CurrentCardListNum];
+            PlayerCardList[i] = UnlockCardList[CurrentCardListNum];
             OnCardSelected.Broadcast(i, PlayerCardList[i]);
             return;
         }
@@ -114,7 +119,7 @@ bool UShopCardWSubsystem::CanSelectCard()
 {
     for(int i =0; i<PlayerCardList.Num(); i++)
     {
-        if(PlayerCardList[i].CardID == CardList[CurrentCardListNum].CardID)
+        if(PlayerCardList[i].CardID == UnlockCardList[CurrentCardListNum].CardID)
         {
             return false;
         }
@@ -133,7 +138,7 @@ bool UShopCardWSubsystem::CanSelectCard()
 FCardData UShopCardWSubsystem::GetCurrentCard()
 {
     if(0<CurrentCardListNum)
-        return CardList[CurrentCardListNum];
+        return UnlockCardList[CurrentCardListNum];
     else
     {
         FCardData DefaultCard;

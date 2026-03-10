@@ -36,14 +36,8 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* UtilWGridButton;	
 
-	
-	UPROPERTY(meta = (BindWidget))
-	class UButton* UnlockWeaponButton;	
-
 	class UW_UnlockWeaponGrid* CurrentUnlockGrid;
 	
-	UFUNCTION()
-	void ClickUnlockWeaponButton();
 	UFUNCTION()
 	void SetDealWUnlockGrid();
 	UFUNCTION()

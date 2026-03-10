@@ -7,7 +7,7 @@
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 #include "DataTypes/CoinDataTypes.h"
 #include "Subsystem/CrossingLevelGISubsystem.h"
-
+#include "Subsystem/LevelGISubsystem.h"
 
 void AGameMode_Shop::ChangeBattleLevel()
 {
@@ -15,6 +15,7 @@ void AGameMode_Shop::ChangeBattleLevel()
     UShopCoinWSubsystem* ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     UShopCardWSubsystem* ShopCardSubsystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
     UShopItemWSubsystem* ShopItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
+    ULevelGISubsystem* LevelSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
 
     //코인값 넘겨줌
     for(int i =0; i<10; i++)
@@ -55,7 +56,7 @@ void AGameMode_Shop::ChangeBattleLevel()
         UE_LOG(LogTemp, Warning, TEXT("%d 번째 카드 아이디 :  %d"), i, CardArray[i]);
     }
 
-
+    LevelSubsystem->MoveBattleLevel("L_StageOne");
 }
 
 
@@ -89,4 +90,9 @@ void AGameMode_Shop::SetCardSelectMode()
 void AGameMode_Shop::SetUnlockWeaponMode()
 {
     OnUnlockWeaponMode.Broadcast();
+}
+
+void AGameMode_Shop::SetUnlockCardMode()
+{   
+    OnUnlockCardMode.Broadcast();
 }

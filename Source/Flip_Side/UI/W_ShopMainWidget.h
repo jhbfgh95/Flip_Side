@@ -39,6 +39,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* UnlockWeaponButton;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* UnlockCardButton;
+
 public:
 	UFUNCTION()
 	void ClickCoinCreateButton();
@@ -52,8 +55,11 @@ public:
 
 	UFUNCTION()
 	void ClickUnlockWeaponButton();
-
 	
 	UFUNCTION()
 	void ClickBattleStartButton();
+	
+	UFUNCTION()
+	void ClickUnlockCardButton();
+
 };

@@ -30,7 +30,7 @@ private:
 	class UStaticMeshComponent* PanelMesh;
 	// 기어 메쉬
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
-	class UStaticMeshComponent* GearMesh;
+	class UChildActorComponent* GearActor;
 	// 설명 메쉬 메쉬
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
 	class UStaticMeshComponent* DescriptionMesh;
@@ -63,15 +63,9 @@ private:
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UTimelineComponent* DescriptionTimeLine;
-
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UTimelineComponent* GearTimeline;
 	
 	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
 	class UCurveFloat* DescriptionPanelCurve;
-	
-	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
-	class UCurveFloat* GearCurve;
 
 private:
 	class UShopCoinWSubsystem* ShopCoinSubsystem;
@@ -81,6 +75,8 @@ private:
 private:
 	class UW_CoinManagePanelWidget* PanelWidgetClass;
 
+	private:
+	FVector LockPanelStartVector;
 private:
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
@@ -91,15 +87,6 @@ private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	FVector DescriptionPanelArriveVec;
 	
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	float GearRotateAngle;
-
-private:
-	//코인 관련
-	FRotator StartGearRotator;
-	FRotator ArriveGearRotator;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	FRotator GearRotateDirection;
 
 private:
 	UFUNCTION()
@@ -113,11 +100,6 @@ public:
 
 	UFUNCTION()
 	void MoveDescriptionPanel(float Value);
-
-	UFUNCTION()
-	void RotateGear(float Value);
-	UFUNCTION()
-	void ActiveGear(bool IsPanelMoveToBottom);
 
 	UFUNCTION()
 	void OpenDescriptionPanel();

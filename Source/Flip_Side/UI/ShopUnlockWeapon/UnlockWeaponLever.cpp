@@ -3,6 +3,13 @@
 
 #include "UI/ShopUnlockWeapon/UnlockWeaponLever.h"
 #include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
+#include "Components/BoxComponent.h"
+
+AUnlockWeaponLever::AUnlockWeaponLever()
+{
+    InteractBox = CreateDefaultSubobject<UBoxComponent>(TEXT("InteractBox"));
+    InteractBox->SetupAttachment(RootComponent);
+}
 void AUnlockWeaponLever::BeginPlay()
 {
     Super::BeginPlay();
@@ -13,4 +20,10 @@ void AUnlockWeaponLever::BeginPlay()
 void AUnlockWeaponLever::ExecuteLeverLogic()
 {
     UnlockWeaponSubsystem->UnlockCurrentWeapon();
+}
+	
+ 
+void AUnlockWeaponLever::InteractLeftClick_Implementation()
+{
+    OnLeverInteracted();
 }

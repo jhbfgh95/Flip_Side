@@ -6,18 +6,22 @@
 #include "GameFramework/Actor.h"
 #include "FlipSide_Enum.h"
 #include "LeverActor.h"
+#include "Interface/ShopMouseInterface.h"
 #include "SelectClassLever.generated.h"
 
 UCLASS()
-class FLIP_SIDE_API ASelectClassLever : public ALeverActor
+class FLIP_SIDE_API ASelectClassLever : public ALeverActor,public IShopMouseInterface
 {
 	GENERATED_BODY()
 	
-
+ASelectClassLever();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+private:
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* InteractBox;
 private:
 	class UCoinCreateWSubsystem* CoinCreateSubsystem;
 
@@ -39,4 +43,7 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	FLinearColor DefaultColor;
+
+public:
+	virtual void InteractLeftClick_Implementation() override;
 };

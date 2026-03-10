@@ -39,11 +39,11 @@ void UW_UnlockWeaponButton::NativeDestruct()
     {
         UnlockGISubsystem->OnWeaponUnlock.RemoveAll(this);
     }
+    Super::NativeDestruct();
 }
 
 void UW_UnlockWeaponButton::UnlockWeapon(EWeaponClass SettingWeaponClass, int32 Index)
 {
-    UE_LOG(LogTemp, Warning, TEXT("무기 해금"));
     if(SettingWeaponClass == WeaponClass && Index == WeaponIndex)
     {
         LockImage->SetVisibility(ESlateVisibility::Collapsed);
@@ -102,6 +102,5 @@ void UW_UnlockWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 In
 
 void UW_UnlockWeaponButton::ClickWeaponButton()
 {
-    UE_LOG(LogTemp, Warning, TEXT("해금 무기선택 누름"));
     UnlockWeaponSubsystem->SelectUnlockWeaponByIndex(WeaponClass, WeaponIndex, WeaponDataSubSystem->IsWeaponUnlockByIndex(WeaponClass, WeaponIndex));
 }

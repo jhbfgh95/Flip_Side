@@ -54,6 +54,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> UnlockWeaponWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> UnlockCardWidgetClass;
+
 //UI 스크립트
 private:
 	UPROPERTY()
@@ -70,6 +74,8 @@ private:
 	UUserWidget* SelectCardWidget;
 	UPROPERTY()
 	UUserWidget* UnlockWeaponWidget;
+	UPROPERTY()
+	UUserWidget* UnlockCardWidget;
 private:
 	void InitWidget(TSubclassOf<UUserWidget> WidgetClass, UUserWidget*& widget);
 
@@ -110,6 +116,9 @@ public:
 
 	UFUNCTION()
 	void SetUnlockWeaponModeWidget();
+
+	UFUNCTION()
+	void SetUnlockCardModeWidget();
 
 	void HideModeChangeWidget();
 

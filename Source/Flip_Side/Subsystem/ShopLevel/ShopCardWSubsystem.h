@@ -23,6 +23,7 @@ protected:
 	//상점 레벨일 경우에만 생성
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void OnWorldBeginPlay(UWorld& World) override;
 
 private:
 	class UDataManagerSubsystem* DM;

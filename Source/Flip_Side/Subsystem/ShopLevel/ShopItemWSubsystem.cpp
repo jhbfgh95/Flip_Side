@@ -41,17 +41,16 @@ void UShopItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 }
 
 
-void UShopItemWSubsystem::HoverShopItem(int32 ItemNum)
+void UShopItemWSubsystem::HoverShopItem(FItemData ItemData)
 {
-    OnItemHovered.Broadcast(ItemNum);
+    OnItemHovered.Broadcast(ItemData);
 }
 void UShopItemWSubsystem::UnHoverShopItem()
 {
     OnItemUnHovered.Broadcast();
 }
-void UShopItemWSubsystem::HoverPlayerItem(int32 ItemNum)
+void UShopItemWSubsystem::HoverPlayerItem(FItemData ItemNum)
 {
-    OnItemHovered.Broadcast(ItemNum);
 
 }
 void UShopItemWSubsystem::UnHoverPlayerItem(int32 ItemNum)
@@ -70,6 +69,22 @@ void UShopItemWSubsystem::BuyItemByIndex(int32 Index)
     {
         FSelectItem AddItemData;
         AddItemData.ItemID = ShopItemArray[Index].ItemID;
+        PlayerItemArray.Add(AddItemData);
+    }
+    else
+    {
+        PlayerItemArray[InvenIndex].SameItemNum++;
+    }
+}
+
+void UShopItemWSubsystem::BuyItem(FSelectItem ItemData)
+{
+    int32 InvenIndex = GetPlayerInvenIndexByItemID(ItemData.ItemID);
+    
+    if(InvenIndex == -1)
+    {
+        FSelectItem AddItemData;
+        AddItemData.ItemID = ItemData.ItemID;
         PlayerItemArray.Add(AddItemData);
     }
     else

@@ -4,16 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "LeverActor.h"
+#include "Interface/ShopMouseInterface.h"
 #include "UnlockWeaponLever.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class FLIP_SIDE_API AUnlockWeaponLever : public ALeverActor
+class FLIP_SIDE_API AUnlockWeaponLever : public ALeverActor, public IShopMouseInterface
 {
 	GENERATED_BODY()
 	
+	AUnlockWeaponLever();
+private:
+	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess = "true"))
+	class UBoxComponent* InteractBox;
 private:
 	class UShopUnlockWeaponWSubsystem* UnlockWeaponSubsystem;
 	
@@ -21,4 +26,6 @@ private:
 	virtual void BeginPlay() override;
 public:
 	virtual void ExecuteLeverLogic() override;
+
+	virtual void InteractLeftClick_Implementation() override;
 };

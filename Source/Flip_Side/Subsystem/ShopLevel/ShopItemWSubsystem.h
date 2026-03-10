@@ -12,7 +12,7 @@
  */
 //코인이 클래스가 선택 됬을 때 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemSelecte, FItemData, ItemInfo);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemHovere, int32, ItemInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemHovere, FItemData, ItemInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FItemUnHovere);
 
 UCLASS()
@@ -36,6 +36,7 @@ public:
 	//아이템에서 마우스를 땔때
 	FItemUnHovere OnItemUnHovered;
 
+
 private:
 
 	//상점 아이템 구매 목록
@@ -52,12 +53,12 @@ private:
 	FItemData DefaultItemData;
 public:
 	//상점 아이템에 마우스를 올려놧을 때
-	void HoverShopItem(int32 ItemNum);
+	void HoverShopItem(FItemData ItemNum);
 	//상점 아이템에서 마우스를 땠을떄
 	void UnHoverShopItem();	
 
 	//플레이어 인벤토리에 있는아이템에 마우스를 올렸을 때
-	void HoverPlayerItem(int32 ItemNum);
+	void HoverPlayerItem(FItemData ItemNum);
 	//플레이어 인벤토리에 있는 아이템에 마우스가 벗어 놨을 때
 	void UnHoverPlayerItem(int32 ItemNum);
 	
@@ -67,6 +68,9 @@ public:
 
 	void BuyItemByIndex(int32 Index);
 
+	void BuyItem(FSelectItem ItemData);
+	
 	int32 GetPlayerItemNum();
+
 	FSelectItem GetPlayerItem(int32 index);
 };

@@ -95,16 +95,13 @@ void AShopUseableItemActor::LClickedUseAbleItem()
 void AShopUseableItemActor::HoveredUseAbleItem()
 {
     //마우스올라갔을 떄 설명 띄우기
-    ShopItemSubSystem->HoverShopItem(ShopItemIndex);
-    //추후 움직임 에니메이션 추가
+    ShopItemSubSystem->HoverShopItem(ShopItemData);
 }
 
 void AShopUseableItemActor::UnHoveredUseAbleItem()
 {
     //마우스 내려 갔을 때 설명내리기
     ShopItemSubSystem->UnHoverShopItem();
-
-    //추후 움직임 에니메이션 추가
 }
 
 void AShopUseableItemActor::SetItemMaterial()

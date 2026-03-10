@@ -21,15 +21,7 @@ void UW_CoinCreateWidget::NativeConstruct()
 	}
 
     FinishButton->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::FinishCreate);
-
-    TestClass->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetDeal);
     
-    TestClass2->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetTank);
-    
-    TestClass3->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::SetUtil);
-
-    ChangeCoinSideButton->OnClicked.AddDynamic(this, &UW_CoinCreateWidget::ChangeCoinSide);
-
     dealClassGrid->InitPanelAnimation();
     tankClassGrid->InitPanelAnimation();
     utilClassGrid->InitPanelAnimation();
@@ -40,21 +32,6 @@ void UW_CoinCreateWidget::NativeDestruct()
 {
     CoinCreateWSubSystem->OnCoinClassUpdate.RemoveAll(this);
     Super::NativeDestruct();
-}
-
-
-void UW_CoinCreateWidget::SetCreateCoinWepon(int32 WeponID)
-{
-    if(CoinCreateWSubSystem)
-    {
-        //coinCreateWSubSystem->ChangeSelectedCoinWeapon(WeponID, IsCoinFront);
-    }
-}
-
-void UW_CoinCreateWidget::UpdateCoinState(struct FCoinTypeStructure UpdateCoinInfo)
-{
-    
-    
 }
 
 void UW_CoinCreateWidget::FinishCreate()
@@ -102,22 +79,4 @@ void UW_CoinCreateWidget::SetClassGrid(EWeaponClass weaponClass)
         CurrentOpenGrid = utilClassGrid;
     }
 
-}
-
-void UW_CoinCreateWidget::SetDeal()
-{
-    CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Deal);
-}
-void UW_CoinCreateWidget::SetTank()
-{
-    CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Tank);
-}
-void UW_CoinCreateWidget::SetUtil()
-{
-    CoinCreateWSubSystem->SetCoinClass(EWeaponClass::Heal);
-}
-
-void UW_CoinCreateWidget::ChangeCoinSide()
-{
-    CoinCreateWSubSystem->ChangeCoinSide();
 }

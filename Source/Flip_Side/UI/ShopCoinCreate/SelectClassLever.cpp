@@ -4,7 +4,13 @@
 #include "UI/ShopCoinCreate/SelectClassLever.h"
 #include "Subsystem/ShopLevel/CoinCreateWSubsystem.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Components/BoxComponent.h"
 
+ASelectClassLever::ASelectClassLever()
+{
+	InteractBox = CreateDefaultSubobject<UBoxComponent>(TEXT("InteractBox"));
+	InteractBox->SetupAttachment(RootComponent);
+}
 // Called when the game starts or when spawned
 void ASelectClassLever::BeginPlay()
 {
@@ -38,4 +44,9 @@ void ASelectClassLever::BeginPlay()
 void ASelectClassLever::ExecuteLeverLogic()
 {
 	CoinCreateSubsystem->SetCoinClass(LeverClass);
+}
+
+void ASelectClassLever::InteractLeftClick_Implementation()
+{
+	OnLeverInteracted();
 }
