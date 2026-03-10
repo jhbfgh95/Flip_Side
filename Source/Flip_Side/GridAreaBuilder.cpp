@@ -64,7 +64,70 @@ void FGridAreaBuilder::BuildCells(const FAttackAreaSpec& Spec, int32 W, int32 H,
         }
         break;
     }
+    case EAttackAreaPattern::RectFromCell:
+    {
+        // RectFromCell은 AnchorCell을 기준으로 "앞(=Side)" 방향으로 직사각형을 만든다.
+        // ParamA = Width (가로폭)
+        // ParamB = Depth (전방으로 뻗는 길이)
 
+        const FGridPoint Base =
+            (Spec.AnchorMode == EAreaAnchor::UseAnchorCell)
+            ? Spec.AnchorCell
+            : FGridPoint{ Spec.Index, 0 };
+
+        const int32 Width = FMath::Max(1, Spec.ParamA);
+        const int32 Depth = FMath::Max(1, Spec.ParamB);
+
+        const int32 HalfL = (Width - 1) / 2;
+        const int32 HalfR = (Width / 2);
+
+        if (Spec.Side == EAreaSide::Up)
+        {
+            for (int32 d = 1; d <= Depth; ++d) 
+            {
+                const int32 Y = Base.GridY + d;
+                for (int32 dx = -HalfL; dx <= HalfR; ++dx)
+                {
+                    Add(Base.GridX + dx, Y);
+                }
+            }
+        }
+        else if (Spec.Side == EAreaSide::Down)
+        {
+            for (int32 d = 1; d <= Depth; ++d)
+            {
+                const int32 Y = Base.GridY - d;
+                for (int32 dx = -HalfL; dx <= HalfR; ++dx)
+                {
+                    Add(Base.GridX + dx, Y);
+                }
+            }
+        }
+        else if (Spec.Side == EAreaSide::Left)
+        {
+            for (int32 d = 1; d <= Depth; ++d)
+            {
+                const int32 X = Base.GridX - d;
+                for (int32 dy = -HalfL; dy <= HalfR; ++dy)
+                {
+                    Add(X, Base.GridY + dy);
+                }
+            }
+        }
+        else 
+        {
+            for (int32 d = 1; d <= Depth; ++d)
+            {
+                const int32 X = Base.GridX + d;
+                for (int32 dy = -HalfL; dy <= HalfR; ++dy)
+                {
+                    Add(X, Base.GridY + dy);
+                }
+            }
+        }
+
+        break;
+    }
     case EAttackAreaPattern::CrossOnCell:
     {
         // 십자가 크기 조절: ParamA=HalfX, ParamB=HalfY

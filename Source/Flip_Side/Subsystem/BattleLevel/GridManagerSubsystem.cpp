@@ -192,9 +192,109 @@ void UGridManagerSubsystem::GetObjectsAtRange(const FAttackAreaSpec& Spec, const
     }
 }
 
-void UGridManagerSubsystem::GetValidGridsForSingleCell(const FGridPoint & CoinXY, const FAttackAreaSpec & Spec, TArray<FGridPoint>& VadlidCells)
+void UGridManagerSubsystem::GetValidGridsForSingleCell(
+    const FGridPoint& CoinXY,
+    const FAttackAreaSpec& Spec,
+    TArray<FGridPoint>& ValidCells)
 {
-    //Plz
+    ValidCells.Reset();
+
+    if (Spec.Pattern != EAttackAreaPattern::SingleCell)
+    {
+        return;
+    }
+
+    auto AddUniqueCell = [&](int32 X, int32 Y)
+        {
+            if (!IsInGrid(X, Y))
+            {
+                return;
+            }
+
+            const FGridPoint P{ X, Y };
+
+            for (const FGridPoint& Existing : ValidCells)
+            {
+                if (Existing.GridX == P.GridX && Existing.GridY == P.GridY)
+                {
+                    return;
+                }
+            }
+
+            ValidCells.Add(P);
+        };
+
+    const int32 AnchorX = CoinXY.GridX + Spec.AnchorCell.GridX;
+    const int32 AnchorY = CoinXY.GridY + Spec.AnchorCell.GridY;
+
+    // 1) UseAnchorCell(include self)
+    if (Spec.AnchorMode == EAreaAnchor::UseAnchorCell)
+    {
+        const int32 Radius = FMath::Max(0, Spec.ParamA);
+
+        for (int32 dy = -Radius; dy <= Radius; ++dy)
+        {
+            for (int32 dx = -Radius; dx <= Radius; ++dx)
+            {
+                AddUniqueCell(AnchorX + dx, AnchorY + dy);
+            }
+        }
+
+        return;
+    }
+
+    // 2) UseIndex (public vector)
+    const int32 Width = FMath::Max(1, Spec.ParamA);
+    const int32 Depth = FMath::Max(1, Spec.ParamB);
+
+    const int32 HalfL = (Width - 1) / 2;
+    const int32 HalfR = Width / 2;
+
+    switch (Spec.Side)
+    {
+    case EAreaSide::Up:
+        for (int32 d = 1; d <= Depth; ++d)
+        {
+            for (int32 dx = -HalfL; dx <= HalfR; ++dx)
+            {
+                AddUniqueCell(AnchorX + dx, AnchorY + d);
+            }
+        }
+        break;
+
+    case EAreaSide::Down:
+        for (int32 d = 1; d <= Depth; ++d)
+        {
+            for (int32 dx = -HalfL; dx <= HalfR; ++dx)
+            {
+                AddUniqueCell(AnchorX + dx, AnchorY - d);
+            }
+        }
+        break;
+
+    case EAreaSide::Left:
+        for (int32 d = 1; d <= Depth; ++d)
+        {
+            for (int32 dy = -HalfL; dy <= HalfR; ++dy)
+            {
+                AddUniqueCell(AnchorX - d, AnchorY + dy);
+            }
+        }
+        break;
+
+    case EAreaSide::Right:
+        for (int32 d = 1; d <= Depth; ++d)
+        {
+            for (int32 dy = -HalfL; dy <= HalfR; ++dy)
+            {
+                AddUniqueCell(AnchorX + d, AnchorY + dy);
+            }
+        }
+        break;
+
+    default:
+        break;
+    }
 }
 
 // ======================

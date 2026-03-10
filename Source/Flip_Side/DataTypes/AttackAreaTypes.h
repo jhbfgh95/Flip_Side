@@ -17,6 +17,7 @@ enum class EAttackAreaPattern : uint8
     Border          UMETA(DisplayName = "Border"),
     ConeFromSide    UMETA(DisplayName = "Cone From Side"),
     SingleCell      UMETA(DisplayName = "Single Cell"),
+    RectFromCell    UMETA(DisplayName = "Rect From Cell")
 };
 
 UENUM(BlueprintType)

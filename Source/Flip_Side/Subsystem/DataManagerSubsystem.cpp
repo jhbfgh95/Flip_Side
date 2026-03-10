@@ -126,6 +126,12 @@ bool UDataManagerSubsystem::TryGetItem(int32 ItemID, FItemData& Out) const
     return false;
 }
 
+bool UDataManagerSubsystem::TryGetAllItems(TArray<FItemData>& OutItems) const
+{
+    OutItems = Items;
+    return true;
+}
+
 bool UDataManagerSubsystem::TryGetCard(int32 CardID, FCardData& Out) const
 {
     if (const FCardData* Found = CardByID.Find(CardID))
@@ -134,6 +140,12 @@ bool UDataManagerSubsystem::TryGetCard(int32 CardID, FCardData& Out) const
         return true;
     }
     return false;
+}
+
+bool UDataManagerSubsystem::TryGetAllCards(TArray<FCardData>& OutCards) const
+{
+    OutCards = Cards;
+    return true;
 }
 
 void UDataManagerSubsystem::ClearCache()
@@ -190,8 +202,39 @@ EWeaponClass UDataManagerSubsystem::WeaponClassFromString(const FString& S)
 
 bool UDataManagerSubsystem::LoadWeapons()
 {
-    const TCHAR* Sql =
-        TEXT("SELECT c.id, w.weapon_type AS weapon_type, c.behavior_point, c.range_x, c.range_y, c.icon_path, c.behavior, c.vfx_path, c.type_id, w.HP, c.weapon_point, c.KOR_DES, c.ENG_DES, w.typecolor FROM coin_weapon_def AS c JOIN weapon_type AS w ON c.type_id = w.type_id; ");
+    const TCHAR* Sql = TEXT(R"SQL(
+        SELECT
+            c.id,
+            w.weapon_type AS weapon_type,
+            c.behavior_point,
+            c.range_x,
+            c.range_y,
+            c.icon_path,
+            c.behavior,
+            c.vfx_path,
+            c.type_id,
+            w.HP,
+            c.weapon_point,
+            c.KOR_DES,
+            c.ENG_DES,
+            w.typecolor,
+
+            IFNULL(a.pattern,      8) AS pattern,       -- 기본: SingleCell
+            IFNULL(a.anchor_dx,    0) AS anchor_dx,
+            IFNULL(a.anchor_dy,    0) AS anchor_dy,
+            IFNULL(a.anchor_mode,  0) AS anchor_mode,   -- 기본: UseAnchorCell
+            IFNULL(a.param_a,      1) AS param_a,
+            IFNULL(a.param_b,      1) AS param_b,
+            IFNULL(a.side,         0) AS side,          -- 기본: Up
+            IFNULL(a.flags,        0) AS flags,
+            IFNULL(a.action_repeat_type,  0) AS action_repeat_type
+
+        FROM coin_weapon_def AS c
+        JOIN weapon_type AS w
+            ON c.type_id = w.type_id
+        LEFT JOIN coin_weapon_attack_area AS a
+            ON a.weapon_id = c.id;
+    )SQL");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
@@ -203,54 +246,70 @@ bool UDataManagerSubsystem::LoadWeapons()
     while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
     {
         FFaceData Data;
+        int32 Col = 0;
 
-        Data.WeaponID = GetColInt(Stmt, 0);
+        Data.WeaponID = GetColInt(Stmt, Col++);
 
-        const FString ClassStr = GetColText(Stmt, 1);
+        const FString ClassStr = GetColText(Stmt, Col++);
         Data.WeaponType = WeaponClassFromString(ClassStr);
 
-        Data.BehaviorPoint = GetColInt(Stmt, 2);
+        Data.BehaviorPoint = GetColInt(Stmt, Col++);
 
-        Data.AttackRange.GridX = GetColDouble(Stmt, 3);
-        Data.AttackRange.GridY = GetColDouble(Stmt, 4);
+        // 기존 range_x/y (이거 어떻게 할지..)
+        Data.AttackRange.GridX = GetColDouble(Stmt, Col++);
+        Data.AttackRange.GridY = GetColDouble(Stmt, Col++);
 
-        const FString IconPath = GetColText(Stmt, 5);
+        const FString IconPath = GetColText(Stmt, Col++);
         if (!IconPath.IsEmpty())
         {
             Data.WeaponIcon = LoadObject<UTexture2D>(nullptr, *IconPath);
         }
 
-        Data.BehaviorCode = GetColText(Stmt, 6);
+        Data.BehaviorCode = GetColText(Stmt, Col++);
 
-        const FString VfxPath = GetColText(Stmt, 7);
+        const FString VfxPath = GetColText(Stmt, Col++);
         if (!VfxPath.IsEmpty())
         {
             Data.WeaponVFX = LoadObject<UNiagaraSystem>(nullptr, *VfxPath);
         }
 
-        Data.TypeID = GetColInt(Stmt, 8);
-        Data.HP = GetColInt(Stmt, 9);
-        Data.AttackPoint = GetColInt(Stmt, 10);
+        Data.TypeID = GetColInt(Stmt, Col++);
+        Data.HP = GetColInt(Stmt, Col++);
+        Data.AttackPoint = GetColInt(Stmt, Col++);
 
-        const FString KORStr = GetColText(Stmt, 11);
-        Data.KOR_DES = KORStr;
+        Data.KOR_DES = GetColText(Stmt, Col++);
+        Data.ENG_DES = GetColText(Stmt, Col++);
 
-        const FString ENGStr = GetColText(Stmt, 12);
-        Data.KOR_DES = KORStr;
-
-
-        const FString ColorHex = GetColText(Stmt, 13);
+        const FString ColorHex = GetColText(Stmt, Col++);
         if (!TryParseHexColor_RRGGBBAA(ColorHex, Data.TypeColor))
         {
             Data.TypeColor = FLinearColor::White;
         }
 
+        const int32 Pattern = GetColInt(Stmt, Col++);
+        const int32 AnchorDX = GetColInt(Stmt, Col++);
+        const int32 AnchorDY = GetColInt(Stmt, Col++);
+        const int32 AnchorMode = GetColInt(Stmt, Col++);
+        const int32 ParamA = GetColInt(Stmt, Col++);
+        const int32 ParamB = GetColInt(Stmt, Col++);
+        const int32 Side = GetColInt(Stmt, Col++);
+        const int32 Flags = GetColInt(Stmt, Col++);
+        const int32 ActionRepeatType = GetColInt(Stmt, Col++);
+
+        Data.AttackAreaSpec.Pattern = (EAttackAreaPattern)Pattern;
+        Data.AttackAreaSpec.AnchorMode = (EAreaAnchor)AnchorMode;
+        Data.AttackAreaSpec.ParamA = ParamA;
+        Data.AttackAreaSpec.ParamB = ParamB;
+        Data.AttackAreaSpec.Side = (EAreaSide)Side;
+        // AnchorCell(중심점의 절대좌표) 정한 뒤 오프셋 구현 단계서 사용해야 될듯?
+        Data.AttackAnchorOffset = FIntPoint(AnchorDX, AnchorDY);
+
+        Data.AttackAreaFlags = Flags;
+        Data.ActionRepeatType = (EActionRepeatType)ActionRepeatType;
+
         WeaponByID.Add(Data.WeaponID, Data);
         WeaponByTypeID.FindOrAdd(Data.TypeID).Add(Data);
-        WeaponIDsByClass
-            .FindOrAdd(Data.WeaponType)
-            .WeaponIDs
-            .Add(Data.WeaponID);
+        WeaponIDsByClass.FindOrAdd(Data.WeaponType).WeaponIDs.Add(Data.WeaponID);
     }
 
     Stmt.Destroy();
@@ -357,6 +416,7 @@ bool UDataManagerSubsystem::LoadItems()
             Item.TypeColor = FLinearColor::White;
         }
         ItemByID.Add(Item.ItemID, Item);
+        Items.Add(Item);
     }
 
     Stmt.Destroy();
@@ -388,6 +448,7 @@ bool UDataManagerSubsystem::LoadCards()
 
 
         CardByID.Add(Card.CardID, Card);
+        Cards.Add(Card);
     }
 
     Stmt.Destroy();

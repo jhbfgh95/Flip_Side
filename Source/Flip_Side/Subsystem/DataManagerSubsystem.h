@@ -43,7 +43,13 @@ public:
     TMap<int32, FItemData> ItemByID;
 
     UPROPERTY(BlueprintReadOnly)
+    TArray<FItemData> Items;
+
+    UPROPERTY(BlueprintReadOnly)
     TMap<int32, FCardData> CardByID;
+
+    UPROPERTY(BlueprintReadOnly)
+    TArray<FCardData> Cards;
 
     // ===== Subsystem =====
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -68,8 +74,10 @@ public:
 
     UFUNCTION(BlueprintCallable)
     bool TryGetItem(int32 ItemID, FItemData& Out) const;
+    bool TryGetAllItems(TArray<FItemData>& OutItems) const;
 
     bool TryGetCard(int32 CardID, FCardData& Out) const;
+    bool TryGetAllCards(TArray<FCardData>& OutCards) const;
 
 private:
     bool bCacheReady = false;
