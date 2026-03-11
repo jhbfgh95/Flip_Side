@@ -1,9 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "BossDataTypes.generated.h"
+
+class ABossActor;
 
 USTRUCT(BlueprintType)
 struct FBossData
@@ -17,8 +17,17 @@ struct FBossData
     int32 BossStage = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 ThemeID = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FString BossName;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 AttackPoint = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 BossHP = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSubclassOf<ABossActor> BossClass;
 };
