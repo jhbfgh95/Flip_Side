@@ -39,7 +39,7 @@ void AShopUseableItemActor::BeginPlay()
     if(ShopItemSubSystem)
     {
         //해당 소모품 정보를 받아옴
-        //ShopItemData = ShopItemSubSystem->GetItemDataByShopIndex(ShopItemIndex);
+        ShopItemData = ShopItemSubSystem->GetItemDataByShopIndex(ShopItemIndex);
     }
     SetItemMaterial();
 
@@ -59,6 +59,8 @@ void AShopUseableItemActor::BeginPlay()
 	ItemDescriptionArriveLocation = ItemDescriptionStartLocation + ItemDescriptionMoveDirection;
 
 }
+
+
 void AShopUseableItemActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
@@ -89,7 +91,7 @@ void AShopUseableItemActor::ItemDescriptionMovement(float Value)
 void AShopUseableItemActor::LClickedUseAbleItem()
 {
     //상점 아이템 구입
-    ShopItemSubSystem->BuyItemByIndex(ShopItemIndex);
+    ShopItemSubSystem->BuyItem(ShopItemData);
 }    
 
 void AShopUseableItemActor::HoveredUseAbleItem()
@@ -127,5 +129,5 @@ void AShopUseableItemActor::InteractUnHover_Implementation()
 
 void AShopUseableItemActor::InteractLeftClick_Implementation()
 {
-	ShopItemSubSystem->BuyItemByIndex(ShopItemIndex);
+	ShopItemSubSystem->BuyItem(ShopItemData);
 }

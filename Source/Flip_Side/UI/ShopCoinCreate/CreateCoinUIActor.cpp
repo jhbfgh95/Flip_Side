@@ -102,7 +102,7 @@ void ACreateCoinUIActor::PressCoin(float Value)
 
 void ACreateCoinUIActor::RotateCoin(float Value)
 {
-	SetActorRotation(StartRotation + FRotator(0.f,Value,0.f));
+	CoinMesh->SetRelativeRotation(StartRotation + FRotator(Value,0.f,0.f));
 }
 
 void ACreateCoinUIActor::UpdateWeaponClass(EWeaponClass weponClass)

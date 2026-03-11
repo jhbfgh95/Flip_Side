@@ -33,6 +33,7 @@ public:
 	FUnlockSelectCard OnUnlockSelectCard;
 private:
 	class UUnlockGISubsystem* UnlockSubsystem;
+	class UDataManagerSubsystem* DataManager;
 private:
 
 	TArray<FCardData> CardList;

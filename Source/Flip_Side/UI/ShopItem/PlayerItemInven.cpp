@@ -7,6 +7,7 @@
 #include "Components/BoxComponent.h"
 #include "UI/ShopItem/ShopPlayerItemActor.h"
 
+#include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
 // Sets default values
 APlayerItemInven::APlayerItemInven()
 {
@@ -27,6 +28,8 @@ void APlayerItemInven::BeginPlay()
 {
 	Super::BeginPlay();
 
+	ShopItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
+	ShopItemSubsystem->OnItemBuy.AddDynamic(this, &APlayerItemInven::SetItem);
 	//잠김 판넬 운동 타임라인
 	FOnTimelineFloat InveMoveCallBack;
 	InveMoveCallBack.BindUFunction(this, FName("InvenMeshMovement"));
@@ -35,9 +38,8 @@ void APlayerItemInven::BeginPlay()
 	StartVector = GetActorLocation();
 	ArriveVector = StartVector + InvenMoveDirection;
 
-
 	RootComponent->GetChildrenComponents(false, ChildComponents);
-
+	PlayerItems.Empty();
     for (USceneComponent* Component : ChildComponents)
     {
         if (UChildActorComponent* ChildComp = Cast<UChildActorComponent>(Component))
@@ -51,13 +53,33 @@ void APlayerItemInven::BeginPlay()
 
 	PlayerItems.Sort([](const AShopPlayerItemActor& A, const AShopPlayerItemActor& B)
 	{
-		return A.GetName() < B.GetName();
+		return A.ItemIndex < B.ItemIndex;
 	});
+
+	for(int i =0; i< PlayerItems.Num(); i++)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%f"), PlayerItems[i]->GetActorLocation().X);
+	}
+		
+
 
 	for(int i =0; i< PlayerItems.Num();i++)
 	{
 		PlayerItems[i]->InitItem(i);
 	}
+}
+void APlayerItemInven::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	
+	ShopItemSubsystem->OnItemBuy.RemoveAll(this);
+	Super::EndPlay(EndPlayReason);
+}
+
+void APlayerItemInven::SetItem(int32 ItemIndex)
+{
+	UE_LOG(LogTemp, Warning, TEXT("아이템 인덱스%d"), ItemIndex);
+	if(0<=ItemIndex&&ItemIndex< PlayerItems.Num())
+		PlayerItems[ItemIndex]->InitItem(ItemIndex);
 }
 
 void APlayerItemInven::InteractLeftClick_Implementation()

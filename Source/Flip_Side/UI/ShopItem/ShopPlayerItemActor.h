@@ -63,11 +63,11 @@ private:
 
 	FVector DescriptionStartLocation;
 	FVector DescriptionArriveLocation;
+public:
 	
+	UPROPERTY(EditAnywhere)
+	int32 ItemIndex;
 private:
-
-	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
-	int32 ShopItemIndex;
 
 	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
     FItemData PlayerItemData;
