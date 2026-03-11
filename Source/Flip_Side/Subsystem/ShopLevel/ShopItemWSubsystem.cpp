@@ -35,7 +35,7 @@ void UShopItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
     if(DM)
     {
-        
+        DM->TryGetAllItems(ShopItemArray);
     }
 
 }
@@ -75,9 +75,10 @@ void UShopItemWSubsystem::BuyItemByIndex(int32 Index)
     {
         PlayerItemArray[InvenIndex].SameItemNum++;
     }
+    OnItemBuy.Broadcast(InvenIndex);
 }
 
-void UShopItemWSubsystem::BuyItem(FSelectItem ItemData)
+void UShopItemWSubsystem::BuyItem(FItemData ItemData)
 {
     int32 InvenIndex = GetPlayerInvenIndexByItemID(ItemData.ItemID);
     
@@ -86,11 +87,16 @@ void UShopItemWSubsystem::BuyItem(FSelectItem ItemData)
         FSelectItem AddItemData;
         AddItemData.ItemID = ItemData.ItemID;
         PlayerItemArray.Add(AddItemData);
+        UE_LOG(LogTemp,Warning, TEXT("Player Inven %d"),PlayerItemArray.Num() );
+        OnItemBuy.Broadcast(PlayerItemArray.Num()-1);
     }
     else
     {
         PlayerItemArray[InvenIndex].SameItemNum++;
+        OnItemBuy.Broadcast(InvenIndex);
     }
+    
+    
 }
 
 int32 UShopItemWSubsystem::GetPlayerInvenIndexByItemID(int32 FindItemID)

@@ -19,6 +19,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
 	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess))
@@ -53,6 +54,10 @@ private:
 	void InvenMeshMovement(float Value);	
 
 	void ActiveInven();
+
+	UFUNCTION()
+	void SetItem(int32 ItemIndex);
+
 public:
 	virtual void InteractLeftClick_Implementation() override;
 };

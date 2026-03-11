@@ -90,7 +90,6 @@ private:
 	UFUNCTION()
 	void ItemDescriptionMovement(float Value);
 
-
 public:
 	UFUNCTION()
 	void HoverdItem();

@@ -3,6 +3,7 @@
 
 #include "Subsystem/ShopLevel/ShopUnlockCardWSubsystem.h"
 #include "Subsystem/UnlockGISubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
 bool UShopUnlockCardWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     Super::ShouldCreateSubsystem(Outer);
@@ -22,9 +23,10 @@ void UShopUnlockCardWSubsystem::OnWorldBeginPlay(UWorld& World)
 {
     Super::OnWorldBeginPlay(World);
     UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
+    DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
     DefaultCardData.CardID = -1;
-
     CurrentSelectCardID =-1;
+    DataManager->TryGetAllCards(CardList);
 }
 
 void UShopUnlockCardWSubsystem::InitUnlockCard()
