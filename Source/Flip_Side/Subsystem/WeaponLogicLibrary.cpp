@@ -66,6 +66,8 @@ void UWeaponLogicLibrary::Freezer_Logic(UWeapon_Action* WeaponContext)
 //연막슈트↓
 void UWeaponLogicLibrary::SmokeSuit_Logic(UWeapon_Action* WeaponContext)
 {
+    UE_LOG(LogTemp, Warning, TEXT("연막슈트 적용"));
+
     if(!WeaponContext) return;
 
     TArray<ACoinActor*> RangedCoins = WeaponContext->GetInRangeCoins();

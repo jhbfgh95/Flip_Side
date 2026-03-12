@@ -24,7 +24,7 @@ int32 UItem_Action::GetItemTypeID() const
 
 void UItem_Action::SetTargetGrid(AGridActor* Grid)
 {
-    if(!TargetGrid) return;
+    if(!TargetGrid) return; // 그리드가 비워져있으면 해당 그리드를 타겟하지 말라는 의도?
 
     TargetGrid = Grid;
 }

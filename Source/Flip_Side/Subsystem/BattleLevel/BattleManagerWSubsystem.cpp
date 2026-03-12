@@ -190,15 +190,31 @@ void UBattleManagerWSubsystem::HandleItemClicked(AUseableItemActor* TargetItem)
     if(!TargetItem) return;
 
     bItemFlag = true;
-    CoinActionManager->CurrentInputState = EActionInputState::WaitingForGridClickForItem;
-    ItemManager->SelectWantUseItem(TargetItem);
+    // CoinActionManager->CurrentInputState = EActionInputState::WaitingForGridClickForItem;
+    // ItemManager->SelectWantUseItem(TargetItem);
+
+    // 상태 매니저의 상태를 '아이템 사용을 위한 그리드 클릭 대기'로 변경
+    if (CoinActionManager)
+    {
+        CoinActionManager->CurrentInputState = EActionInputState::WaitingForGridClickForItem;
+    }
+
+    // 아이템 매니저에게 어떤 아이템이 선택됐는지 알림
+    if (ItemManager)
+    {
+        ItemManager->SelectWantUseItem(TargetItem);
+    }
 }
 
 void UBattleManagerWSubsystem::HandleGridClicked(AGridActor* TargetGrid)
 {
     if(!TargetGrid) return;
 
-    if(CoinActionManager->CurrentInputState == EActionInputState::ExecutingAction)
+    UE_LOG(LogTemp, Warning, TEXT("#### BM: Clicked %s | Type: %d | Flag: %s | State: %d ####"),
+           *TargetGrid->GetName(), (int32)TargetGrid->GetCurrentOccupyingThing(),
+           bItemFlag ? TEXT("TRUE") : TEXT("FALSE"), (int32)CoinActionManager->CurrentInputState);
+
+    if (CoinActionManager->CurrentInputState == EActionInputState::ExecutingAction)
     {
         return; 
     }
@@ -213,15 +229,22 @@ void UBattleManagerWSubsystem::HandleGridClicked(AGridActor* TargetGrid)
         else if (CoinActionManager->CurrentInputState == EActionInputState::None)
         {
             //1. 여기는 처음에 코인 봐야해서 코인에서 좌표를 뻈고
+            
             ACoinActor* Coin = Cast<ACoinActor>(TargetGrid->GetCurrentOccupied());
             CoinActionManager->SetSelectedWeapon(Coin->StatComponent->GetModifiedStats(Coin->GetCoinFaceID()), Coin->GetDecidedGrid());                
         }
         else if(CoinActionManager->CurrentInputState == EActionInputState::WaitingForGridClickForItem && bItemFlag)
         {
-            ACoinActor* Coin = Cast<ACoinActor>(TargetGrid->GetCurrentOccupied());
+            // [로그 1] 여기까지 진입했는지 확인
+            UE_LOG(LogTemp, Warning, TEXT("#### BM: Grid Clicked for Item - Calling ExecuteItem ####"));
+
+            ACoinActor *Coin = Cast<ACoinActor>(TargetGrid->GetCurrentOccupied());
             ItemManager->ExecuteItem(TargetGrid);
             CoinActionManager->CurrentInputState = EActionInputState::None;
             bItemFlag = false;
+
+            // [로그 2] 실행 후 상태가 정상적으로 풀리는지 확인
+            UE_LOG(LogTemp, Warning, TEXT("#### BM: Item Use Flow Finished - State Reset ####"));
         }
     }
     else if(TargetGrid->GetCurrentOccupyingThing() == EGridOccupyingType::None)

@@ -108,6 +108,8 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(const FActionTask& Actio
 
         FFaceData SelectWeapon;
         FGridPoint LastGridPoint;
+        UE_LOG(LogTemp, Warning, TEXT("1"));
+
 
         if(DM->TryGetWeapon(ActionTask.WeaponID, SelectWeapon) && SelectedAction && CurrentInputState == EActionInputState::None)
         {
@@ -130,16 +132,20 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(const FActionTask& Actio
             AreaSpec = SelectWeapon.AttackAreaSpec;
             AreaSpec.AnchorCell = CoinGrid;
 
+            UE_LOG(LogTemp, Warning, TEXT("2"));
+
             if(AreaSpec.Pattern == EAttackAreaPattern::SingleCell)
             {
                 CurrentInputState = EActionInputState::WaitingForGridClick;
                 GridManager->GetValidGridsForSingleCell(CoinGrid,AreaSpec,ValidTargetGrids);
+                UE_LOG(LogTemp, Warning, TEXT("3"));
             }
             else
             {
                 CurrentInputState = EActionInputState::ExecutingAction;
                 ApplyRangedThings(CoinGrid);
                 ExecuteNowAction();
+                UE_LOG(LogTemp, Warning, TEXT("4"));
             }
         }
     }
@@ -153,9 +159,11 @@ void UCoinActionManagementWSubsystem::CreateTestSpec()
 void UCoinActionManagementWSubsystem::ExecuteNowAction()
 {
     if(RepeatActionCnt <= 0) return;
+    UE_LOG(LogTemp, Warning, TEXT("5"));
 
     SelectedAction->ExecuteAction();
-
+    RepeatActionCnt--;
+    
     if(RepeatActionCnt > 0)
     {
         GetWorld()->GetTimerManager().SetTimer(
