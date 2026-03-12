@@ -157,6 +157,13 @@ void UUseableItemWSubsystem::SelectWantUseItem(AUseableItemActor* TargetItem)
 {
     if(!TargetItem) return;
 
+    // SelectedItemAction이 혹시라도 Null인지 체크 // 크래시 발생해서 추가함
+    if (!SelectedItemAction)
+    {
+        SelectedItemAction = NewObject<UItem_Action>(this);
+        if (!SelectedItemAction) return;
+    }
+
     if (UGameInstance* GI = GetWorld()->GetGameInstance())
     {
         UDataManagerSubsystem* DM = GI->GetSubsystem<UDataManagerSubsystem>();
