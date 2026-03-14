@@ -5,21 +5,32 @@
 #include "UI/ShopUnlockCard/W_UnlockCardWidget.h"
 
 #include "Subsystem/ShopLevel/ShopUnlockCardWSubsystem.h"
+
+#include "Components/Button.h"
 void UW_UnlockCardModeWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
     ShopUnlockCardSubsystem = GetWorld()->GetSubsystem<UShopUnlockCardWSubsystem>();
+    InitUnlockCards();
+    
+    LeftPageButton->OnClicked.AddDynamic(this, &UW_UnlockCardModeWidget::ChangeCardsLeft);
+    RightPageButton->OnClicked.AddDynamic(this, &UW_UnlockCardModeWidget::ChangeCardsRight);
 
-}
+}   
 
 
 void UW_UnlockCardModeWidget::InitUnlockCards()
 {
-    UnlockCardWidget1->InitCard(ShopUnlockCardSubsystem->GetCardDataByIndex(CurrentPage));
-    UnlockCardWidget2->InitCard(ShopUnlockCardSubsystem->GetCardDataByIndex(CurrentPage + 1));
-    UnlockCardWidget3->InitCard(ShopUnlockCardSubsystem->GetCardDataByIndex(CurrentPage+ 2));
-    UnlockCardWidget4->InitCard(ShopUnlockCardSubsystem->GetCardDataByIndex(CurrentPage + 3));
+    UnlockCardWidget1->InitCardShowIndex(0);
+    UnlockCardWidget2->InitCardShowIndex(1);
+    UnlockCardWidget3->InitCardShowIndex(2);
+    UnlockCardWidget4->InitCardShowIndex(3);
+
+     UnlockCardWidget1->InitUnlockCard();
+    UnlockCardWidget2->InitUnlockCard();
+    UnlockCardWidget3->InitUnlockCard();
+    UnlockCardWidget4->InitUnlockCard();
 }
 
 void UW_UnlockCardModeWidget::ChangeCardsLeft()

@@ -22,8 +22,10 @@ bool UShopUnlockCardWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 void UShopUnlockCardWSubsystem::OnWorldBeginPlay(UWorld& World)
 {
     Super::OnWorldBeginPlay(World);
+
     UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
     DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+
     DefaultCardData.CardID = -1;
     CurrentSelectCardID =-1;
     DataManager->TryGetAllCards(CardList);
@@ -37,10 +39,18 @@ void UShopUnlockCardWSubsystem::InitUnlockCard()
 }
 
 
+FCardData UShopUnlockCardWSubsystem::GetCurrnetPageCardData(int32 Index)
+{
+    if(0<=CurrentPage+Index &&CurrentPage+Index<CardList.Num())
+    {
+        return CardList[CurrentPage+Index];
+    }
+    return DefaultCardData;
+}
 
 FCardData UShopUnlockCardWSubsystem::GetCardDataByIndex(int32 Index)
 {
-    if(CardList.Num()<Index)
+    if(0<=Index &&Index<CardList.Num())
     {
         return CardList[Index];
     }
@@ -63,30 +73,36 @@ bool UShopUnlockCardWSubsystem::UnlockCard()
     */
    UnlockSubsystem->UnlockCard(CurrentSelectCardID);
    OnUnlockSelectCard.Broadcast(CurrentSelectCardID);
+   CurrentSelectCardID = -1;
    return true;
 }
 void UShopUnlockCardWSubsystem::ChangeCardsLeft()
 {
-    if(0<CurrentPage)
+    if(0<=CurrentPage-4)
     {
-        CurrentPage--;
+        CurrentPage-=4;
         OnChangelockCardsLeft.Broadcast();
     }
 
 }
 void UShopUnlockCardWSubsystem::ChangeCardsRight()
 {
-    if(CurrentPage+1 <CardList.Num())
+    if(CurrentPage+4 <CardList.Num())
     {
-        CurrentPage++;
+        CurrentPage+=4;
         OnChangelockCardsRight.Broadcast();
     }
 }
 
 void UShopUnlockCardWSubsystem::SelectCard(int32 SelectCardID)
 {
-    CurrentSelectCardID = SelectCardID;
-    OnSelectUnlockCard.Broadcast(SelectCardID);
+    if(CurrentSelectCardID != SelectCardID)
+    {
+        OnUnSelectUnlockCard.Broadcast(CurrentSelectCardID);
+        CurrentSelectCardID = SelectCardID;
+        OnSelectUnlockCard.Broadcast(SelectCardID);
+    }
+    
 }
 
 void UShopUnlockCardWSubsystem::UnSelectCard()

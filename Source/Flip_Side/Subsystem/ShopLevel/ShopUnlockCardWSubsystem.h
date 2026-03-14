@@ -15,6 +15,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangelockCardsLeft);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangelockCardsRight);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectUnlockCard, int32, SelectCardDataID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnSelectUnlockCard, int32, SelectCardDataID);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnlockSelectCard, int32, SelectCardDataID);
 UCLASS()
 class FLIP_SIDE_API UShopUnlockCardWSubsystem : public UWorldSubsystem
@@ -31,6 +33,8 @@ public:
 	FChangelockCardsRight OnChangelockCardsRight;
 	FSelectUnlockCard OnSelectUnlockCard;
 	FUnlockSelectCard OnUnlockSelectCard;
+	FUnSelectUnlockCard OnUnSelectUnlockCard;
+
 private:
 	class UUnlockGISubsystem* UnlockSubsystem;
 	class UDataManagerSubsystem* DataManager;
@@ -47,6 +51,8 @@ protected:
 
 public:
 	FCardData GetCardDataByIndex(int32 Index);
+
+	FCardData GetCurrnetPageCardData(int32 Index);
 
 	bool UnlockCard();
 

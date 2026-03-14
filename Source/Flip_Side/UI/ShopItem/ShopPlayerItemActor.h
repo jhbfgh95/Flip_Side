@@ -67,6 +67,12 @@ public:
 	
 	UPROPERTY(EditAnywhere)
 	int32 ItemIndex;
+
+private:
+	class UW_CountWidget* ItemCountWidgetClass;
+
+	UFUNCTION()
+	void SetItemCountWidget(int32 Index);
 private:
 
 	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))

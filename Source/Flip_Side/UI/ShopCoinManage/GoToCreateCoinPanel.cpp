@@ -8,6 +8,7 @@
 #include "Components/TimeLineComponent.h"
 #include "Components/BoxComponent.h"
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
+#include "Subsystem/ShopLevel/CoinCreateWSubsystem.h"
 #include "Player/GameMode_Shop.h"
 // Sets default values
 AGoToCreateCoinPanel::AGoToCreateCoinPanel()
@@ -38,6 +39,7 @@ void AGoToCreateCoinPanel::BeginPlay()
 {
 	Super::BeginPlay();
 	ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
+	ShopCoinCreateSubsystem = GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
 	ShopGameMode =  Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
 
 	//판넬 운동 타임라인
@@ -95,6 +97,7 @@ void AGoToCreateCoinPanel::MoveLockPanel(float Value)
 
 void AGoToCreateCoinPanel::ChangeCreateCoinMode()
 {
+	ShopCoinCreateSubsystem->SelectCoin( ShopCoinSubsystem->GetCurrentSlotCoin(),ShopCoinSubsystem->GetCurrentSlotCoinClass());
 	ShopGameMode->SetCoinCreateMode();
 }
 

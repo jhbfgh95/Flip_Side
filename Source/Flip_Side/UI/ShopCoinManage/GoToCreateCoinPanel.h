@@ -53,6 +53,7 @@ private:
 
 private:
 	class UShopCoinWSubsystem* ShopCoinSubsystem;
+	class UCoinCreateWSubsystem* ShopCoinCreateSubsystem;
 	class AGameMode_Shop* ShopGameMode;
 private:
 
