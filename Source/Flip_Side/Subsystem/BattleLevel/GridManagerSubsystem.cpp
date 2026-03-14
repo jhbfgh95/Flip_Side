@@ -3,6 +3,7 @@
 #include "GridActor.h"
 #include "GridAreaBuilder.h"
 #include "CoinActor.h"
+#include "BossManagerSubsystem.h"
 #include "FlipSideDevloperSettings.h"
 
 bool UGridManagerSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -152,41 +153,151 @@ void UGridManagerSubsystem::InitCoinOccupied()
 }
 
 //park
-void UGridManagerSubsystem::GetObjectsAtRange(const FAttackAreaSpec& Spec, const FGridPoint& FinalRange,TArray<FGridPoint>& OutCells, FObjectOnGridInfo& Infos) const
+void UGridManagerSubsystem::GetObjectsAtRange(
+    const FAttackAreaSpec& Spec,
+    const FGridPoint& FinalRange,
+    TArray<FGridPoint>& OutCells,
+    FObjectOnGridInfo& Infos) const
 {
     OutCells.Reset();
+    Infos.Coins.Reset();
+    Infos.Others.Reset();
+    Infos.Boss = nullptr;
 
-	FGridAreaBuilder::BuildCells(Spec, FinalRange.GridX, FinalRange.GridY, OutCells);
+    // ---------------------------------
+    // 1) 보스 라인 도달 여부를 먼저 계산
+    //    (BuildCells는 보드 밖 셀을 잘라버리므로 별도 계산 필요)
+    // ---------------------------------
+    bool bReachedBossLine = false;
 
-    AGridActor* TargetGrid = nullptr;
+    const int32 AnchorX = FinalRange.GridX + Spec.AnchorCell.GridX;
+    const int32 AnchorY = FinalRange.GridY + Spec.AnchorCell.GridY;
 
-    for(FGridPoint& Grid : OutCells)
+    switch (Spec.Pattern)
     {
-        TargetGrid = GetGridActor(Grid);
-        if(TargetGrid->GetIsOccupied())
+    case EAttackAreaPattern::RectFromCell:
+    {
+        const int32 Depth = FMath::Max(1, Spec.ParamB);
+
+        if (Spec.Side == EAreaSide::Up)
         {
-            switch(TargetGrid->GetCurrentOccupyingThing())
+            const int32 MaxY = AnchorY + Depth;
+            bReachedBossLine = (MaxY >= GridYSize);
+        }
+        break;
+    }
+
+    case EAttackAreaPattern::CrossOnCell:
+    {
+        const int32 HalfY = FMath::Max(0, Spec.ParamB);
+        const int32 MaxY = AnchorY + HalfY;
+        bReachedBossLine = (MaxY >= GridYSize);
+        break;
+    }
+
+    case EAttackAreaPattern::CircleOnCell:
+    {
+        const int32 Radius = FMath::Max(0, Spec.ParamA);
+        const int32 MaxY = AnchorY + Radius;
+        bReachedBossLine = (MaxY >= GridYSize);
+        break;
+    }
+
+    case EAttackAreaPattern::SingleCell:
+    {
+        // SingleCell은 후보 셀을 하나 지정하는 개념이므로
+        // 기본적으로 보스 라인 판정은 하지 않음.
+        // 필요하면 나중에 별도 규칙 추가 가능.
+        bReachedBossLine = false;
+        break;
+    }
+
+    default:
+        break;
+    }
+
+    // ---------------------------------
+    // 2) 실제 보드 안 셀들 생성
+    // ---------------------------------
+    if (Spec.Pattern == EAttackAreaPattern::SingleCell)
+    {
+        // SingleCell은 범위 공격이 아니라 "선택 가능한 셀" 개념
+        const_cast<UGridManagerSubsystem*>(this)->GetValidGridsForSingleCell(
+            FinalRange,
+            Spec,
+            OutCells
+        );
+    }
+    else
+    {
+        FAttackAreaSpec ResolvedSpec = Spec;
+
+        // UseAnchorCell 계열은 FinalRange(현재 코인/시전자 위치)를 기준으로
+        // 상대 오프셋 AnchorCell을 실제 절대 좌표로 바꿔준다.
+        if (ResolvedSpec.AnchorMode == EAreaAnchor::UseAnchorCell)
+        {
+            ResolvedSpec.AnchorCell.GridX = FinalRange.GridX + Spec.AnchorCell.GridX;
+            ResolvedSpec.AnchorCell.GridY = FinalRange.GridY + Spec.AnchorCell.GridY;
+        }
+
+        FGridAreaBuilder::BuildCells(ResolvedSpec, GridXSize, GridYSize, OutCells);
+    }
+
+    // ---------------------------------
+    // 3) 보드 안 오브젝트 수집
+    // ---------------------------------
+    for (const FGridPoint& Grid : OutCells)
+    {
+        if (Grid.GridX < 0 || Grid.GridX >= GridXSize ||
+            Grid.GridY < 0 || Grid.GridY >= GridYSize)
+        {
+            continue;
+        }
+
+        AGridActor* TargetGrid = GetGridActor(Grid);
+        if (!IsValid(TargetGrid))
+        {
+            continue;
+        }
+
+        if (!TargetGrid->GetIsOccupied())
+        {
+            continue;
+        }
+
+        switch (TargetGrid->GetCurrentOccupyingThing())
+        {
+        case EGridOccupyingType::Coin:
+        {
+            Infos.Coins.Add(TargetGrid->GetCurrentOccupied());
+            break;
+        }
+
+        case EGridOccupyingType::Wall:
+        {
+            Infos.Others.Add(TargetGrid->GetCurrentOccupied());
+            break;
+        }
+
+        default:
+            break;
+        }
+    }
+
+    // ---------------------------------
+    // 4) 보스 라인에 닿았으면 보스 연결
+    // ---------------------------------
+    if (bReachedBossLine)
+    {
+        if (UWorld* World = GetWorld())
+        {
+            if (UBossManagerSubsystem* BossMgr = World->GetSubsystem<UBossManagerSubsystem>())
             {
-                case EGridOccupyingType::Coin:
+                ABossActor* Boss = BossMgr->GetCurrentBoss();
+                if (IsValid(Boss) && !Boss->IsDead())
                 {
-                    Infos.Coins.Add(TargetGrid->GetCurrentOccupied());
-                    break;
+                    Infos.Boss = Boss;
                 }
-                //이거 코인이 보스가 범위내의 판정하는 것은 어떻게 되는지? -> 나랑 논의 필요함
-                //개인적인 생각으로는 GridActor상속받는 특별한 그리드 하나 만들고 좌표는 뭐..(-1,6)이라고 치고 0,0이 밑인지 위인지는 모르겠지만
-                //좌측 구석이 0 0이라 생각하면, Range가 GridYSize를 넘어가면 그냥 Info구조체에 보스액터 넘기는 방식으로 가면 좋겠는데
-                /*
-                case EGridOccupyingType::Boss
-                {
-                    Infos.Boss = TargetGrid->GetCurrentOccupied();
-                }
-                case EGridOccupyingType::Others
-                {
-                    //장애물이나 포탑같은거는 Others 하나 만들어서 거기서 상속시킬 생각임
-                    Infos.Others.Add(TargetGrid->GetCurrentOccupied());
-                }
-                */
-                
             }
         }
     }

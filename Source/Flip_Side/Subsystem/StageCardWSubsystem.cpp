@@ -10,7 +10,7 @@
 #include "Subsystem/CrossingLevelGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
-
+#include "Component_Status.h"
 #include "CoinActor.h"
 
 #include "DataTypes/GridTypes.h"
@@ -286,10 +286,8 @@ bool UStageCardWSubsystem::AreAllFieldCoinsFront(const TArray<FCoinOnGridInfo>& 
 
 void UStageCardWSubsystem::ExecuteCardsEffect()
 {
-    // 1) ���� ��� ��� ���� (�̹� ����/�Ͽ��� ���� ���)
     ClearAllModifiers();
 
-    // 2) �ʵ��� ���� ����
     TArray<FCoinOnGridInfo> FieldCoins;
     CollectCoinsOnField(FieldCoins);
 
@@ -299,7 +297,41 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
         return;
     }
 
-    // 3) ����(3��)�� CardID���� ���鼭 ȿ�� ����
+    // 현재 필드 코인들의 턴 버프 제거
+    for (const FCoinOnGridInfo& Info : FieldCoins)
+    {
+        ACoinActor* Coin = Info.CoinActor;
+        if (!IsValid(Coin))
+            continue;
+
+        UComponent_Status* StatusComp = Coin->FindComponentByClass<UComponent_Status>();
+        if (!IsValid(StatusComp))
+            continue;
+
+        StatusComp->ClearTurnBasedBuffs();
+    }
+
+    // CoinMods와 동일한 타입으로 맞춤
+    TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers> LocalMods;
+
+    auto AddMods =
+        [&LocalMods](ACoinActor* Coin, int32 AddAttack, int32 AddBehavior, int32 AddRange, bool bAddLifeSteal = false, int32 AddExtraActions = 0)
+        {
+            if (!IsValid(Coin))
+                return;
+
+            FCoinCardModifiers& Mods = LocalMods.FindOrAdd(Coin);
+            Mods.AttackAdd += AddAttack;
+            Mods.BehaviorAdd += AddBehavior;
+            Mods.RangeAdd += AddRange;
+            Mods.ExtraActions += AddExtraActions;
+
+            if (bAddLifeSteal)
+            {
+                Mods.bLifeSteal = true;
+            }
+        };
+
     for (int32 Slot = 0; Slot < HandCount; ++Slot)
     {
         if (!bHasCard.IsValidIndex(Slot) || !bHasCard[Slot])
@@ -309,40 +341,53 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
             continue;
 
         const int32 CardID = HandCards[Slot].CardID;
-        if (CardID < 0) // -1�� �� �������� ���� ��찡 ���Ƽ�
+        if (CardID < 0)
             continue;
 
         switch (CardID)
         {
-        // 1) Encore
-        case 1:
+        case 1: // Encore
         {
             if (!AreAllFieldCoinsFront(FieldCoins))
                 break;
 
-            ACoinActor* TargetCoin = FieldCoins[0].CoinActor;
+            ACoinActor* TargetCoin = nullptr;
+
+            for (const FCoinOnGridInfo& Info : FieldCoins)
+            {
+                if (IsValid(Info.CoinActor))
+                {
+                    TargetCoin = Info.CoinActor;
+                    break;
+                }
+            }
+
             if (!IsValid(TargetCoin))
                 break;
 
-            FCoinCardModifiers& Mods = CoinMods.FindOrAdd(TargetCoin);
-            Mods.ExtraActions += 1;
+            AddMods(TargetCoin, 0, 0, 0, false, 1);
             break;
         }
-        // 2) Long Range Amplifier
-        case 2:
+
+        case 2: // Long Range Amplifier
         {
             int32 CountRange3 = 0;
 
             for (const FCoinOnGridInfo& Info : FieldCoins)
             {
                 ACoinActor* Coin = Info.CoinActor;
-                if (!IsValid(Coin)) continue;
+                if (!IsValid(Coin))
+                    continue;
 
                 FFaceData Face;
-                if (!TryGetCoinFaceData(Coin, Face)) continue;
+                if (!TryGetCoinFaceData(Coin, Face))
+                    continue;
 
                 const int32 R = GetCoinRangeValue(Face);
-                if (R >= 3) ++CountRange3;
+                if (R >= 3)
+                {
+                    ++CountRange3;
+                }
             }
 
             if (CountRange3 < 6)
@@ -351,114 +396,119 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
             for (const FCoinOnGridInfo& Info : FieldCoins)
             {
                 ACoinActor* Coin = Info.CoinActor;
-                if (!IsValid(Coin)) continue;
+                if (!IsValid(Coin))
+                    continue;
 
                 FFaceData Face;
-                if (!TryGetCoinFaceData(Coin, Face)) continue;
+                if (!TryGetCoinFaceData(Coin, Face))
+                    continue;
 
                 const int32 R = GetCoinRangeValue(Face);
-
-                FCoinCardModifiers& Mods = CoinMods.FindOrAdd(Coin);
-                Mods.AttackAdd += R;
+                AddMods(Coin, R, 0, 0);
             }
 
             break;
         }
-        // 3) Promotion
-        case 3:
+
+        case 3: // Promotion
         {
             for (const FCoinOnGridInfo& Info : FieldCoins)
             {
                 ACoinActor* Coin = Info.CoinActor;
-                if (!IsValid(Coin)) continue;
+                if (!IsValid(Coin))
+                    continue;
 
                 FFaceData Face;
-                if (!TryGetCoinFaceData(Coin, Face)) continue;
+                if (!TryGetCoinFaceData(Coin, Face))
+                    continue;
 
-                // weaponid==3 -> ������
-                if (Face.WeaponID == 3) 
+                if (Face.WeaponID == 3)
                 {
-                    FCoinCardModifiers& Mods = CoinMods.FindOrAdd(Coin);
-                    Mods.BehaviorAdd += 3;
-                    Mods.AttackAdd += 3;
-                    Mods.RangeAdd += 2;
-                    Mods.bLifeSteal = true;
+                    AddMods(Coin, 3, 3, 2, true);
                 }
             }
             break;
         }
-        // 4) Golden Opportunity
-        case 4:
+
+        case 4: // Golden Opportunity
         {
-            // TODO: ��� �ý���/�÷��̾� ���¿� AddGold ���� �Լ� ȣ��
             break;
         }
-        // 5) One for All
-        case 5:
+
+        case 5: // One for All
         {
             ACoinActor* OnlyCoin = nullptr;
             int32 ValidCount = 0;
 
             for (const FCoinOnGridInfo& Info : FieldCoins)
             {
-                if (!IsValid(Info.CoinActor)) continue;
+                if (!IsValid(Info.CoinActor))
+                    continue;
+
                 ++ValidCount;
                 OnlyCoin = Info.CoinActor;
-                if (ValidCount > 1) break;
+
+                if (ValidCount > 1)
+                    break;
             }
 
             if (ValidCount == 1 && IsValid(OnlyCoin))
             {
-                FCoinCardModifiers& Mods = CoinMods.FindOrAdd(OnlyCoin);
-                Mods.AttackAdd += 5;
-                Mods.RangeAdd += 5;
-                Mods.BehaviorAdd += 5;
+                AddMods(OnlyCoin, 5, 5, 5);
             }
+
             break;
         }
-        // 6) Alliance
-        case 6:
+
+        case 6: // Alliance
         {
             TMap<EWeaponClass, int32> ClassCount;
 
             for (const FCoinOnGridInfo& Info : FieldCoins)
             {
                 ACoinActor* Coin = Info.CoinActor;
-                if (!IsValid(Coin)) continue;
+                if (!IsValid(Coin))
+                    continue;
 
                 FFaceData Face;
-                if (!TryGetCoinFaceData(Coin, Face)) continue;
+                if (!TryGetCoinFaceData(Coin, Face))
+                    continue;
 
                 ClassCount.FindOrAdd(Face.WeaponType)++;
             }
 
-            for (const auto& Pair : ClassCount)
+            for (const TPair<EWeaponClass, int32>& Pair : ClassCount)
             {
                 const EWeaponClass TargetClass = Pair.Key;
                 const int32 Count = Pair.Value;
 
-                if (Count < 6) continue;
+                if (Count < 6)
+                    continue;
 
                 for (const FCoinOnGridInfo& Info : FieldCoins)
                 {
                     ACoinActor* Coin = Info.CoinActor;
-                    if (!IsValid(Coin)) continue;
+                    if (!IsValid(Coin))
+                        continue;
 
                     FFaceData Face;
-                    if (!TryGetCoinFaceData(Coin, Face)) continue;
+                    if (!TryGetCoinFaceData(Coin, Face))
+                        continue;
 
-                    if (Face.WeaponType != TargetClass) continue;
-
-                    FCoinCardModifiers& Mods = CoinMods.FindOrAdd(Coin);
+                    if (Face.WeaponType != TargetClass)
+                        continue;
 
                     if (TargetClass == EWeaponClass::Deal)
-                        Mods.AttackAdd += 4;
+                    {
+                        AddMods(Coin, 4, 0, 0);
+                    }
                     else if (TargetClass == EWeaponClass::Tank)
                     {
-                        // TODO: MaxHP +1 ���� �� CoinActor�� ���� �Լ� ����ų�, ���� ��꿡�� "MaxHPAdd" ���� modifier�� ���� �δ� ������� �ϱ�
                     }
                     else
-                        Mods.BehaviorAdd += 4;
+                    {
+                        AddMods(Coin, 0, 4, 0);
+                    }
                 }
             }
 
@@ -470,5 +520,42 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
         }
     }
 
-    UE_LOG(LogTemp, Log, TEXT("[StageCard] ExecuteCardsEffect done. ModsCount=%d"), CoinMods.Num());
+    for (const TPair<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Pair : LocalMods)
+    {
+        ACoinActor* Coin = Pair.Key.Get();
+        const FCoinCardModifiers& Mods = Pair.Value;
+
+        if (!IsValid(Coin))
+            continue;
+
+        UComponent_Status* StatusComp = Coin->FindComponentByClass<UComponent_Status>();
+        if (!IsValid(StatusComp))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[StageCard] ExecuteCardsEffect: %s has no StatusComponent."), *GetNameSafe(Coin));
+            continue;
+        }
+
+        FBuffInfo BuffInfo;
+        BuffInfo.BuffName = TEXT("StageCardBuff");
+
+        const int32 AttackAdd = Mods.AttackAdd;
+        const int32 BehaviorAdd = Mods.BehaviorAdd;
+        const int32 RangeAdd = Mods.RangeAdd;
+
+        BuffInfo.StatDelegate = FOnCalculateStats::FDelegate::CreateWeakLambda(
+            StatusComp,
+            [AttackAdd, BehaviorAdd, RangeAdd](FActionTask& Task)
+            {
+                Task.ModifiedAttackPoint += AttackAdd;
+                Task.ModifiedBehaviorPoint += BehaviorAdd;
+                Task.ModifiedRange.GridX += RangeAdd;
+                Task.ModifiedRange.GridY += RangeAdd;
+            });
+
+        StatusComp->AddBuffs(BuffInfo);
+    }
+
+    CoinMods = LocalMods;
+
+    UE_LOG(LogTemp, Log, TEXT("[StageCard] ExecuteCardsEffect done. BuffAppliedCoins=%d"), LocalMods.Num());
 }
