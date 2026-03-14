@@ -35,35 +35,40 @@ void AShopController_FlipSide::BeginPlay()
 
     
     
-
     //코인 관리 UI 초기 설정
-    InitWidget(CoinManageWidgetClass, CoinManageWidget);
-    //카드 위젯
-    InitWidget(SelectCardWidgetClass, SelectCardWidget);
-    //코인제작위젯
-    InitWidget(CoinCreateWidgetClass, CoinCreateWidget);
-    //상점 UI 클래스
-    InitWidget(ShopItemWidgetClass, ShopItemWidget);
-    //무기 해금 위젯
-    InitWidget(UnlockWeaponWidgetClass, UnlockWeaponWidget);
 
-    InitWidget(UnlockCardWidgetClass, UnlockCardWidget);
+    InitWidget(BlockWidgetClass, BlockWidget,100);
+    //코인 관리 UI 초기 설정
+    InitWidget(CoinManageWidgetClass, CoinManageWidget,0);
+    //카드 위젯
+    InitWidget(SelectCardWidgetClass, SelectCardWidget,0);
+    //코인제작위젯
+    InitWidget(CoinCreateWidgetClass, CoinCreateWidget,0);
+    //상점 UI 클래스
+    InitWidget(ShopItemWidgetClass, ShopItemWidget,0);
+    //무기 해금 위젯
+    InitWidget(UnlockWeaponWidgetClass, UnlockWeaponWidget,0);
+
+    InitWidget(UnlockCardWidgetClass, UnlockCardWidget,0);
 
     //상점 메인
-    InitWidget(ShopMainWigetClass, ShopMainWiget);
+    InitWidget(ShopMainWigetClass, ShopMainWiget,1);
+
     AddOpenWidgetList(ShopMainWiget);
     ViewWidgetList();
+
+    SetLockMouse(false);
 }
 
 
-void AShopController_FlipSide::InitWidget(TSubclassOf<UUserWidget> WidgetClass, UUserWidget*& Widget)
+void AShopController_FlipSide::InitWidget(TSubclassOf<UUserWidget> WidgetClass, UUserWidget*& Widget,int32 ZOrder)
 {
     if(WidgetClass)
     {
         Widget = CreateWidget<UUserWidget>(this, WidgetClass);
         if(Widget)
         {
-            Widget->AddToViewport(0);
+            Widget->AddToViewport(ZOrder);
             Widget->SetVisibility(ESlateVisibility::Hidden);
         }
     }
@@ -205,22 +210,29 @@ void AShopController_FlipSide::SetUnlockCardModeWidget()
 // 좌클릭: 선택, 카메라 이동
 void AShopController_FlipSide::OnLeftClick()
 {   
-    
-	UE_LOG(LogTemp, Warning, TEXT("클릭이벤트"));
-    FHitResult Hit;
-
-    if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+    if(CanClick)
     {
-        if (Hit.Component->ComponentHasTag("LClickAble") && Hit.GetActor()->Implements<UShopMouseInterface>())
+        UE_LOG(LogTemp, Warning, TEXT("클릭이벤트"));
+        FHitResult Hit;
+
+        if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
         {
-            IShopMouseInterface::Execute_InteractLeftClick(Hit.GetActor());
+            if (Hit.Component->ComponentHasTag("LClickAble") && Hit.GetActor()->Implements<UShopMouseInterface>())
+            {
+                IShopMouseInterface::Execute_InteractLeftClick(Hit.GetActor());
+            }
         }
     }
+	
 }
 
 // 우클릭: 디폴트 카메라 시점으로 복귀
 void AShopController_FlipSide::OnRightClick()
 {
+    if(CanClick)
+    {
+
+    }
     //ReturnToDefaultCamera();
 }
 
@@ -249,5 +261,19 @@ void AShopController_FlipSide::CheckMouseHover()
         {
             IShopMouseInterface::Execute_InteractHover(CurrentHoverActor);
         }
+    }
+}
+
+void AShopController_FlipSide::SetLockMouse(bool IsMouseLock)
+{
+    if(IsMouseLock)
+    {
+        BlockWidget->SetVisibility(ESlateVisibility::Visible);
+        CanClick = false;
+    }
+    else
+    {
+        BlockWidget->SetVisibility(ESlateVisibility::Hidden);
+        CanClick = true;
     }
 }

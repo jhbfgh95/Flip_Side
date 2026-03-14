@@ -37,7 +37,7 @@ private:
 private:
 	class UShopCoinWSubsystem* ShopCoinSubsystem;
 	class UDataManagerSubsystem* DataManagerSubsystem;
-
+	class AShopController_FlipSide* ShopController;
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UCurveFloat* CoinTurnCurve;
@@ -52,6 +52,10 @@ private:
 private:
 	UFUNCTION()
 	void TurnCoinMovement(float Value);
+	
+	
+	UFUNCTION()
+	void FinishedTurnCoin();
 
 public:
 	void InitCoin();

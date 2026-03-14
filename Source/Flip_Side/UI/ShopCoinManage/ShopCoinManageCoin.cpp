@@ -9,6 +9,7 @@
 #include "DataTypes/WeaponDataTypes.h"
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Player/ShopController_FlipSide.h"
 // Sets default values
 AShopCoinManageCoin::AShopCoinManageCoin()
 {
@@ -33,11 +34,15 @@ void AShopCoinManageCoin::BeginPlay()
 	Super::BeginPlay();
 	ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
 	DataManagerSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+	ShopController = Cast<AShopController_FlipSide>(GetWorld()->GetFirstPlayerController());
 
 	FOnTimelineFloat CoinTurnCallBack;
 	CoinTurnCallBack.BindUFunction(this, FName("TurnCoinMovement"));
 	CoinTurnTimeline->AddInterpFloat(CoinTurnCurve, CoinTurnCallBack);
 
+	FOnTimelineEvent FinishedCoinTrunCallBack;
+	FinishedCoinTrunCallBack.BindUFunction(this, FName("FinishedTurnCoin"));
+	CoinTurnTimeline->SetTimelineFinishedFunc(FinishedCoinTrunCallBack);
 	
 	StartRotator = CoinMesh->GetRelativeRotation();
 }
@@ -50,13 +55,20 @@ void AShopCoinManageCoin::TurnCoinMovement(float Value)
 	CoinMesh->SetRelativeRotation(MoveRotator);
 }
 
+void AShopCoinManageCoin::FinishedTurnCoin()
+{
+	CoinMesh->SetRelativeRotation(ArriveRotator);
+	ShopController->SetLockMouse(false);
+}
 
 void AShopCoinManageCoin::ChangeCoinSide()
 {
+	ShopController->SetLockMouse(true);
 	StartRotator = CoinMesh->GetRelativeRotation();
 	ArriveRotator = StartRotator + CoinTurnRotator;
 
 	CoinTurnTimeline->PlayFromStart();
+	
 }
 
 void AShopCoinManageCoin::InteractLeftClick_Implementation()

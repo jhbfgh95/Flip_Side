@@ -58,6 +58,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> UnlockCardWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> BlockWidgetClass;
+
 //UI 스크립트
 private:
 	UPROPERTY()
@@ -76,8 +79,10 @@ private:
 	UUserWidget* UnlockWeaponWidget;
 	UPROPERTY()
 	UUserWidget* UnlockCardWidget;
+	UPROPERTY()
+	UUserWidget* BlockWidget;
 private:
-	void InitWidget(TSubclassOf<UUserWidget> WidgetClass, UUserWidget*& widget);
+	void InitWidget(TSubclassOf<UUserWidget> WidgetClass, UUserWidget*& widget,int32 ZOrder);
 
 private:
 	class AGameMode_Shop* ShopGameMode;
@@ -123,6 +128,8 @@ public:
 	void HideModeChangeWidget();
 
 	void ShowModeChangeWidget();
+
+	void SetLockMouse(bool IsMouseLock);
 	
 private:
     FVector DefaultCameraLocation;
@@ -140,5 +147,6 @@ protected:
 private:
 	AActor* CurrentHoverActor;
 
+	bool CanClick;
 
 };

@@ -39,6 +39,7 @@ private:
 
 private:
 	class UShopCoinWSubsystem* ShopCoinSubsystem;
+	class AShopController_FlipSide* ShopController;
 
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
@@ -53,6 +54,9 @@ private:
 private:
 	UFUNCTION()
 	void MoveLockPanel(float Value);
+
+	UFUNCTION()
+	void FinishedMoveLockPanel();
 
 	void UnlockCoinSlot(); 
 protected:

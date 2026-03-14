@@ -26,6 +26,7 @@ AShopUseableItemActor::AShopUseableItemActor()
 	InteractSphere->SetupAttachment(RootComponent);
 
 	ItemMeshTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ItemMeshTimeline"));
+	ItemBuyTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ItemBuyTimeline"));
 }
 
 
@@ -47,16 +48,16 @@ void AShopUseableItemActor::BeginPlay()
 	ItemMoveCallBack.BindUFunction(this, FName("ItemHoverMovement"));
 	ItemMeshTimeline->AddInterpFloat(ItemMoveCurve, ItemMoveCallBack);	
 	
-    FOnTimelineFloat ItemDescriptionMoveCallBack;
-	ItemDescriptionMoveCallBack.BindUFunction(this, FName("ItemDescriptionMovement"));
-	ItemMeshTimeline->AddInterpFloat(DescriptionMoveCurve, ItemDescriptionMoveCallBack);	
+    FOnTimelineFloat ItemBuyCallBack;
+	ItemBuyCallBack.BindUFunction(this, FName("ItemBuyMovement"));
+	ItemBuyTimeline->AddInterpFloat(ItemBuyCurve, ItemBuyCallBack);	
 	
 
 	StartLocation = UseableItemMesh->GetRelativeLocation();
 	ArriveLocation = StartLocation + ItemMoveDirection;
 
-	ItemDescriptionStartLocation = ItemExplainMesh->GetRelativeLocation();
-	ItemDescriptionArriveLocation = ItemDescriptionStartLocation + ItemDescriptionMoveDirection;
+	StartRotator  = UseableItemMesh->GetRelativeRotation();
+	ArriveRotator = StartRotator+ItemShakeRotator;
 
 }
 
@@ -81,18 +82,23 @@ void AShopUseableItemActor::ItemHoverMovement(float Value)
 	UseableItemMesh->SetRelativeLocation(MoveVector);
 }
 
-void AShopUseableItemActor::ItemDescriptionMovement(float Value)
-{
-	FVector MoveVector = FMath::Lerp(ItemDescriptionStartLocation, ItemDescriptionArriveLocation, Value);
 
-	ItemExplainMesh->SetRelativeLocation(MoveVector);
+void AShopUseableItemActor::ItemBuyMovement(float Value)
+{
+	FRotator MoveRotator = FMath::Lerp(StartRotator, ArriveRotator, Value);
+
+	UseableItemMesh->SetRelativeRotation(MoveRotator);
 }
 
 void AShopUseableItemActor::LClickedUseAbleItem()
 {
     //상점 아이템 구입
     ShopItemSubSystem->BuyItem(ShopItemData);
-}    
+	ItemBuyTimeline->PlayFromStart();
+}
+
+
+
 
 void AShopUseableItemActor::HoveredUseAbleItem()
 {
@@ -129,5 +135,6 @@ void AShopUseableItemActor::InteractUnHover_Implementation()
 
 void AShopUseableItemActor::InteractLeftClick_Implementation()
 {
+	ItemBuyTimeline->PlayFromStart();
 	ShopItemSubSystem->BuyItem(ShopItemData);
 }

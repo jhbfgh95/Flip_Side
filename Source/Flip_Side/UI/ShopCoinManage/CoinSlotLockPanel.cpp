@@ -8,6 +8,8 @@
 #include "Components/TimelineComponent.h"
 
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
+
+#include "Player/ShopController_FlipSide.h"
 // Sets default values
 ACoinSlotLockPanel::ACoinSlotLockPanel()
 {
@@ -31,10 +33,16 @@ void ACoinSlotLockPanel::BeginPlay()
 {
 	Super::BeginPlay();
 	ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
+	ShopController = Cast<AShopController_FlipSide>(GetWorld()->GetFirstPlayerController());
 
 	FOnTimelineFloat UnlockPanelCallBack;
 	UnlockPanelCallBack.BindUFunction(this, FName("MoveLockPanel"));
 	PanelMoveTimeline->AddInterpFloat(PanelMoveCurve, UnlockPanelCallBack);
+
+	FOnTimelineEvent FinishedPanelMoveCallBack;
+	FinishedPanelMoveCallBack.BindUFunction(this, FName("FinishedMoveLockPanel"));
+	PanelMoveTimeline->SetTimelineFinishedFunc(FinishedPanelMoveCallBack);
+
 }
 
 void ACoinSlotLockPanel::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -64,11 +72,18 @@ void ACoinSlotLockPanel::UnlockCoinSlot()
 {
 	if(!ShopCoinSubsystem->GetCurrentCoinUnlock())
 	{
+		ShopController->SetLockMouse(true);
 		PanelStartLocation = GetActorLocation();
 		PanelArriveLocation = PanelStartLocation + PanelMoveDirection;
 		ShopCoinSubsystem->UnlockCurrentCoinSlot();
 		PanelMoveTimeline->PlayFromStart();
 	}
+}
+	
+void ACoinSlotLockPanel::FinishedMoveLockPanel()
+{
+	ShopController->SetLockMouse(false);
+	SetActorLocation(PanelArriveLocation);
 }
 
 void ACoinSlotLockPanel::InteractLeftClick_Implementation()

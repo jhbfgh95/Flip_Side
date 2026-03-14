@@ -5,6 +5,7 @@
 #include "Components/TimelineComponent.h"
 #include "UI/ShopCoinManage/ShopCoinManagePanel.h"
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
+#include "Player/ShopController_FlipSide.h"
 // Sets default values
 AShopCoinManageActor::AShopCoinManageActor()
 {
@@ -32,6 +33,9 @@ void AShopCoinManageActor::BeginPlay()
 	ShopCoinSubsystem= GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
 	ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AShopCoinManageActor::ChangePanel);
 	ShopCoinSubsystem->OnCoinCreated.AddDynamic(this, &AShopCoinManageActor::InitSlotPanelCoin);
+	
+	ShopController = Cast<AShopController_FlipSide>(GetWorld()->GetFirstPlayerController());
+
 	FOnTimelineFloat MoveToBottomCallBack;
 	MoveToBottomCallBack.BindUFunction(this,FName("MovePanelToBottom"));
 	MoveToBottomTimeline->AddInterpFloat(PanelMoveCurve, MoveToBottomCallBack);	
@@ -128,6 +132,9 @@ void AShopCoinManageActor::FinishMovePanelToBottom()
 	{
 		Panel2Class->InitPanelAfterArrive();
 	}
+	
+	ShopController->SetLockMouse(false);
+	
 }
 
 
@@ -154,10 +161,14 @@ void AShopCoinManageActor::FinishMovePanelToTop()
 	{
 		Panel2Class->InitPanelAfterArrive();
 	}
+	
+	ShopController->SetLockMouse(false);
 }
 
 void AShopCoinManageActor::ChangePanel(bool IsChangeToBottom)
 {
+	
+	ShopController->SetLockMouse(true);
 	if(IsChangeToBottom)
 		ChangePanelToBottom();
 	else
