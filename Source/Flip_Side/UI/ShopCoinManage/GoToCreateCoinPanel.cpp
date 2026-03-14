@@ -32,6 +32,7 @@ AGoToCreateCoinPanel::AGoToCreateCoinPanel()
     ItneractBox->SetupAttachment(RootScene);
 
 	LockPanelTimeLine  = CreateDefaultSubobject<UTimelineComponent>(TEXT("LockPanelTimeLine"));
+	ButtonTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ButtonTimeline"));
 }
 
 // Called when the game starts or when spawned
@@ -51,8 +52,20 @@ void AGoToCreateCoinPanel::BeginPlay()
 	FinishLockPanelCallBack.BindUFunction(this, FName("FinishMoveLockPanel"));
 	LockPanelTimeLine->SetTimelineFinishedFunc(FinishLockPanelCallBack);
 
+	FOnTimelineFloat PressButtonTimeLineCallBack;
+	PressButtonTimeLineCallBack.BindUFunction(this, FName("MoveButton"));
+	ButtonTimeline->AddInterpFloat(ButtonCurve, PressButtonTimeLineCallBack);
+	
+	FOnTimelineEvent FinishPressButtonCallBack;
+	FinishPressButtonCallBack.BindUFunction(this, FName("FinishedMoveButton"));
+	ButtonTimeline->SetTimelineFinishedFunc(FinishPressButtonCallBack);
+
+	PressStartVector = ButtonMesh->GetRelativeLocation();
+	PressArriveVector = PressStartVector + PressTargetVector;
+
 	StartVector = LockPanelMesh->GetRelativeLocation();
 	ArriveVector = StartVector + TargetVector;
+
 
 	ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AGoToCreateCoinPanel::InitLockPanel);
 	ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &AGoToCreateCoinPanel::OpenlockPanel);
@@ -95,10 +108,23 @@ void AGoToCreateCoinPanel::MoveLockPanel(float Value)
 	LockPanelMesh->SetRelativeLocation(MoveValue);
 }
 
-void AGoToCreateCoinPanel::ChangeCreateCoinMode()
+void AGoToCreateCoinPanel::MoveButton(float Value)
+{
+	FVector MoveValue = FMath::Lerp(PressStartVector, PressArriveVector, Value);
+	ButtonMesh->SetRelativeLocation(MoveValue);
+	UE_LOG(LogTemp,Warning, TEXT("%f"), Value);
+}
+
+void AGoToCreateCoinPanel::FinishedMoveButton()
 {
 	ShopCoinCreateSubsystem->SelectCoin( ShopCoinSubsystem->GetCurrentSlotCoin(),ShopCoinSubsystem->GetCurrentSlotCoinClass());
 	ShopGameMode->SetCoinCreateMode();
+}
+
+void AGoToCreateCoinPanel::ChangeCreateCoinMode()
+{
+	UE_LOG(LogTemp,Warning, TEXT("Aaaaa"));
+	ButtonTimeline->PlayFromStart();
 }
 
 void AGoToCreateCoinPanel::FinishMoveLockPanel()

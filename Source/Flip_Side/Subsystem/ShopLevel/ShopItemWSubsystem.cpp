@@ -87,7 +87,9 @@ void UShopItemWSubsystem::BuyItem(FItemData ItemData)
         FSelectItem AddItemData;
         AddItemData.ItemID = ItemData.ItemID;
         PlayerItemArray.Add(AddItemData);
-        UE_LOG(LogTemp,Warning, TEXT("Player Inven %d"),PlayerItemArray.Num() );
+
+        PlayerItemArray[PlayerItemArray.Num()-1].SameItemNum++;
+
         OnItemBuy.Broadcast(PlayerItemArray.Num()-1);
     }
     else
