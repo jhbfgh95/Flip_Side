@@ -220,12 +220,6 @@ void FGridAreaBuilder::BuildCells(const FAttackAreaSpec& Spec, int32 W, int32 H,
         break;
     }
 
-    case EAttackAreaPattern::SingleCell:
-    {
-        Add(T.GridX, T.GridY);
-        break;
-    }
-
     default:
         break;
     }

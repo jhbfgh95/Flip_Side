@@ -5,6 +5,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "GridTypes.h"
 #include "AttackAreaTypes.h"
+#include "BossActor.h"
 #include "GridManagerSubsystem.generated.h"
 
 class AGridActor;
@@ -29,13 +30,11 @@ struct FObjectOnGridInfo
 	UPROPERTY(BlueprintReadOnly)
 	TArray<AActor*> Coins;
 
-	/*
 	UPROPERTY(BlueprintReadOnly)
-	AActor* Boss;
+	TObjectPtr<ABossActor> Boss = nullptr;
 
 	UPROPERTY(BlueprintReadOnly)
 	TArray<AActor*> Others;
-	*/
 };
 
 USTRUCT()

@@ -20,7 +20,7 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 	FAttackAreaSpec AreaSpec;
 
 	//반복
-	int32 RepeatActionCnt = 0;
+	int32 RepeatActionCnt = 1;
 
 	//이거로 공격범위 표시 ㄱㄱ
 	TArray<struct FGridPoint> OutCells;

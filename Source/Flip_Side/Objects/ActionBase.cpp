@@ -33,6 +33,11 @@ void UActionBase::SetInRangeCoins(ACoinActor* TargetCoin)
     }
 }
 
+TArray<ACoinActor*> UActionBase::GetInRangeCoins()
+{
+    return InRangeCoins;
+}
+
 void UActionBase::SetLogicID(const int32 ID)
 {
     LogicID = ID;

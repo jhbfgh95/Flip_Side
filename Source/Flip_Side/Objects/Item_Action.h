@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Objects/ActionBase.h"
+#include "ItemDataTypes.h"
 #include "Item_Action.generated.h"
 
 /**
@@ -18,6 +19,8 @@ class FLIP_SIDE_API UItem_Action : public UActionBase
 	//흠.. 설치하는거 오브젝트를 어떻게 넣을지 고민해봐야하겠음
 
 	class AGridActor* TargetGrid;
+
+	FItemData ItemInfo;
 
 public:
 	virtual void SetItemEffectValue(const int32 OnItemEffectValue);

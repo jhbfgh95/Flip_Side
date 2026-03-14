@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Objects/ActionBase.h"
+#include "WeaponDataTypes.h"
 #include "Weapon_Action.generated.h"
 
 /**
@@ -18,11 +19,22 @@ class FLIP_SIDE_API UWeapon_Action : public UActionBase
 
 	int32 FinalBehaviorPoint = 0;
 
+	class ACoinActor* CasterCoin;
+
+	FFaceData WeaponData;
+
 public:
 	/*Set은 CoinAcionManagementWSubsystem이*/
 	virtual void SetFinalAttackPoint(const int32 AttackPoint);
 
 	virtual void SetFinalBehaviorPoint(const int32 BehaviorPoint);
+
+	virtual void SetSingleCellTargetCoin(ACoinActor* TargetCoin);
+
+	void SetWeaponData();
+
+	void SetCasterCoin(ACoinActor* InCaster) { CasterCoin = InCaster; }
+    ACoinActor* GetCasterCoin() const { return CasterCoin; }
 
 	/*Get은 CoinActionStaticLibrary에서 */
 

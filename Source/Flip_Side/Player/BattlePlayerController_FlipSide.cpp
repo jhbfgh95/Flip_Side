@@ -5,8 +5,12 @@
 #include "BattlePlayerPawn_FlipSide.h"
 #include "BattleArea.h"
 #include "CoinActor.h"
+#include "GridActor.h"
+#include "UseableItemActor.h"
 #include "LeverActor.h"
 #include "BattleManagerWSubsystem.h"
+#include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
+#include "Subsystem/BattleLevel/GridManagerSubsystem.h"
 #include "Subsystem/CoinManagementWSubsystem.h"
 
 ABattlePlayerController_FlipSide::ABattlePlayerController_FlipSide()
@@ -55,49 +59,92 @@ void ABattlePlayerController_FlipSide::ReturnToDefaultCamera()
     }
 }
 
-// 좌클릭: 선택, 카메라 이동
+// 좌클릭
 void ABattlePlayerController_FlipSide::OnLeftClick()
 {
-    UBattleManagerWSubsystem *BattleSubsystem = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
-    FHitResult Hit;
+    UBattleManagerWSubsystem *BattleSub = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
+    UGridManagerSubsystem *GridSub = GetWorld()->GetSubsystem<UGridManagerSubsystem>();
+    if (!BattleSub || !GridSub)
+        return;
 
+    FHitResult Hit;
+    ETurnState CurrentTurn = BattleSub->GetCurrentTurn();
+
+    // 레버 클릭
     if (GetHitResultUnderCursor(ECC_Camera, false, Hit))
     {
-        ACoinActor *ClickedCoin = Cast<ACoinActor>(Hit.GetActor());
-
-        if (ClickedCoin)
-        {
-            if (BattleSubsystem && BattleSubsystem->GetCurrentTurn() == ETurnState::CoinReadyTurn)
-            {
-                UCoinManagementWSubsystem *CoinSubsystem = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>();
-                if (!CoinSubsystem)
-                    return;
-
-                int32 TargetID = ClickedCoin->GetCoinID();
-
-                if (CoinSubsystem->IsCoinIdInBattleReady(TargetID))
-                {
-                    // 서랍 코인 취소 실행
-                    CoinSubsystem->RemoveBattleReadyCoins(ClickedCoin);
-                    return;
-                }
-                else if (ClickedCoin->GetSameTypeIndex() == 0)
-                {
-                    // 슬롯 코인->서랍
-                    CoinSubsystem->AddBattleReadyCoins(ClickedCoin);
-                    return;
-                }
-            }
-        }
-        // 레버 클릭
-        else if (ALeverActor *ClickedLever = Cast<ALeverActor>(Hit.GetActor()))
+        if (ALeverActor *ClickedLever = Cast<ALeverActor>(Hit.GetActor()))
         {
             ClickedLever->OnLeverInteracted();
             return;
         }
     }
 
-    // 영역 판단
+    // CoinSelectTurn
+    if (CurrentTurn == ETurnState::CoinSelectTurn)
+    {
+        // 액터 및 그리드 통합 체크
+        if (GetHitResultUnderCursor(ECC_Camera, false, Hit))
+        {
+            AActor *HitActor = Hit.GetActor();
+
+            // 아이템 클릭
+            if (AUseableItemActor *Item = Cast<AUseableItemActor>(HitActor))
+            {
+                BattleSub->HandleItemClicked(Item);
+                return;
+            }
+
+            // 코인 클릭 시 그리드 역추적. 수정 필요(: 채널을 따로 만들든 등등...)
+            if (ACoinActor *Coin = Cast<ACoinActor>(HitActor))
+            {
+                
+                AGridActor *TargetGrid = GridSub->GetGridActor(Coin->GetDecidedGrid());
+                if (TargetGrid)
+                {
+                    BattleSub->HandleGridClicked(TargetGrid);
+                    return;
+                }
+            }
+            // 그리드 직접 클릭
+            if (AGridActor *TargetGrid = Cast<AGridActor>(HitActor))
+            {
+                BattleSub->HandleGridClicked(TargetGrid);
+                return;
+            }
+        }
+        // Camera에서 놓쳤을 경우 Visibility로 그리드 재체크
+        if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+        {
+            if (AGridActor *TargetGrid = Cast<AGridActor>(Hit.GetActor()))
+            {
+                BattleSub->HandleGridClicked(TargetGrid);
+                return;
+            }
+        }
+    }
+    // CoinReadyTurn
+    else if (CurrentTurn == ETurnState::CoinReadyTurn)
+    {
+        if (GetHitResultUnderCursor(ECC_Camera, false, Hit))
+        {
+            if (ACoinActor *ClickedCoin = Cast<ACoinActor>(Hit.GetActor()))
+            {
+                UCoinManagementWSubsystem *CoinSub = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>();
+                if (CoinSub)
+                {
+                    int32 TargetID = ClickedCoin->GetCoinID();
+                    if (CoinSub->IsCoinIdInBattleReady(TargetID))
+                        CoinSub->RemoveBattleReadyCoins(ClickedCoin);
+                    else if (ClickedCoin->GetSameTypeIndex() == 0)
+                        CoinSub->AddBattleReadyCoins(ClickedCoin);
+                    return;
+                }
+            }
+        }
+    }
+
+    // 영역 이동 및 복귀
     if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
     {
         if (CurrentHoveredArea && ControlledPawn)
@@ -109,13 +156,19 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
             return;
         }
     }
-    // 빈 공간 클릭 시 디폴트 카메라 시점으로 복귀
     ReturnToDefaultCamera();
 }
 
 // 우클릭: 디폴트 카메라 시점으로 복귀
 void ABattlePlayerController_FlipSide::OnRightClick()
 {
+    UBattleManagerWSubsystem *BattleSub = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
+    if (BattleSub && BattleSub->GetCurrentTurn() == ETurnState::CoinSelectTurn)
+    {
+        BattleSub->HandleItemCanceled();
+        BattleSub->HandleGridCanceled();
+    }
+
     ReturnToDefaultCamera();
 }
 
