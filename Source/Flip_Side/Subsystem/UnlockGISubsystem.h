@@ -14,7 +14,7 @@
 
 //선택된 코인이 변경되었을 때 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FUnlockWeapon, EWeaponClass, WeaponClass, int32, AddIndex);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockCard);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnlockCard, int32, CardID);
 
 UCLASS()
 class FLIP_SIDE_API UUnlockGISubsystem : public UGameInstanceSubsystem

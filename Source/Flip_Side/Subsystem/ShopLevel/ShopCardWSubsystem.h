@@ -22,24 +22,28 @@ class FLIP_SIDE_API UShopCardWSubsystem : public UWorldSubsystem
 protected:
 	//상점 레벨일 경우에만 생성
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
-	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& World) override;
-
+	virtual void Deinitialize() override;
 private:
 	class UDataManagerSubsystem* DM;
 	
+	class UUnlockGISubsystem* UnlockSubsystem;
 private:
-	TArray<FCardData> CardList;
-
 	TArray<FCardData> UnlockCardList;
 
 	TArray<FCardData> PlayerCardList;
 
 	int32 CurrentCardListNum;
-
+	FCardData DefaultCard;
 
 private:
 	bool CanSelectCard();
+
+	UFUNCTION()
+	void SetUnlockCard();
+	
+	UFUNCTION()
+	void AddCardListToUnlockCard(int32 UnlockCardID);
 public:
 	FCardChanged OnCardChanged;
 	FCardSelected OnCardSelected;
