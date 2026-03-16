@@ -10,6 +10,7 @@
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 #include "Subsystem/ShopLevel/CoinCreateWSubsystem.h"
 #include "Player/GameMode_Shop.h"
+#include "Player/ShopController_FlipSide.h"
 // Sets default values
 AGoToCreateCoinPanel::AGoToCreateCoinPanel()
 {
@@ -42,7 +43,8 @@ void AGoToCreateCoinPanel::BeginPlay()
 	ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
 	ShopCoinCreateSubsystem = GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
 	ShopGameMode =  Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
-
+	ShopController = Cast<AShopController_FlipSide>(GetWorld()->GetFirstPlayerController());
+	
 	//판넬 운동 타임라인
 	FOnTimelineFloat LockPanelTimeLineCallBack;
 	LockPanelTimeLineCallBack.BindUFunction(this, FName("MoveLockPanel"));
@@ -117,13 +119,14 @@ void AGoToCreateCoinPanel::MoveButton(float Value)
 
 void AGoToCreateCoinPanel::FinishedMoveButton()
 {
+	ShopController->SetLockMouse(false);
 	ShopCoinCreateSubsystem->SelectCoin( ShopCoinSubsystem->GetCurrentSlotCoin(),ShopCoinSubsystem->GetCurrentSlotCoinClass());
 	ShopGameMode->SetCoinCreateMode();
 }
 
 void AGoToCreateCoinPanel::ChangeCreateCoinMode()
 {
-	UE_LOG(LogTemp,Warning, TEXT("Aaaaa"));
+	ShopController->SetLockMouse(true);
 	ButtonTimeline->PlayFromStart();
 }
 

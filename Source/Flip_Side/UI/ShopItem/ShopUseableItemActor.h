@@ -82,13 +82,6 @@ public:
 	UFUNCTION()
 	void LClickedUseAbleItem();
 
-	UFUNCTION()
-	void HoveredUseAbleItem();
-
-	//소모품위에 마우스가 내려 갔을 때
-	UFUNCTION()
-	void UnHoveredUseAbleItem();
-
 	void SetItemMaterial();
 private:
 	UFUNCTION()

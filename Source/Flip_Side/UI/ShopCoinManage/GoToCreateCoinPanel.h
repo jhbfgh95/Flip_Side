@@ -55,6 +55,7 @@ private:
 	class UShopCoinWSubsystem* ShopCoinSubsystem;
 	class UCoinCreateWSubsystem* ShopCoinCreateSubsystem;
 	class AGameMode_Shop* ShopGameMode;
+	class AShopController_FlipSide* ShopController;
 private:
 
 	UFUNCTION()

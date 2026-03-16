@@ -47,6 +47,9 @@ void UShopCardWSubsystem::Deinitialize()
 
 void UShopCardWSubsystem::SetNextCard()
 {
+    if(UnlockCardList.Num()<=0)
+        return;
+
     //다음 버튼을 눌렀을 때 끝인지 검사
     if(UnlockCardList.Num() <= CurrentCardListNum+1 )
     {
@@ -59,6 +62,8 @@ void UShopCardWSubsystem::SetNextCard()
 
 void UShopCardWSubsystem::SetPreviousCard()
 {
+    if(UnlockCardList.Num()<=0)
+        return;
     if(CurrentCardListNum-1 < 0 )
     {
         UE_LOG(LogTemp, Warning, TEXT("끝에 도달함"));
@@ -73,6 +78,9 @@ void UShopCardWSubsystem::SetPreviousCard()
 void UShopCardWSubsystem::SelectCard()
 {
     
+    if(UnlockCardList.Num()<=0)
+        return;
+        
     if(!CanSelectCard())
         return;
         

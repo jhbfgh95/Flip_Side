@@ -120,10 +120,12 @@ void AShopPlayerItemActor::SetItemMaterial()
 
 void AShopPlayerItemActor::HoverdItem()
 {
+	ShopItemSubsystem->HoverItem(PlayerItemData);
 	ItemMeshTimeline->Play();
 }
 void AShopPlayerItemActor::UnHoverdItem()
 {
+	ShopItemSubsystem->UnHoverItem();
 	ItemMeshTimeline->Reverse();
 }
 	

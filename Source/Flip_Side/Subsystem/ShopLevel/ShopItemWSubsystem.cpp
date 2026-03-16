@@ -40,22 +40,13 @@ void UShopItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 }
 
-
-void UShopItemWSubsystem::HoverShopItem(FItemData ItemData)
+void UShopItemWSubsystem::HoverItem(FItemData ItemData)
 {
     OnItemHovered.Broadcast(ItemData);
 }
-void UShopItemWSubsystem::UnHoverShopItem()
+void UShopItemWSubsystem::UnHoverItem()
 {
     OnItemUnHovered.Broadcast();
-}
-void UShopItemWSubsystem::HoverPlayerItem(FItemData ItemNum)
-{
-
-}
-void UShopItemWSubsystem::UnHoverPlayerItem(int32 ItemNum)
-{
-
 }
 
 void UShopItemWSubsystem::BuyItemByIndex(int32 Index)

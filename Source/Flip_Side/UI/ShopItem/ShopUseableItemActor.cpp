@@ -68,10 +68,12 @@ void AShopUseableItemActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 }
 void AShopUseableItemActor::HoverdItem()
 {
+	ShopItemSubSystem->HoverItem(ShopItemData);
 	ItemMeshTimeline->Play();
 }
 void AShopUseableItemActor::UnHoverdItem()
 {
+	ShopItemSubSystem->UnHoverItem();
 	ItemMeshTimeline->Reverse();
 }
 
@@ -95,21 +97,6 @@ void AShopUseableItemActor::LClickedUseAbleItem()
     //상점 아이템 구입
     ShopItemSubSystem->BuyItem(ShopItemData);
 	ItemBuyTimeline->PlayFromStart();
-}
-
-
-
-
-void AShopUseableItemActor::HoveredUseAbleItem()
-{
-    //마우스올라갔을 떄 설명 띄우기
-    ShopItemSubSystem->HoverShopItem(ShopItemData);
-}
-
-void AShopUseableItemActor::UnHoveredUseAbleItem()
-{
-    //마우스 내려 갔을 때 설명내리기
-    ShopItemSubSystem->UnHoverShopItem();
 }
 
 void AShopUseableItemActor::SetItemMaterial()
