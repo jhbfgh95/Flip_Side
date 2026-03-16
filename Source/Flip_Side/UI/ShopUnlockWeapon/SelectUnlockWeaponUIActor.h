@@ -22,20 +22,85 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 private:
 	class UShopUnlockWeaponWSubsystem* ShopUnlockWeaponSubSystem;
-	class UShopWeaponDataWSubsystem* WeaponDataSubsystem;
-
+	class UShopWeaponDataWSubsystem* WeaponDataSubsystem;	
+	class UUnlockGISubsystem* UnlockSubsystem;
+	class AShopController_FlipSide* ShopContoller;
 private:
 	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
+	class USceneComponent* RootScene;
+	
+	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
+	class USceneComponent* LockCoinScene;
+
+	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* CoinMesh;
+
+	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
+	class UStaticMeshComponent* LockMesh;
+
+	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
+	class UTimelineComponent* RiseTimeline;
+
+	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
+	class UTimelineComponent* JitterTimeline;
+	
+	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
+	class UTimelineComponent* SizeTimeline;
 
 private:
 	//const FFaceData* UnlockWeaponData; 
 	UFUNCTION()
 	void SetUnlockCoin(EWeaponClass WeaponClass, int32 index, bool IsItemUnlock);
 
+private:
+	
+	UPROPERTY(EditAnywhere, meta=(AccessPrivateAllow))
+	class UCurveFloat* RiseCurve;
+	
+	UPROPERTY(EditAnywhere, meta=(AccessPrivateAllow))
+	class UCurveFloat* JitterCurve;
+
+	UPROPERTY(EditAnywhere, meta=(AccessPrivateAllow))
+	class UCurveFloat* SizeCurve;
+private:
+	UPROPERTY(EditAnywhere, meta=(AccessPrivateAllow))
+	FVector RiseDirection;
+
+	FVector StartLocation;
+	FVector ArriveLocation;
+
+	UPROPERTY(EditAnywhere, meta=(AccessPrivateAllow))
+	float JitterValue;
+
+	UPROPERTY(EditAnywhere, meta=(AccessPrivateAllow))
+	FVector MaxCoinSize;
+
+	FVector StartSize;
+
+
+private:
+
+	UFUNCTION()
+	void UnlockWeapon(EWeaponClass WeaponClass, int32 AddIndex);
+
+	UFUNCTION()
+	void JitterCoin(float Value);
+	UFUNCTION()
+	void RiseCoin(float Value);
+
+	UFUNCTION()
+	void ChangeSizeCoin(float Value);
+
+
+	UFUNCTION()
+	void FinishedRiseCoin();
+	UFUNCTION()
+	void FinishedJitterCoin();
+	UFUNCTION()
+	void FinishedChangeSizeCoin();
+
+	void FinishedUnlockCoinAnim();
 };

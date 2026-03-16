@@ -24,9 +24,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:	
-	virtual void Tick(float DeltaTime) override;
-
 private:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	FVector CoinCreateLocation;
@@ -49,6 +46,10 @@ private:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	FVector UnlockCardLocation;
 private:
+	void SetCameraOrthographic();
+	void SetCameraPerspective();
+
+private:
 	UFUNCTION()
 	void MoveCoinCreateMode();
 	
@@ -67,7 +68,6 @@ private:
 	UFUNCTION()
 	void MoveShopMainMode();
 
-	
 	UFUNCTION()
 	void MoveUnlockCardMode();
 };

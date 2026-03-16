@@ -144,3 +144,32 @@ bool UUnlockGISubsystem::IsCardUnlockByID(int32 ID)
         else
             return true;
 }
+
+bool UUnlockGISubsystem::IsWeaponUnlockByID(EWeaponClass WeaponClass, int32 ID)
+{
+    if(EWeaponClass::Tank == WeaponClass)
+    {
+       if(TankUnlockArray.Find(ID)==-1)
+            return false;
+        else
+            return true;
+    }
+    else if(EWeaponClass::Deal == WeaponClass)
+    {
+        if(DealUnlockArray.Find(ID)==-1)
+            return false;
+        else
+            return true;
+    }
+    else if(EWeaponClass::Heal == WeaponClass)
+    {
+        if(UtilUnlockArray.Find(ID)==-1)
+            return false;
+        else
+            return true;
+    }
+    else
+    {
+        return false;
+    }
+}

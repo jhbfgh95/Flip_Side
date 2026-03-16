@@ -49,7 +49,7 @@ public:
 
 	int32 GetWeaponUnlockIndexByIndex(EWeaponClass WeaponClass, int32 index);
 	
-	bool IsWeaponUnlockByID(EWeaponClass WeaponClass, int32 index);
+	bool IsWeaponUnlockByID(EWeaponClass WeaponClass, int32 ID);
 
 	bool IsCardUnlockByID(int32 ID);
 };

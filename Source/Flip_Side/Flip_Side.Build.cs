@@ -37,7 +37,7 @@ public class Flip_Side : ModuleRules
 			"Flip_Side/UI/ShopCoinManage",
 			"Flip_Side/UI/ShopItem",
 			"Flip_Side/UI/ShopUnlockCard",
-			"Flip_Side/UI/ShopUnlocWeapon"
+			"Flip_Side/UI/ShopUnlockWeapon"
 		});
 
 
