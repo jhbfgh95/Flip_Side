@@ -45,6 +45,7 @@ void ACreateCoinDescriptionPanel::BeginPlay()
         CoinCreateWSubSystem->OnSelectedCoin.AddDynamic(this, &ACreateCoinDescriptionPanel::InitPannel);
 		CoinCreateWSubSystem->OnSelectedCoinUpdate.AddDynamic(this, &ACreateCoinDescriptionPanel::GetExplainByID);
 	}
+	ExplainWidgetClass = Cast<UW_ExplainWidget>(ExplainWidget->GetUserWidgetObject());
 
 	//원운동 타임라인
 	FOnTimelineFloat UpdateCircualrCallBack;

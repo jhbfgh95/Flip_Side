@@ -46,3 +46,8 @@ EWeaponClass UShopUnlockWeaponWSubsystem::GetCurrentWeaponClass()
 {
     return CurrentUnlockWeaponClass;
 }
+
+void UShopUnlockWeaponWSubsystem::ChangeUnlockWeaponClass(EWeaponClass WeaponClass)
+{
+    OnChangeUnlockWaeponClass.Broadcast(WeaponClass);
+}

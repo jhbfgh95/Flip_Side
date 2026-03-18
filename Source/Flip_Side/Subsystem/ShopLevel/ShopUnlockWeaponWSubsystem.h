@@ -14,7 +14,7 @@
 
 //해금할 코인 선택 했을 때 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FSelectUnlockWeapon, EWeaponClass, WeaponClass,int32, ItemIndex, bool, IsItemUnlock);
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeWeaponClass, EWeaponClass, WeaponClass);
 
 UCLASS()
 class FLIP_SIDE_API UShopUnlockWeaponWSubsystem : public UWorldSubsystem
@@ -34,7 +34,7 @@ private:
 	EWeaponClass CurrentUnlockWeaponClass;
 public:
 	FSelectUnlockWeapon OnSelectUnlockWeapon;
-
+	FChangeWeaponClass OnChangeUnlockWaeponClass;
 	//무기 해금
 	void UnlockWeaponByIndex(int32 WeaponIndex);
 	//무기 선택
@@ -45,4 +45,6 @@ public:
 	int32 GetCurrentUnlockWeaponIndex();
 
 	EWeaponClass GetCurrentWeaponClass();
+
+	void ChangeUnlockWeaponClass(EWeaponClass WeaponClass);
 };
