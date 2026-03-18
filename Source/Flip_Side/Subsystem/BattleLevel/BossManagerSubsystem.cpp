@@ -7,8 +7,23 @@
 #include "Component_Status.h"
 #include "GridActor.h"
 
+#include "FlipSideDevloperSettings.h"
+#include "LevelGISubsystem.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+
+void UBossManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+    Super::Initialize(Collection);
+
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (Settings)
+    {
+		TutorialBossData = Settings->TutorialBossData;
+        AllBossData = Settings->AllBossData;
+    }
+
+}
 
 bool UBossManagerSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -18,7 +33,17 @@ bool UBossManagerSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 	}
 
 	UWorld* World = Cast<UWorld>(Outer);
-	return World && World->IsGameWorld();
+
+	if(World)
+    {
+        FString MapName = World->GetName();
+        if(MapName.Contains(TEXT("L_Stage")))
+        {
+            return true;
+        }
+    }
+
+	return false;
 }
 
 bool UBossManagerSubsystem::PickRandomThemeFromStageBosses(const TArray<FBossData>& StageBosses, int32& OutThemeID) const
@@ -96,7 +121,7 @@ bool UBossManagerSubsystem::PickRandomBossDataForStage(int32 StageIndex, FBossDa
 	return true;
 }
 
-bool UBossManagerSubsystem::SpawnBossForStage(int32 StageIndex)
+bool UBossManagerSubsystem::SpawnBossForStage()
 {
 	UWorld* World = GetWorld();
 	if (!World)
@@ -110,70 +135,77 @@ bool UBossManagerSubsystem::SpawnBossForStage(int32 StageIndex)
 		CurrentBoss = nullptr;
 	}
 
+	ULevelGISubsystem* LevelSystem = World->GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+	if(!LevelSystem) return false;
+
 	FBossData PickedBossData;
-	if (!PickRandomBossDataForStage(StageIndex, PickedBossData))
+
+	int32 StageIndex = LevelSystem->GetBattleLevelIndex();
+
+	if(StageIndex == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[BossManager] SpawnBossForStage failed: no boss for stage %d"), StageIndex);
-		return false;
+		PickedBossData = TutorialBossData;
+	}
+	else
+	{
+		if (!PickRandomBossDataForStage(StageIndex, PickedBossData))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[BossManager] SpawnBossForStage failed: no boss for stage %d"), StageIndex);
+			return false;
+		}
 	}
 
-	if (!PickedBossData.BossClass)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[BossManager] SpawnBossForStage failed: BossClass null (BossID=%d)"), PickedBossData.BossID);
-		return false;
-	}
+	return Internal_SpawnBoss(PickedBossData);
+}
+
+bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossData& InBossData)
+{
+	UWorld* World = GetWorld();
+    if (!World || InBossData.BossClass.IsNull()) return false;
+
+    UClass* SelectedBossClass = InBossData.BossClass.LoadSynchronous();
+    if (!SelectedBossClass) return false;
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	ABossActor* SpawnedBoss = World->SpawnActor<ABossActor>(
-		PickedBossData.BossClass,
-		BossSpawnLocation,
-		BossSpawnRotation,
+		SelectedBossClass,
+		InBossData.SpawnLoc,
+		InBossData.SpawnRot,
 		SpawnParams
 	);
 
-	if (!SpawnedBoss)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[BossManager] SpawnBossForStage failed: SpawnActor failed"));
-		return false;
-	}
+	if(!SpawnedBoss) return false;
 
 	CurrentBoss = SpawnedBoss;
-	CurrentBoss->InitializeFromBossData(PickedBossData);
+	CurrentBoss->InitializeFromBossData(InBossData);
 
-	TurnContext.PickedThemeID = PickedBossData.ThemeID;
-	TurnContext.PickedBossID = PickedBossData.BossID;
-	TurnContext.PickedBossName = PickedBossData.BossName;
-
-	UE_LOG(LogTemp, Log, TEXT("[BossManager] Spawned Boss - Stage=%d ThemeID=%d BossID=%d Name=%s HP=%d AP=%d"),
-		StageIndex,
-		PickedBossData.ThemeID,
-		PickedBossData.BossID,
-		*PickedBossData.BossName,
-		PickedBossData.BossHP,
-		PickedBossData.AttackPoint);
+	StageContext.PickedThemeID = InBossData.ThemeID;
+	StageContext.PickedBossID = InBossData.BossID;
+	StageContext.PickedBossName = InBossData.BossName;
 
 	return true;
 }
 
-bool UBossManagerSubsystem::StartBossTurn()
+//"Setting Turn"
+bool UBossManagerSubsystem::StartBossSetting()
 {
 	if (!IsValid(CurrentBoss))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[BossManager] StartBossTurn failed: CurrentBoss null"));
+		UE_LOG(LogTemp, Warning, TEXT("[BossManager] StartBossSetting failed: CurrentBoss null"));
 		return false;
 	}
 
 	if (CurrentBoss->IsDead())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[BossManager] StartBossTurn failed: boss dead"));
+		UE_LOG(LogTemp, Warning, TEXT("[BossManager] StartBossSetting failed: boss dead"));
 		return false;
 	}
 
 	if (!PrepareCurrentPattern())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[BossManager] StartBossTurn failed: PrepareCurrentPattern failed"));
+		UE_LOG(LogTemp, Warning, TEXT("[BossManager] StartBossSetting failed: PrepareCurrentPattern failed"));
 		return false;
 	}
 
@@ -184,20 +216,6 @@ bool UBossManagerSubsystem::StartBossTurn()
 	{
 		return false;
 	}
-
-	const float Delay = FMath::Max(
-		0.01f,
-		TurnContext.CurrentPattern ? TurnContext.CurrentPattern->GetTelegraphDuration() : 1.0f
-	);
-
-	World->GetTimerManager().ClearTimer(TelegraphTimerHandle);
-	World->GetTimerManager().SetTimer(
-		TelegraphTimerHandle,
-		this,
-		&UBossManagerSubsystem::ExecuteCurrentPattern,
-		Delay,
-		false
-	);
 
 	return true;
 }
@@ -219,7 +237,7 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
 	}
 
 	const int32 PatternIndex = FMath::RandRange(0, PatternCount - 1);
-	UBossPatternBase* PickedPattern = CurrentBoss->GetPattern(PatternIndex);
+	UBossPatternBase* PickedPattern = CurrentBoss->GetPattern();
 	if (!PickedPattern)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[BossManager] PrepareCurrentPattern failed: picked pattern null"));
@@ -227,7 +245,10 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
 	}
 
 	TurnContext.CurrentPattern = PickedPattern;
-	TurnContext.CurrentPattern->BuildTargetCells(this, CurrentBoss, TurnContext.LockedCells);
+	TurnContext.CurrentPatternIndex = PatternIndex;
+	TurnContext.CurrentPattern->BuildTargetCells(this, CurrentBoss, TurnContext.LockedCells, TurnContext.CurrentPatternIndex);
+
+	CurrentBoss->SetPatternAnim(PickedPattern->PatternData[TurnContext.CurrentPatternIndex].PatternMontage);
 
 	BuildLockedTargetsFromCells(TurnContext.LockedCells, TurnContext.LockedTargets);
 
@@ -240,13 +261,14 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
 
 	UE_LOG(LogTemp, Log, TEXT("[BossManager] Prepared Pattern - Boss=%s Pattern=%s Cells=%d Targets=%d"),
 		*CurrentBoss->GetBossName(),
-		*TurnContext.CurrentPattern->GetPatternName(),
+		*TurnContext.CurrentPattern->GetPatternName(TurnContext.CurrentPatternIndex),
 		TurnContext.LockedCells.Num(),
 		TurnContext.LockedTargets.Num());
 
 	return true;
 }
 
+//BossTurn
 void UBossManagerSubsystem::ExecuteCurrentPattern()
 {
 	if (!TurnContext.bPrepared)
@@ -295,7 +317,8 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
 			this,
 			CurrentBoss,
 			TurnContext.LockedCells,
-			ValidLockedTargets
+			ValidLockedTargets,
+			TurnContext.CurrentPatternIndex
 		);
 	}
 

@@ -145,12 +145,10 @@ void UCrossingLevelGISubsystem::GenerateTestCoin()
     FCoinTypeStructure SlotTestCoin;
     SlotTestCoin.SameTypeCoinNum = 3;
 
-    for (int32 t = 0; t < 10; t++)
+    for (int32 t = 1; t <= 16; t+=2)
         {
-            SlotTestCoin.FrontWeaponID = (t * 2) + 1;
-            
-            int32 BackID = (t * 2) + 2;
-            SlotTestCoin.BackWeaponID = (BackID > 19) ? 19 : BackID;
+            SlotTestCoin.FrontWeaponID = t ;
+            SlotTestCoin.BackWeaponID = t + 1;
 
             SetSlotCoin(t, SlotTestCoin);
         }

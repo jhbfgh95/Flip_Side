@@ -3,6 +3,7 @@
 
 #include "ActionBase.h"
 #include "CoinActor.h"
+#include "BossActor.h"
 #include "DataTypes/GridTypes.h"
 
 void UActionBase::CreateTestRange()
@@ -33,9 +34,27 @@ void UActionBase::SetInRangeCoins(ACoinActor* TargetCoin)
     }
 }
 
+void UActionBase::SetInRangeBoss(ABossActor* TargetBoss)
+{
+    if(TargetBoss)
+    {
+        InRangeBoss = TargetBoss;
+    }
+}
+
 TArray<ACoinActor*> UActionBase::GetInRangeCoins()
 {
     return InRangeCoins;
+}
+
+bool UActionBase::GetInRangeBoss(ABossActor*& OutBoss) const
+{
+    if(InRangeBoss)
+    {
+        OutBoss = InRangeBoss;
+        return true;
+    }
+    return false;
 }
 
 void UActionBase::SetLogicID(const int32 ID)

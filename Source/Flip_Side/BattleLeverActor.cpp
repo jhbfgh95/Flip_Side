@@ -1,5 +1,5 @@
 #include "BattleLeverActor.h"
-#include "Subsystem/CoinManagementWSubsystem.h" 
+#include "Subsystem/BattleLevel/CoinManagementWSubsystem.h" 
 #include "Subsystem/BattleLevel/BattleManagerWSubsystem.h" 
 #include "FlipSide_Enum.h" // ETurnState 정의가 포함된 헤더를 반드시 포함하세요.
 
@@ -18,7 +18,10 @@ void ABattleLeverActor::ExecuteLeverLogic()
     // 서랍에 코인 세팅 후 레버 당김
     if (CurrentState == ETurnState::CoinReadyTurn)
     {
-        CoinSub->LockCoinReady(); 
+        for(auto* Coin : CoinSub->GetReadyCoins())
+        {
+            CoinSub->LockCoinReady(Coin);
+        }
         BattleSub->StartBattleFromLever(); // CoinReadyTurn -> CoinSelectTurn
     }
 

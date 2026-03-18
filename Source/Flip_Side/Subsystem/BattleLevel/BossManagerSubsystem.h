@@ -27,7 +27,7 @@ struct FLockedBossTarget
 };
 
 USTRUCT(BlueprintType)
-struct FBossTurnContext
+struct FBossStageContext
 {
 	GENERATED_BODY()
 
@@ -40,8 +40,18 @@ struct FBossTurnContext
 	UPROPERTY(BlueprintReadOnly)
 	FString PickedBossName;
 
+};
+
+USTRUCT(BlueprintType)
+struct FBossTurnContext
+{
+	GENERATED_BODY()
+
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UBossPatternBase> CurrentPattern = nullptr;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 CurrentPatternIndex = -1;
 
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FGridPoint> LockedCells;
@@ -54,10 +64,8 @@ struct FBossTurnContext
 
 	void Reset()
 	{
-		PickedThemeID = 0;
-		PickedBossID = 0;
-		PickedBossName.Reset();
 		CurrentPattern = nullptr;
+		CurrentPatternIndex = -1;
 		LockedCells.Reset();
 		LockedTargets.Reset();
 		bPrepared = false;
@@ -76,30 +84,34 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Data")
 	TArray<FBossData> AllBossData;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Spawn")
-	FVector BossSpawnLocation = FVector::ZeroVector;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Spawn")
-	FRotator BossSpawnRotation = FRotator::ZeroRotator;
-
 	UPROPERTY()
 	TObjectPtr<ABossActor> CurrentBoss = nullptr;
 
 	UPROPERTY()
 	FBossTurnContext TurnContext;
 
+	UPROPERTY()
+	FBossStageContext StageContext;
+
 	FTimerHandle TelegraphTimerHandle;
 
+	FBossData TutorialBossData;
+
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+
 public:
+	//Initialize
 	UFUNCTION(BlueprintCallable, Category = "Boss")
-	bool SpawnBossForStage(int32 StageIndex);
+	bool SpawnBossForStage();
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	ABossActor* GetCurrentBoss() const { return CurrentBoss; }
 
+	//SettingTurn
 	UFUNCTION(BlueprintCallable, Category = "Boss")
-	bool StartBossTurn();
+	bool StartBossSetting();
 
+	//BossTurn
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	void ExecuteCurrentPattern();
 
@@ -110,6 +122,7 @@ public:
 	void ApplyDamageToLockedTargets(const TArray<ACoinActor*>& LockedTargets, int32 Damage);
 
 private:
+	bool Internal_SpawnBoss(const FBossData& InBossData);
 	bool PickRandomBossDataForStage(int32 StageIndex, FBossData& OutBossData) const;
 	bool PickRandomThemeFromStageBosses(const TArray<FBossData>& StageBosses, int32& OutThemeID) const;
 	bool PickRandomBossFromTheme(const TArray<FBossData>& StageBosses, int32 ThemeID, FBossData& OutBossData) const;

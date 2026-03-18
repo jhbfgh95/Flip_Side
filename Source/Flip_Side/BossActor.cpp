@@ -1,9 +1,13 @@
 #include "BossActor.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Component_Status.h"
 
 ABossActor::ABossActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
+
+	BossMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
+	SetRootComponent(BossMesh);
 
 	StatusComp = CreateDefaultSubobject<UComponent_Status>(TEXT("StatusComp"));
 }
@@ -24,21 +28,25 @@ void ABossActor::InitializeFromBossData(const FBossData& InData)
 	{
 		StatusComp->SetHP(InData.BossHP);
 	}
+	if (UAnimInstance* AnimInstance = BossMesh->GetAnimInstance())
+    {
+        AnimInstance->OnMontageEnded.AddUniqueDynamic(this, &ABossActor::AttackMontageEnded);
+    }
 }
 
 int32 ABossActor::GetPatternCount() const
 {
-	return Patterns.Num();
+	return Pattern->PatternData.Num();
 }
 
-UBossPatternBase* ABossActor::GetPattern(int32 Index) const
+UBossPatternBase* ABossActor::GetPattern() const
 {
-	if (!Patterns.IsValidIndex(Index))
+	if (!Pattern)
 	{
 		return nullptr;
 	}
 
-	return Patterns[Index];
+	return Pattern;
 }
 
 bool ABossActor::IsDead() const
@@ -61,4 +69,28 @@ void ABossActor::PlayAttack()
 {
 	UE_LOG(LogTemp, Log, TEXT("[BossActor] Attack: BossID=%d Name=%s"),
 		BossID, *BossName);
+
+	UAnimInstance* AnimInstance = BossMesh->GetAnimInstance();
+    if (!AnimInstance)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No AnimInstacne"));
+	}
+
+   	AnimInstance->Montage_Play(SelectedPatternAnim);
+}
+
+void ABossActor::AttackMontageEnded(UAnimMontage * TargetMontage, bool bInterrupted)
+{
+	if(OnBossAttackEnded.IsBound())
+	{
+		OnBossAttackEnded.Broadcast();
+	}
+}
+
+void ABossActor::SetPatternAnim(UAnimMontage * TargetMontage)
+{
+	if(TargetMontage)
+	{
+		SelectedPatternAnim = TargetMontage;
+	}
 }

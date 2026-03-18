@@ -8,6 +8,8 @@
 
 class UComponent_Status;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBossAttackEndedDelegate);
+
 UCLASS()
 class FLIP_SIDE_API ABossActor : public AActor
 {
@@ -20,6 +22,9 @@ protected:
 	virtual void BeginPlay() override;
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
+	class USkeletalMeshComponent* BossMesh;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
 	int32 ThemeID = 0;
 
@@ -36,7 +41,9 @@ protected:
 	TObjectPtr<UComponent_Status> StatusComp;
 
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, Category = "Boss|Pattern")
-	TArray<TObjectPtr<UBossPatternBase>> Patterns;
+	TObjectPtr<UBossPatternBase> Pattern;
+
+	TObjectPtr<class UAnimMontage> SelectedPatternAnim = nullptr;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Boss")
@@ -61,7 +68,13 @@ public:
 	int32 GetPatternCount() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
-	UBossPatternBase* GetPattern(int32 Index) const;
+	UBossPatternBase* GetPattern() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
+	void SetPatternAnim(class UAnimMontage* TargetMontage);
+
+	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
+	void AttackMontageEnded(class UAnimMontage* TargetMontage, bool bInterrupted);
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	bool IsDead() const;
@@ -71,4 +84,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	void PlayAttack();
+
+public:
+	UPROPERTY(BlueprintAssignable, Category = "Boss")
+	FOnBossAttackEndedDelegate OnBossAttackEnded;
 };

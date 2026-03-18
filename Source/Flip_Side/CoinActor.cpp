@@ -199,6 +199,8 @@ void ACoinActor::DoCoinActAtBattleStart(float XLocation, float YLocation)
 
 	if(CurrentGridPoint.GridX == -1 && CurrentGridPoint.GridY == -1) return;
 
+	JumpElapsedTime = 0.0f;
+
 	DecidedGridLocation = FVector(XLocation, YLocation, -110.f);
 	//앞뒤
 	switch(CurrentFace)

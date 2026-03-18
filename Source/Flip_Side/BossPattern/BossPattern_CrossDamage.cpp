@@ -6,7 +6,7 @@
 void UBossPattern_CrossDamage::BuildTargetCells(
 	UBossManagerSubsystem* BossManager,
 	ABossActor* Boss,
-	TArray<FGridPoint>& OutCells)
+	TArray<FGridPoint>& OutCells, int32 PatternNum)
 {
 	if (!BossManager)
 	{
@@ -25,12 +25,20 @@ void UBossPattern_CrossDamage::BuildTargetCells(
 		return;
 	}
 
+	
 	FAttackAreaSpec Spec;
+	/*
 	Spec.Pattern = EAttackAreaPattern::CrossOnCell;
 	Spec.AnchorMode = EAreaAnchor::UseAnchorCell;
 	Spec.AnchorCell = AnchorCell;
 	Spec.ParamA = HalfX;
 	Spec.ParamB = HalfY;
+	*/
+	
+	if(PatternData.IsValidIndex(PatternNum))
+	{
+		Spec = PatternData[PatternNum].PatternSpec;
+	}
 
 	GridMgr->BuildBossAttackCells(Spec, OutCells);
 }
@@ -39,13 +47,15 @@ void UBossPattern_CrossDamage::ExecutePattern(
 	UBossManagerSubsystem* BossManager,
 	ABossActor* Boss,
 	const TArray<FGridPoint>& InLockedCells,
-	const TArray<ACoinActor*>& InLockedTargets)
+	const TArray<ACoinActor*>& InLockedTargets, int32 PatternNum)
 {
 	if (!BossManager)
 	{
 		return;
 	}
 
-	const int32 FinalDamage = Boss ? (Boss->GetAttackPoint() + Damage) : Damage;
+	if(!PatternData.IsValidIndex(PatternNum)) return;
+
+	const int32 FinalDamage = Boss ? (Boss->GetAttackPoint() + PatternData[PatternNum].Damage) : PatternData[PatternNum].Damage;
 	BossManager->ApplyDamageToLockedTargets(InLockedTargets, FinalDamage);
 }

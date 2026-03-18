@@ -155,6 +155,8 @@ void UUseableItemWSubsystem::InitSelectedItem()
 
 void UUseableItemWSubsystem::SelectWantUseItem(AUseableItemActor* TargetItem)
 {
+    if(!bIsCoinSelectTurn) return;
+
     if(!TargetItem) return;
 
     // SelectedItemAction이 혹시라도 Null인지 체크 // 크래시 발생해서 추가함

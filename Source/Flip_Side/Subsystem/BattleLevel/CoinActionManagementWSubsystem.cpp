@@ -21,7 +21,6 @@ void UCoinActionManagementWSubsystem::Initialize(FSubsystemCollectionBase& Colle
         InitWeaponAction();
     }
    
-    CreateTestSpec();
 }
 
 bool UCoinActionManagementWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -56,6 +55,8 @@ void UCoinActionManagementWSubsystem::InitWeaponAction()
     SelectedAction->SetLogicID(-1);
     SelectedAction->SetFinalAttackPoint(-1);
     SelectedAction->SetFinalBehaviorPoint(-1);
+    SelectedAction->SetCasterCoin(nullptr);
+    RepeatActionCnt = 1;
     CurrentInputState = EActionInputState::None;
     ValidTargetGrids.Empty();
 }
@@ -108,8 +109,6 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(const FActionTask& Actio
 
         FFaceData SelectWeapon;
         FGridPoint LastGridPoint;
-        UE_LOG(LogTemp, Warning, TEXT("1"));
-
 
         if(DM->TryGetWeapon(ActionTask.WeaponID, SelectWeapon) && SelectedAction && CurrentInputState == EActionInputState::None)
         {
@@ -132,34 +131,32 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(const FActionTask& Actio
             AreaSpec = SelectWeapon.AttackAreaSpec;
             AreaSpec.AnchorCell = CoinGrid;
 
-            UE_LOG(LogTemp, Warning, TEXT("2"));
-
             if(AreaSpec.Pattern == EAttackAreaPattern::SingleCell)
             {
                 CurrentInputState = EActionInputState::WaitingForGridClick;
                 GridManager->GetValidGridsForSingleCell(CoinGrid,AreaSpec,ValidTargetGrids);
-                UE_LOG(LogTemp, Warning, TEXT("3"));
             }
             else
             {
                 CurrentInputState = EActionInputState::ExecutingAction;
                 ApplyRangedThings(CoinGrid);
                 ExecuteNowAction();
-                UE_LOG(LogTemp, Warning, TEXT("4"));
             }
         }
     }
 }
 
-void UCoinActionManagementWSubsystem::CreateTestSpec()
+void UCoinActionManagementWSubsystem::SetCasterCoin(ACoinActor* CasterCoin)
 {
-    AreaSpec.Index = 2;
-}   
+    if(SelectedAction)
+    {
+        SelectedAction->SetCasterCoin(CasterCoin);
+    }
+}
 
 void UCoinActionManagementWSubsystem::ExecuteNowAction()
 {
     if(RepeatActionCnt <= 0) return;
-    UE_LOG(LogTemp, Warning, TEXT("5"));
 
     SelectedAction->ExecuteAction();
     RepeatActionCnt--;

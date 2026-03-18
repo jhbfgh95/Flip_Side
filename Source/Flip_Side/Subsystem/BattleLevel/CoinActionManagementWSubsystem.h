@@ -42,6 +42,9 @@ public:
 
 	void SetSelectedWeapon(const struct FActionTask& ActionTask,const FGridPoint& CoinGrid);
 
+	//이럴거면 애초에 Coin만 받았어야 함.. -> 리팩토링 꼭~하세요!
+	void SetCasterCoin(class ACoinActor* CasterCoin);
+
 	void ExecuteNowAction();
 
 	void ExecuteTimeAction(const FGridPoint& TargetGridPoint);
@@ -55,8 +58,6 @@ public:
 protected:
 	//GridManager에서 Range 넣어서 뭐있는지 알아서 UWeaponAction에 넣어줌.
 	bool ApplyRangedThings(const FGridPoint& TargetGridPoint);
-
-	void CreateTestSpec();
 
 	void InitWeaponAction();
 

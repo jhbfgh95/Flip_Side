@@ -26,8 +26,14 @@ struct FBossData
     int32 AttackPoint = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FVector SpawnLoc = FVector::ZeroVector;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FRotator SpawnRot = FRotator::ZeroRotator;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 BossHP = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    TSubclassOf<ABossActor> BossClass;
+    TSoftClassPtr<ABossActor> BossClass;
 };

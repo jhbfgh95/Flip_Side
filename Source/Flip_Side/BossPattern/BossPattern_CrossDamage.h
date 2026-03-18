@@ -11,6 +11,7 @@ class FLIP_SIDE_API UBossPattern_CrossDamage : public UBossPatternBase
 	GENERATED_BODY()
 
 public:
+	/*
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
 	FGridPoint AnchorCell = FGridPoint{ 3, 2 };
 
@@ -22,16 +23,16 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
 	int32 Damage = 1;
-
+	*/
 public:
 	virtual void BuildTargetCells(
 		UBossManagerSubsystem* BossManager,
 		ABossActor* Boss,
-		TArray<FGridPoint>& OutCells) override;
+		TArray<FGridPoint>& OutCells, int32 PatternNum) override;
 
 	virtual void ExecutePattern(
 		UBossManagerSubsystem* BossManager,
 		ABossActor* Boss,
 		const TArray<FGridPoint>& InLockedCells,
-		const TArray<ACoinActor*>& InLockedTargets) override;
+		const TArray<ACoinActor*>& InLockedTargets, int32 PatternNum) override;
 };

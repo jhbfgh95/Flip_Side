@@ -32,6 +32,9 @@ class FLIP_SIDE_API ADrawActor : public AActor
 
 	FTimerHandle LeverTimer;
 
+    UPROPERTY(VisibleAnywhere, Category = "Draw | Location")
+    FVector OriginDrawLocation;
+
 public:	
 	ADrawActor();
 

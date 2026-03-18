@@ -1,4 +1,4 @@
-#include "Subsystem/CoinManagementWSubsystem.h"
+#include "Subsystem/BattleLevel/CoinManagementWSubsystem.h"
 #include "Subsystems/Subsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -70,13 +70,34 @@ void UCoinManagementWSubsystem::InitBattleReadyCoin()
     {
         BattleReadyCoins.Add(nullptr);
     }
-    BattleReadyCoinNum = 0;
+}
+
+void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
+{
+    LiveCoinStacks.Empty();
+    for (int32 i = 0; i < BattleReadyCoins.Num(); ++i)
+    {
+        if (BattleReadyCoins[i] != nullptr)
+        {
+            LiveCoinStacks.Add(BattleReadyCoins[i]);
+            BattleReadyCoins[i]->SetActorScale3D(FVector(1.f, 1.f, 1.f));
+        }
+    }
+
+    InitBattleReadyCoin();
+
+    for(ACoinActor* Coin : LiveCoinStacks)
+    {
+        AddBattleReadyCoins(Coin);
+        LockCoinReady(Coin);
+    }
 }
 
 void UCoinManagementWSubsystem::AddBattleReadyCoins(ACoinActor* SelectCoinActor)
 {
-    if (BattleReadyCoinNum >= 10 || !SelectCoinActor) return;
+    if (!SelectCoinActor) return;
     if (SelectCoinActor->GetActorScale3D().X > 1.2f) return;
+
 
     // 빈 슬롯 찾기 및 등록
     int32 TargetIdx = INDEX_NONE;
@@ -125,8 +146,6 @@ void UCoinManagementWSubsystem::AddBattleReadyCoins(ACoinActor* SelectCoinActor)
         SelectCoinActor->GetRootComponent()->UpdateComponentToWorld();
     }
 
-    BattleReadyCoinNum++;
-
     // 슬롯 칸 앞당김
     TArray<AActor*> OutActors;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACoinActor::StaticClass(), OutActors);
@@ -166,7 +185,6 @@ void UCoinManagementWSubsystem::RemoveBattleReadyCoins(ACoinActor* SelectCoinAct
     if (FoundIdx != INDEX_NONE)
     {
         BattleReadyCoins[FoundIdx] = nullptr; 
-        BattleReadyCoinNum--;
     }
     else return;
 
@@ -219,36 +237,19 @@ void UCoinManagementWSubsystem::RemoveBattleReadyCoins(ACoinActor* SelectCoinAct
     );
 }
 
-int32 UCoinManagementWSubsystem::GetBattleReadyCoinNum() { return BattleReadyCoinNum; }
-
 bool UCoinManagementWSubsystem::IsCoinInBattleReady(ACoinActor* InCoin) const
 {
     return BattleReadyCoins.Contains(InCoin);
 }
 
-void UCoinManagementWSubsystem::LockCoinReady()
+void UCoinManagementWSubsystem::LockCoinReady(ACoinActor* TargetCoin)
 {
-    for (ACoinActor* Coin : BattleReadyCoins)
+    if (TargetCoin)
     {
-        if (Coin)
-        {
-            Coin->SetActorEnableCollision(false); // 아예 클릭을 못하게 콜리전 끔
-        }
+        TargetCoin->SetActorEnableCollision(false); // 아예 클릭을 못하게 콜리전 끔
     }
 }
-/*
-ACoinActor* UCoinManagementWSubsystem::GetCoinByName(FString TargetName)
-{
-    for (ACoinActor* Coin : BattleReadyCoins)
-    {
-        if (Coin && Coin->GetName() == TargetName)
-        {
-            return Coin;
-        }
-    }
-    return nullptr;
-}
-*/
+
 bool UCoinManagementWSubsystem::IsCoinIdInBattleReady(int32 TargetID) const
 {
     for (int32 i = 0; i < BattleReadyCoins.Num(); ++i)
@@ -358,21 +359,6 @@ void UCoinManagementWSubsystem::InstanceCoins()
             }
         }
     }
-}
-
-TArray<int32> UCoinManagementWSubsystem::GetReadyCoinIDs() const
-{
-    if(BattleReadyCoins.IsEmpty()) return {0};
-
-    TArray<int32> ReadyCoinIDs;
-
-    for(int i = 0; i<BattleReadyCoinNum;i++)
-    {
-        int32 ID = BattleReadyCoins[i]->GetCoinID();
-        ReadyCoinIDs.Add(ID);
-    }
-
-    return ReadyCoinIDs;
 }
 
 TArray<ACoinActor*> UCoinManagementWSubsystem::GetReadyCoins() const

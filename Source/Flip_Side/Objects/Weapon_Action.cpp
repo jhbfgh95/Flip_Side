@@ -48,7 +48,6 @@ void UWeapon_Action::ExecuteAction()
     if(WeaponLogic)
     {
         WeaponLogic(this);
-        UE_LOG(LogTemp, Warning, TEXT("7"));
     }
 }
 

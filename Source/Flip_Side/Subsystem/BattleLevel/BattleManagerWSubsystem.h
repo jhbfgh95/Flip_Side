@@ -21,14 +21,6 @@ class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
 	TArray<ETurnState> TurnManageMentStack;
 
 	UPROPERTY()
-	TArray<FBattleCoinInfo> CoinOrderArray;
-
-	/*
-	//코인ID가 키, 코인의 CurrentID가 value
-	UPROPERTY()
-	TMap<int32, int32> MatchedArray;
-	*/
-	UPROPERTY()
 	TArray<FRandomState> RandomStateArray;
 
 	ETurnState CurrentTurn;
@@ -51,18 +43,15 @@ protected:
 	UPROPERTY()
 	class UCoinActionManagementWSubsystem* CoinActionManager;
 
+	UPROPERTY()
+	class UBossManagerSubsystem* BossManager;
+
 protected:
 	void TurnProgressing();
-
-	void CoinOrderArrayInit();
 
 	void TurnStackInit();
 
 	void GenerateRandomStates();
-
-/* CoinReadyTurn */	
-protected:
-	
 
 /* CoinSelectTurn (순서대로) */
 protected:
@@ -70,6 +59,16 @@ protected:
 
 	bool bItemFlag = false;
 
+protected:
+	/* CoinReadyTurn */
+	void DoCoinReadyTurn();
+	/* CoinSelectTurn */
+	void DoCoinSelectTurn();
+	/* SettingTurn*/
+	UFUNCTION()
+	void DoSettingTurn();
+	/* BossTurn*/
+	void DoBossTurn();
 public:
 	/* 다른 "밖"의 종류는 너무 나중 일이라서.. 만약에 추가되면 마우스 포인터가 영역을 가르는 방식으로 진수쿤이 고생좀 해줘야할듯*/
 	void HandleItemClicked(class AUseableItemActor* TargetItem);
@@ -87,6 +86,8 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+
+	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 
 public:
 	UPROPERTY(BlueprintAssignable)

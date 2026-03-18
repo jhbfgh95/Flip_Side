@@ -11,7 +11,7 @@
 #include "BattleManagerWSubsystem.h"
 #include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
-#include "Subsystem/CoinManagementWSubsystem.h"
+#include "Subsystem/BattleLevel/CoinManagementWSubsystem.h"
 
 ABattlePlayerController_FlipSide::ABattlePlayerController_FlipSide()
 {

@@ -3,6 +3,7 @@
 #include "Component_Status.h"
 #include "Weapon_Action.h"
 #include "CoinActor.h"
+#include "BossActor.h"
 
 void UWeaponLogicLibrary::Test_Logic(UWeapon_Action* WeaponContext)
 {
@@ -17,12 +18,43 @@ void UWeaponLogicLibrary::SteelPipe_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
 
-    UE_LOG(LogTemp, Warning, TEXT("Logic Pipe"));
+    ABossActor* Boss;
+
+    if(!WeaponContext->GetInRangeBoss(Boss)) return;
+
+    int32 AP = WeaponContext->GetFinalAttackPoint();
+    int32 BP = WeaponContext->GetFinalBehaviorPoint();
+
+    int32 FinalDmg = AP * BP;
+
+    UComponent_Status* TargetStat = Boss->GetStatusComponent();
+
+    if(TargetStat)
+    {
+        TargetStat->ApplyDamage(FinalDmg, WeaponContext->GetCasterCoin());
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("SteelPipe ON"));
 }
 //증기 전기톱 ↓
 void UWeaponLogicLibrary::SteamChainSaw_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
+
+    ABossActor* Boss;
+
+    if(!WeaponContext->GetInRangeBoss(Boss)) return;
+
+    int32 AP = WeaponContext->GetFinalAttackPoint();
+
+    int32 FinalDmg = AP;
+
+    UComponent_Status* TargetStat = Boss->GetStatusComponent();
+
+    if(TargetStat)
+    {
+        TargetStat->ApplyDamage(FinalDmg, WeaponContext->GetCasterCoin());
+    }
 
     UE_LOG(LogTemp, Warning, TEXT("Logic Chainsaw"));
 }
@@ -66,8 +98,6 @@ void UWeaponLogicLibrary::Freezer_Logic(UWeapon_Action* WeaponContext)
 //연막슈트↓
 void UWeaponLogicLibrary::SmokeSuit_Logic(UWeapon_Action* WeaponContext)
 {
-    UE_LOG(LogTemp, Warning, TEXT("연막슈트 적용"));
-
     if(!WeaponContext) return;
 
     TArray<ACoinActor*> RangedCoins = WeaponContext->GetInRangeCoins();
@@ -97,7 +127,7 @@ void UWeaponLogicLibrary::SmokeSuit_Logic(UWeapon_Action* WeaponContext)
         });
 
         TargetStat->AddBuffs(Info);
-    }
+    }   
 
     UE_LOG(LogTemp, Warning, TEXT("연막슈트 적용"));
 }

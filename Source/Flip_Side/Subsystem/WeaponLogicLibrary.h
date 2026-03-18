@@ -13,7 +13,7 @@ class FLIP_SIDE_API UWeaponLogicLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 	
-/* 딜러 */ //3,5 없음
+/* 딜러 */
 public:
 	static void Test_Logic(UWeapon_Action* WeaponContext);
 

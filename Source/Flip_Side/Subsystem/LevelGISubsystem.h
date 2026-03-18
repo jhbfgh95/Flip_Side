@@ -14,8 +14,10 @@ class FLIP_SIDE_API ULevelGISubsystem : public UGameInstanceSubsystem
 	int32 BattleLevelIndex = 0;
 
 public:
+	//배틀레벨 넘어가는 용도
 	void MoveBattleLevel(const FString& LevelName);
 
+	//상점 넘어가는 용도
 	void MoveLevel(const FString& LevelName);
 
 	//상점 -> 레벨 넘어가는 레벨 인덱스 넘겨줌. ShopWidget의 BattleLevelNames따라감

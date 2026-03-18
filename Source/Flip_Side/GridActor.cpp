@@ -77,11 +77,11 @@ FVector2D AGridActor::GetGridWorldXY()
 	return FVector2D(GridWorldXY.X, GridWorldXY.Y);
 }
 
+//Destroy는 각 액터들이 HP Stat보고 0되면 this.Destroy로 죽일꺼라서 여기서 굳이 안불러도 상관없다.
 void AGridActor::ClearOccupied()
 {
 	bIsOccupied = false;
 	CurrentOccupying = EGridOccupyingType::None;
-	CurrentObject->Destroy();
 	CurrentObject = nullptr;
 }
 

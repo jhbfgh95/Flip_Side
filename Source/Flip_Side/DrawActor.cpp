@@ -20,6 +20,8 @@ void ADrawActor::BeginPlay()
 
 	UBattleLevelActingWSubsystem* ActManager= GetWorld()->GetSubsystem<UBattleLevelActingWSubsystem>();
 	ActManager->DoDrawMove.BindUObject(this, &ADrawActor::DoDrawAct);
+
+	OriginDrawLocation = GetActorLocation();
 }
 
 // Called every frame

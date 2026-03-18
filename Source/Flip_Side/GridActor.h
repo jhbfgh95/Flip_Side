@@ -29,7 +29,7 @@ class FLIP_SIDE_API AGridActor : public AActor
 	UPROPERTY(EditAnywhere, Category = "Grid | Colors", meta = (AllowPrivateAccess = "true"))
 	TArray<FLinearColor> TypeColors;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, Category = "Grid")
 	class AActor* CurrentObject;
 
 protected:
@@ -44,11 +44,13 @@ protected:
 	//보스가 공격할건지? 보스가 공격하게 되면 머테리얼 변경
 	bool bIsGonnaAttack = false;
 
+	UPROPERTY(VisibleAnywhere, Category = "Grid | GridXY")
 	EGridOccupyingType CurrentOccupying = EGridOccupyingType::None;
 
 	UPROPERTY()
 	FVector GridWorldXY;
 
+	UPROPERTY(VisibleAnywhere, Category = "GridXY")
 	FGridPoint GridXY;
 
 public:	

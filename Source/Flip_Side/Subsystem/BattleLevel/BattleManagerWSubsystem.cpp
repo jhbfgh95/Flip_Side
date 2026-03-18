@@ -10,6 +10,7 @@
 #include "CoinDataTypes.h"
 #include "LevelGISubsystem.h"
 #include "CoinManagementWSubsystem.h"
+#include "BossManagerSubsystem.h"
 #include "CrossingLevelGISubsystem.h"
 #include "UseableItemWSubsystem.h"
 #include "GridManagerSubsystem.h"
@@ -23,19 +24,15 @@ void UBattleManagerWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
-    CoinOrderArray.SetNum(BATTLE_COIN_MAX);
-
     CoinManager = Collection.InitializeDependency<UCoinManagementWSubsystem>();
     GridManager = Collection.InitializeDependency<UGridManagerSubsystem>();
     ItemManager = Collection.InitializeDependency<UUseableItemWSubsystem>();
     ActingManager = Collection.InitializeDependency<UBattleLevelActingWSubsystem>();
     CoinActionManager = Collection.InitializeDependency<UCoinActionManagementWSubsystem>();
+    BossManager = Collection.InitializeDependency<UBossManagerSubsystem>();
 
     RandomStateArray.SetNum(BATTLE_COIN_MAX);
-    CoinOrderArray.SetNum(BATTLE_COIN_MAX);
 
-    CoinOrderArrayInit();
-    GenerateRandomStates();
     TurnStackInit();
 }
 
@@ -55,26 +52,25 @@ bool UBattleManagerWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
     return false;
 }
 
-//다 -1로 세팅 후 초기화
-//이후에 예외 검사할 때 전부 -1이면 return판정
-void UBattleManagerWSubsystem::CoinOrderArrayInit()
+void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
-    for(int i = 0; i < BATTLE_COIN_MAX; i++)
+    Super::OnWorldBeginPlay(InWorld);
+
+    if(BossManager)
     {
-        CoinOrderArray[i].CoinID = -1;
-        CoinOrderArray[i].CoinGrid.GridX = -1;
-        CoinOrderArray[i].CoinGrid.GridY = -1;
-        CoinOrderArray[i].SelectedWeaponID = -1;
+        BossManager->SpawnBossForStage();
+        BossManager->GetCurrentBoss()->OnBossAttackEnded.AddDynamic(this, &UBattleManagerWSubsystem::DoSettingTurn);
     }
+
+    DoSettingTurn();
 }
 
 void UBattleManagerWSubsystem::TurnStackInit()
 {
-    TurnManageMentStack.Push(ETurnState::SettingTurn);
     TurnManageMentStack.Push(ETurnState::BossTurn);
-    //TurnManageMentStack.Push(ETurnState::BehaviorTurn);
     TurnManageMentStack.Push(ETurnState::CoinSelectTurn);
     TurnManageMentStack.Push(ETurnState::CoinReadyTurn);
+    TurnManageMentStack.Push(ETurnState::SettingTurn);
 
     CurrentTurn = TurnManageMentStack.Top();
 }
@@ -88,43 +84,28 @@ void UBattleManagerWSubsystem::StartBattleFromLever() { TurnProgressing(); }
 
 void UBattleManagerWSubsystem::TurnProgressing()
 {
-    // 이전 턴 상태 보관 (로그용)
-    ETurnState PreviousTurn = CurrentTurn;
-
-    // 코인 레디턴 -> 코인 설렉트턴 -> 비헤이비어 턴 -> 보스 턴 -> 세팅 턴
+    //세팅 턴 -> 코인 레디턴 -> 코인 설렉트턴 -> 보스 턴 
     TurnManageMentStack.Pop();
     CurrentTurn = TurnManageMentStack.Top();
 
     OnTurnChanged.Broadcast(CurrentTurn);
 
-    // 로그 출력: 어떤 턴에서 어떤 턴으로 넘어갔는지 명시
-    const UEnum* EnumPtr = StaticEnum<ETurnState>();
-    FString PrevName = EnumPtr ? EnumPtr->GetNameStringByValue((int64)PreviousTurn) : TEXT("None");
-    FString NextName = EnumPtr ? EnumPtr->GetNameStringByValue((int64)CurrentTurn) : TEXT("None");
-
     switch(CurrentTurn)
     {
-    case ETurnState::CoinReadyTurn:
-        break;
-        
-    case ETurnState::CoinSelectTurn:
-        MatchCoinsToRandomState();
-        CoinActionManager->SetTurn(true);
-        break;
-    
-    /*case ETurnState::BehaviorTurn:
-        break;
-    */
-    case ETurnState::BossTurn:
-        break;
     case ETurnState::SettingTurn:
-        CoinOrderArrayInit();
-        TurnStackInit();
-        GenerateRandomStates();
-        CoinActionManager->SetTurn(false);
-        GridManager->InitCoinOccupied();
+        DoSettingTurn();
+        break;
+    case ETurnState::CoinReadyTurn:
+        DoCoinReadyTurn();
+        break;
+    case ETurnState::CoinSelectTurn:
+        DoCoinSelectTurn();
+        break;
+    case ETurnState::BossTurn:
+        DoBossTurn();
         break;
     }
+
 }
 
 void UBattleManagerWSubsystem::GenerateRandomStates()
@@ -163,8 +144,6 @@ void UBattleManagerWSubsystem::MatchCoinsToRandomState()
 {
     if(!CoinManager || !GridManager) return;
 
-    //MatchedArray.Empty();
-
     TArray<ACoinActor*> ReadyCoins = CoinManager->GetReadyCoins();
 
     int32 StateIndex = 0;
@@ -177,7 +156,6 @@ void UBattleManagerWSubsystem::MatchCoinsToRandomState()
 
             GridManager->GetGridActor(RandomStateArray[StateIndex].RandomGrid)->SetOccupied(true, EGridOccupyingType::Coin, Coin);
             
-            //MatchedArray.Add(Coin->GetCoinID(), Coin->GetCoinFaceID());
             StateIndex++; // 코인을 찾았을 때만 다음 랜덤 상태로
         }
     }
@@ -209,11 +187,11 @@ void UBattleManagerWSubsystem::HandleItemClicked(AUseableItemActor* TargetItem)
 void UBattleManagerWSubsystem::HandleGridClicked(AGridActor* TargetGrid)
 {
     if(!TargetGrid) return;
-
+    /*
     UE_LOG(LogTemp, Warning, TEXT("#### BM: Clicked %s | Type: %d | Flag: %s | State: %d ####"),
            *TargetGrid->GetName(), (int32)TargetGrid->GetCurrentOccupyingThing(),
            bItemFlag ? TEXT("TRUE") : TEXT("FALSE"), (int32)CoinActionManager->CurrentInputState);
-
+    */
     if (CoinActionManager->CurrentInputState == EActionInputState::ExecutingAction)
     {
         return; 
@@ -232,6 +210,7 @@ void UBattleManagerWSubsystem::HandleGridClicked(AGridActor* TargetGrid)
             
             ACoinActor* Coin = Cast<ACoinActor>(TargetGrid->GetCurrentOccupied());
             CoinActionManager->SetSelectedWeapon(Coin->StatComponent->GetModifiedStats(Coin->GetCoinFaceID()), Coin->GetDecidedGrid());                
+            CoinActionManager->SetCasterCoin(Coin);
         }
         else if(CoinActionManager->CurrentInputState == EActionInputState::WaitingForGridClickForItem && bItemFlag)
         {
@@ -275,4 +254,37 @@ void UBattleManagerWSubsystem::HandleItemCanceled()
 {
     ItemManager->CancelWantUseItem();
     CoinActionManager->CurrentInputState = EActionInputState::None;
+}
+
+void UBattleManagerWSubsystem::DoCoinReadyTurn()
+{
+    UE_LOG(LogTemp, Warning, TEXT("ReadyTurn"));
+}
+
+void UBattleManagerWSubsystem::DoCoinSelectTurn()
+{
+    MatchCoinsToRandomState();
+    CoinActionManager->SetTurn(true);
+    ItemManager->SetTurn(true);
+}
+
+void UBattleManagerWSubsystem::DoBossTurn()
+{
+    CoinActionManager->SetTurn(false);
+    ItemManager->SetTurn(false);
+    BossManager->ExecuteCurrentPattern();
+    TurnStackInit();
+}
+
+void UBattleManagerWSubsystem::DoSettingTurn()
+{
+    GenerateRandomStates();
+    BossManager->StartBossSetting();
+    CoinActionManager->SetTurn(false);
+    ItemManager->SetTurn(false);
+    ActingManager->DoSettingAct();
+    GridManager->InitCoinOccupied();
+    CoinManager->CheckBattleReadyCoinAlive();
+
+    TurnProgressing();
 }

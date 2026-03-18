@@ -24,6 +24,8 @@ class FLIP_SIDE_API UUseableItemWSubsystem : public UWorldSubsystem
 
 	FGridPoint DefaultItemRange = {1, 1};
 
+	bool bIsCoinSelectTurn = false;
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
@@ -47,4 +49,6 @@ public:
 	void ExecuteItem(class AGridActor* TargetGrid);
 
 	bool IsItemSetupInGrid() const;
+
+	void SetTurn(const bool bIsTurn) { bIsCoinSelectTurn = bIsTurn; }
 };
