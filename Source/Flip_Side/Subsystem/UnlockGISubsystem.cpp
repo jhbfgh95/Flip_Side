@@ -64,8 +64,12 @@ void UUnlockGISubsystem::UnlockWeapon(EWeaponClass WeaponClass, int32 Index)
 
 void UUnlockGISubsystem::UnlockCard(int32 ID)
 {
-    CardUnlockArray.Add(ID);
-    OnUnlockCard.Broadcast();
+    if(CardUnlockArray.Find(ID) == -1)
+    {
+        CardUnlockArray.Add(ID);
+        OnUnlockCard.Broadcast(ID);
+    }
+        
 }
 
 
@@ -139,4 +143,33 @@ bool UUnlockGISubsystem::IsCardUnlockByID(int32 ID)
             return false;
         else
             return true;
+}
+
+bool UUnlockGISubsystem::IsWeaponUnlockByID(EWeaponClass WeaponClass, int32 ID)
+{
+    if(EWeaponClass::Tank == WeaponClass)
+    {
+       if(TankUnlockArray.Find(ID)==-1)
+            return false;
+        else
+            return true;
+    }
+    else if(EWeaponClass::Deal == WeaponClass)
+    {
+        if(DealUnlockArray.Find(ID)==-1)
+            return false;
+        else
+            return true;
+    }
+    else if(EWeaponClass::Heal == WeaponClass)
+    {
+        if(UtilUnlockArray.Find(ID)==-1)
+            return false;
+        else
+            return true;
+    }
+    else
+    {
+        return false;
+    }
 }

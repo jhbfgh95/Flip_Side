@@ -3,7 +3,7 @@
 
 #include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
-
+#include "SubSystem/UnlockGISubsystem.h"
 bool UShopCardWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     Super::ShouldCreateSubsystem(Outer);
@@ -19,60 +19,37 @@ bool UShopCardWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
     return MapName.Contains(TEXT("L_ShopLevel"));
 } 
 
-void UShopCardWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
-{
-    Super::Initialize(Collection);
-    
-    
-    FCardData DefaultCard;
-    
-    for(int i =0; i<6; i++)
-    {
-        DefaultCard.CardID = i;
-        DefaultCard.CardName = FString::FromInt(i);
-        DefaultCard.Card_Description= FString::FromInt(i);
-        UnlockCardList.Add(DefaultCard);
-    }
-
-    for(int i =0; i<3; i++)
-    {
-        DefaultCard.CardID = -1;
-        PlayerCardList.Add(DefaultCard);
-    }
-
-    if(0<UnlockCardList.Num())
-    {
-        OnCardChanged.Broadcast(UnlockCardList[CurrentCardListNum]);
-    }
-    
-}
-
 void UShopCardWSubsystem::OnWorldBeginPlay(UWorld& World)
 {
     Super::OnWorldBeginPlay(World);
-    /*
     if (UGameInstance* GI = GetWorld()->GetGameInstance())
     {
         DM = GI->GetSubsystem<UDataManagerSubsystem>();
     }
-    if(DM)
-    {
-        //TryGetCard나오면 받아오도록 추후 추가
-        FCardData CardData;
-        for(int i = 0; i<6 ; i++)
-        {
-            if(DM->TryGetCard(0,CardData))
-            {
-                UnlockCardList.Add(CardData);
-            }
-        }
-        
-    }
-    */
+
+    UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
+
+    SetUnlockCard();
+
+    UnlockSubsystem->OnUnlockCard.AddDynamic(this,&UShopCardWSubsystem::AddCardListToUnlockCard);
+
+    DefaultCard.CardID =-1;
+    
+    for(int i =0; i<3; i++)
+        PlayerCardList.Add(DefaultCard);
+}
+
+void UShopCardWSubsystem::Deinitialize()
+{
+    UnlockSubsystem->OnUnlockCard.RemoveAll(this);
+    Super::Deinitialize();
 }
 
 void UShopCardWSubsystem::SetNextCard()
 {
+    if(UnlockCardList.Num()<=0)
+        return;
+
     //다음 버튼을 눌렀을 때 끝인지 검사
     if(UnlockCardList.Num() <= CurrentCardListNum+1 )
     {
@@ -85,6 +62,8 @@ void UShopCardWSubsystem::SetNextCard()
 
 void UShopCardWSubsystem::SetPreviousCard()
 {
+    if(UnlockCardList.Num()<=0)
+        return;
     if(CurrentCardListNum-1 < 0 )
     {
         UE_LOG(LogTemp, Warning, TEXT("끝에 도달함"));
@@ -99,6 +78,9 @@ void UShopCardWSubsystem::SetPreviousCard()
 void UShopCardWSubsystem::SelectCard()
 {
     
+    if(UnlockCardList.Num()<=0)
+        return;
+        
     if(!CanSelectCard())
         return;
         
@@ -137,12 +119,17 @@ bool UShopCardWSubsystem::CanSelectCard()
 
 FCardData UShopCardWSubsystem::GetCurrentCard()
 {
-    if(0<CurrentCardListNum)
-        return UnlockCardList[CurrentCardListNum];
+    
+    if(0<=CurrentCardListNum)
+    {
+        if(CurrentCardListNum<UnlockCardList.Num())
+            return UnlockCardList[CurrentCardListNum];
+        else
+            return DefaultCard;
+
+    }
     else
     {
-        FCardData DefaultCard;
-        DefaultCard.CardID =-1;
         return DefaultCard;
     }
           
@@ -165,4 +152,35 @@ int32 UShopCardWSubsystem::GetPlayerCardID(int32 index)
         return PlayerCardList[index].CardID;
     else 
         return -1;
+}
+
+void UShopCardWSubsystem::SetUnlockCard()
+{
+    for(int i =0; i<UnlockSubsystem->GetUnlockCardArrayNum();i++)
+    {
+        if(DM)
+        {
+            int32 GetCardID = UnlockSubsystem->GetUnlockCardID(i);
+            FCardData CardData;
+
+            if(DM->TryGetCard(GetCardID,CardData))
+            {
+                UnlockCardList.Add(CardData);
+            }
+            
+        }
+    }
+}
+
+void UShopCardWSubsystem::AddCardListToUnlockCard(int32 UnlockCardID)
+{
+    if(DM)
+    {
+        FCardData CardData;
+        if(DM->TryGetCard(UnlockCardID,CardData))
+        {
+            UnlockCardList.Add(CardData);
+        }
+        
+    }
 }

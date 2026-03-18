@@ -6,10 +6,12 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/TimelineComponent.h"
 #include "Components/SphereComponent.h"
+#include "Components/WidgetComponent.h"
 
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
-
 #include "Subsystem/DataManagerSubsystem.h"
+
+#include "UI/W_CountWidget.h"
 // Sets default values
 AShopPlayerItemActor::AShopPlayerItemActor()
 {
@@ -31,6 +33,7 @@ AShopPlayerItemActor::AShopPlayerItemActor()
 	ItemDescriptionMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemDescriptionMesh"));
 	ItemDescriptionMesh->SetupAttachment(ItemMesh);
 
+
 	ItemMeshTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ItemMeshTimeline"));
 
 }
@@ -43,7 +46,10 @@ void AShopPlayerItemActor::BeginPlay()
 	ShopItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
 	ItemDataSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 
+	ItemCountWidgetClass = Cast<UW_CountWidget>(ItemWidget->GetUserWidgetObject());
 	
+	ShopItemSubsystem->OnItemBuy.AddDynamic(this, &AShopPlayerItemActor::SetItemCountWidget);
+
 	FOnTimelineFloat ItemMoveCallBack;
 	ItemMoveCallBack.BindUFunction(this, FName("ItemHoverMovement"));
 	ItemMeshTimeline->AddInterpFloat(ItemMoveCurve, ItemMoveCallBack);	
@@ -59,10 +65,12 @@ void AShopPlayerItemActor::BeginPlay()
 	DescriptionStartLocation = ItemDescriptionMesh->GetRelativeLocation();
 	DescriptionArriveLocation = DescriptionStartLocation + DescriptionMoveDirection;
 
+	SetItemCountWidget(ItemIndex);
 }
 
 void AShopPlayerItemActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	ShopItemSubsystem->OnItemBuy.RemoveAll(this);
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -90,6 +98,15 @@ void AShopPlayerItemActor::InitItem(int32 Index)
 	}
 }
 
+
+void AShopPlayerItemActor::SetItemCountWidget(int32 Index)
+{
+	if(Index == ItemIndex)
+	{
+		ItemCountWidgetClass->SetCountText(ShopItemSubsystem->GetPlayerItem(Index).SameItemNum);
+	}
+}
+
 void AShopPlayerItemActor::SetItemMaterial()
 {
     UMaterialInstanceDynamic* MID = ItemMesh->CreateDynamicMaterialInstance(0);
@@ -103,10 +120,12 @@ void AShopPlayerItemActor::SetItemMaterial()
 
 void AShopPlayerItemActor::HoverdItem()
 {
+	ShopItemSubsystem->HoverItem(PlayerItemData);
 	ItemMeshTimeline->Play();
 }
 void AShopPlayerItemActor::UnHoverdItem()
 {
+	ShopItemSubsystem->UnHoverItem();
 	ItemMeshTimeline->Reverse();
 }
 	

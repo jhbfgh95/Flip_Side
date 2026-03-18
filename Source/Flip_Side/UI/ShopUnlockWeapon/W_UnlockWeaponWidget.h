@@ -16,7 +16,9 @@ class FLIP_SIDE_API UW_UnlockWeaponWidget : public UUserWidget
 	
 private:
 	virtual void NativeConstruct() override;
-
+	virtual void NativeDestruct() override;
+private:
+	class UShopUnlockWeaponWSubsystem* UnlockWeaponSubsystem;
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UW_UnlockWeaponGrid* DealWUnlockGrid;	
@@ -27,15 +29,6 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UW_UnlockWeaponGrid* UtilWUnlockGrid;	
 
-	UPROPERTY(meta = (BindWidget))
-	class UButton* DealWGridButton;	
-	
-	UPROPERTY(meta = (BindWidget))
-	class UButton* TankWGridButton;	
-	
-	UPROPERTY(meta = (BindWidget))
-	class UButton* UtilWGridButton;	
-
 	class UW_UnlockWeaponGrid* CurrentUnlockGrid;
 	
 	UFUNCTION()
@@ -44,6 +37,8 @@ private:
 	void SetTankWUnlockGrid();
 	UFUNCTION()
 	void SetUtilWUnlockGrid();
+	UFUNCTION()
+	void SetUnlockWeaponGrid(EWeaponClass weaponClass);
 
 	void HideAllUnlockGrid();
 };

@@ -1,0 +1,49 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "UI/ShopUnlockWeapon/UnlockWeaponExplainPanel.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/WidgetComponent.h"
+#include "UI/W_ExplainWidget.h"
+#include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
+#include "Subsystem/ShopLevel/ShopWeaponDataWSubsystem.h"
+// Sets default values
+AUnlockWeaponExplainPanel::AUnlockWeaponExplainPanel()
+{
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = false;
+	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
+	RootComponent = RootScene;
+	ExplainPanel = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExplainMesh"));
+	ExplainPanel->SetupAttachment(RootComponent);
+	ExplainWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("ExplainWidget"));
+	ExplainWidget->SetupAttachment(RootComponent);
+}
+
+// Called when the game starts or when spawned
+void AUnlockWeaponExplainPanel::BeginPlay()
+{
+	Super::BeginPlay();
+	ExplainWidgetClass = Cast<UW_ExplainWidget>(ExplainWidget->GetUserWidgetObject());
+	ShopUnlockSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
+	ShopWeaponSubsystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
+	
+	ShopUnlockSubsystem->OnSelectUnlockWeapon.AddDynamic(this, &AUnlockWeaponExplainPanel::SetUnlockWeaponText);
+	
+}
+
+void AUnlockWeaponExplainPanel::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	ShopUnlockSubsystem->OnSelectUnlockWeapon.RemoveAll(this);
+	Super::EndPlay(EndPlayReason);
+}
+	
+
+void AUnlockWeaponExplainPanel::SetUnlockWeaponText(EWeaponClass WeaponClass ,int32 ItemIndex, bool IsItemUnlock)
+{
+	WeaponData = ShopWeaponSubsystem->GetWeaponDataByIndex(WeaponClass, ItemIndex);
+
+	//추후 무기 설명 반환하는 코드작성
+
+	ExplainWidgetClass->SetExplainText(TEXT("무기에 관한 정보"));
+}

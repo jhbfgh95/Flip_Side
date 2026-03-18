@@ -21,8 +21,7 @@ void UW_UnlockWeaponButton::NativeOnInitialized()
     
 	WeaponDataSubSystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
     UnlockWeaponSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>(); 
-
-    UUnlockGISubsystem* UnlockGISubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
+    UnlockGISubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
     if(UnlockGISubsystem)
     {
         UnlockGISubsystem->OnWeaponUnlock.AddDynamic(this, &UW_UnlockWeaponButton::UnlockWeapon);
@@ -34,7 +33,7 @@ void UW_UnlockWeaponButton::NativeOnInitialized()
 
 void UW_UnlockWeaponButton::NativeDestruct()
 {
-    UUnlockGISubsystem* UnlockGISubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
+    UnlockGISubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
     if(UnlockGISubsystem)
     {
         UnlockGISubsystem->OnWeaponUnlock.RemoveAll(this);
@@ -102,5 +101,6 @@ void UW_UnlockWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 In
 
 void UW_UnlockWeaponButton::ClickWeaponButton()
 {
-    UnlockWeaponSubsystem->SelectUnlockWeaponByIndex(WeaponClass, WeaponIndex, WeaponDataSubSystem->IsWeaponUnlockByIndex(WeaponClass, WeaponIndex));
+    UE_LOG(LogTemp, Warning, TEXT("무기 아이디 %d 무기 해금 여부 %d"), WeaponData->WeaponID,UnlockGISubsystem->IsWeaponUnlockByID(WeaponData->WeaponType, WeaponData->WeaponID));
+    UnlockWeaponSubsystem->SelectUnlockWeaponByIndex(WeaponClass, WeaponIndex, UnlockGISubsystem->IsWeaponUnlockByID(WeaponData->WeaponType, WeaponData->WeaponID));
 }

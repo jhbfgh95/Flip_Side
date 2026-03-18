@@ -8,18 +8,23 @@
 void UW_UnlockWeaponWidget::NativeConstruct()
 {
     Super::NativeConstruct();
-
-    DealWGridButton ->OnClicked.AddDynamic(this, &UW_UnlockWeaponWidget::SetDealWUnlockGrid);	
-	
-    TankWGridButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponWidget::SetTankWUnlockGrid);	
-	
-    UtilWGridButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponWidget::SetUtilWUnlockGrid);	
     
+    UnlockWeaponSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
+    UnlockWeaponSubsystem->OnChangeUnlockWaeponClass.AddDynamic(this, &UW_UnlockWeaponWidget::SetUnlockWeaponGrid);
+
     CurrentUnlockGrid = DealWUnlockGrid;
     
     TankWUnlockGrid->InitPanelAnimation();
     UtilWUnlockGrid->InitPanelAnimation();
+
 }
+
+void UW_UnlockWeaponWidget::NativeDestruct()
+{
+    UnlockWeaponSubsystem->OnChangeUnlockWaeponClass.RemoveAll(this);
+    Super::NativeDestruct();
+}
+
 void UW_UnlockWeaponWidget::SetDealWUnlockGrid()
 {
     if(CurrentUnlockGrid != DealWUnlockGrid)
@@ -56,4 +61,22 @@ void UW_UnlockWeaponWidget::HideAllUnlockGrid()
     DealWUnlockGrid->CloseUnlockPanel();
     TankWUnlockGrid->CloseUnlockPanel();
     UtilWUnlockGrid->CloseUnlockPanel();
+}
+
+void UW_UnlockWeaponWidget::SetUnlockWeaponGrid(EWeaponClass weaponClass)
+{
+    switch (weaponClass)
+    {
+        case EWeaponClass::Tank:
+            SetTankWUnlockGrid();
+            break;
+        case EWeaponClass::Deal:
+            SetDealWUnlockGrid();
+            break;
+        case EWeaponClass::Heal:
+            SetUtilWUnlockGrid();
+            break;
+        default:
+            break;
+    }
 }

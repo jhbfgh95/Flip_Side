@@ -61,6 +61,10 @@ public:
 	UPROPERTY(EditAnywhere)
 	FVector ReadyBottomVector;
 
+private:
+	class AShopController_FlipSide* ShopController;
+
+
 public:
 
 	UFUNCTION(BlueprintCallAble)

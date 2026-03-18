@@ -8,7 +8,9 @@
 #include "Components/TimeLineComponent.h"
 #include "Components/BoxComponent.h"
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
+#include "Subsystem/ShopLevel/CoinCreateWSubsystem.h"
 #include "Player/GameMode_Shop.h"
+#include "Player/ShopController_FlipSide.h"
 // Sets default values
 AGoToCreateCoinPanel::AGoToCreateCoinPanel()
 {
@@ -31,6 +33,7 @@ AGoToCreateCoinPanel::AGoToCreateCoinPanel()
     ItneractBox->SetupAttachment(RootScene);
 
 	LockPanelTimeLine  = CreateDefaultSubobject<UTimelineComponent>(TEXT("LockPanelTimeLine"));
+	ButtonTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ButtonTimeline"));
 }
 
 // Called when the game starts or when spawned
@@ -38,8 +41,10 @@ void AGoToCreateCoinPanel::BeginPlay()
 {
 	Super::BeginPlay();
 	ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
+	ShopCoinCreateSubsystem = GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
 	ShopGameMode =  Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
-
+	ShopController = Cast<AShopController_FlipSide>(GetWorld()->GetFirstPlayerController());
+	
 	//판넬 운동 타임라인
 	FOnTimelineFloat LockPanelTimeLineCallBack;
 	LockPanelTimeLineCallBack.BindUFunction(this, FName("MoveLockPanel"));
@@ -49,8 +54,20 @@ void AGoToCreateCoinPanel::BeginPlay()
 	FinishLockPanelCallBack.BindUFunction(this, FName("FinishMoveLockPanel"));
 	LockPanelTimeLine->SetTimelineFinishedFunc(FinishLockPanelCallBack);
 
+	FOnTimelineFloat PressButtonTimeLineCallBack;
+	PressButtonTimeLineCallBack.BindUFunction(this, FName("MoveButton"));
+	ButtonTimeline->AddInterpFloat(ButtonCurve, PressButtonTimeLineCallBack);
+	
+	FOnTimelineEvent FinishPressButtonCallBack;
+	FinishPressButtonCallBack.BindUFunction(this, FName("FinishedMoveButton"));
+	ButtonTimeline->SetTimelineFinishedFunc(FinishPressButtonCallBack);
+
+	PressStartVector = ButtonMesh->GetRelativeLocation();
+	PressArriveVector = PressStartVector + PressTargetVector;
+
 	StartVector = LockPanelMesh->GetRelativeLocation();
 	ArriveVector = StartVector + TargetVector;
+
 
 	ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AGoToCreateCoinPanel::InitLockPanel);
 	ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &AGoToCreateCoinPanel::OpenlockPanel);
@@ -93,9 +110,24 @@ void AGoToCreateCoinPanel::MoveLockPanel(float Value)
 	LockPanelMesh->SetRelativeLocation(MoveValue);
 }
 
+void AGoToCreateCoinPanel::MoveButton(float Value)
+{
+	FVector MoveValue = FMath::Lerp(PressStartVector, PressArriveVector, Value);
+	ButtonMesh->SetRelativeLocation(MoveValue);
+	UE_LOG(LogTemp,Warning, TEXT("%f"), Value);
+}
+
+void AGoToCreateCoinPanel::FinishedMoveButton()
+{
+	ShopController->SetLockMouse(false);
+	ShopCoinCreateSubsystem->SelectCoin( ShopCoinSubsystem->GetCurrentSlotCoin(),ShopCoinSubsystem->GetCurrentSlotCoinClass());
+	ShopGameMode->SetCoinCreateMode();
+}
+
 void AGoToCreateCoinPanel::ChangeCreateCoinMode()
 {
-	ShopGameMode->SetCoinCreateMode();
+	ShopController->SetLockMouse(true);
+	ButtonTimeline->PlayFromStart();
 }
 
 void AGoToCreateCoinPanel::FinishMoveLockPanel()

@@ -43,17 +43,27 @@ private:
 	class UWidgetAnimation* UnSelectAnim;
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	class UWidgetAnimation* UnlockCardAnim;
-private:
-	void InitUnlockCard(FCardData CardData);
 
+
+	int32 CardShowIndex;
+
+private:
 	void CheckSelectCard();	
 	UFUNCTION()
 	void SetCardSelect(int32 SelctCardID);
 	UFUNCTION()
+	void SetCardUnSelect(int32 SelctCardID);
+	UFUNCTION()
 	void SetUnlockCard(int32 UnlockCardID);
+
 private:
 
 public:
 	UFUNCTION(BlueprintCallable)
 	void HideLockIamge();
+	
+	UFUNCTION()
+	void InitUnlockCard();
+
+	void InitCardShowIndex(int32 index);
 };

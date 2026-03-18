@@ -25,7 +25,7 @@ private:
 
 	class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
 	class UShopUnlockWeaponWSubsystem* UnlockWeaponSubsystem;
-
+	class UUnlockGISubsystem* UnlockGISubsystem;
 private:
 
 	UPROPERTY(meta = (BindWidget))

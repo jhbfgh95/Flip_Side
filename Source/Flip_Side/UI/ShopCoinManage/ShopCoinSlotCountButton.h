@@ -48,7 +48,6 @@ private:
 private:
 	UFUNCTION()
 	void MoveButton(float Value);
-
 protected:
 	virtual void InteractLeftClick_Implementation() override;
 

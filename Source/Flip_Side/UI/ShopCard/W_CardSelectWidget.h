@@ -16,8 +16,10 @@ class FLIP_SIDE_API UW_CardSelectWidget : public UUserWidget
 	
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 private:
 	class UShopCardWSubsystem* ShopCardSubSystem;
+	class UUnlockGISubsystem* UnlockSubsystem;
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* LeftCardButton;
@@ -42,4 +44,7 @@ public:
 	
 	UFUNCTION()
 	void InitCard(FCardData CardData);
+
+	UFUNCTION()
+	void SetShowCard(int32 UnlockCardID);
 };

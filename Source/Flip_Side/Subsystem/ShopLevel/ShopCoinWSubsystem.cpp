@@ -133,6 +133,16 @@ FCoinTypeStructure UShopCoinWSubsystem::GetSlotCoin(int32 index)
         return ShopCoinSlotArray[index].CoinData;
     }
 }
+EWeaponClass UShopCoinWSubsystem::GetSlotCoinClass(int32 index)
+{
+    return ShopCoinSlotArray[index].CoinClass;
+}
+
+int32 UShopCoinWSubsystem::GetSlotCoinCount(int32 index)
+{
+    return ShopCoinSlotArray[index].CoinData.SameTypeCoinNum;
+}
+
 
 void UShopCoinWSubsystem::ResetCoin(int32 SlotNum)
 {

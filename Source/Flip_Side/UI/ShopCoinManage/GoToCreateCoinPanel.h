@@ -40,7 +40,7 @@ private:
 	class UTimelineComponent* LockPanelTimeLine;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UTimelineComponent* ButtonTimeLine;
+	class UTimelineComponent* ButtonTimeline;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* ItneractBox;
@@ -53,7 +53,9 @@ private:
 
 private:
 	class UShopCoinWSubsystem* ShopCoinSubsystem;
+	class UCoinCreateWSubsystem* ShopCoinCreateSubsystem;
 	class AGameMode_Shop* ShopGameMode;
+	class AShopController_FlipSide* ShopController;
 private:
 
 	UFUNCTION()
@@ -66,9 +68,24 @@ private:
 	void MoveLockPanel(float Value);
 
 	UFUNCTION()
+	void MoveButton(float Value);
+
+	
+	UFUNCTION()
+	void FinishedMoveButton();
+
+	UFUNCTION()
 	void FinishMoveLockPanel();
 
 	void ChangeCreateCoinMode();
+
+private:
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	FVector PressTargetVector;
+
+	FVector PressArriveVector;
+	FVector PressStartVector;
+
 
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))

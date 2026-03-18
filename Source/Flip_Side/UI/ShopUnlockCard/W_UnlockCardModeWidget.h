@@ -23,7 +23,6 @@ private:
 
 
 private:
-	int32 CurrentPage = 0;
 
 private:
 	
@@ -49,8 +48,8 @@ private:
 	class UUnlockGISubsystem* UnlockSubsystem;
 
 	void InitUnlockCards();
-
+	UFUNCTION()
 	void ChangeCardsLeft();
-
+	UFUNCTION()
 	void ChangeCardsRight();
 };

@@ -28,7 +28,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "UseableItem | Component", meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* ItemExplainMesh;
-
 	
 	UPROPERTY(EditAnywhere, Category = "UseableItem | Component", meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* InteractSphere;
@@ -37,13 +36,15 @@ private:
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UTimelineComponent* ItemMeshTimeline;
+	
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	class UTimelineComponent* ItemBuyTimeline;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UCurveFloat* ItemMoveCurve;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UCurveFloat* DescriptionMoveCurve;
-
+	class UCurveFloat* ItemBuyCurve;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	FVector ItemMoveDirection;
@@ -51,6 +52,11 @@ private:
 	FVector StartLocation;
 	FVector ArriveLocation;
 
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	FRotator ItemShakeRotator;
+
+	FRotator StartRotator;
+	FRotator ArriveRotator;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	FVector ItemDescriptionMoveDirection;
@@ -76,19 +82,12 @@ public:
 	UFUNCTION()
 	void LClickedUseAbleItem();
 
-	UFUNCTION()
-	void HoveredUseAbleItem();
-
-	//소모품위에 마우스가 내려 갔을 때
-	UFUNCTION()
-	void UnHoveredUseAbleItem();
-
 	void SetItemMaterial();
 private:
 	UFUNCTION()
 	void ItemHoverMovement(float Value);
 	UFUNCTION()
-	void ItemDescriptionMovement(float Value);
+	void ItemBuyMovement(float Value);
 
 public:
 	UFUNCTION()

@@ -21,14 +21,18 @@ private:
 	//무기 정보 서브시스템
 	//class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
 	class UDataManagerSubsystem* WeaponDataSubSystem;
+	class AShopController_FlipSide* ShopController;
 private: // 컴포넌트	
-//원 콜리전
+
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	class USceneComponent* RootScene;
+
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* SphereCollision;
-//메쉬
+	
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* CoinMesh;
-//프레스머신 메쉬
+	
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* PressMachineMesh;
 	
@@ -80,6 +84,9 @@ private:
 	//코인 회전
 	UFUNCTION()
 	void RotateCoin(float Value);
+	
+	UFUNCTION()
+	void FinishedRotateCoin();
 
 	//코인이 처음 설정 됬을 때 초기화
 	UFUNCTION()
@@ -99,10 +106,11 @@ private:
 
 private:
 	//코인 회전 시작 변수
-	FRotator StartRotation;
-
-	//UFUNCTION()
-	//void FinishRotationPannel();
+	FRotator StartRotator;
+	
+	FRotator ArriveRotator;
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
+	FRotator CoinTurnRotator;
 
 private:
 
@@ -121,8 +129,10 @@ private:
 	//프레스 머신 애니메이션
 	UFUNCTION()
 	void PressCoin(float Value);
+	
+	UFUNCTION()
+	void FinishedPressCoin();
 
 public:
-
 	virtual void InteractLeftClick_Implementation() override;
 };

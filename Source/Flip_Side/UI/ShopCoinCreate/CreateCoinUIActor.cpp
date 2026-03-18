@@ -12,14 +12,19 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/TimelineComponent.h"
 
+#include "Player/ShopController_FlipSide.h"
 
 // Sets default values
 ACreateCoinUIActor::ACreateCoinUIActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+
+	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
+	SetRootComponent(RootScene);
+
 	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
-	SetRootComponent(SphereCollision);
+	SphereCollision->SetupAttachment(RootComponent);
 	
 	CoinMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
 	CoinMesh->SetupAttachment(RootComponent);
@@ -38,6 +43,7 @@ void ACreateCoinUIActor::BeginPlay()
 	Super::BeginPlay();
     CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
 	WeaponDataSubSystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+	ShopController = Cast<AShopController_FlipSide>(GetWorld()->GetFirstPlayerController());
 
 	if(CoinCreateWSubSystem)
 	{
@@ -52,17 +58,24 @@ void ACreateCoinUIActor::BeginPlay()
 
 	FOnTimelineFloat UpdateDelegate;
 	UpdateDelegate.BindUFunction(this, FName("RotateCoin"));
-	Timeline->AddInterpFloat(CoinRotationCurve, UpdateDelegate);	
+	Timeline->AddInterpFloat(CoinRotationCurve, UpdateDelegate);
+
+	FOnTimelineEvent FinishedCoinTrunCallBack;
+	FinishedCoinTrunCallBack.BindUFunction(this, FName("FinishedRotateCoin"));
+	Timeline->SetTimelineFinishedFunc(FinishedCoinTrunCallBack);
+
 
 	FOnTimelineFloat MachineUpdateDelegate;
 	MachineUpdateDelegate.BindUFunction(this, FName("PressCoin"));
 	PressMachineTimeline->AddInterpFloat(PressMachineCurve, MachineUpdateDelegate);	
+	
+	FOnTimelineEvent FinishedPressCoinCallBack;
+	FinishedPressCoinCallBack.BindUFunction(this, FName("FinishedPressCoin"));
+	PressMachineTimeline->SetTimelineFinishedFunc(FinishedPressCoinCallBack);
 
 	FOnTimelineEvent EventFunc;
     EventFunc.BindUFunction(this, FName("SetCoinSideMatarial"));
     PressMachineTimeline->AddEvent(0.1f, EventFunc); 
-
-	StartRotation = GetActorRotation();
 
 	MachineStartLocation = PressMachineMesh->GetComponentLocation();
 
@@ -78,10 +91,14 @@ void ACreateCoinUIActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ACreateCoinUIActor::ClickCoin()
 {
+	ShopController->SetLockMouse(true);
+
+	StartRotator = CoinMesh->GetRelativeRotation();
+	ArriveRotator = StartRotator + CoinTurnRotator;
+
 	//앞뒤 변경
 	if(IsCoinFront)
 	{
-		
 		IsCoinFront = false;
 		Timeline->PlayFromStart();
 	}
@@ -100,9 +117,21 @@ void ACreateCoinUIActor::PressCoin(float Value)
 	PressMachineMesh->SetRelativeLocation(MoveVector);
 }
 
+void ACreateCoinUIActor::FinishedPressCoin()
+{
+	ShopController->SetLockMouse(false);
+}
+
 void ACreateCoinUIActor::RotateCoin(float Value)
 {
-	CoinMesh->SetRelativeRotation(StartRotation + FRotator(Value,0.f,0.f));
+	FRotator MoveRotator = FMath::Lerp(StartRotator, ArriveRotator, Value);
+	CoinMesh->SetRelativeRotation(MoveRotator);
+}
+
+void ACreateCoinUIActor::FinishedRotateCoin()
+{
+	ShopController->SetLockMouse(false);
+	CoinMesh->SetRelativeRotation(ArriveRotator);
 }
 
 void ACreateCoinUIActor::UpdateWeaponClass(EWeaponClass weponClass)
@@ -140,6 +169,7 @@ void ACreateCoinUIActor::InitCoin(FCoinTypeStructure CoinValue, EWeaponClass wep
 
 void ACreateCoinUIActor::UpdateCoinWeapon(int32 WeaponID)
 {
+	ShopController->SetLockMouse(true);
 	PressMachineTimeline->PlayFromStart();
 
 	if(IsCoinFront)
@@ -203,5 +233,6 @@ void ACreateCoinUIActor::ResetSideTexture()
 
 void ACreateCoinUIActor::InteractLeftClick_Implementation()
 {
+	UE_LOG(LogTemp, Warning, TEXT("코인 회전 누름 "));
 	ClickCoin();
 }

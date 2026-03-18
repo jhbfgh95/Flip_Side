@@ -5,7 +5,7 @@
 
 AShopPlayerPawn_FlipSide::AShopPlayerPawn_FlipSide()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 
@@ -42,44 +42,63 @@ void AShopPlayerPawn_FlipSide::BeginPlay()
 	}
 }
 
-void AShopPlayerPawn_FlipSide::Tick(float DeltaTime)
+
+void AShopPlayerPawn_FlipSide::SetCameraOrthographic()
 {
-	Super::Tick(DeltaTime);
-	
+	if(Camera->ProjectionMode == ECameraProjectionMode::Orthographic)
+		return;
+	Camera->ProjectionMode = ECameraProjectionMode::Orthographic;
+	Camera->OrthoWidth = 700;
 }
+
+void AShopPlayerPawn_FlipSide::SetCameraPerspective()
+{
+	if(Camera->ProjectionMode == ECameraProjectionMode::Perspective)
+		return;
+	Camera->ProjectionMode = ECameraProjectionMode::Perspective;
+}
+
+
 void AShopPlayerPawn_FlipSide::MoveCoinCreateMode()
 {
 	SetActorLocation(CoinCreateLocation);
+	SetCameraPerspective();
 }
 
 
 void AShopPlayerPawn_FlipSide::MoveCoinManageMode()
 {
 	SetActorLocation(CoinManageLocation);
+	SetCameraOrthographic();
 }
 
 void AShopPlayerPawn_FlipSide::MoveSelectCardMode()
 {
 	SetActorLocation(SelectCardLocation);
+	SetCameraOrthographic();
 }
 
 void AShopPlayerPawn_FlipSide::MoveShopItemMode()
 {
 	SetActorLocation(ShopItemLocation);
+	SetCameraOrthographic();
 }
 
 
 void AShopPlayerPawn_FlipSide::MoveShopMainMode()
 {
 	SetActorLocation(ShopMainLocation);
+	SetCameraOrthographic();
 }
 
 void AShopPlayerPawn_FlipSide::MoveUnlockWeaponMode()
 {
 	SetActorLocation(UnlockWeaponLocation);
+	SetCameraPerspective();
 }
 
 void AShopPlayerPawn_FlipSide::MoveUnlockCardMode()
 {
 	SetActorLocation(UnlockCardLocation);
+	SetCameraOrthographic();
 }
