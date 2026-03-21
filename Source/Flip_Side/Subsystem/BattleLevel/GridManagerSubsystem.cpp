@@ -335,10 +335,22 @@ void UGridManagerSubsystem::GetValidGridsForSingleCell(
             ValidCells.Add(P);
         };
 
+    auto RemoveCasterCellIfNeeded = [&]()
+        {
+            // Flags == 1 이면 현재 코인 위치(CoinXY) 제외
+            if (Spec.Flags == 1)
+            {
+                ValidCells.RemoveAll([&](const FGridPoint& Cell)
+                    {
+                        return Cell.GridX == CoinXY.GridX && Cell.GridY == CoinXY.GridY;
+                    });
+            }
+        };
+
     const int32 AnchorX = CoinXY.GridX + Spec.AnchorCell.GridX;
     const int32 AnchorY = CoinXY.GridY + Spec.AnchorCell.GridY;
 
-    // 1) UseAnchorCell(include self)
+    // 1) UseAnchorCell
     if (Spec.AnchorMode == EAreaAnchor::UseAnchorCell)
     {
         const int32 Radius = FMath::Max(0, Spec.ParamA);
@@ -351,6 +363,7 @@ void UGridManagerSubsystem::GetValidGridsForSingleCell(
             }
         }
 
+        RemoveCasterCellIfNeeded();
         return;
     }
 
@@ -406,6 +419,8 @@ void UGridManagerSubsystem::GetValidGridsForSingleCell(
     default:
         break;
     }
+
+    RemoveCasterCellIfNeeded();
 }
 
 // ======================

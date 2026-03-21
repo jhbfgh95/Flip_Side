@@ -14,123 +14,114 @@ class AGridActor;
 USTRUCT(BlueprintType)
 struct FLockedBossTarget
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly)
-	int32 CoinID = 0;
+    UPROPERTY(BlueprintReadOnly)
+    int32 CoinID = 0;
 
-	UPROPERTY(BlueprintReadOnly)
-	FGridPoint LockedGrid;
+    UPROPERTY(BlueprintReadOnly)
+    FGridPoint LockedGrid;
 
-	UPROPERTY(BlueprintReadOnly)
-	TObjectPtr<ACoinActor> CoinActor = nullptr;
+    UPROPERTY(BlueprintReadOnly)
+    TObjectPtr<ACoinActor> CoinActor = nullptr;
 };
 
 USTRUCT(BlueprintType)
 struct FBossStageContext
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly)
-	int32 PickedThemeID = 0;
+    UPROPERTY(BlueprintReadOnly)
+    int32 PickedThemeID = 0;
 
-	UPROPERTY(BlueprintReadOnly)
-	int32 PickedBossID = 0;
+    UPROPERTY(BlueprintReadOnly)
+    int32 PickedBossID = 0;
 
-	UPROPERTY(BlueprintReadOnly)
-	FString PickedBossName;
-
+    UPROPERTY(BlueprintReadOnly)
+    FString PickedBossName;
 };
 
 USTRUCT(BlueprintType)
 struct FBossTurnContext
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly)
-	TObjectPtr<UBossPatternBase> CurrentPattern = nullptr;
+    UPROPERTY(BlueprintReadOnly)
+    TObjectPtr<UBossPatternBase> CurrentPattern = nullptr;
 
-	UPROPERTY(BlueprintReadOnly)
-	int32 CurrentPatternIndex = -1;
+    UPROPERTY(BlueprintReadOnly)
+    int32 CurrentPatternIndex = -1;
 
-	UPROPERTY(BlueprintReadOnly)
-	TArray<FGridPoint> LockedCells;
+    UPROPERTY(BlueprintReadOnly)
+    TArray<FGridPoint> LockedCells;
 
-	UPROPERTY(BlueprintReadOnly)
-	TArray<FLockedBossTarget> LockedTargets;
+    UPROPERTY(BlueprintReadOnly)
+    TArray<FLockedBossTarget> LockedTargets;
 
-	UPROPERTY(BlueprintReadOnly)
-	bool bPrepared = false;
+    UPROPERTY(BlueprintReadOnly)
+    bool bPrepared = false;
 
-	void Reset()
-	{
-		CurrentPattern = nullptr;
-		CurrentPatternIndex = -1;
-		LockedCells.Reset();
-		LockedTargets.Reset();
-		bPrepared = false;
-	}
+    void Reset()
+    {
+        CurrentPattern = nullptr;
+        CurrentPatternIndex = -1;
+        LockedCells.Reset();
+        LockedTargets.Reset();
+        bPrepared = false;
+    }
 };
 
 UCLASS()
 class FLIP_SIDE_API UBossManagerSubsystem : public UWorldSubsystem
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+    virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Data")
-	TArray<FBossData> AllBossData;
+    UPROPERTY()
+    TObjectPtr<ABossActor> CurrentBoss = nullptr;
 
-	UPROPERTY()
-	TObjectPtr<ABossActor> CurrentBoss = nullptr;
+    UPROPERTY()
+    FBossTurnContext TurnContext;
 
-	UPROPERTY()
-	FBossTurnContext TurnContext;
+    UPROPERTY()
+    FBossStageContext StageContext;
 
-	UPROPERTY()
-	FBossStageContext StageContext;
+    FTimerHandle TelegraphTimerHandle;
 
-	FTimerHandle TelegraphTimerHandle;
-
-	FBossData TutorialBossData;
-
-	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+    virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 public:
-	//Initialize
-	UFUNCTION(BlueprintCallable, Category = "Boss")
-	bool SpawnBossForStage();
+    UFUNCTION(BlueprintCallable, Category = "Boss")
+    bool SpawnPreparedBoss();
 
-	UFUNCTION(BlueprintCallable, Category = "Boss")
-	ABossActor* GetCurrentBoss() const { return CurrentBoss; }
+    UFUNCTION(BlueprintCallable, Category = "Boss")
+    ABossActor* GetCurrentBoss() const { return CurrentBoss; }
 
-	//SettingTurn
-	UFUNCTION(BlueprintCallable, Category = "Boss")
-	bool StartBossSetting();
+    UFUNCTION(BlueprintCallable, Category = "Boss")
+    const FBossStageContext& GetStageContext() const { return StageContext; }
 
-	//BossTurn
-	UFUNCTION(BlueprintCallable, Category = "Boss")
-	void ExecuteCurrentPattern();
+    UFUNCTION(BlueprintCallable, Category = "Boss")
+    bool StartBossSetting();
 
-	UFUNCTION(BlueprintCallable, Category = "Boss")
-	void ClearCurrentTurn();
+    UFUNCTION(BlueprintCallable, Category = "Boss")
+    void ExecuteCurrentPattern();
 
-	void GetCoinsOnCells(const TArray<FGridPoint>& Cells, TArray<ACoinActor*>& OutCoins) const;
-	void ApplyDamageToLockedTargets(const TArray<ACoinActor*>& LockedTargets, int32 Damage);
+    UFUNCTION(BlueprintCallable, Category = "Boss")
+    void ClearCurrentTurn();
+
+    void GetCoinsOnCells(const TArray<FGridPoint>& Cells, TArray<ACoinActor*>& OutCoins) const;
+    void ApplyDamageToLockedTargets(const TArray<ACoinActor*>& LockedTargets, int32 Damage);
 
 private:
-	bool Internal_SpawnBoss(const FBossData& InBossData);
-	bool PickRandomBossDataForStage(int32 StageIndex, FBossData& OutBossData) const;
-	bool PickRandomThemeFromStageBosses(const TArray<FBossData>& StageBosses, int32& OutThemeID) const;
-	bool PickRandomBossFromTheme(const TArray<FBossData>& StageBosses, int32 ThemeID, FBossData& OutBossData) const;
+    bool Internal_SpawnBoss(const FBossData& InBossData);
 
-	bool PrepareCurrentPattern();
-	void ShowTelegraphPreview(const TArray<FGridPoint>& Cells, const FLinearColor& Color);
-	void ClearTelegraphPreview(const TArray<FGridPoint>& Cells);
-	bool IsCellIncluded(const FGridPoint& P, const TArray<FGridPoint>& Cells) const;
-	void BuildLockedTargetsFromCells(const TArray<FGridPoint>& Cells, TArray<FLockedBossTarget>& OutLockedTargets) const;
-	bool IsStillOnLockedCell(const FLockedBossTarget& LockedTarget) const;
+    bool PrepareCurrentPattern();
+    void ShowTelegraphPreview(const TArray<FGridPoint>& Cells, const FLinearColor& Color);
+    void ClearTelegraphPreview(const TArray<FGridPoint>& Cells);
+    bool IsCellIncluded(const FGridPoint& P, const TArray<FGridPoint>& Cells) const;
+    void BuildLockedTargetsFromCells(const TArray<FGridPoint>& Cells, TArray<FLockedBossTarget>& OutLockedTargets) const;
+    bool IsStillOnLockedCell(const FLockedBossTarget& LockedTarget) const;
 };

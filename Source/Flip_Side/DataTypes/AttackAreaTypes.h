@@ -62,4 +62,7 @@ struct FAttackAreaSpec
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EAreaSide Side = EAreaSide::Up;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 Flags = 0;
 };

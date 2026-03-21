@@ -11,6 +11,7 @@
 #include "LevelGISubsystem.h"
 #include "CoinManagementWSubsystem.h"
 #include "BossManagerSubsystem.h"
+#include "BossSetupGISubsystem.h"
 #include "CrossingLevelGISubsystem.h"
 #include "UseableItemWSubsystem.h"
 #include "GridManagerSubsystem.h"
@@ -56,10 +57,28 @@ void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
     Super::OnWorldBeginPlay(InWorld);
 
-    if(BossManager)
+    UGameInstance* GI = InWorld.GetGameInstance();
+    if (GI)
     {
-        BossManager->SpawnBossForStage();
-        BossManager->GetCurrentBoss()->OnBossAttackEnded.AddDynamic(this, &UBattleManagerWSubsystem::DoSettingTurn);
+        ULevelGISubsystem* LevelGI = GI->GetSubsystem<ULevelGISubsystem>();
+        UBossSetupGISubsystem* BossSetupGI = GI->GetSubsystem<UBossSetupGISubsystem>();
+
+        if (LevelGI && BossSetupGI)
+        {
+            const int32 StageIndex = LevelGI->GetBattleLevelIndex();
+            BossSetupGI->PrepareBossForStage(StageIndex);
+        }
+    }
+
+    if (BossManager)
+    {
+        if (BossManager->SpawnPreparedBoss())
+        {
+            if (ABossActor* Boss = BossManager->GetCurrentBoss())
+            {
+                Boss->OnBossAttackEnded.AddDynamic(this, &UBattleManagerWSubsystem::DoSettingTurn);
+            }
+        }
     }
 
     DoSettingTurn();
