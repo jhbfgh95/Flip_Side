@@ -9,6 +9,11 @@ static FORCEINLINE void AddIfIn(TArray<FGridPoint>& Out, const FGridPoint& P, in
     Out.Add(P);
 }
 
+static FORCEINLINE bool IsSameCell(const FGridPoint& A, const FGridPoint& B)
+{
+    return A.GridX == B.GridX && A.GridY == B.GridY;
+}
+
 void FGridAreaBuilder::BuildCells(const FAttackAreaSpec& Spec, int32 W, int32 H, TArray<FGridPoint>& OutCells)
 {
     OutCells.Reset();
@@ -24,6 +29,14 @@ void FGridAreaBuilder::BuildCells(const FAttackAreaSpec& Spec, int32 W, int32 H,
         (Spec.AnchorMode == EAreaAnchor::UseAnchorCell)
         ? Spec.AnchorCell
         : FGridPoint{ Spec.Index, 0 };
+
+    auto RemoveCellIfExists = [&](const FGridPoint& Cell)
+        {
+            OutCells.RemoveAll([&](const FGridPoint& P)
+                {
+                    return IsSameCell(P, Cell);
+                });
+        };
 
     switch (Spec.Pattern)
     {
@@ -147,6 +160,10 @@ void FGridAreaBuilder::BuildCells(const FAttackAreaSpec& Spec, int32 W, int32 H,
         for (int32 dy = -R; dy <= R; ++dy)
             for (int32 dx = -R; dx <= R; ++dx)
                 Add(T.GridX + dx, T.GridY + dy);
+        if (Spec.Flags == 1)
+        {
+            RemoveCellIfExists(T);
+        }
         break;
     }
 
