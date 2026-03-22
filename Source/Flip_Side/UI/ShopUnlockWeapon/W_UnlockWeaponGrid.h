@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "DataTypes/FlipSide_Enum.h"
+#include "DataTypes/WeaponDataTypes.h"
 #include "W_UnlockWeaponGrid.generated.h"
 
 /**
@@ -17,8 +18,10 @@ class FLIP_SIDE_API UW_UnlockWeaponGrid : public UUserWidget
 	
 
 private:
-	class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
+
+    class UShopUnlockWeaponWSubsystem* UnlockWeaponSubsystem;
 	class UUnlockGISubsystem* UnlockSubSystem;
+
 private:
 	virtual void NativeConstruct() override;
 

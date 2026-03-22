@@ -7,6 +7,7 @@
 #include "Subsystem/ShopLevel/ShopWeaponDataWSubsystem.h"
 #include "Components/TimelineComponent.h"
 #include "Subsystem/UnlockGISubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
 
 #include "Player/ShopController_FlipSide.h"
 // Sets default values
@@ -36,7 +37,9 @@ void ASelectUnlockWeaponUIActor::BeginPlay()
 	Super::BeginPlay();
 	ShopUnlockWeaponSubSystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
 	WeaponDataSubsystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
-	UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
+	UnlockSubsystem = GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
+	DataManager = GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+
 	ShopContoller = Cast<AShopController_FlipSide>(GetWorld()->GetFirstPlayerController());
 
 	ShopUnlockWeaponSubSystem->OnSelectUnlockWeapon.AddDynamic(this , &ASelectUnlockWeaponUIActor::SetUnlockCoin);
@@ -90,18 +93,16 @@ void ASelectUnlockWeaponUIActor::SetUnlockCoin(EWeaponClass WeaponClass, int32 i
 
 	if(MID)
 	{
-		const FFaceData* FrontFaceData = WeaponDataSubsystem->GetWeaponDataByIndex(ShopUnlockWeaponSubSystem->GetCurrentWeaponClass()
-		, ShopUnlockWeaponSubSystem->GetCurrentUnlockWeaponIndex());
-		
-		if(FrontFaceData)
+		FFaceData WeaponData;
+
+		bool IsGetWeaponData = DataManager->TryGetWeapon(ShopUnlockWeaponSubSystem->GetCurrentUnlockWeaponID(),WeaponData);
+
+		if(IsGetWeaponData)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("앞면 아이콘 설정"));
-			MID->SetTextureParameterValue(FName("Front_Texture"), FrontFaceData->WeaponIcon);
-			MID->SetVectorParameterValue(FName("Front_Color"), FrontFaceData->TypeColor);
-
+			MID->SetTextureParameterValue(FName("Front_Texture"), WeaponData.WeaponIcon);
+			MID->SetVectorParameterValue(FName("Front_Color"), WeaponData.TypeColor);
 		}
-
-		if(ShopUnlockWeaponSubSystem->GetCurrentUnlockWeaponIndex() == -1)
+		else
 		{
 			MID->SetVectorParameterValue(FName("Front_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
 		}

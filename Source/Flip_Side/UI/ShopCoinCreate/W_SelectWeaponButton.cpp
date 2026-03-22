@@ -5,9 +5,10 @@
 #include "UI/ShopCoinCreate/W_CoinCreateWidget.h"
 #include "Player/ShopController_FlipSide.h"
 #include "Components/Button.h"
-#include "Subsystem/ShopLevel/CoinCreateWSubsystem.h"
 
-#include "Subsystem/ShopLevel/ShopWeaponDataWSubsystem.h"
+#include "Subsystem/ShopLevel/CoinCreateWSubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
+
 #include "Subsystems/WorldSubsystem.h" 
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
@@ -16,7 +17,7 @@ void UW_SelectWeaponButton::NativeConstruct()
     Super::NativeConstruct();
 
     CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
-	WeaponDataSubSystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
+    DataManager = GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 
     if(CoinCreateWSubSystem)
     {
@@ -29,17 +30,15 @@ void UW_SelectWeaponButton::NativeConstruct()
 
 void UW_SelectWeaponButton::SelectWeapon()
 {
-    CoinCreateWSubSystem->ChangeSelectedCoinWeapon(WeaponData->WeaponID);
+    CoinCreateWSubSystem->ChangeSelectedCoinWeapon(WeaponData.WeaponID);
 }
 
-void UW_SelectWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 Index)
+void UW_SelectWeaponButton::InitButton(int32 ID)
 {
-    WeaponID = Index;
-    WeaponClass =SettingWeaponClass;
 
-    WeaponData = WeaponDataSubSystem->GetWeaponDataByIndex(WeaponClass, WeaponID);
+    bool IsGetWeaponData = DataManager->TryGetWeapon(ID,WeaponData);
 
-    if(WeaponData && WeaponButton)
+    if(IsGetWeaponData && WeaponButton)
     {
         FButtonStyle ButtonStyle = WeaponButton->GetStyle();
 
@@ -49,7 +48,7 @@ void UW_SelectWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 In
 
             if (DynamicMaskMaterial)
             {
-                DynamicMaskMaterial->SetTextureParameterValue(FName("IconTexture"), WeaponData->WeaponIcon);
+                DynamicMaskMaterial->SetTextureParameterValue(FName("IconTexture"), WeaponData.WeaponIcon);
 
                 ButtonStyle.Normal.SetResourceObject(DynamicMaskMaterial);
                 
@@ -59,7 +58,7 @@ void UW_SelectWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 In
         }
         else
         {
-            ButtonStyle.Normal.SetResourceObject(WeaponData->WeaponIcon);
+            ButtonStyle.Normal.SetResourceObject(WeaponData.WeaponIcon);
         }
 
         WeaponButton->SetStyle(ButtonStyle);

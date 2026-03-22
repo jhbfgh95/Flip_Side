@@ -27,6 +27,8 @@ private:
 	class UShopUnlockWeaponWSubsystem* ShopUnlockWeaponSubSystem;
 	class UShopWeaponDataWSubsystem* WeaponDataSubsystem;	
 	class UUnlockGISubsystem* UnlockSubsystem;
+	class UDataManagerSubsystem* DataManager;
+
 	class AShopController_FlipSide* ShopContoller;
 private:
 	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))

@@ -19,9 +19,10 @@ private:
 	//코인 제작 서브 시스템
 	class UCoinCreateWSubsystem* CoinCreateWSubSystem;
 	//무기 정보 서브시스템
-	//class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
-	class UDataManagerSubsystem* WeaponDataSubSystem;
+	class UDataManagerSubsystem* DataManager;
+
 	class AShopController_FlipSide* ShopController;
+	
 private: // 컴포넌트	
 
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
