@@ -77,7 +77,7 @@ void ACreateCoinUIActor::BeginPlay()
     EventFunc.BindUFunction(this, FName("SetCoinSideMatarial"));
     PressMachineTimeline->AddEvent(0.1f, EventFunc); 
 
-	MachineStartLocation = PressMachineMesh->GetComponentLocation();
+	MachineStartLocation = PressMachineMesh->GetRelativeLocation();
 
 }
 
