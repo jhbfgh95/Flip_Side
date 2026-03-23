@@ -4,7 +4,6 @@
 #include "UI/ShopUnlockWeapon/SelectUnlockWeaponUIActor.h"
 #include "Components/StaticMeshComponent.h"
 #include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
-#include "Subsystem/ShopLevel/ShopWeaponDataWSubsystem.h"
 #include "Components/TimelineComponent.h"
 #include "Subsystem/UnlockGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
@@ -36,7 +35,6 @@ void ASelectUnlockWeaponUIActor::BeginPlay()
 {
 	Super::BeginPlay();
 	ShopUnlockWeaponSubSystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
-	WeaponDataSubsystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
 	UnlockSubsystem = GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
 	DataManager = GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 

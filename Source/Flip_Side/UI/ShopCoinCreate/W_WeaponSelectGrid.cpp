@@ -6,7 +6,6 @@
 #include "UI/ShopCoinCreate/W_SelectWeaponButton.h"
 #include "Subsystem/UnlockGISubsystem.h"
 
-#include "Subsystem/ShopLevel/ShopWeaponDataWSubsystem.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include "Components/Button.h"
@@ -17,7 +16,6 @@ void UW_WeaponSelectGrid::NativeConstruct()
     
     //this->SetVisibility(ESlateVisibility::Collapsed);
     UnlockSubSystem = GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
-    ShopWeaponSubsystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
 
     UnlockSubSystem->OnWeaponUnlock.AddDynamic(this, &UW_WeaponSelectGrid::InitWeaponGrid);
 

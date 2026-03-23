@@ -18,7 +18,7 @@ bool UShopUnlockWeaponWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
     }
 
     const FString MapName = World->GetMapName();
-    return MapName.Contains(TEXT("L_ShopLevel"));
+    return MapName.Contains(TEXT("L_ShopLevel")) || MapName.Contains(TEXT("L_ShopTutorialLevel"));
 }
 
 void UShopUnlockWeaponWSubsystem::OnWorldBeginPlay(UWorld& World)
