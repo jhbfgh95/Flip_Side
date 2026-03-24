@@ -44,6 +44,9 @@ struct FFaceData
     FString BehaviorCode;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FString WeaponName;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString KOR_DES;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
