@@ -76,6 +76,13 @@ enum class EActionRepeatType : uint8
 {
     None,
     Fix,
-    Behavior, 
+    Behavior,
     Attack
+};
+
+UENUM(BlueprintType)
+enum class EItemType : uint8
+{
+    Buff    UMETA(DisplayName = "버프형"),   // DB item_type_id = 1
+    Install UMETA(DisplayName = "설치형"),   // DB item_type_id = 2
 };
