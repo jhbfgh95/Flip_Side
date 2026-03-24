@@ -103,6 +103,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void GetValidGridsForSingleCell(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, TArray<FGridPoint>& VadlidCells);
 
+	UFUNCTION(BlueprintCallable, Category = "Grid")
+	void PreviewHoveredCoinRange(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec);
+
+	UFUNCTION(BlueprintCallable, Category = "Grid")
+	void ResetBattleCoinPreview();
+
 	/*
 	UFUNCTION(BlueprintCallable, Category="Grid|Boss")
 	void PreviewBossAttack(const FAttackAreaSpec& Spec);

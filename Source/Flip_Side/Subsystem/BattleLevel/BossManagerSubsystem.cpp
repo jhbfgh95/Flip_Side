@@ -316,7 +316,7 @@ void UBossManagerSubsystem::ApplyDamageToLockedTargets(const TArray<ACoinActor*>
         const int32 PrevHP = StatusComp->GetHP();
         const int32 NextHP = PrevHP - FMath::Max(0, Damage);
 
-        StatusComp->SetHP(NextHP);
+        StatusComp->ApplyDamage(Damage, CurrentBoss);
 
         UE_LOG(LogTemp, Log, TEXT("[BossManager] Damage Applied - CoinID=%d HP %d -> %d"),
             Coin->GetCoinID(),

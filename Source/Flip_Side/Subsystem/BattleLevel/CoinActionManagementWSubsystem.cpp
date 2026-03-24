@@ -5,7 +5,10 @@
 #include "CoinActor.h"
 #include "GridActor.h"
 #include "Weapon_Action.h"
+#include "W_BattleCoinInfo.h"
+#include "Component_Status.h"
 #include "GridManagerSubsystem.h"
+#include "FlipSideDevloperSettings.h"
 #include "DataManagerSubsystem.h"
 
 void UCoinActionManagementWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -19,8 +22,31 @@ void UCoinActionManagementWSubsystem::Initialize(FSubsystemCollectionBase& Colle
     if(SelectedAction)
     {
         InitWeaponAction();
+    }   
+}
+
+void UCoinActionManagementWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
+{
+    Super::OnWorldBeginPlay(InWorld);
+
+    if(!BattleCoinInfoWidgetInstance)
+    {
+        const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+        if (Settings && !Settings->BattleCoinInfoWidget.IsNull())
+        {
+            UClass* BattleCoinWidgetClass = Settings->BattleCoinInfoWidget.LoadSynchronous();
+                
+            if (BattleCoinWidgetClass)
+            {
+                BattleCoinInfoWidgetInstance = CreateWidget<UW_BattleCoinInfo>(GetWorld(), BattleCoinWidgetClass);
+                if ( BattleCoinInfoWidgetInstance)
+                {
+                    BattleCoinInfoWidgetInstance->AddToViewport();
+                    BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+                }
+            }
+        }
     }
-   
 }
 
 bool UCoinActionManagementWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -59,17 +85,30 @@ void UCoinActionManagementWSubsystem::InitWeaponAction()
     RepeatActionCnt = 1;
     CurrentInputState = EActionInputState::None;
     ValidTargetGrids.Empty();
+    if (GridManager)
+    {
+        GridManager->ResetBattleCoinPreview();
+    }
+
+    if (BattleCoinInfoWidgetInstance)
+    {
+        BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+    }
 }
 
 bool UCoinActionManagementWSubsystem::ApplyRangedThings(const FGridPoint& TargetGridPoint)
 {
     if(!GridManager) return false;
 
-    if(CurrentInputState == EActionInputState::WaitingForGridClick)
+    if(CurrentInputState == EActionInputState::WaitingForCoinClick || CurrentInputState == EActionInputState::WaitingForGridClick)
     {
         if(!ValidTargetGrids.Contains(TargetGridPoint))
         {
             return false;
+        }
+        else
+        {
+            return true;
         }
     }
 
@@ -84,9 +123,8 @@ bool UCoinActionManagementWSubsystem::ApplyRangedThings(const FGridPoint& Target
         }
     }
 
+    SelectedAction->SetInRangeBoss(GridInfos.Boss);
     /*
-    SelectedAction->SetBossActor(Infos.Boss)
-
     for(AActor* Actor : Infos.Others)
     {
         if(AOtherActor* Others = Cast<AOtherActor>(Actor))
@@ -100,9 +138,14 @@ bool UCoinActionManagementWSubsystem::ApplyRangedThings(const FGridPoint& Target
 
 }
 
-void UCoinActionManagementWSubsystem::SetSelectedWeapon(const FActionTask& ActionTask, const FGridPoint& CoinGrid)
+void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
 {
     if(!bIsCorrectTurn) return;
+    if(!IsValid(HoveredCoin)) return;
+
+    FActionTask ActionTask = HoveredCoin->StatComponent->GetModifiedStats();
+    FGridPoint CoinGrid =  HoveredCoin->GetDecidedGrid();
+
     if (UGameInstance* GI = GetWorld()->GetGameInstance())
     {
         UDataManagerSubsystem* DM = GI->GetSubsystem<UDataManagerSubsystem>();
@@ -110,7 +153,7 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(const FActionTask& Actio
         FFaceData SelectWeapon;
         FGridPoint LastGridPoint;
 
-        if(DM->TryGetWeapon(ActionTask.WeaponID, SelectWeapon) && SelectedAction && CurrentInputState == EActionInputState::None)
+        if(DM->TryGetWeapon(HoveredCoin->GetCoinFaceID(), SelectWeapon) && SelectedAction && CurrentInputState == EActionInputState::None)
         {
             LastGridPoint.GridX = SelectWeapon.AttackRange.GridX + ActionTask.ModifiedRange.GridX;
             LastGridPoint.GridY = SelectWeapon.AttackRange.GridY + ActionTask.ModifiedRange.GridY;
@@ -131,17 +174,24 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(const FActionTask& Actio
             AreaSpec = SelectWeapon.AttackAreaSpec;
             AreaSpec.AnchorCell = CoinGrid;
 
+            SetBattleCoinInfo(
+                SelectWeapon.WeaponIcon, FText::FromString(SelectWeapon.WeaponName), FText::FromString(SelectWeapon.KOR_DES), 
+                SelectWeapon.BehaviorPoint, ActionTask.ModifiedBehaviorPoint, 
+                SelectWeapon.AttackPoint, ActionTask.ModifiedAttackPoint
+            );
+
+            SetCasterCoin(HoveredCoin);
+
             if(AreaSpec.Pattern == EAttackAreaPattern::SingleCell)
             {
-                CurrentInputState = EActionInputState::WaitingForGridClick;
                 GridManager->GetValidGridsForSingleCell(CoinGrid,AreaSpec,ValidTargetGrids);
             }
             else
             {
-                CurrentInputState = EActionInputState::ExecutingAction;
                 ApplyRangedThings(CoinGrid);
-                ExecuteNowAction();
             }
+
+            GridManager->PreviewHoveredCoinRange(CoinGrid, AreaSpec);
         }
     }
 }
@@ -154,6 +204,36 @@ void UCoinActionManagementWSubsystem::SetCasterCoin(ACoinActor* CasterCoin)
     }
 }
 
+
+//ExecuteSelectedWeapon는 코인에서 델리게이트 받아서 분기 가장 처음에는 호버링 데이터 보고 어떻게 할지 정함
+//코인은 나 선택됬다고 신호만 보내면 됨
+void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedCoin)
+{
+    if(CurrentInputState == EActionInputState::None)
+    {
+        if(AreaSpec.Pattern == EAttackAreaPattern::SingleCell)
+        {
+            CurrentInputState = EActionInputState::WaitingForCoinClick;
+        }
+        else
+        {
+            CurrentInputState = EActionInputState::ExecutingAction;
+            ClickedCoin->SetCoinIsActed(true);
+            ExecuteNowAction();
+        }
+    }
+    else if(CurrentInputState == EActionInputState::WaitingForCoinClick)
+    {
+        ExecuteTimeAction(ClickedCoin);
+    }
+    else
+    {
+        return;
+    }
+
+}
+
+//즉발 즉, 하나 선택X
 void UCoinActionManagementWSubsystem::ExecuteNowAction()
 {
     if(RepeatActionCnt <= 0) return;
@@ -178,16 +258,23 @@ void UCoinActionManagementWSubsystem::ExecuteNowAction()
 
 }
 
-void UCoinActionManagementWSubsystem::ExecuteTimeAction(const struct FGridPoint& TargetGridPoint)
+//하나 선택
+void UCoinActionManagementWSubsystem::ExecuteTimeAction(ACoinActor* TargetCoin)
 {
     if (RepeatActionCnt <= 0) return;
 
-    if(!ApplyRangedThings(TargetGridPoint))
+    //여기서? 코인 적용 칸도 제한함
+    if(!ApplyRangedThings(TargetCoin->GetDecidedGrid()))
     {
+        CancelSelectWeapon(); //사거리 바깥 선택 시 걍 초기화.
         return;
     }
 
-    ACoinActor* TargetCoin = Cast<ACoinActor>(GridManager->GetGridActor(TargetGridPoint)->GetCurrentOccupied());
+    if (SelectedAction && SelectedAction->GetCasterCoin())
+    {
+        SelectedAction->GetCasterCoin()->SetCoinIsActed(true);
+    }
+
     //클릭한거 하나 세팅
     SelectedAction->SetSingleCellTargetCoin(TargetCoin);
 
@@ -199,4 +286,29 @@ void UCoinActionManagementWSubsystem::ExecuteTimeAction(const struct FGridPoint&
         InitWeaponAction();
     }
     
+}
+
+//호버링 시 UI세팅
+void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
+        UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
+		int32 DefaultBP, int32 ModifiedBP, 
+		int32 DefaultAP, int32 ModifiedAP)
+{
+    if(BattleCoinInfoWidgetInstance)
+    {
+        BattleCoinInfoWidgetInstance->UpdateBattleCoinInfo(
+            Icon, WeaponName, RawDescription,
+            DefaultBP, ModifiedBP,
+            DefaultAP, ModifiedAP
+        );
+        BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void UCoinActionManagementWSubsystem::HandleCoinUnHovered()
+{
+    if (CurrentInputState == EActionInputState::None)
+    {
+        InitWeaponAction();
+    }
 }
