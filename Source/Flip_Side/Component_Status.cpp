@@ -28,10 +28,9 @@ int32 UComponent_Status::GetHP() const
 	return HP;
 }
 
-FActionTask UComponent_Status::GetModifiedStats(int32 WeaponID) 
+FActionTask UComponent_Status::GetModifiedStats() 
 {
 	FActionTask FinalTask;
-	FinalTask.WeaponID = WeaponID;
 
 	FinalTask.ModifiedAttackPoint = 0;
     FinalTask.ModifiedBehaviorPoint = 0;
@@ -46,11 +45,11 @@ FActionTask UComponent_Status::GetModifiedStats(int32 WeaponID)
 	return FinalTask;
 }
 
-void UComponent_Status::SetHP(const int32 ApplyHP/*, bool bIsFirst*/)
+void UComponent_Status::SetHP(const int32 ApplyHP, bool bIsFirst)
 {
-	/*
+	
 	if(bIsFirst) MaxHP = ApplyHP;
-	*/
+	
 	HP = ApplyHP;
 }
 
@@ -132,17 +131,6 @@ void UComponent_Status::CheckAttackerPostBuff(AActor* Target, int32 DealtDmg)
     {
         OnPostGiveDamage.Broadcast(Target, DealtDmg);
     }
-}
-
-void UComponent_Status::CalculateFinalStats(FActionTask& OutTask)
-{
-	OutTask.ModifiedBehaviorPoint = 0;
-	OutTask.ModifiedAttackPoint = 0;
-
-	if(OnCalculateStats.IsBound())
-	{
-		OnCalculateStats.Broadcast(OutTask);
-	}
 }
 
 void UComponent_Status::ClearTurnBasedBuffs()

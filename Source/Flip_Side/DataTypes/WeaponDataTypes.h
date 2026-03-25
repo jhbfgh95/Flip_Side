@@ -44,6 +44,9 @@ struct FFaceData
     FString BehaviorCode;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FString WeaponName;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString KOR_DES;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -103,8 +106,6 @@ USTRUCT(BlueprintType)
 struct FActionTask
 {
     GENERATED_BODY()
-
-    int32 WeaponID = -1;
 
     FGridPoint ModifiedRange;
 

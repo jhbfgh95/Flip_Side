@@ -9,6 +9,9 @@
 
 class ACoinActor;
 class ASlotActor;
+class ACoinSlotActor;
+class UW_ReadyAndSlotCoinInfo;
+class UW_BattleCoinInfo;
 class AUseableItemActor;
 
 UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="My Manager Settings"))
@@ -17,17 +20,27 @@ class FLIP_SIDE_API UFlipSideDevloperSettings : public UDeveloperSettings
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(Config, EditAnywhere, Category = "CoinSpawn")
+	UPROPERTY(Config, EditAnywhere, Category = "Coin | Spawn")
 	TSoftClassPtr<ACoinActor> CoinActor;
 
-	UPROPERTY(Config, EditAnywhere, Category = "CoinSpawn")
-	TSoftClassPtr<ASlotActor> SlotActor;
+	UPROPERTY(Config, EditAnywhere, Category = "Coin | Spawn")
+	TSoftClassPtr<ACoinSlotActor> CoinSlotActor;
 
-	UPROPERTY(Config, EditAnywhere, Category = "UseableItemSpawn")
+	UPROPERTY(EditAnywhere, config, Category = "Coin | UI")
+	TSoftClassPtr<UW_ReadyAndSlotCoinInfo> ReadyAndSlotCoinInfoWidget;
+
+	UPROPERTY(EditAnywhere, config, Category = "Coin | UI")
+	TSoftClassPtr<UW_BattleCoinInfo> BattleCoinInfoWidget;
+
+	UPROPERTY(Config, EditAnywhere, Category = "UseableItem | Spawn")
 	TSoftClassPtr<AUseableItemActor> UseableItemActor;
 
-	UPROPERTY(Config, EditAnywhere, Category = "UseableItemSpawn")
+	UPROPERTY(Config, EditAnywhere, Category = "UseableItem | Spawn")
 	TSoftClassPtr<ASlotActor> UseableItemSlotActor;
+	
+	UPROPERTY(EditAnywhere, config, Category = "UseableItem | UI",
+		meta = (AllowedClasses = "/Script/UMG.UserWidget"))
+	TSoftClassPtr<UUserWidget> ItemHoverWidget;
 
 	UPROPERTY(EditAnywhere, Config, Category = "GridSpawn")
 	TSoftClassPtr<class AGridActor> GridActor;

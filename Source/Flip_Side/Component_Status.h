@@ -59,10 +59,13 @@ class FLIP_SIDE_API UComponent_Status : public UActorComponent
 {
 	GENERATED_BODY()
 
+	UPROPERTY(VisibleAnywhere, Category = "Weapon | Status")
 	int32 MaxHP = 1;
 
+	UPROPERTY(VisibleAnywhere, Category = "Weapon | Status")
 	int32 HP = 1;
 
+	UPROPERTY(VisibleAnywhere, Category = "Weapon | Status")
 	int32 Shield = 0;
 
 	//걍 군중제어기는 가장 마지막에 들어오는게 적용되는 식으로.
@@ -99,10 +102,10 @@ public:
 
 	int32 GetHP() const;
 
-	FActionTask GetModifiedStats(int32 WeaponID);
+	FActionTask GetModifiedStats();
 
 	//초기 HP 세팅 및 진짜 특수한 경우의 함수 왠만하면 Damage, Heal로 HP관리
-	void SetHP(const int32 ApplyHP/*, bool bIsFirst*/);
+	void SetHP(const int32 ApplyHP, bool bIsFirst);
 
 /* 스탯 직접 함수 */
 	void ApplyDamage(int32 Damage, AActor* DamageCauser);
@@ -117,9 +120,6 @@ public:
 	void AddBuffs(const FBuffInfo& Info);
 
 	void ClearTurnBasedBuffs();
-
-	//스탯 버프들
-	void CalculateFinalStats(FActionTask& OutTask);
 
 	//보호막 추가 데미지 등
 	void CheckAttackerPreBuff(AActor* Target, int32 InDmg, int32& OutDmg);

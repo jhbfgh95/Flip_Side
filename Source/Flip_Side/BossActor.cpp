@@ -26,7 +26,7 @@ void ABossActor::InitializeFromBossData(const FBossData& InData)
 
 	if (StatusComp)
 	{
-		StatusComp->SetHP(InData.BossHP);
+		StatusComp->SetHP(InData.BossHP, true);
 	}
 	if (UAnimInstance* AnimInstance = BossMesh->GetAnimInstance())
     {

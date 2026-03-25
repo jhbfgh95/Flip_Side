@@ -57,8 +57,6 @@ protected:
 protected:
 	void MatchCoinsToRandomState();
 
-	bool bItemFlag = false;
-
 protected:
 	/* CoinReadyTurn */
 	void DoCoinReadyTurn();
@@ -69,18 +67,6 @@ protected:
 	void DoSettingTurn();
 	/* BossTurn*/
 	void DoBossTurn();
-public:
-	/* 다른 "밖"의 종류는 너무 나중 일이라서.. 만약에 추가되면 마우스 포인터가 영역을 가르는 방식으로 진수쿤이 고생좀 해줘야할듯*/
-	void HandleItemClicked(class AUseableItemActor* TargetItem);
-
-	void HandleGridClicked(class AGridActor* TargetGrid);
-
-	//이건 님이 어떤 방식으로 쓸 지는 모르겠음. 다만, CPP에는 초기화 코드를 넣어놓을게
-	//Canceled 코드들은 사실 님 마음대로 해도 상관없음 내가 어케 구현할지를 모르니 그냥 아이템, 그리드로 나눠둔거임
-	//통합해도 상관은 없음 그리고 작업 끝나면 해당 주석들 지워주는거 부탁할게 @김진수
-	void HandleGridCanceled();
-
-	void HandleItemCanceled();
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

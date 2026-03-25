@@ -118,6 +118,9 @@ public:
 private:
     bool Internal_SpawnBoss(const FBossData& InBossData);
 
+    UFUNCTION()
+    void ApplyCurrentPattern();
+
     bool PrepareCurrentPattern();
     void ShowTelegraphPreview(const TArray<FGridPoint>& Cells, const FLinearColor& Color);
     void ClearTelegraphPreview(const TArray<FGridPoint>& Cells);

@@ -14,6 +14,19 @@ static FString GetColText(FSQLitePreparedStatement& Stmt, int32 Index)
     return Out;
 }
 
+static FString GetColTextUTF8(FSQLitePreparedStatement& Stmt, int32 Index)
+{
+    TArray<uint8> RawBytes;
+    if (Stmt.GetColumnValueByIndex(Index, RawBytes) && RawBytes.Num() > 0)
+    {
+        return FString(UTF8_TO_TCHAR(reinterpret_cast<const char*>(RawBytes.GetData())));
+    }
+    // fallback
+    FString Out;
+    Stmt.GetColumnValueByIndex(Index, Out);
+    return Out;
+}
+
 static int32 GetColInt(FSQLitePreparedStatement& Stmt, int32 Index)
 {
     int32 Out = 0;
@@ -215,6 +228,7 @@ bool UDataManagerSubsystem::LoadWeapons()
             c.type_id,
             w.HP,
             c.weapon_point,
+            c.weapon_name,
             c.KOR_DES,
             c.ENG_DES,
             w.typecolor,
@@ -409,6 +423,8 @@ bool UDataManagerSubsystem::LoadItems()
         const FString itemdes = GetColText(Stmt, 4);
         Item.Item_DES = itemdes;
         Item.ItemTypeID = GetColInt(Stmt, 5);
+        if (Item.ItemTypeID == 1)      Item.ItemType = EItemType::Buff;
+        else if (Item.ItemTypeID == 2) Item.ItemType = EItemType::Install;
         Item.BehaviorCode = GetColText(Stmt, 6);
         const FString ColorHex = GetColText(Stmt, 7);
         if (!TryParseHexColor_RRGGBBAA(ColorHex, Item.TypeColor))

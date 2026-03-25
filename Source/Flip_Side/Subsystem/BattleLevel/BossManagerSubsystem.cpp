@@ -106,6 +106,7 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossData& InBossData)
 
     CurrentBoss = SpawnedBoss;
     CurrentBoss->InitializeFromBossData(InBossData);
+    CurrentBoss->OnBossAttackEnded.AddDynamic(this, &UBossManagerSubsystem::ApplyCurrentPattern);
 
     StageContext.PickedThemeID = InBossData.ThemeID;
     StageContext.PickedBossID = InBossData.BossID;
@@ -208,6 +209,15 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
     }
 
     CurrentBoss->PlayAttack();
+    // 피해 적용은 몽타주 종료 후 ApplyCurrentPattern()에서 처리
+}
+
+void UBossManagerSubsystem::ApplyCurrentPattern()
+{
+    if (!TurnContext.bPrepared)
+    {
+        return;
+    }
 
     TArray<ACoinActor*> ValidLockedTargets;
     for (const FLockedBossTarget& LockedTarget : TurnContext.LockedTargets)
@@ -306,7 +316,7 @@ void UBossManagerSubsystem::ApplyDamageToLockedTargets(const TArray<ACoinActor*>
         const int32 PrevHP = StatusComp->GetHP();
         const int32 NextHP = PrevHP - FMath::Max(0, Damage);
 
-        StatusComp->SetHP(NextHP);
+        StatusComp->ApplyDamage(Damage, CurrentBoss);
 
         UE_LOG(LogTemp, Log, TEXT("[BossManager] Damage Applied - CoinID=%d HP %d -> %d"),
             Coin->GetCoinID(),

@@ -16,6 +16,8 @@ void UWeaponLogicLibrary::Test_Logic(UWeapon_Action* WeaponContext)
 //쇠파이프↓
 void UWeaponLogicLibrary::SteelPipe_Logic(UWeapon_Action* WeaponContext)
 {
+    UE_LOG(LogTemp, Warning, TEXT("SteelPipe ON"));
+
     if(!WeaponContext) return;
 
     ABossActor* Boss;
@@ -241,7 +243,7 @@ void UWeaponLogicLibrary::Emergencylifer_Logic(UWeapon_Action* WeaponContext)
         if(OutDmg >= TargetStat->GetHP())
         {
             bIsIgnore = true;
-            TargetStat->SetHP(AP);
+            TargetStat->SetHP(AP, false);
 
             UE_LOG(LogTemp, Warning, TEXT("죽을뻔하다 살아남"));
         }

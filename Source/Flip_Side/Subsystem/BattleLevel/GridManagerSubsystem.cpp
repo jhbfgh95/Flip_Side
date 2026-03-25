@@ -179,7 +179,7 @@ void UGridManagerSubsystem::GetObjectsAtRange(
     {
         const int32 Depth = FMath::Max(1, Spec.ParamB);
 
-        if (Spec.Side == EAreaSide::Up)
+        if (Spec.Side == EAreaSide::Left)
         {
             const int32 MaxY = AnchorY + Depth;
             bReachedBossLine = (MaxY >= GridYSize);
@@ -489,6 +489,17 @@ void UGridManagerSubsystem::BuildCoinTargetCells(
             OutCells.Add(C.GridXY); 
         }
     }
+}
+
+void UGridManagerSubsystem::PreviewHoveredCoinRange(const FGridPoint & CoinXY, const FAttackAreaSpec & Spec)
+{
+
+}
+
+//이것도 해주세용 사거리 칠한거 다시 되돌리는거
+void UGridManagerSubsystem::ResetBattleCoinPreview()
+{
+
 }
 
 // GridManagerSubsystem.cpp

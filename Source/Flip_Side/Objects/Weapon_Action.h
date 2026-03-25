@@ -15,8 +15,10 @@ class FLIP_SIDE_API UWeapon_Action : public UActionBase
 {
 	GENERATED_BODY()
 	
+	UPROPERTY(VisibleAnywhere, Category = "Weapon | Status")
 	int32 FinalAttackPoint = 0; 
 
+	UPROPERTY(VisibleAnywhere, Category = "Weapon | Status")
 	int32 FinalBehaviorPoint = 0;
 
 	class ACoinActor* CasterCoin;

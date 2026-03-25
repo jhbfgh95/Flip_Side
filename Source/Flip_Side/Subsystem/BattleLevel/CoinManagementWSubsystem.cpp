@@ -3,19 +3,26 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "CoinActor.h"
-#include "SlotActor.h"
+#include "CoinSlotActor.h"
 #include "CoinDataTypes.h"
 #include "WeaponDataTypes.h"
+#include "AttackAreaTypes.h"
 #include "FlipSide_Enum.h"
+#include "CoinActionManagementWSubsystem.h"
 #include "CrossingLevelGISubsystem.h"
 #include "DataManagerSubsystem.h"
 #include "FlipSideDevloperSettings.h"
+#include "W_ReadyAndSlotCoinInfo.h"
+#include "Component_Status.h"
+#include "Blueprint/UserWidget.h"
 
 #define READY_COIN_NUM 10
 
 void UCoinManagementWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     InitCoinSlot();
+
+    CoinActionManager = Collection.InitializeDependency<UCoinActionManagementWSubsystem>();
 }
 
 void UCoinManagementWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
@@ -26,6 +33,26 @@ void UCoinManagementWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
     {
         InitBattleReadyCoin(); // 코인 생성하기 전 서랍 배열 초기화
         InstanceCoins();
+
+        if(!ReadyCoinInfoWidgetInstance)
+        {
+            const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+            if (Settings && !Settings->ReadyAndSlotCoinInfoWidget.IsNull())
+            {
+                UClass* ReadyCoinWidgetClass = Settings->ReadyAndSlotCoinInfoWidget.LoadSynchronous();
+                
+                if (ReadyCoinWidgetClass)
+                {
+                    ReadyCoinInfoWidgetInstance = CreateWidget<UW_ReadyAndSlotCoinInfo>(GetWorld(), ReadyCoinWidgetClass);
+                    if (ReadyCoinInfoWidgetInstance)
+                    {
+                        ReadyCoinInfoWidgetInstance->AddToViewport();
+                        ReadyCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -58,7 +85,7 @@ void UCoinManagementWSubsystem::InitCoinSlot()
     {
         //없으면 그냥 다 -1로 채워지는 DefaultCoin이 들어감. 걍 나중에 이걸 보면 될듯
         FCoinTypeStructure CoinData = CrossingLevelSubsystem->GetSlotCoin(i);
-        CoinSlotArray.Add(CoinData);
+        CoinSlotDataArray.Add(CoinData);
     }
 }
 
@@ -74,6 +101,8 @@ void UCoinManagementWSubsystem::InitBattleReadyCoin()
 
 void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
 {
+    //이게 맞음 어짜피 Destroy하면 여기서 nullptr로 사라지기 때문에 BattleReadyCoins지만, 사실 한 배틀이 시작되면
+    //이 안에 있는 코인들은 CoinReady는 false고 Battle이 On이 되게 됨. 해당 코드는 BattleManager의 MatchCoinsto~에 있음
     LiveCoinStacks.Empty();
     for (int32 i = 0; i < BattleReadyCoins.Num(); ++i)
     {
@@ -81,6 +110,8 @@ void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
         {
             LiveCoinStacks.Add(BattleReadyCoins[i]);
             BattleReadyCoins[i]->SetActorScale3D(FVector(1.f, 1.f, 1.f));
+            BattleReadyCoins[i]->SetCoinOnBattle(false);
+            BattleReadyCoins[i]->SetCoinIsActed(false);
         }
     }
 
@@ -273,14 +304,14 @@ void UCoinManagementWSubsystem::InstanceCoins()
     if(!Settings) return;
 
     UClass* BPCoin = Settings->CoinActor.LoadSynchronous();
-    UClass* BPSlot = Settings->SlotActor.LoadSynchronous();
+    UClass* BPSlot = Settings->CoinSlotActor.LoadSynchronous();
     if(!BPCoin || !BPSlot) return;
 
     TArray<AActor*> OutSlots;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), BPSlot, OutSlots);
     OutSlots.Sort([](const AActor& A, const AActor& B){
-        const ASlotActor* SlotA = Cast<ASlotActor>(&A);
-        const ASlotActor* SlotB = Cast<ASlotActor>(&B);
+        const ACoinSlotActor* SlotA = Cast<ACoinSlotActor>(&A);
+        const ACoinSlotActor* SlotB = Cast<ACoinSlotActor>(&B);
 
         if(SlotA && SlotB)
         {
@@ -289,6 +320,18 @@ void UCoinManagementWSubsystem::InstanceCoins()
         return false;
     });
 
+    //설치해둔 슬롯 월드에서 스캔 후 캐시
+    for(AActor* SlotActor : OutSlots)
+    {
+        if(ACoinSlotActor* CoinSlot = Cast<ACoinSlotActor>(SlotActor))
+        {
+            CoinSlots.Add(CoinSlot);
+            CoinSlot->OnCoinSlotHovered.AddDynamic(this, &UCoinManagementWSubsystem::HandleCoinSlotHovered);
+            CoinSlot->OnCoinSlotClicked.AddDynamic(this, &UCoinManagementWSubsystem::HandleCoinSlotClicked);
+            CoinSlot->OnCoinSlotUnHovered.AddDynamic(this, &UCoinManagementWSubsystem::HandleCoinSlotUnHovered);
+        }
+    }
+
     UDataManagerSubsystem* DM = GI->GetSubsystem<UDataManagerSubsystem>();
 
     if(DM && DM->IsCacheReady() && BPCoin->IsChildOf(ACoinActor::StaticClass()))
@@ -296,7 +339,7 @@ void UCoinManagementWSubsystem::InstanceCoins()
         int32 CoinNum = 0;
         int32 SlotIndex = 0;
 
-        for(const FCoinTypeStructure& CoinData : CoinSlotArray)
+        for(const FCoinTypeStructure& CoinData : CoinSlotDataArray)
         {
             FFaceData FrontWP;
             FFaceData BackWP;
@@ -307,12 +350,12 @@ void UCoinManagementWSubsystem::InstanceCoins()
             {
                 for(int i = 0; i < CoinData.SameTypeCoinNum; i++)
                 {
-                    if(OutSlots.IsValidIndex(SlotIndex))
+                    if(CoinSlots.IsValidIndex(SlotIndex))
                     {
-                        ASlotActor* TargetSlot = Cast<ASlotActor>(OutSlots[SlotIndex]);
-                        if(TargetSlot)
+                        //ACoinSlotActor* TargetSlot = Cast<ACoinSlotActor>(OutSlots[SlotIndex]);
+                        if(CoinSlots[SlotIndex])
                         {
-                            FTransform SpawnTransform = TargetSlot->GetSlotTransform();
+                            FTransform SpawnTransform = CoinSlots[SlotIndex]->GetSlotTransform();
                             if(i > 0)
                             {
                                 FVector NewLocation = SpawnTransform.GetLocation() + FVector(0.f , i * 35.f, 0.f);
@@ -341,20 +384,25 @@ void UCoinManagementWSubsystem::InstanceCoins()
                                     FrontWP.WeaponIcon,
                                     BackWP.WeaponIcon,
                                     TypeDatas.TypeColor,
-                                    TypeDatas.HP
+                                    TypeDatas.HP,
+                                    SlotIndex
                                 );
 
-                                NewCoin->SetOriginSlotLocation(TargetSlot->GetSlotTransform().GetLocation());
+                                NewCoin->SetOriginSlotLocation(CoinSlots[SlotIndex]->GetSlotTransform().GetLocation());
+                                CoinSlots[SlotIndex]->AllowcatedCoins.Add(NewCoin);
 
                                 NewCoin->FinishSpawning(SpawnTransform);
-
                                 NewCoin->SameTypeIndex = FinalIndex;
+
+                                BindCoinEvents(NewCoin);
 
                                 CoinNum++;
                             }
                         }
                     }
                 }
+                CoinSlots[SlotIndex]->SetFrontFaceInfo(FrontWP.WeaponIcon, FText::FromString(FrontWP.WeaponName),FText::FromString(FrontWP.KOR_DES),FrontWP.BehaviorPoint,FrontWP.AttackPoint);
+                CoinSlots[SlotIndex]->SetBackFaceInfo(BackWP.WeaponIcon, FText::FromString(BackWP.WeaponName),FText::FromString(BackWP.KOR_DES),BackWP.BehaviorPoint,BackWP.AttackPoint);
                 SlotIndex++;
             }
         }
@@ -364,4 +412,80 @@ void UCoinManagementWSubsystem::InstanceCoins()
 TArray<ACoinActor*> UCoinManagementWSubsystem::GetReadyCoins() const
 {
     return BattleReadyCoins;
+}
+
+//여기서 코인 액션 매니저 가지고와서 바인딩
+void UCoinManagementWSubsystem::BindCoinEvents(ACoinActor* CoinActor)
+{
+    CoinActor->OnHoverReadyCoin.AddDynamic(this, &UCoinManagementWSubsystem::HandleReadyCoinHovered);
+    CoinActor->OnHoverBattleCoin.AddDynamic(CoinActionManager, &UCoinActionManagementWSubsystem::SetSelectedWeapon);
+    CoinActor->OnUnhoverCoin.AddDynamic(this,  &UCoinManagementWSubsystem::HandleCoinUnHovered);
+    CoinActor->OnUnhoverCoin.AddDynamic(CoinActionManager,  &UCoinActionManagementWSubsystem::HandleCoinUnHovered);
+    CoinActor->OnClickReadyCoin.AddDynamic(this, &UCoinManagementWSubsystem::HandleReadyCoinClicked);
+    CoinActor->OnClickBattleCoin.AddDynamic(CoinActionManager, &UCoinActionManagementWSubsystem::ExecuteSelectedWeapon);
+}
+
+void UCoinManagementWSubsystem::HandleReadyCoinHovered(ACoinActor* HoveredCoin)
+{
+    if(!HoveredCoin) return;
+
+    int32 SlotIndex = HoveredCoin->GetSlotNum(); 
+    if(SlotIndex != -1)
+    {
+        if (ReadyCoinInfoWidgetInstance)
+        {   
+            SetCoinInfoWidgetData(CoinSlots[SlotIndex]->FrontFaceInfo, CoinSlots[SlotIndex]->BackFaceInfo);
+            ReadyCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+        }
+    }
+}
+
+void UCoinManagementWSubsystem::HandleCoinUnHovered()
+{
+    ReadyCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UCoinManagementWSubsystem::HandleReadyCoinClicked(ACoinActor* ClickedCoin)
+{
+    RemoveBattleReadyCoins(ClickedCoin);
+}
+
+void UCoinManagementWSubsystem::HandleCoinSlotHovered(ACoinSlotActor* TargetCoinSlot)
+{
+    if(!TargetCoinSlot) return;
+
+    SetCoinInfoWidgetData(TargetCoinSlot->FrontFaceInfo, TargetCoinSlot->BackFaceInfo); 
+    ReadyCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UCoinManagementWSubsystem::HandleCoinSlotClicked(ACoinActor* ReadyTargetCoin)
+{
+    if(!ReadyTargetCoin) return;
+    AddBattleReadyCoins(ReadyTargetCoin);
+}
+
+void UCoinManagementWSubsystem::HandleCoinSlotUnHovered() 
+{
+    ReadyCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UCoinManagementWSubsystem::SetCoinInfoWidgetData(FCoinWidgetInfoData& FrontWeaponData, FCoinWidgetInfoData& BackWeaponData)
+{
+    ReadyCoinInfoWidgetInstance->SetReadyCoinInfo(
+        true,
+        FrontWeaponData.Icon,
+        FrontWeaponData.WeaponName,
+        FrontWeaponData.RawDescription,
+        FrontWeaponData.DefaultBP,
+        FrontWeaponData.DefaultAP
+    );
+                    
+    ReadyCoinInfoWidgetInstance->SetReadyCoinInfo(
+        false,       
+        BackWeaponData.Icon,
+        BackWeaponData.WeaponName,
+        BackWeaponData.RawDescription,
+        BackWeaponData.DefaultBP,
+        BackWeaponData.DefaultAP
+    );
 }

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FlipSide_Enum.h"
 #include "ItemDataTypes.generated.h"
 
 USTRUCT(BlueprintType)
@@ -15,6 +16,9 @@ struct FItemData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 ItemTypeID = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EItemType ItemType = EItemType::Buff;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 ItemRange = 0;
@@ -31,13 +35,13 @@ struct FItemData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FLinearColor TypeColor;
 
-    // DB¿¡¼­ ÀÐÀº ÄÚµå ¹®ÀÚ¿­
+    // DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString BehaviorCode;
 };
 
 /**
- * ¾ÆÀÌÅÛ ¼±ÅÃ °á°ú Á¤º¸
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
  */
 USTRUCT(BlueprintType)
 struct FSelectItem
