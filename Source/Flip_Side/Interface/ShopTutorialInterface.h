@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "ShopHoverInterface.generated.h"
+#include "ShopTutorialInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UShopHoverInterface : public UInterface
+class UShopTutorialInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -16,15 +16,15 @@ class UShopHoverInterface : public UInterface
 /**
  * 
  */
-class FLIP_SIDE_API IShopHoverInterface
+class FLIP_SIDE_API IShopTutorialInterface
 {
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void ExecuteTutorialEvent();
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void InteractHover();
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void InteractUnHover();
+	void FinishTutorialEvent();
 };

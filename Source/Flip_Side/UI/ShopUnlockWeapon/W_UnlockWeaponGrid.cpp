@@ -3,8 +3,9 @@
 
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponGrid.h"
 #include "SubSystems/WorldSubsystem.h"
-#include "SubSystem/ShopLevel/ShopWeaponDataWSubsystem.h"
+#include "SubSystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
 #include "SubSystem/UnlockGISubSystem.h"
+
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponButton.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
@@ -12,13 +13,14 @@
 void UW_UnlockWeaponGrid::NativeConstruct()
 {
     Super::NativeConstruct();
-    WeaponDataSubSystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
+
     UnlockSubSystem= GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
+    UnlockWeaponSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
 
     NextPageButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponGrid::SetNextPageGrid);
     PreviousPageButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponGrid::SetPreviousPageGrid);
 
-    int32 WeaponCount = WeaponDataSubSystem->GetWeaponArrayNum(GridWeaponClass);
+    int32 WeaponCount = UnlockWeaponSubsystem->GetWeaponArrayNum(GridWeaponClass);
 
     UnlockButtons.Add(UnlockButton1);
     UnlockButtons.Add(UnlockButton2);
@@ -32,26 +34,29 @@ void UW_UnlockWeaponGrid::NativeConstruct()
 
     for(int32 i = 0; i < 9; i++)
     {
-        UnlockButtons[i]->InitButton(GridWeaponClass, i);
+        int32 WeaponID = UnlockWeaponSubsystem->GetWeaponIDByIndex(GridWeaponClass,i);
+        UnlockButtons[i]->InitButton(WeaponID);
     }
     
     SetPageButton();
 }
 
- void UW_UnlockWeaponGrid::InitPanelAnimation()
- {
+void UW_UnlockWeaponGrid::InitPanelAnimation()
+{
     PlayAnimation(OpenPanelAnim, 0.f, 1);
     PauseAnimation(OpenPanelAnim);
     SetAnimationCurrentTime(OpenPanelAnim, 0.f);
- }
+}
+
 void UW_UnlockWeaponGrid::SetNextPageGrid()
 {
-    if(CurrentPage+ 9<= WeaponDataSubSystem->GetWeaponArrayNum(GridWeaponClass))
+    if(CurrentPage+ 9<= UnlockWeaponSubsystem->GetWeaponArrayNum(GridWeaponClass))
     {
         CurrentPage += 9;
         for(int i =0; i< 9; i++)
         {
-            UnlockButtons[i]->InitButton(GridWeaponClass, CurrentPage+i);
+            int32 WeaponID = UnlockWeaponSubsystem->GetWeaponIDByIndex(GridWeaponClass,i);
+            UnlockButtons[i]->InitButton(WeaponID);
         }
     }
 }
@@ -63,7 +68,8 @@ void UW_UnlockWeaponGrid::SetPreviousPageGrid()
         CurrentPage -= 9;
         for(int i =0; i< 9; i++)
         {
-            UnlockButtons[i]->InitButton(GridWeaponClass, CurrentPage+i);
+            int32 WeaponID = UnlockWeaponSubsystem->GetWeaponIDByIndex(GridWeaponClass,i);
+            UnlockButtons[i]->InitButton(WeaponID);
         }
     }
 }

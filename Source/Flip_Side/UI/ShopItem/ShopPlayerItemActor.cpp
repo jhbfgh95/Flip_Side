@@ -16,7 +16,7 @@
 AShopPlayerItemActor::AShopPlayerItemActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	UseableItemRootComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root Scene Component"));
 	RootComponent = UseableItemRootComp;
@@ -73,14 +73,6 @@ void AShopPlayerItemActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	ShopItemSubsystem->OnItemBuy.RemoveAll(this);
 	Super::EndPlay(EndPlayReason);
 }
-
-// Called every frame
-void AShopPlayerItemActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 void AShopPlayerItemActor::InitItem(int32 Index)
 {
 	PlayerSelectItemData = ShopItemSubsystem->GetPlayerItem(Index);
@@ -94,7 +86,7 @@ void AShopPlayerItemActor::InitItem(int32 Index)
 	}
 	else
 	{
-		//HideItem();
+		HideItem();
 	}
 }
 
@@ -103,6 +95,8 @@ void AShopPlayerItemActor::SetItemCountWidget(int32 Index)
 {
 	if(Index == ItemIndex)
 	{
+		if(IsHidden())
+			ShowItem();
 		ItemCountWidgetClass->SetCountText(ShopItemSubsystem->GetPlayerItem(Index).SameItemNum);
 	}
 }
@@ -158,3 +152,10 @@ void AShopPlayerItemActor::HideItem()
 	this->SetActorHiddenInGame(true);
 	this->SetActorEnableCollision(false);
 }
+	
+void AShopPlayerItemActor::ShowItem()
+{
+	this->SetActorHiddenInGame(false);
+	this->SetActorEnableCollision(true);
+}
+	

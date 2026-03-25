@@ -18,46 +18,46 @@ int32 UUnlockGISubsystem::GetUnlockCardID(int32 index)
 	
 int32 UUnlockGISubsystem::GetUnlockWeaponID(EWeaponClass WeaponClass, int32 index)
 {
-    if(EWeaponClass::Tank == WeaponClass &&TankUnlockArray.Num()<= index)
+    if(EWeaponClass::Tank == WeaponClass && index< TankUnlockArray.Num())
     {
         return TankUnlockArray[index];
     }
-    else if(EWeaponClass::Deal == WeaponClass&&TankUnlockArray.Num()<= index)
+    else if(EWeaponClass::Deal == WeaponClass&& index<DealUnlockArray.Num())
     {
         return DealUnlockArray[index];
     }
-    else if(EWeaponClass::Heal == WeaponClass&&TankUnlockArray.Num()<= index)
+    else if(EWeaponClass::Heal == WeaponClass&& index<UtilUnlockArray.Num())
     {
         return UtilUnlockArray[index];
     }
     return -1;
 }
 
-void UUnlockGISubsystem::UnlockWeapon(EWeaponClass WeaponClass, int32 Index)
+void UUnlockGISubsystem::UnlockWeapon(EWeaponClass WeaponClass, int32 ID)
 {
     if(EWeaponClass::Tank == WeaponClass)
     {
-        if(GetWeaponUnlockIndexByIndex(WeaponClass, Index) == -1)
+        if(GetWeaponUnlockIndexByIndex(WeaponClass, ID) == -1)
         {
-            TankUnlockArray.Add(Index);
-            OnWeaponUnlock.Broadcast(WeaponClass, Index);
+            TankUnlockArray.Add(ID);
+            OnWeaponUnlock.Broadcast(WeaponClass, ID);
         }
         
     }
     else if(EWeaponClass::Deal == WeaponClass)
     {
-        if(GetWeaponUnlockIndexByIndex(WeaponClass, Index) == -1)
+        if(GetWeaponUnlockIndexByIndex(WeaponClass, ID) == -1)
         {
-            DealUnlockArray.Add(Index);
-            OnWeaponUnlock.Broadcast(WeaponClass, Index);
+            DealUnlockArray.Add(ID);
+            OnWeaponUnlock.Broadcast(WeaponClass, ID);
         }
     }
     else if(EWeaponClass::Heal == WeaponClass)
     {
-        if(GetWeaponUnlockIndexByIndex(WeaponClass, Index)==-1)
+        if(GetWeaponUnlockIndexByIndex(WeaponClass, ID)==-1)
         {
-            UtilUnlockArray.Add(Index);
-            OnWeaponUnlock.Broadcast(WeaponClass, Index);
+            UtilUnlockArray.Add(ID);
+            OnWeaponUnlock.Broadcast(WeaponClass, ID);
         }
     }
 }

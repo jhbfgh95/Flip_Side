@@ -55,9 +55,8 @@ void AShopSlotCoinCountActor::BeginPlay()
 	
 	StartRotator = CoinMesh->GetRelativeRotation();
 
-	InitCoin();
-	SetCountWidget(CoinSlot, ShopCoinSubsystem->GetSlotCoinCount(CoinSlot));
-
+	
+		CanIteract = true;
 }
 
 void AShopSlotCoinCountActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -66,6 +65,14 @@ void AShopSlotCoinCountActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	ShopCoinSubsystem->OnCoinCreated.RemoveAll(this);
 
 	Super::EndPlay(EndPlayReason);
+}
+
+
+void AShopSlotCoinCountActor::InitCoin(int32 SlotIndex)
+{
+	CoinSlot = SlotIndex;
+	SetCoinSide();
+	SetCountWidget(CoinSlot, ShopCoinSubsystem->GetSlotCoinCount(CoinSlot));
 }
 
 
@@ -79,14 +86,18 @@ void AShopSlotCoinCountActor::TurnCoinMovement(float Value)
 void AShopSlotCoinCountActor::EndTurnCoin()
 {
 	CoinMesh->SetRelativeRotation(ArriveRotator);
+	CanIteract = true;
 }
 
 void AShopSlotCoinCountActor::ChangeCoinSide()
 {
-	StartRotator = CoinMesh->GetRelativeRotation();
-	ArriveRotator = StartRotator + CoinTurnRotator;
-
-	CoinTurnTimeline->PlayFromStart();
+	if(CanIteract)
+	{
+		CanIteract = false;
+		StartRotator = CoinMesh->GetRelativeRotation();
+		ArriveRotator = StartRotator + CoinTurnRotator;
+		CoinTurnTimeline->PlayFromStart();
+	}
 }
 
 void AShopSlotCoinCountActor::InteractLeftClick_Implementation()
@@ -109,11 +120,11 @@ void AShopSlotCoinCountActor::SetCoinWeapon(int32 SlotNum, EWeaponClass CoinCoun
 {
 	if(SlotNum == CoinSlot)
 	{
-		InitCoin();
+		SetCoinSide();
 	}
 }
 
-void AShopSlotCoinCountActor::InitCoin()
+void AShopSlotCoinCountActor::SetCoinSide()
 {
 	UMaterialInstanceDynamic* MID = CoinMesh->CreateDynamicMaterialInstance(0);
 

@@ -21,9 +21,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 private:
 
@@ -73,6 +70,8 @@ private:
 
 	UFUNCTION()
 	void SetItemCountWidget(int32 Index);
+
+
 private:
 
 	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
@@ -101,11 +100,14 @@ public:
 	UFUNCTION()
 	void UnHoverdItem();
 	
-	void InitItem(int32 Index);
+	
 
 	void SetItemMaterial();
-
 	void HideItem();
+	void ShowItem();
+	
+public:
+	void InitItem(int32 Index);
 
 public:
 	virtual void InteractHover_Implementation() override;

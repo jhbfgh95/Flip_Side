@@ -14,7 +14,8 @@ class FLIP_SIDE_API UW_ShopItemExplainWidget : public UW_ExplainWidget
 {
 	GENERATED_BODY()
 	
-
+private:
+	virtual void NativeConstruct() override;
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* ItemImage;
@@ -22,6 +23,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* ItemCountText;
 
+	UMaterialInstanceDynamic* MID;
 public:
 	void SetItemImage(UTexture2D* TextureIamge);
 	

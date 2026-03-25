@@ -6,7 +6,6 @@
 #include "UI/ShopCoinCreate/W_SelectWeaponButton.h"
 #include "Subsystem/UnlockGISubsystem.h"
 
-#include "Subsystem/ShopLevel/ShopWeaponDataWSubsystem.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include "Components/Button.h"
@@ -17,8 +16,6 @@ void UW_WeaponSelectGrid::NativeConstruct()
     
     //this->SetVisibility(ESlateVisibility::Collapsed);
     UnlockSubSystem = GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
-    ShopWeaponSubsystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
-    UE_LOG(LogTemp, Warning, TEXT("ItemType = %s"),*StaticEnum<EWeaponClass>()->GetNameStringByValue((int64)GridWeaponClass));
 
     UnlockSubSystem->OnWeaponUnlock.AddDynamic(this, &UW_WeaponSelectGrid::InitWeaponGrid);
 
@@ -55,7 +52,7 @@ void UW_WeaponSelectGrid::NativeDestruct()
     Super::NativeDestruct();
 }
 
-void UW_WeaponSelectGrid::InitWeaponGrid(EWeaponClass WeaponClass,int32 Index)
+void UW_WeaponSelectGrid::InitWeaponGrid(EWeaponClass WeaponClass,int32 ID)
 {
     if(WeaponClass != GridWeaponClass)
         return;
@@ -63,8 +60,8 @@ void UW_WeaponSelectGrid::InitWeaponGrid(EWeaponClass WeaponClass,int32 Index)
     //GridButtons
     for(int i =0; i< 9; i++)
     {
-        int32 WeaponIndex = UnlockSubSystem->GetUnlockWeaponIndex(GridWeaponClass, i + CurrentPage);
-        SelectWeaponButtons[i]->InitButton(GridWeaponClass, WeaponIndex);
+        int32 WeaponID = UnlockSubSystem->GetUnlockWeaponID(GridWeaponClass, i + CurrentPage);
+        SelectWeaponButtons[i]->InitButton(WeaponID);
     }
 }
 
@@ -84,8 +81,8 @@ void UW_WeaponSelectGrid::SetNextPageGrid()
         CurrentPage += 9;
         for(int i =0; i< 9; i++)
         {
-            int WeaponIndex = UnlockSubSystem->GetUnlockWeaponIndex(GridWeaponClass,i+CurrentPage);
-            SelectWeaponButtons[i]->InitButton(GridWeaponClass, WeaponIndex);
+            int WeaponID = UnlockSubSystem->GetUnlockWeaponIndex(GridWeaponClass,i+CurrentPage);
+            SelectWeaponButtons[i]->InitButton(WeaponID);
         }
     }
 }
@@ -97,8 +94,8 @@ void UW_WeaponSelectGrid::SetPreviousPageGrid()
         CurrentPage -= 9;
         for(int i =0; i< 9; i++)
         {
-            int WeaponIndex = UnlockSubSystem->GetUnlockWeaponIndex(GridWeaponClass,i+CurrentPage);
-            SelectWeaponButtons[i]->InitButton(GridWeaponClass, WeaponIndex);
+            int WeaponID = UnlockSubSystem->GetUnlockWeaponIndex(GridWeaponClass,i+CurrentPage);
+            SelectWeaponButtons[i]->InitButton(WeaponID);
         }
     }
 }

@@ -51,7 +51,7 @@ private:
 	FVector PanelStartLocation;
 	FVector PanelArriveLocation;
 	
-private:
+protected:
 	UFUNCTION()
 	void MoveLockPanel(float Value);
 

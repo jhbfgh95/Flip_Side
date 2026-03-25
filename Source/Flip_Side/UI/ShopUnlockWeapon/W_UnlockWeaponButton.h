@@ -23,9 +23,9 @@ protected:
 
 private:
 
-	class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
 	class UShopUnlockWeaponWSubsystem* UnlockWeaponSubsystem;
 	class UUnlockGISubsystem* UnlockGISubsystem;
+	class UDataManagerSubsystem* DataManager;
 private:
 
 	UPROPERTY(meta = (BindWidget))
@@ -34,7 +34,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* WeaponButton;
 
-	const FFaceData* WeaponData;
+	FFaceData WeaponData;
 
     UPROPERTY(meta = (BindWidget))
     class UTextBlock* WeaponNameBlock;
@@ -58,15 +58,11 @@ private:
     UWidgetAnimation* FadeAnim;
 
 public:
-	UPROPERTY(EditAnywhere)
-	EWeaponClass WeaponClass;
-
-	UPROPERTY(EditAnywhere)
-	int32 WeaponIndex;
-
 	UFUNCTION()
-	void UnlockWeapon(EWeaponClass SettingWeaponClass, int32 Index);
-	void InitButton(EWeaponClass SettingWeaponClass, int32 Index);
+	void UnlockWeapon(EWeaponClass SettingWeaponClass, int32 ID);
+
+	void InitButton(int32 ID);
+
 	UFUNCTION()
 	void ClickWeaponButton();
 };
