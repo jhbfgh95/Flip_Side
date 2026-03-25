@@ -27,9 +27,13 @@ class FLIP_SIDE_API UShopTutorialWSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 
 private:
+    virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+    virtual void OnWorldBeginPlay(UWorld& InWorld) override;
+	
+private:
 	TArray<FShopTutorialEvents>ReadyTutorialEvents;
 
 public:
 	bool SetTutorialEvent(int32 EventOrder, TScriptInterface<IShopTutorialInterface> SetEvent);
-	void ExcuteEvents(int32 EventOrder);
+	void ExecuteEvents(int32 EventOrder);
 };
