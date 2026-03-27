@@ -87,3 +87,13 @@ enum class EItemType : uint8
     Buff    UMETA(DisplayName = "버프형"),   // DB item_type_id = 1
     Install UMETA(DisplayName = "설치형"),   // DB item_type_id = 2
 };
+
+/**
+ * 싱글셀 무기 전용 타입 (coin_weapon_attack_area.param_b 값으로 저장됨)
+ */
+UENUM(BlueprintType)
+enum class ESingleCellWeaponType : uint8
+{
+    TypeA UMETA(DisplayName = "TypeA"),   // 0
+    TypeB UMETA(DisplayName = "TypeB"),   // 1
+};

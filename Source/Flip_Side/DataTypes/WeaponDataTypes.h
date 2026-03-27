@@ -69,6 +69,10 @@ struct FFaceData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EActionRepeatType ActionRepeatType = EActionRepeatType::None;
+
+    // pattern == SingleCell 일 때만 유효 (param_b 값)
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    ESingleCellWeaponType SingleCellWeaponType = ESingleCellWeaponType::TypeA;
 };
 
 USTRUCT(BlueprintType)

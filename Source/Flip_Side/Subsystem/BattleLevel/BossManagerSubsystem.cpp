@@ -106,7 +106,6 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossData& InBossData)
 
     CurrentBoss = SpawnedBoss;
     CurrentBoss->InitializeFromBossData(InBossData);
-    CurrentBoss->OnBossAttackEnded.AddDynamic(this, &UBossManagerSubsystem::ApplyCurrentPattern);
 
     StageContext.PickedThemeID = InBossData.ThemeID;
     StageContext.PickedBossID = InBossData.BossID;
@@ -209,7 +208,26 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
     }
 
     CurrentBoss->PlayAttack();
-    // 피해 적용은 몽타주 종료 후 ApplyCurrentPattern()에서 처리
+
+    UWorld* World = GetWorld();
+    if (!World)
+    {
+        return;
+    }
+
+    float ApplyDelay = 1.0f;
+    if (TurnContext.CurrentPattern && TurnContext.CurrentPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
+    {
+        ApplyDelay = TurnContext.CurrentPattern->PatternData[TurnContext.CurrentPatternIndex].AttackApplyDelay;
+    }
+
+    World->GetTimerManager().SetTimer(
+        ApplyPatternTimerHandle,
+        this,
+        &UBossManagerSubsystem::ApplyCurrentPattern,
+        ApplyDelay,
+        false
+    );
 }
 
 void UBossManagerSubsystem::ApplyCurrentPattern()
@@ -259,6 +277,7 @@ void UBossManagerSubsystem::ClearCurrentTurn()
     if (UWorld* World = GetWorld())
     {
         World->GetTimerManager().ClearTimer(TelegraphTimerHandle);
+        World->GetTimerManager().ClearTimer(ApplyPatternTimerHandle);
     }
 
     if (TurnContext.LockedCells.Num() > 0)
