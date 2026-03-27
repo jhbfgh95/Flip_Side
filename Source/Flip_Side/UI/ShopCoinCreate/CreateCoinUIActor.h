@@ -69,7 +69,7 @@ private: //코인정보
 private:
 	//코인무기가 업데이트 됬을 때 설정하는 함수
 	UFUNCTION()
-	void UpdateCoinWeapon(int32 WeaponIndex);
+	void UpdateCoinWeapon(int32 WeaponIndex, bool IsFront);
 	//코인 클래스가 업데이트 됐을 때 설정하는 함수
 	UFUNCTION()
 	void UpdateWeaponClass(EWeaponClass weponClass);

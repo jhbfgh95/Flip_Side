@@ -73,7 +73,7 @@ void UCoinCreateWSubsystem::ChangeSelectedCoinWeapon(int32 WeaponID)
     {
         SelectedCoin.BackWeaponID = WeaponID;
     }
-    OnSelectedCoinUpdate.Broadcast(WeaponID);
+    OnSelectedCoinUpdate.Broadcast(WeaponID,bIsCreateCoinFront);
 }
 
 
@@ -82,6 +82,12 @@ void UCoinCreateWSubsystem::SetCoinClass(EWeaponClass weponClass)
     if(SelectedCoinClass != weponClass)
     {
         SelectedCoinClass = weponClass;
+
+        SelectedCoin.BackWeaponID = -1;
+        SelectedCoin.FrontWeaponID = -1;
+
+        OnSelectedCoinUpdate.Broadcast(-1,true);
+        OnSelectedCoinUpdate.Broadcast(-1,false);
     }
     OnCoinClassUpdate.Broadcast(weponClass);
 }

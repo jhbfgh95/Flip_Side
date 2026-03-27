@@ -52,7 +52,7 @@ public:
 	UFUNCTION()
 	void InitPannel(FCoinTypeStructure CoinInfo, EWeaponClass CoinClass);
 	UFUNCTION()
-	void GetExplainByID(int32 ID);
+	void GetExplainByID(int32 ID, bool IsFront);
 
 protected:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))

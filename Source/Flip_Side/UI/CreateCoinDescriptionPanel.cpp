@@ -145,7 +145,7 @@ void ACreateCoinDescriptionPanel::FinishedMoveCirCular()
 	LinearTimeline->ReverseFromEnd();
 }
 
-void ACreateCoinDescriptionPanel::GetExplainByID(int32 ID)
+void ACreateCoinDescriptionPanel::GetExplainByID(int32 ID, bool IsFront)
 {
 	LinearTimeline->PlayFromStart();
 }
