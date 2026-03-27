@@ -19,9 +19,10 @@ static FString GetColTextUTF8(FSQLitePreparedStatement& Stmt, int32 Index)
     TArray<uint8> RawBytes;
     if (Stmt.GetColumnValueByIndex(Index, RawBytes) && RawBytes.Num() > 0)
     {
+        RawBytes.Add('\0'); 
+        
         return FString(UTF8_TO_TCHAR(reinterpret_cast<const char*>(RawBytes.GetData())));
     }
-    // fallback
     FString Out;
     Stmt.GetColumnValueByIndex(Index, Out);
     return Out;
@@ -291,7 +292,9 @@ bool UDataManagerSubsystem::LoadWeapons()
         Data.HP = GetColInt(Stmt, Col++);
         Data.AttackPoint = GetColInt(Stmt, Col++);
 
-        Data.KOR_DES = GetColText(Stmt, Col++);
+        Data.WeaponName = GetColTextUTF8(Stmt, Col++);
+
+        Data.KOR_DES = GetColTextUTF8(Stmt, Col++);
         Data.ENG_DES = GetColText(Stmt, Col++);
 
         const FString ColorHex = GetColText(Stmt, Col++);

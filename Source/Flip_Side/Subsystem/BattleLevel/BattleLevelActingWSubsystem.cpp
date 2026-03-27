@@ -96,7 +96,7 @@ void UBattleLevelActingWSubsystem::TeleportReadyCoinsToDecidedGrid(ACoinActor* R
 {
     if(ReadyCoin == nullptr) return;
 
-    if(!ReadyCoin->GetCoinIsReady()) return;
+    if(!ReadyCoin->GetCoinOnBattle()) return;
 
     FGridPoint Grid = ReadyCoin->GetDecidedGrid();
 
@@ -106,6 +106,7 @@ void UBattleLevelActingWSubsystem::TeleportReadyCoinsToDecidedGrid(ACoinActor* R
         if(TheGrid)
         {
             ReadyCoin->DoCoinActAtBattleStart(TheGrid->GetGridWorldXY().X, TheGrid->GetGridWorldXY().Y);
+
         }
     }
 }

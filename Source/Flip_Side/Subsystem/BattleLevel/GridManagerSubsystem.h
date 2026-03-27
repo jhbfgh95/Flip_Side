@@ -108,7 +108,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void ResetBattleCoinPreview();
-
+	
 	/*
 	UFUNCTION(BlueprintCallable, Category="Grid|Boss")
 	void PreviewBossAttack(const FAttackAreaSpec& Spec);

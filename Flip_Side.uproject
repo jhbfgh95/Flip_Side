@@ -31,6 +31,10 @@
 		{
 			"Name": "SQLiteSupport",
 			"Enabled": true
+		},
+		{
+			"Name": "HDRIBackdrop",
+			"Enabled": true
 		}
 	]
 }

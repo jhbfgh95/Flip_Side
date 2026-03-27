@@ -25,6 +25,12 @@ class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
 
 	ETurnState CurrentTurn;
 
+/* 레버 잠금 */
+protected:
+	FTimerHandle LockLeverWhenCanInteractTimer;
+
+	bool bCanProgressTurn = true;
+
 protected:
 	/* Subsystem Caches */
 	/* 배틀매니저 한정으로 타 매니저들 캐시하는 이유 : 중앙 매니저라서 캐시가 더 이득이라고 생각 */
@@ -81,5 +87,5 @@ public:
 
 	ETurnState GetCurrentTurn();
 
-	void StartBattleFromLever();
+	bool StartBattleFromLever();
 };

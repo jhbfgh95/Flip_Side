@@ -12,11 +12,16 @@ bool UGridManagerSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 		return false;
 
 	UWorld* World = Cast<UWorld>(Outer);
-	if (!World)
-		return false;
+	if(World)
+    {
+        FString MapName = World->GetName();
+        if(MapName.Contains(TEXT("L_Stage")))
+        {
+            return true;
+        }
+    }
 
-	const FString MapName = World->GetName();
-	return MapName.Contains(TEXT("L_Stage"));
+    return false;
 }
 
 void UGridManagerSubsystem::OnWorldBeginPlay(UWorld& InWorld)
@@ -90,6 +95,7 @@ void UGridManagerSubsystem::InstanceGrid()
 
 	UE_LOG(LogTemp, Log, TEXT("GridManager: Spawned grids %dx%d"), GridXSize, GridYSize);
 }
+
 
 AGridActor* UGridManagerSubsystem::GetGridActor(const FGridPoint& P) const
 {

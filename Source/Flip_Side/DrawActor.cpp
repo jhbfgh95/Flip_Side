@@ -38,6 +38,8 @@ void ADrawActor::DoDrawAct(bool bIsOut)
 
 	bIsDrawOut = bIsOut;
 
+	MoveElapsedTime = 0.0f;
+
 	GetWorld()->GetTimerManager().SetTimer(MovementTimer, this, &ADrawActor::WaitForLever, 0.6f, false);
 }
 
@@ -48,36 +50,25 @@ void ADrawActor::WaitForLever()
 
 void ADrawActor::DrawAct()
 {
-	//밖에서 안으로
-	if(bIsDrawOut)
+	MoveElapsedTime += 0.01f;
+	float Alpha = FMath::Clamp(MoveElapsedTime / MoveTime, 0.0f, 1.0f);
+
+	float NewX = 0.0f;
+
+	if(bIsDrawOut) // 밖에서 안으로 들어감
 	{
-		MoveElapsedTime += 0.01f;
-		float Alpha = FMath::Clamp(MoveElapsedTime / MoveTime, 0.0f, 1.0f);
-
-		float NewX = FMath::Lerp(TargetOutXLoc, TargetInXLoc, Alpha);
-
-		FVector CurrentLoc = GetActorLocation();
-		SetActorLocation(FVector(NewX, CurrentLoc.Y, CurrentLoc.Z));
-
-		if(Alpha >= 1.0f)
-		{
-			GetWorld()->GetTimerManager().ClearTimer(MovementTimer);
-		}
+		NewX = FMath::Lerp(TargetOutXLoc, TargetInXLoc, Alpha);
 	}
-	else //안에서 밖으로 -> 이건MoveTime 바꿀지도
+	else // 안에서 밖으로 나옴
 	{
-		MoveElapsedTime += 0.01f;
-		float Alpha = FMath::Clamp(MoveElapsedTime / MoveTime, 0.0f, 1.0f);
-
-		float NewX = FMath::Lerp(TargetInXLoc, TargetOutXLoc, Alpha);
-
-		FVector CurrentLoc = GetActorLocation();
-		SetActorLocation(FVector(NewX, CurrentLoc.Y, CurrentLoc.Z));
-
-		if(Alpha >= 1.0f)
-		{
-			GetWorld()->GetTimerManager().ClearTimer(MovementTimer);
-		}
+		NewX = FMath::Lerp(TargetInXLoc, TargetOutXLoc, Alpha);
 	}
 
+	FVector CurrentLoc = GetActorLocation();
+	SetActorLocation(FVector(NewX, CurrentLoc.Y, CurrentLoc.Z));
+
+	if(Alpha >= 1.0f)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(MovementTimer);
+	}
 }

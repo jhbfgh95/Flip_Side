@@ -81,6 +81,7 @@ FVector2D AGridActor::GetGridWorldXY()
 void AGridActor::ClearOccupied()
 {
 	bIsOccupied = false;
+	InitColor();
 	CurrentOccupying = EGridOccupyingType::None;
 	CurrentObject = nullptr;
 }
@@ -115,4 +116,18 @@ void AGridActor::ApplyCellMaterialParams(const FLinearColor& OutlineColor, float
 FGridPoint AGridActor::GetGridPoint() const
 {
 	return GridXY;
+}
+
+void AGridActor::InitColor()
+{
+	UMaterialInstanceDynamic* MID = EnsureMID(0);
+	if (!MID) return;
+
+	MID->SetVectorParameterValue(TEXT("Outline_Color"),  FLinearColor(1.f, 1.f, 1.f, 1.f));
+	MID->SetScalarParameterValue(TEXT("Fill_intensity"), 0.03);
+}
+
+void AGridActor::OnClicked_Implementation()
+{
+	OnGridClicked.Broadcast(this);
 }

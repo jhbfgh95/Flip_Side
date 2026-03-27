@@ -25,11 +25,9 @@ class ACoinActor : public AActor, public IBattleHoverInterface, public IBattleCl
 	UPROPERTY(EditAnywhere, Category = "Coin | Component", meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* CoinRootComp;
 
-	UPROPERTY(EditAnywhere, Category = "Coin | Component", meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* CoinMesh;
-
-	UPROPERTY(VisibleAnywhere, Category = "Coin | Component", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UWidgetComponent> CoinHPUI;
+	//실 함수는 이거 써야함 (캐싱)
+	UPROPERTY()
+	class UW_CoinHPWidget* HPWidget = nullptr;
 
 	//인스턴스화된 코인들의 각 번호
 	UPROPERTY(VisibleAnywhere, Category = "Coin | ID")
@@ -70,10 +68,12 @@ protected:
 	//랜덤 앞뒤 정해질 때 즉, SetCoinFace할 때 그냥 해당 WeaponID 넣어버림
 	int DecidedWeaponID = 0;
 
+	UPROPERTY(VisibleAnywhere)
 	bool bIsReady = false;
 
+	UPROPERTY(VisibleAnywhere)
 	bool bIsOnBattle = false;
-
+	UPROPERTY(VisibleAnywhere)
 	bool bIsActed = false;
 	//이거로 Getter, Setter로 앞뒤 판별
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Face")
@@ -92,6 +92,14 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Coin | Component")
 	class UComponent_Status* StatComponent;
+
+	//이거 퍼블릭으로 빼면 오히려 커스텀 스킨을 적용할 수 있다고 생각한다.
+	UPROPERTY(EditAnywhere, Category = "Coin | Component")
+	class UStaticMeshComponent* CoinMesh;
+
+	//해당 위젯도 마찬가지.
+	UPROPERTY(VisibleAnywhere, Category = "Coin | Component")
+	TObjectPtr<class UWidgetComponent> CoinHPUI;
 
 	// 같은 타입 코인들 중에서 몇 번째 코인인지 나타내는 인덱스
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Battle")
@@ -120,7 +128,7 @@ public:
 	void SetCoinIsActed(const bool IsActed) { bIsActed = IsActed; }
 	bool GetCoinIsActed() const { return bIsActed; }
 
-	void SetCoinOnBattle(const bool IsOnBattle) { bIsOnBattle = IsOnBattle; }
+	void SetCoinOnBattle(const bool IsOnBattle);
 	bool GetCoinOnBattle() const { return bIsOnBattle; }
 
 	void SetCoinValues(
@@ -175,6 +183,8 @@ public:
 	void DoCoinActAtBattleStart(float XLocation, float YLocation);
 
 	void DoCoinActAtBattleStartLeverDown();
+
+	void SetUIVisibility(const bool bUIVisibile);
 
 protected:
 	/* 레디 코인 튀어 오름 */

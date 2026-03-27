@@ -39,6 +39,10 @@ void UBattleManagerWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 bool UBattleManagerWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
+    if (!Super::ShouldCreateSubsystem(Outer)) 
+    {
+        return false;
+    }
     UWorld* World = Cast<UWorld>(Outer);
 
     if(World)
@@ -98,7 +102,14 @@ ETurnState UBattleManagerWSubsystem::GetCurrentTurn()
     return TurnManageMentStack.Top();
 }
 
-void UBattleManagerWSubsystem::StartBattleFromLever() { TurnProgressing(); }
+bool UBattleManagerWSubsystem::StartBattleFromLever() { 
+    if(bCanProgressTurn)
+    {
+        TurnProgressing(); 
+        return true;
+    }
+    return false;
+}
 
 void UBattleManagerWSubsystem::TurnProgressing()
 {
@@ -174,6 +185,7 @@ void UBattleManagerWSubsystem::MatchCoinsToRandomState()
             Coin->SetGridPoint(RandomStateArray[StateIndex].RandomGrid);
             Coin->SetCoinOnBattle(true);
             Coin->SetCoinIsReady(false);
+            Coin->SetUIVisibility(true);
 
             GridManager->GetGridActor(RandomStateArray[StateIndex].RandomGrid)->SetOccupied(true, EGridOccupyingType::Coin, Coin);
             
@@ -186,16 +198,28 @@ void UBattleManagerWSubsystem::MatchCoinsToRandomState()
 
 void UBattleManagerWSubsystem::DoCoinReadyTurn()
 {
-    UE_LOG(LogTemp, Warning, TEXT("ReadyTurn"));
+    bCanProgressTurn = false;
+    GetWorld()->GetTimerManager().SetTimer(LockLeverWhenCanInteractTimer, [this]()
+    {
+        this->bCanProgressTurn = true;
+    }, 
+    1.0f, 
+    false);
 }
 
 void UBattleManagerWSubsystem::DoCoinSelectTurn()
 {
+    bCanProgressTurn = false;
+    GetWorld()->GetTimerManager().SetTimer(LockLeverWhenCanInteractTimer, [this]()
+    {
+        this->bCanProgressTurn = true;
+    }, 
+    3.0f, 
+    false);
     MatchCoinsToRandomState();
     CoinActionManager->SetTurn(true);
     ItemManager->SetTurn(true);
 }
-
 
 void UBattleManagerWSubsystem::DoBossTurn()
 {
@@ -208,10 +232,10 @@ void UBattleManagerWSubsystem::DoBossTurn()
 void UBattleManagerWSubsystem::DoSettingTurn()
 {
     GenerateRandomStates();
-    BossManager->StartBossSetting();
     ActingManager->DoSettingAct();
     GridManager->InitCoinOccupied();
     CoinManager->CheckBattleReadyCoinAlive();
+    BossManager->StartBossSetting();
 
     TurnProgressing();
 }

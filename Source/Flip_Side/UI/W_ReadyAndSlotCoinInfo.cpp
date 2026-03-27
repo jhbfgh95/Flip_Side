@@ -25,12 +25,15 @@ void UW_ReadyAndSlotCoinInfo::SetReadyCoinInfo(bool FaceFlag, UTexture2D * Icon,
         }
         if (HoveredFrontWeaponDes)
         {
+            FFormatNamedArguments Args;
+
             //언리얼 기본 포맷 
             //사용 : {BP} 만큼 데미지를 줍니다
-            FFormatNamedArguments Args;
-            Args.Add(TEXT("BP"), DefaultBP);
-            Args.Add(TEXT("AP"), DefaultAP);
-            //Args.Add(TEXT("Range"), FormatStatWithDiff(DefaultRange, ModifiedRange));
+            FString BPString = FString::Printf(TEXT("<White>%d</>"), DefaultBP);
+            FString APString = FString::Printf(TEXT("<White>%d</>"), DefaultAP);
+
+            Args.Add(TEXT("BP"), FText::FromString(BPString));
+            Args.Add(TEXT("AP"), FText::FromString(APString));
 
             HoveredFrontWeaponDes->SetText(FText::Format(RawDescription, Args));
         }
@@ -50,8 +53,12 @@ void UW_ReadyAndSlotCoinInfo::SetReadyCoinInfo(bool FaceFlag, UTexture2D * Icon,
             //언리얼 기본 포맷 
             //사용 : {BP} 만큼 데미지를 줍니다
             FFormatNamedArguments Args;
-            Args.Add(TEXT("BP"), DefaultBP);
-            Args.Add(TEXT("AP"), DefaultAP);
+
+            FString BPString = FString::Printf(TEXT("<White>%d</>"), DefaultBP);
+            FString APString = FString::Printf(TEXT("<White>%d</>"), DefaultAP);
+
+            Args.Add(TEXT("BP"), FText::FromString(BPString));
+            Args.Add(TEXT("AP"), FText::FromString(APString));
             //Args.Add(TEXT("Range"), FormatStatWithDiff(DefaultRange, ModifiedRange));
 
             HoveredBackWeaponDes->SetText(FText::Format(RawDescription, Args));

@@ -36,23 +36,23 @@ void UW_CoinHPWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
     }
 }
 
-void UW_CoinHPWidget::InitHpWidget(float MaxHpValue)
+void UW_CoinHPWidget::InitHpWidget(int32 MaxHpValue)
 {
     SetMaxHp(MaxHpValue);
     SetCurrentHp(MaxHpValue);
 }
 	
-void UW_CoinHPWidget::SetMaxHp(float MaxHpValue)
+void UW_CoinHPWidget::SetMaxHp(int32 MaxHpValue)
 {
     MaxHp = MaxHpValue;
 }
 
-void UW_CoinHPWidget::SetCurrentHp(float Hpvalue)
+void UW_CoinHPWidget::SetCurrentHp(int32 Hpvalue)
 {
     CurrentHp = Hpvalue;
 }
 
-void UW_CoinHPWidget::ChangeMaxHp(float Hpvalue)
+void UW_CoinHPWidget::ChangeMaxHp(int32 Hpvalue)
 {
     if(MaxHp + Hpvalue < CurrentHp)
     {
@@ -60,7 +60,7 @@ void UW_CoinHPWidget::ChangeMaxHp(float Hpvalue)
         return;
     }
 
-    StartHpPercent = CurrentHp/MaxHp;
+    StartHpPercent =  static_cast<float>(CurrentHp)/MaxHp;
 
     if(MaxHp + Hpvalue <=0)
     {
@@ -71,30 +71,22 @@ void UW_CoinHPWidget::ChangeMaxHp(float Hpvalue)
         MaxHp += Hpvalue;
     }
 
-    TargetHpPercent = CurrentHp/MaxHp;
+    TargetHpPercent =  static_cast<float>(CurrentHp)/MaxHp;
 
     StartHpAnimation();
 }
 
-void UW_CoinHPWidget::ChangeCurrentHp(float Hpvalue)
+void UW_CoinHPWidget::ChangeCurrentHp(int32 HPModifier)
 {
-    StartHpPercent = CurrentHp/MaxHp;
-
-    if( MaxHp <= CurrentHp + Hpvalue )
+    if (MaxHp <= 0) 
     {
-        CurrentHp = MaxHp;
-    }
-    else if(CurrentHp + Hpvalue<=0)
-    {
-        CurrentHp = 0;
-    }
-    else
-    {
-        CurrentHp += Hpvalue;
-    }
+        return;
+    } 
+    StartHpPercent = static_cast<float>(CurrentHp)/MaxHp;
 
+    CurrentHp = FMath::Clamp(CurrentHp + HPModifier, 0, MaxHp);
 
-    TargetHpPercent = CurrentHp/MaxHp;
+    TargetHpPercent =  static_cast<float>(CurrentHp)/MaxHp;
 
     StartHpAnimation();
 }

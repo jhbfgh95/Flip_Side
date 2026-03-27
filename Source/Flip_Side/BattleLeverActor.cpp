@@ -13,12 +13,15 @@ void ABattleLeverActor::ExecuteLeverLogic()
 
     if(BattleSub->GetCurrentTurn() != ETurnState::BossTurn || BattleSub->GetCurrentTurn() != ETurnState::SettingTurn)
     {
-        BattleSub->StartBattleFromLever();
+        bCanAnimate = BattleSub->StartBattleFromLever();
     }
 }
 
 void ABattleLeverActor::OnClicked_Implementation()
 {
     ExecuteLeverLogic();
-    Super::PlayLeverAnimation();
+    if(bCanAnimate)
+    {
+        Super::PlayLeverAnimation();
+    }
 }

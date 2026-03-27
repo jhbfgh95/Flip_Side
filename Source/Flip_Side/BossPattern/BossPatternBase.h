@@ -28,7 +28,7 @@ struct FPatternData
 	float AttackApplyDelay = 1.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
-	class UAnimMontage* PatternMontage;
+	TObjectPtr<class UAnimMontage> PatternMontage = nullptr;
 
 	//class UNaiagara...음;
 };

@@ -2,6 +2,7 @@
 #include "Subsystems/Subsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Components/WidgetComponent.h"
 #include "CoinActor.h"
 #include "CoinSlotActor.h"
 #include "CoinDataTypes.h"
@@ -20,7 +21,7 @@
 
 void UCoinManagementWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-    InitCoinSlot();
+    Super::Initialize(Collection);
 
     CoinActionManager = Collection.InitializeDependency<UCoinActionManagementWSubsystem>();
 }
@@ -31,6 +32,7 @@ void UCoinManagementWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
     if(InWorld.IsGameWorld())
     {
+        InitCoinSlot();
         InitBattleReadyCoin(); // 코인 생성하기 전 서랍 배열 초기화
         InstanceCoins();
 
@@ -101,48 +103,69 @@ void UCoinManagementWSubsystem::InitBattleReadyCoin()
 
 void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
 {
-    //이게 맞음 어짜피 Destroy하면 여기서 nullptr로 사라지기 때문에 BattleReadyCoins지만, 사실 한 배틀이 시작되면
-    //이 안에 있는 코인들은 CoinReady는 false고 Battle이 On이 되게 됨. 해당 코드는 BattleManager의 MatchCoinsto~에 있음
     LiveCoinStacks.Empty();
     for (int32 i = 0; i < BattleReadyCoins.Num(); ++i)
     {
         if (BattleReadyCoins[i] != nullptr)
         {
             LiveCoinStacks.Add(BattleReadyCoins[i]);
-            BattleReadyCoins[i]->SetActorScale3D(FVector(1.f, 1.f, 1.f));
             BattleReadyCoins[i]->SetCoinOnBattle(false);
             BattleReadyCoins[i]->SetCoinIsActed(false);
+            BattleReadyCoins[i]->CoinMesh->SetVisibility(false);
+            BattleReadyCoins[i]->CoinHPUI->SetVisibility(false);
         }
     }
 
     InitBattleReadyCoin();
 
-    for(ACoinActor* Coin : LiveCoinStacks)
+    FTimerHandle DrawerWaitTimer;
+    GetWorld()->GetTimerManager().SetTimer(DrawerWaitTimer, FTimerDelegate::CreateLambda([this]()
     {
-        AddBattleReadyCoins(Coin);
-        LockCoinReady(Coin);
-    }
+        if (!IsValid(this)) return;
+
+        TSet<int32> WeaponIDsToArrange; 
+
+        for(ACoinActor* Coin : LiveCoinStacks)
+        {
+            if (IsValid(Coin))
+            {
+                Coin->SetActorScale3D(FVector(1.f, 1.f, 1.f));
+                Coin->CoinMesh->SetVisibility(true);
+                Coin->CoinHPUI->SetVisibility(true);
+                AddBattleReadyCoins(Coin, false);
+                LockCoinReady(Coin);
+                
+                WeaponIDsToArrange.Add(Coin->GetFrontWeaponID()); 
+            }
+        }
+
+        for (int32 WeaponID : WeaponIDsToArrange)
+        {
+            ArrangeSlotCoins(WeaponID);
+        }
+
+    }), 2.0f, false);
 }
 
-void UCoinManagementWSubsystem::AddBattleReadyCoins(ACoinActor* SelectCoinActor)
+void UCoinManagementWSubsystem::AddBattleReadyCoins(ACoinActor* SelectCoinActor, bool bArrangeSlot)
 {
     if (!SelectCoinActor) return;
-    if (SelectCoinActor->GetActorScale3D().X > 1.2f) return;
+    
+    if (BattleReadyCoins.Contains(SelectCoinActor)) return;
 
-
-    // 빈 슬롯 찾기 및 등록
     int32 TargetIdx = INDEX_NONE;
     for (int32 i = 0; i < BattleReadyCoins.Num(); ++i)
     {
         if (BattleReadyCoins[i] == nullptr)
         {
             TargetIdx = i;
-            BattleReadyCoins[i] = SelectCoinActor;
-            SelectCoinActor->SetCoinIsReady(true);
             break;
         }
     }
-    if (TargetIdx == INDEX_NONE) return;
+    if (TargetIdx == INDEX_NONE) return; 
+
+    BattleReadyCoins[TargetIdx] = SelectCoinActor;
+    SelectCoinActor->SetCoinIsReady(true);
 
     int32 RowIndex = TargetIdx / 5; 
     int32 ColIndex = TargetIdx % 5;
@@ -153,21 +176,17 @@ void UCoinManagementWSubsystem::AddBattleReadyCoins(ACoinActor* SelectCoinActor)
     FVector TargetLocation = (RowIndex == 0) ? Row1_Start : Row2_Start;
     TargetLocation.Y += (ColIndex * ColumnOffset);
 
+    SelectCoinActor->SetActorEnableCollision(false);
     SelectCoinActor->SetActorScale3D(FVector(1.5f, 1.5f, 1.5f));
     SelectCoinActor->SetActorRotation(FRotator(0.f, 180.f, 0.f));
-
-    SelectCoinActor->SetActorEnableCollision(false);
     SelectCoinActor->SetActorLocation(TargetLocation, false, nullptr, ETeleportType::TeleportPhysics);
 
     if (UStaticMeshComponent* MeshComp = SelectCoinActor->FindComponentByClass<UStaticMeshComponent>())
     {
         MeshComp->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator);
-        
         MeshComp->RecreatePhysicsState();
-
         MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
         MeshComp->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
-        
         MeshComp->UpdateComponentToWorld();
     }
 
@@ -177,34 +196,51 @@ void UCoinManagementWSubsystem::AddBattleReadyCoins(ACoinActor* SelectCoinActor)
         SelectCoinActor->GetRootComponent()->UpdateComponentToWorld();
     }
 
-    // 슬롯 칸 앞당김
+    if (bArrangeSlot)
+    {
+        ArrangeSlotCoins(SelectCoinActor->GetFrontWeaponID());
+    }
+}
+
+void UCoinManagementWSubsystem::ArrangeSlotCoins(int32 FrontWeaponID)
+{
     TArray<AActor*> OutActors;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACoinActor::StaticClass(), OutActors);
 
+    TArray<ACoinActor*> RemainingCoins;
     for (AActor* Actor : OutActors)
     {
         ACoinActor* Coin = Cast<ACoinActor>(Actor);
-        if (Coin && Coin->GetFrontWeaponID() == SelectCoinActor->GetFrontWeaponID() && Coin != SelectCoinActor)
+        if (Coin && Coin->GetFrontWeaponID() == FrontWeaponID && Coin->GetActorScale3D().X < 1.1f)
         {
-            if (Coin->GetActorScale3D().X < 1.1f) 
-            {
-                Coin->DecrementSameTypeIndex();
-                FVector EndLoc = Coin->GetOriginSlotLocation();
-                EndLoc.Y += (Coin->GetSameTypeIndex() * 35.f);
-
-                FLatentActionInfo LatentInfo;
-                LatentInfo.CallbackTarget = this;
-                LatentInfo.UUID = Coin->GetUniqueID();
-                LatentInfo.Linkage = 0;
-
-                UKismetSystemLibrary::MoveComponentTo(
-                    Coin->GetRootComponent(), 
-                    EndLoc, 
-                    Coin->GetActorRotation(), 
-                    true, true, 0.15f, false, EMoveComponentAction::Move, LatentInfo
-                );
-            }
+            RemainingCoins.Add(Coin);
         }
+    }
+
+
+    RemainingCoins.Sort([](const ACoinActor& A, const ACoinActor& B) {
+        return A.SameTypeIndex < B.SameTypeIndex;
+    });
+
+    for (int32 i = 0; i < RemainingCoins.Num(); ++i)
+    {
+        ACoinActor* Coin = RemainingCoins[i];
+        Coin->SameTypeIndex = i; 
+
+        FVector EndLoc = Coin->GetOriginSlotLocation();
+        EndLoc.Y += (i * 35.f);
+
+        FLatentActionInfo LatentInfo;
+        LatentInfo.CallbackTarget = nullptr;
+        LatentInfo.UUID = Coin->GetUniqueID();
+        LatentInfo.Linkage = 0;
+
+        UKismetSystemLibrary::MoveComponentTo(
+            Coin->GetRootComponent(), 
+            EndLoc, 
+            Coin->GetActorRotation(), 
+            true, true, 0.15f, false, EMoveComponentAction::Move, LatentInfo
+        );
     }
 }
 
@@ -219,55 +255,25 @@ void UCoinManagementWSubsystem::RemoveBattleReadyCoins(ACoinActor* SelectCoinAct
     }
     else return;
 
-    TArray<AActor*> OutActors;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACoinActor::StaticClass(), OutActors);
+    SelectCoinActor->SetCoinIsReady(false);
+    SelectCoinActor->SetActorScale3D(FVector(1.0f, 1.0f, 1.0f)); // 1.0으로 줄여야 ArrangeSlotCoins가 슬롯 코인으로 인식함
     
-    int32 CurrentCountInSlot = 0;
-    for (AActor* Actor : OutActors)
-    {
-        ACoinActor* Coin = Cast<ACoinActor>(Actor);
-
-        if (Coin && Coin != SelectCoinActor && 
-            Coin->GetFrontWeaponID() == SelectCoinActor->GetFrontWeaponID() &&
-            Coin->GetActorScale3D().X < 1.1f)
-        {
-            CurrentCountInSlot++;
-        }
-    }
-
-    SelectCoinActor->SameTypeIndex = CurrentCountInSlot; 
-    FVector ReturnLoc = SelectCoinActor->GetOriginSlotLocation();
-    ReturnLoc.Y += (CurrentCountInSlot * 35.f);
-
-    SelectCoinActor->SetActorScale3D(FVector(1.0f, 1.0f, 1.0f));
+    SelectCoinActor->SetActorRotation(FRotator(-90.f, -90.f, 0.f)); 
     
-    SelectCoinActor->SetActorRotation(FRotator(0.f, 180.f, 0.f));
-
     if (UStaticMeshComponent* MeshComp = SelectCoinActor->FindComponentByClass<UStaticMeshComponent>())
     {
         MeshComp->SetRelativeRotation(FRotator::ZeroRotator);
     }
-
     if (UPrimitiveComponent* RootPrim = Cast<UPrimitiveComponent>(SelectCoinActor->GetRootComponent()))
     {
         RootPrim->RecreatePhysicsState();
         RootPrim->UpdateComponentToWorld();
     }
 
-    // 이동 연출
-    FLatentActionInfo LatentInfo;
-    LatentInfo.CallbackTarget = this;
-    LatentInfo.UUID = SelectCoinActor->GetUniqueID();
-    LatentInfo.Linkage = 0;
+    SelectCoinActor->SameTypeIndex = 99;
 
-    UKismetSystemLibrary::MoveComponentTo(
-        SelectCoinActor->GetRootComponent(),
-        ReturnLoc,
-        FRotator(-90.f, -90.f, 0.f),
-        false, true, 1.0f, false, EMoveComponentAction::Move, LatentInfo
-    );
+    ArrangeSlotCoins(SelectCoinActor->GetFrontWeaponID());
 }
-
 bool UCoinManagementWSubsystem::IsCoinInBattleReady(ACoinActor* InCoin) const
 {
     return BattleReadyCoins.Contains(InCoin);

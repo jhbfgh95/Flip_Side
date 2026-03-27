@@ -54,6 +54,8 @@ protected:
 		FCoinWidgetInfoData& BackWeaponData
 	);
 
+	void ArrangeSlotCoins(int32 FrontWeaponID);
+
 /* 델리게이트 바인딩 함수들 */
 protected:
 	UFUNCTION()
@@ -79,8 +81,7 @@ public:
 
 	void CheckBattleReadyCoinAlive();
 
-	//이거 고쳐야하나?
-	void AddBattleReadyCoins(ACoinActor* SelectCoinActor);
+	void AddBattleReadyCoins(ACoinActor* SelectCoinActor, bool bArrangeSlot = true);
 
 	// 서랍에 들어간 코인을 다시 클릭 시 취소 로직
     void RemoveBattleReadyCoins(ACoinActor* SelectCoinActor);

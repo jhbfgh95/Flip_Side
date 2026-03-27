@@ -56,6 +56,9 @@ void UBossPattern_CrossDamage::ExecutePattern(
 
 	if(!PatternData.IsValidIndex(PatternNum)) return;
 
+	TArray<ACoinActor*> ActualTargets;
+	BossManager->GetCoinsOnCells(InLockedCells, ActualTargets);
+
 	const int32 FinalDamage = Boss ? (Boss->GetAttackPoint() + PatternData[PatternNum].Damage) : PatternData[PatternNum].Damage;
-	BossManager->ApplyDamageToLockedTargets(InLockedTargets, FinalDamage);
+	BossManager->ApplyDamageToLockedTargets(ActualTargets, FinalDamage);
 }

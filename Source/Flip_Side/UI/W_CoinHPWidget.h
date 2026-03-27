@@ -27,9 +27,9 @@ private:
 	UMaterialInstanceDynamic* MID;
 
 private:
-	float MaxHp = 0;
+	int32 MaxHp = 0;
 
-	float CurrentHp = 0;
+	int32 CurrentHp = 0;
 	
 private:
 	bool IsHpAnimating;
@@ -45,12 +45,14 @@ private:
 	void StartHpAnimation();
 
 	void SetHpPrgressBar(float Percentage);
-	void SetMaxHp(float MaxHpValue);
+	void SetMaxHp(int32 MaxHpValue);
 	
-	void SetCurrentHp(float Hpvalue);
+	void SetCurrentHp(int32 Hpvalue);
 	
 public:
-	void InitHpWidget(float MaxHpValue);
-	void ChangeMaxHp(float Hpvalue);
-	void ChangeCurrentHp(float Hpvalue);
+	void InitHpWidget(int32 MaxHpValue);
+	void ChangeMaxHp(int32 HPModifier);
+
+	UFUNCTION()
+	void ChangeCurrentHp(int32 Hpvalue);
 };

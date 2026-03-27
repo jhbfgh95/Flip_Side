@@ -7,6 +7,16 @@ ACoinSlotActor::ACoinSlotActor()
 	InvisiblePlane->SetupAttachment(RootComponent);
 }
 
+void ACoinSlotActor::BeginPlay()
+{
+	Super::BeginPlay();
+
+    if(AllowcatedCoins.IsEmpty())
+    {
+       Destroy();
+    }
+}
+
 void ACoinSlotActor::OnHover_Implementation()
 {
     OnCoinSlotHovered.Broadcast(this);

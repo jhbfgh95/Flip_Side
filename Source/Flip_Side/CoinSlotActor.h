@@ -37,6 +37,9 @@ class FLIP_SIDE_API ACoinSlotActor : public ASlotActor, public IBattleHoverInter
 	class UStaticMeshComponent* InvisiblePlane;
 
 	int32 OutCoinNum = 0;
+	
+protected:
+	virtual void BeginPlay() override;
 
 public:
 	virtual void OnUnhover_Implementation() override;

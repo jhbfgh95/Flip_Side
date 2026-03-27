@@ -40,7 +40,7 @@ void UActionLogicRegistryGISubsystem::RegisterWeaponLogic()
         }
     });
 
-    WeaponMap.Add(4, [](UActionBase* Context) {
+    WeaponMap.Add(5, [](UActionBase* Context) {
         if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
             UWeaponLogicLibrary::AutoTurretSet_Logic(WeaponAction);
         }

@@ -13,6 +13,7 @@ class FLIP_SIDE_API ABattleLeverActor : public ALeverActor, public IBattleClickI
 protected:
     virtual void ExecuteLeverLogic() override;
 
+    bool bCanAnimate = false;
 public:
     virtual void OnClicked_Implementation() override;
 };

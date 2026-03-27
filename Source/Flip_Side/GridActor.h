@@ -9,13 +9,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "BattleClickInterface.h"
 #include "CoinActor.h"
 #include "FlipSide_Enum.h"
 #include "GridTypes.h"
 #include "GridActor.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGridClicked, AGridActor*, TargetGrid );
+
 UCLASS()
-class FLIP_SIDE_API AGridActor : public AActor
+class FLIP_SIDE_API AGridActor : public AActor, public IBattleClickInterface
 {
 	GENERATED_BODY()
 
@@ -56,6 +59,11 @@ protected:
 public:	
 	AGridActor();
 
+	FOnGridClicked OnGridClicked;
+
+	virtual void OnClicked_Implementation() override;
+
+/* Setter */
 	UFUNCTION()
 	void SetGridXY(int32 GridX, int32 GridY);
 
@@ -70,6 +78,8 @@ public:
 	UFUNCTION()
 	void SetItem(FItemType ItemType)
 	*/
+
+/* Getter */
 	UFUNCTION()
 	bool GetIsOccupied();
 
@@ -79,15 +89,20 @@ public:
 	UFUNCTION()
 	FVector2D GetGridWorldXY();
 
-	UFUNCTION(BlueprintCallable)
-	void ClearOccupied();
-
 	//나중에 다운캐스트
 	UFUNCTION(BlueprintCallable)
 	AActor* GetCurrentOccupied() const;
-
+	
 	UFUNCTION()
 	FGridPoint GetGridPoint() const;
+
+/* Initialization*/
+	UFUNCTION(BlueprintCallable)
+	void ClearOccupied();
+
+	UFUNCTION(BlueprintCallable)
+	void InitColor();
+
 
 	UFUNCTION(BlueprintCallable)
 	void ApplyCellMaterialParams(const FLinearColor& OutlineColor, float FillIntensity, float DoorOpen);
@@ -96,5 +111,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaTime) override;
+
 
 };

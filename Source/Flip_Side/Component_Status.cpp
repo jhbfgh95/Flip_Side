@@ -47,16 +47,26 @@ FActionTask UComponent_Status::GetModifiedStats()
 
 void UComponent_Status::SetHP(const int32 ApplyHP, bool bIsFirst)
 {
-	
-	if(bIsFirst) MaxHP = ApplyHP;
-	
-	HP = ApplyHP;
+    if(bIsFirst) 
+    {
+        MaxHP = ApplyHP;
+        HP = ApplyHP;
+        return; 
+    }
+    
+    int32 DeltaHP = ApplyHP - HP; 
+
+    HP = FMath::Clamp(ApplyHP, 0, MaxHP);
+
+    OnHpChanged.Broadcast(DeltaHP);
 }
 
 void UComponent_Status::ApplyDamage(int32 Damage, AActor* DamageCauser)
 {
 	int32 FinalDamage = Damage;
 	bool bIsIgnored = false;
+
+    if(FinalDamage < 0) FinalDamage = 0;
 
     if (OnPreTakeDamage.IsBound())
     {
@@ -71,19 +81,40 @@ void UComponent_Status::ApplyDamage(int32 Damage, AActor* DamageCauser)
 	//독 등의 데미지 뚫고 들어오는 스탯은 나중에 ApplyDamage에 bool로 뚫는지 안뚫는지 flag둬서 하면 됨
 	if(Shield > 0)
 	{
-		Shield = FMath::Clamp(Shield - FinalDamage, 0, 9999);
+		Shield = Shield - FinalDamage;
+        //0에서 알아서 UI 멈춘다고 가정
+        OnShieldChanged.Broadcast(FinalDamage * (-1));
+        if(Shield < 0)
+        {
+            //이거 Shield값 사실상 음수임
+            HPChanged(Shield * (-1));
+            Shield = 0;
+        }
 	}
 	else
 	{
-		HP = FMath::Clamp(HP - FinalDamage, 0, 9999);
+		HPChanged(Damage);
 	}
-
 
     if (HP <= 0)
     {
         if (OnDead.IsBound())
         {
             OnDead.Broadcast();
+        }
+    }
+}
+
+void UComponent_Status::HPChanged(int32 Damage)
+{
+    HP = FMath::Clamp(HP - Damage, 0, 9999);
+    OnHpChanged.Broadcast(Damage * (-1));
+    if (HP <= 0)
+    {
+        if (OnDead.IsBound())
+        {
+            OnDead.Broadcast();
+            return;
         }
     }
 }
@@ -157,13 +188,13 @@ void UComponent_Status::ApplyHeal(int32 Heal, AActor* HealCauser)
 	
 	HP = FMath::Clamp(HP + Heal, 0, MaxHP);
 
-	OnHpChanged.ExecuteIfBound();
+	OnHpChanged.Broadcast(Heal);
 }
 
 void UComponent_Status::ApplyShield(int32 AddShield, AActor* ShieldCauser)
 {
 	if(HP <= 0) return;
-	Shield = FMath::Clamp(Shield + AddShield, 0, 9999);
+	Shield = FMath::Clamp(Shield + AddShield, 0, MAX_SHIELD);
 }
 
 void UComponent_Status::ApplyCC(FCCStructure CC)

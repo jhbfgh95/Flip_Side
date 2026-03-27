@@ -3,6 +3,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Component_Status.h"
+#include "W_CoinHPWidget.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "DataTypes/GridTypes.h"
 #include "FlipSide_Enum.h"
@@ -50,7 +51,19 @@ void ACoinActor::OnConstruction(const FTransform& Transform)
 void ACoinActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if (CoinHPUI)
+	{
+		HPWidget = Cast<UW_CoinHPWidget>(CoinHPUI->GetUserWidgetObject());
+		
+		if (HPWidget && StatComponent)
+		{
+			StatComponent->OnHpChanged.AddUObject(HPWidget, &UW_CoinHPWidget::ChangeCurrentHp);
+			HPWidget->InitHpWidget(StatComponent->GetHP());
+		}
+
+		CoinHPUI->SetVisibility(false);
+	}
 }
 
 void ACoinActor::Tick(float DeltaTime)
@@ -166,6 +179,16 @@ void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass
 
 }
 
+void ACoinActor::SetCoinOnBattle(const bool IsOnBattle)
+{ 	
+	bIsOnBattle = IsOnBattle; 
+}
+
+void ACoinActor::SetUIVisibility(const bool bUIVisibile)
+{
+	CoinHPUI->SetVisibility(bUIVisibile);
+}
+
 void ACoinActor::DoCoinActAtBattleStartLeverDown()
 {
 	StartX = GetActorLocation().X;
@@ -196,13 +219,13 @@ void ACoinActor::UpdateCoinMoveAtBattleStart()
 
 void ACoinActor::DoCoinActAtBattleStart(float XLocation, float YLocation)
 {
-	if(!bIsReady) return;
+	if(!bIsOnBattle) return;
 
 	if(CurrentGridPoint.GridX == -1 && CurrentGridPoint.GridY == -1) return;
 
 	JumpElapsedTime = 0.0f;
 
-	DecidedGridLocation = FVector(XLocation, YLocation, -110.f);
+	DecidedGridLocation = FVector(XLocation, YLocation, -80.f);
 	//앞뒤
 	switch(CurrentFace)
 	{
@@ -217,7 +240,12 @@ void ACoinActor::DoCoinActAtBattleStart(float XLocation, float YLocation)
 	}
 
 	//텔포
-	TeleportTo(DecidedGridLocation, FRotator(AnimStartXRot, 0.f, 0.f));
+	TeleportTo(DecidedGridLocation, FRotator::ZeroRotator);
+
+	if (CoinMesh)
+	{
+		CoinMesh->SetRelativeRotation(FRotator(AnimStartXRot, 0.f, 0.f));
+	}
 
 	//올라가는 연출
 	GetWorld()->GetTimerManager().SetTimer(JumpTimerHandle, this, &ACoinActor::UpdateJump, 0.01f, true);
@@ -230,19 +258,31 @@ void ACoinActor::UpdateJump()
 
 	if(Alpha >= 1.0f)
 	{
-		SetActorLocationAndRotation(DecidedGridLocation, DecidedCoinRotation);
+		SetActorLocation(DecidedGridLocation);
+		
+		if (CoinMesh)
+		{
+			CoinMesh->SetRelativeRotation(DecidedCoinRotation);
+		}
+		
 		GetWorld()->GetTimerManager().ClearTimer(JumpTimerHandle);
 		return;
 	}
 
-	//포물선 공식 (헉!)
+	//포물선 공식
 	float ZOffset = 4.0f * JumpHeight * Alpha * (1.0f - Alpha);
 	FVector NewLoc = DecidedGridLocation;
 	NewLoc.Z += ZOffset;
 
 	float CurrentPitch = FMath::Lerp(AnimStartXRot, DecidedCoinRotation.Pitch, Alpha);
 
-	SetActorLocationAndRotation(NewLoc, FRotator(CurrentPitch, 0.f, 0.f));
+	SetActorLocation(NewLoc);
+
+	if (CoinMesh)
+	{
+		CoinMesh->SetRelativeRotation(FRotator(CurrentPitch, 0.f, 0.f));
+	}
+
 }
 
 void ACoinActor::OnHover_Implementation()

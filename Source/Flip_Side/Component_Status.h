@@ -16,8 +16,11 @@
 	- 디버프도 여기 들어올 것임
 */
 
+#define MAX_SHIELD 15
+
 DECLARE_DELEGATE(FOnCCRemoved);
-DECLARE_DYNAMIC_DELEGATE(FOnHPChanged);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHPChanged, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnShieldChanged, int32);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDead);
 //데미지 가공용 델리게이트 -> 회피 등의 그것들 ( CurrentDmg, ModifiedDmg, bIsModified )순서 
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnPreTakeDamage, int32, int32&, bool&);
@@ -74,6 +77,8 @@ class FLIP_SIDE_API UComponent_Status : public UActorComponent
 	bool bIsOnCC = false;
 public:
 	FOnHPChanged OnHpChanged;
+ 
+	FOnShieldChanged OnShieldChanged;
 
 	//클린즈 물약 같은거 걍 이거 불러버리면 돼
 	FOnCCRemoved OnCCRemove;
@@ -138,4 +143,6 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void RemoveCC();
+
+	void HPChanged(int32 Damage);
 };

@@ -22,7 +22,7 @@ void UWeaponLogicLibrary::SteelPipe_Logic(UWeapon_Action* WeaponContext)
 
     ABossActor* Boss;
 
-    if(!WeaponContext->GetInRangeBoss(Boss)) return;
+    if(!WeaponContext->GetInRangeBoss(Boss) || !WeaponContext->GetCasterCoin()) return;
 
     int32 AP = WeaponContext->GetFinalAttackPoint();
     int32 BP = WeaponContext->GetFinalBehaviorPoint();
@@ -45,7 +45,7 @@ void UWeaponLogicLibrary::SteamChainSaw_Logic(UWeapon_Action* WeaponContext)
 
     ABossActor* Boss;
 
-    if(!WeaponContext->GetInRangeBoss(Boss)) return;
+    if(!WeaponContext->GetInRangeBoss(Boss) || !WeaponContext->GetCasterCoin()) return;
 
     int32 AP = WeaponContext->GetFinalAttackPoint();
 
@@ -63,16 +63,37 @@ void UWeaponLogicLibrary::SteamChainSaw_Logic(UWeapon_Action* WeaponContext)
 //버거↓
 void UWeaponLogicLibrary::Buger_Logic(UWeapon_Action* WeaponContext)
 {
-    if(!WeaponContext) return;
 
-    UE_LOG(LogTemp, Warning, TEXT("Logic Buger"));
 }
 //혈사포↓
 void UWeaponLogicLibrary::BloodCanon_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
 
-    UE_LOG(LogTemp, Warning, TEXT("Logic BloodCanon"));
+    ABossActor* Boss;
+
+    if(!WeaponContext->GetInRangeBoss(Boss) || !WeaponContext->GetCasterCoin()) return;
+
+    TArray<ACoinActor*> RangedCoins = WeaponContext->GetInRangeCoins();
+    if(RangedCoins.IsEmpty()) return;
+
+    UComponent_Status* TargetStat = nullptr;
+    int32 AP = WeaponContext->GetFinalAttackPoint();
+    int32 BP = WeaponContext->GetFinalBehaviorPoint();
+
+    for(ACoinActor* Coin : RangedCoins)
+    {
+        TargetStat = Coin->StatComponent;
+
+        TargetStat->ApplyDamage(AP, WeaponContext->GetCasterCoin());
+    }
+
+    AP += BP;
+
+    TargetStat = Boss->GetStatusComponent();
+
+    TargetStat->ApplyDamage(AP, WeaponContext->GetCasterCoin());
+
 }
 //자동터렛↓
 void UWeaponLogicLibrary::AutoTurretSet_Logic(UWeapon_Action* WeaponContext)
@@ -180,8 +201,6 @@ void UWeaponLogicLibrary::EnemyOfSpear_Logic(UWeapon_Action* WeaponContext)
 void UWeaponLogicLibrary::Gauntlet_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
-
-    UE_LOG(LogTemp, Warning, TEXT("Logic Gauntlet"));
 }
 
 /* -- 유틸 -- */
@@ -213,14 +232,53 @@ void UWeaponLogicLibrary::Adrenaline_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
 
-    UE_LOG(LogTemp, Warning, TEXT("Logic Gauntlet"));
+    TArray<ACoinActor*> RangedCoins = WeaponContext->GetInRangeCoins();
+    if(RangedCoins.IsEmpty()) return;
+
+    UComponent_Status* TargetStat = nullptr;
+    int32 AP = WeaponContext->GetFinalAttackPoint();
+
+    TargetStat = RangedCoins[0]->StatComponent;
+
+    FBuffInfo Info;
+    Info.BuffName = TEXT("아드레날린 권총");
+
+    Info.StatDelegate = FOnCalculateStats::FDelegate::CreateLambda([TargetStat, AP](FActionTask BuffTask)
+    {
+        BuffTask.ModifiedAttackPoint += AP;
+    });
+
+    TargetStat->AddBuffs(Info);
+
+    UE_LOG(LogTemp, Warning, TEXT("긴급소생 적용"));
+
+    
 }
 //증폭조준↓
 void UWeaponLogicLibrary::LockOnLenz_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
 
-    UE_LOG(LogTemp, Warning, TEXT("Logic Gauntlet"));
+    TArray<ACoinActor*> RangedCoins = WeaponContext->GetInRangeCoins();
+    if(RangedCoins.IsEmpty()) return;
+
+    UComponent_Status* TargetStat = nullptr;
+    int32 AP = WeaponContext->GetFinalAttackPoint();
+
+    TargetStat = RangedCoins[0]->StatComponent;
+
+    FBuffInfo Info;
+    Info.BuffName = TEXT("증폭 조준 렌즈");
+
+    Info.StatDelegate = FOnCalculateStats::FDelegate::CreateLambda([TargetStat, AP](FActionTask BuffTask)
+    {
+        BuffTask.ModifiedRange.GridX += AP;
+        BuffTask.ModifiedRange.GridY += AP;
+    });
+
+    TargetStat->AddBuffs(Info);
+
+    UE_LOG(LogTemp, Warning, TEXT("조준렌즈 적용"));
 }
 //긴급소생↓
 void UWeaponLogicLibrary::Emergencylifer_Logic(UWeapon_Action* WeaponContext)

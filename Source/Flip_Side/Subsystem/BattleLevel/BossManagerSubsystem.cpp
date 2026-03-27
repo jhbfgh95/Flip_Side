@@ -373,7 +373,7 @@ void UBossManagerSubsystem::ClearTelegraphPreview(const TArray<FGridPoint>& Cell
     {
         if (AGridActor* Grid = GridMgr->GetGridActor(Cell))
         {
-            Grid->ApplyCellMaterialParams(FLinearColor(1.f, 1.f, 1.f, 1.f), 0.4f, 0.0f);
+            Grid->InitColor();
         }
     }
 }
