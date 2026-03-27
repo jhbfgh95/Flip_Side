@@ -90,6 +90,7 @@ protected:
     FBossStageContext StageContext;
 
     FTimerHandle TelegraphTimerHandle;
+    FTimerHandle ApplyPatternTimerHandle;
 
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 

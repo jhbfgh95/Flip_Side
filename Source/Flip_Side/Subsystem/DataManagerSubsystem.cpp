@@ -321,6 +321,11 @@ bool UDataManagerSubsystem::LoadWeapons()
         Data.AttackAreaFlags = Flags;
         Data.ActionRepeatType = (EActionRepeatType)ActionRepeatType;
 
+        if (Data.AttackAreaSpec.Pattern == EAttackAreaPattern::SingleCell)
+        {
+            Data.SingleCellWeaponType = (ESingleCellWeaponType)ParamB;
+        }
+
         WeaponByID.Add(Data.WeaponID, Data);
         WeaponByTypeID.FindOrAdd(Data.TypeID).Add(Data);
         WeaponIDsByClass.FindOrAdd(Data.WeaponType).WeaponIDs.Add(Data.WeaponID);

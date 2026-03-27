@@ -20,4 +20,5 @@ void ABattleLeverActor::ExecuteLeverLogic()
 void ABattleLeverActor::OnClicked_Implementation()
 {
     ExecuteLeverLogic();
+    Super::PlayLeverAnimation();
 }
