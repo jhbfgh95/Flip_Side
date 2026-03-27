@@ -7,8 +7,8 @@
 #include "GridTypes.h"
 #include "CoinActionManagementWSubsystem.generated.h"
 
-/* 코인 매니저에서 어짜피 지역변수로 반복문 돌려서 걍 여기서도 만들어도 상관없을듯; */
 
+//포탑 설치는 EAcionInputState에 하나 더 추가해야겠다..
 UCLASS()
 class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 {
@@ -36,20 +36,27 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 
 	UPROPERTY()
     class UGridManagerSubsystem* GridManager;
+
+	UPROPERTY()
+    class UW_BattleCoinInfo* BattleCoinInfoWidgetInstance = nullptr;
+
+
 public:
 	//이거로 코인 선택하는거 잠궜습니다.
 	void SetTurn(const bool bIsTurn) { bIsCorrectTurn = bIsTurn; }
 
-	void SetSelectedWeapon(const struct FActionTask& ActionTask,const FGridPoint& CoinGrid);
+	UFUNCTION()
+	void SetSelectedWeapon(class ACoinActor* HoveredCoin);
 
-	//이럴거면 애초에 Coin만 받았어야 함.. -> 리팩토링 꼭~하세요!
+	UFUNCTION()
+	void ExecuteSelectedWeapon(ACoinActor* ClickedCoin);
+
 	void SetCasterCoin(class ACoinActor* CasterCoin);
 
-	void ExecuteNowAction();
-
-	void ExecuteTimeAction(const FGridPoint& TargetGridPoint);
-
 	void CancelSelectWeapon();
+
+	UFUNCTION()
+	void HandleCoinUnHovered();
 public:
 	EActionInputState CurrentInputState = EActionInputState::None;
 
@@ -61,8 +68,20 @@ protected:
 
 	void InitWeaponAction();
 
+	void ExecuteNowAction();
+
+	void ExecuteTimeAction(ACoinActor* TargetCoin);
+
+	void SetBattleCoinInfo(
+		UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
+		int32 DefaultBP, int32 ModifiedBP, 
+		int32 DefaultAP, int32 ModifiedAP
+	);
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+
+	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 };

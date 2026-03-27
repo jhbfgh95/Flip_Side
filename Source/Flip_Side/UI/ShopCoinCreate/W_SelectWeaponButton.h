@@ -23,19 +23,13 @@ private:
 	
 	class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
 
+	class UDataManagerSubsystem* DataManager;
 	
 protected:
 	virtual void NativeConstruct() override;
 public:
 
-	const FFaceData* WeaponData;
-
-	//아이콘
-	UPROPERTY(EditAnywhere, Category = "Info")
-	int32 WeaponID;
-
-	UPROPERTY(EditAnywhere, Category = "Info")
-	EWeaponClass WeaponClass;
+	FFaceData WeaponData;
 
 	UPROPERTY(EditAnywhere, Category = "Info")
 	FString WeaponName;
@@ -65,7 +59,7 @@ public:
 	UFUNCTION()
 	void SelectWeapon();
 	
-	void InitButton(EWeaponClass SettingWeaponClass, int32 ID);
+	void InitButton(int32 ID);
 
 
 	//찾는 버튼인지 판단

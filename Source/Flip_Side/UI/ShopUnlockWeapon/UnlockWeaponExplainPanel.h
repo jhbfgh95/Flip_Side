@@ -35,7 +35,6 @@ private:
 	class UW_ExplainWidget* ExplainWidgetClass;
 private:
 	class UShopUnlockWeaponWSubsystem* ShopUnlockSubsystem;
-	class UShopWeaponDataWSubsystem* ShopWeaponSubsystem;
 
 private:
 	const FFaceData* WeaponData;

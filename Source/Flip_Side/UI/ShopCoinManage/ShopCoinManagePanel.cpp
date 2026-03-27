@@ -12,7 +12,6 @@
 #include "DataTypes/CoinDataTypes.h"
 
 #include "WeaponDataTypes.h"
-#include "Subsystem/ShopLevel/ShopWeaponDataWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 
 
@@ -75,7 +74,6 @@ void AShopCoinManagePanel::BeginPlay()
 	Super::BeginPlay();
 
 	ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
-	ShopWeaponDataSubsystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
 	DataManagerSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 	ShopCoinSubsystem->OnCoinCountUpdate.AddDynamic(this, &AShopCoinManagePanel::SetPanelWidget);
 	

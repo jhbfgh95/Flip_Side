@@ -5,10 +5,20 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 
+void UW_ShopItemExplainWidget::NativeConstruct()
+{
+    Super::NativeConstruct();
+    
+    MID = ItemImage->GetDynamicMaterial();
+}
 void UW_ShopItemExplainWidget::SetItemImage(UTexture2D* TextureIamge)
 {
-    ItemImage->SetOpacity(1);
-    ItemImage->SetBrushFromTexture(TextureIamge);
+    if(MID)
+    {
+        MID->SetTextureParameterValue(FName("IconTexture"), TextureIamge);
+        MID->SetScalarParameterValue(FName("IsItemHover"), 1);
+    }
+    
 }
 	
 void UW_ShopItemExplainWidget::SetItemCount(int32 ItemCount)
@@ -18,8 +28,10 @@ void UW_ShopItemExplainWidget::SetItemCount(int32 ItemCount)
 
 void UW_ShopItemExplainWidget::ResetItemWidget()
 {
-    ItemImage->SetBrushFromTexture(nullptr);
-    ItemImage->SetOpacity(0.f);
+    if(MID)
+        MID->SetScalarParameterValue(FName("IsItemHover"), 0);
+    //ItemImage->SetBrushFromTexture(nullptr);
+    //ItemImage->SetOpacity(0.f);
     ItemCountText->SetText(FText::GetEmpty());
     SetExplainText(FString(""));
 }

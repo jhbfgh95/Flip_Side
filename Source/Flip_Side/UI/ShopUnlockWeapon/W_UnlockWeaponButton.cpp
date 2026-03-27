@@ -5,8 +5,8 @@
 #include "SubSystem/UnlockGISubsystem.h"
 
 #include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
-#include "Subsystem/ShopLevel/ShopWeaponDataWSubsystem.h"
 #include "Subsystem/UnlockGISubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
 
 #include "Player/ShopController_FlipSide.h"
 #include "Components/Button.h"
@@ -19,9 +19,10 @@ void UW_UnlockWeaponButton::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
     
-	WeaponDataSubSystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
     UnlockWeaponSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>(); 
     UnlockGISubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
+    DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+
     if(UnlockGISubsystem)
     {
         UnlockGISubsystem->OnWeaponUnlock.AddDynamic(this, &UW_UnlockWeaponButton::UnlockWeapon);
@@ -41,23 +42,20 @@ void UW_UnlockWeaponButton::NativeDestruct()
     Super::NativeDestruct();
 }
 
-void UW_UnlockWeaponButton::UnlockWeapon(EWeaponClass SettingWeaponClass, int32 Index)
+void UW_UnlockWeaponButton::UnlockWeapon(EWeaponClass SettingWeaponClass, int32 ID)
 {
-    if(SettingWeaponClass == WeaponClass && Index == WeaponIndex)
+    if(SettingWeaponClass == WeaponData.WeaponType && WeaponData.WeaponID == ID)
     {
         LockImage->SetVisibility(ESlateVisibility::Collapsed);
     }
 }
 
 
-void UW_UnlockWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 Index)
+void UW_UnlockWeaponButton::InitButton(int32 ID)
 {
-    WeaponIndex = Index;
-    WeaponClass =SettingWeaponClass;
+    bool IsGetWeaponData = DataManager->TryGetWeapon(ID, WeaponData);
 
-    WeaponData = WeaponDataSubSystem->GetWeaponDataByIndex(WeaponClass, WeaponIndex);
-
-    if(WeaponData && WeaponButton)
+    if(IsGetWeaponData && WeaponButton)
     {
         FButtonStyle ButtonStyle = WeaponButton->GetStyle();
 
@@ -67,30 +65,29 @@ void UW_UnlockWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 In
 
             if (DynamicMaskMaterial)
             {
-                DynamicMaskMaterial->SetTextureParameterValue(FName("IconTexture"), WeaponData->WeaponIcon);
+                DynamicMaskMaterial->SetTextureParameterValue(FName("IconTexture"), WeaponData.WeaponIcon);
 
                 ButtonStyle.Normal.SetResourceObject(DynamicMaskMaterial);
-                
                 ButtonStyle.Hovered.SetResourceObject(DynamicMaskMaterial);
                 ButtonStyle.Pressed.SetResourceObject(DynamicMaskMaterial);
             }
         }
         else
         {
-            ButtonStyle.Normal.SetResourceObject(WeaponData->WeaponIcon);
+            ButtonStyle.Normal.SetResourceObject(WeaponData.WeaponIcon);
         }
 
         WeaponButton->SetStyle(ButtonStyle);
         
         WeaponNameBlock->SetText(FText::FromString(WeaponName));
 
-        if(!WeaponDataSubSystem->IsWeaponUnlockByIndex(SettingWeaponClass, WeaponIndex))
+        if(UnlockGISubsystem->IsWeaponUnlockByID(WeaponData.WeaponType, WeaponData.WeaponID))
         {
-            LockImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+            LockImage->SetVisibility(ESlateVisibility::Collapsed);
         }
         else
         {
-            LockImage->SetVisibility(ESlateVisibility::Collapsed);
+            LockImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
         }
     }
     else
@@ -101,6 +98,6 @@ void UW_UnlockWeaponButton::InitButton(EWeaponClass SettingWeaponClass, int32 In
 
 void UW_UnlockWeaponButton::ClickWeaponButton()
 {
-    UE_LOG(LogTemp, Warning, TEXT("무기 아이디 %d 무기 해금 여부 %d"), WeaponData->WeaponID,UnlockGISubsystem->IsWeaponUnlockByID(WeaponData->WeaponType, WeaponData->WeaponID));
-    UnlockWeaponSubsystem->SelectUnlockWeaponByIndex(WeaponClass, WeaponIndex, UnlockGISubsystem->IsWeaponUnlockByID(WeaponData->WeaponType, WeaponData->WeaponID));
+    UnlockWeaponSubsystem->SelectUnlockWeapon(WeaponData.WeaponType, WeaponData.WeaponID, 
+    UnlockGISubsystem->IsWeaponUnlockByID(WeaponData.WeaponType, WeaponData.WeaponID));
 }

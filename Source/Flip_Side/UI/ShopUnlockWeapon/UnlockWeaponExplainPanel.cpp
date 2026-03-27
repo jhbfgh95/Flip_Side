@@ -6,7 +6,6 @@
 #include "Components/WidgetComponent.h"
 #include "UI/W_ExplainWidget.h"
 #include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
-#include "Subsystem/ShopLevel/ShopWeaponDataWSubsystem.h"
 // Sets default values
 AUnlockWeaponExplainPanel::AUnlockWeaponExplainPanel()
 {
@@ -26,7 +25,6 @@ void AUnlockWeaponExplainPanel::BeginPlay()
 	Super::BeginPlay();
 	ExplainWidgetClass = Cast<UW_ExplainWidget>(ExplainWidget->GetUserWidgetObject());
 	ShopUnlockSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
-	ShopWeaponSubsystem = GetWorld()->GetSubsystem<UShopWeaponDataWSubsystem>();
 	
 	ShopUnlockSubsystem->OnSelectUnlockWeapon.AddDynamic(this, &AUnlockWeaponExplainPanel::SetUnlockWeaponText);
 	
@@ -41,7 +39,6 @@ void AUnlockWeaponExplainPanel::EndPlay(const EEndPlayReason::Type EndPlayReason
 
 void AUnlockWeaponExplainPanel::SetUnlockWeaponText(EWeaponClass WeaponClass ,int32 ItemIndex, bool IsItemUnlock)
 {
-	WeaponData = ShopWeaponSubsystem->GetWeaponDataByIndex(WeaponClass, ItemIndex);
 
 	//추후 무기 설명 반환하는 코드작성
 

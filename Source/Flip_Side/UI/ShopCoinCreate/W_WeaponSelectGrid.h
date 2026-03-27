@@ -22,8 +22,6 @@ protected:
 
 private:
     class UUnlockGISubsystem* UnlockSubSystem;
-
-    class UShopWeaponDataWSubsystem* ShopWeaponSubsystem;
 private:
 
     TArray<class UW_SelectWeaponButton*> SelectWeaponButtons;

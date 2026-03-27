@@ -61,6 +61,7 @@ private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess= "true"))
 	int32 CoinSlot;
 
+	bool CanIteract = true;
 private:
 	UFUNCTION()
 	void TurnCoinMovement(float Value);
@@ -74,10 +75,10 @@ private:
 
 	UFUNCTION()
 	void SetCoinWeapon(int32 SlotNum, EWeaponClass CoinCount);
-
+	void SetCoinSide();
 public:
-	void InitCoin();
 	
+	void InitCoin(int32 SlotIndex);
 	void ChangeCoinSide();
 
 public:

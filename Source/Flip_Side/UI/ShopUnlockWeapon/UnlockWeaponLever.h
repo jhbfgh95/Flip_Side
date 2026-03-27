@@ -14,7 +14,7 @@ UCLASS()
 class FLIP_SIDE_API AUnlockWeaponLever : public ALeverActor, public IShopMouseInterface
 {
 	GENERATED_BODY()
-	
+protected:
 	AUnlockWeaponLever();
 private:
 	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess = "true"))

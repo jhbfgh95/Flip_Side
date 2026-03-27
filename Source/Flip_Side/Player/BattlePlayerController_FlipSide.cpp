@@ -79,7 +79,7 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
             return;
         }
     }
-
+    /*
     // CoinSelectTurn
     if (CurrentTurn == ETurnState::CoinSelectTurn)
     {
@@ -143,6 +143,7 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
             }
         }
     }
+    */
 
     // 영역 이동 및 복귀
     if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
@@ -165,8 +166,10 @@ void ABattlePlayerController_FlipSide::OnRightClick()
     UBattleManagerWSubsystem *BattleSub = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
     if (BattleSub && BattleSub->GetCurrentTurn() == ETurnState::CoinSelectTurn)
     {
+        /*
         BattleSub->HandleItemCanceled();
         BattleSub->HandleGridCanceled();
+        */
     }
 
     ReturnToDefaultCamera();

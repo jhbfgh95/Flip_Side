@@ -4,13 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "BattleHoverInterface.h"
+#include "BattleClickInterface.h"
 #include "DataTypes/CoinDataTypes.h"
 #include "DataTypes/GridTypes.h"
 #include "DataTypes/FlipSide_Enum.h"
 #include "CoinActor.generated.h"
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoverReadyCoinDelegate, ACoinActor*, HoveredCoin);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoverBattleCoinDelegate, ACoinActor*, HoveredCoin);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedReadyCoinDelegate, ACoinActor*, HoveredCoin);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedBattleCoinDelegate, ACoinActor*, HoveredCoin);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoverCoinDelegate);
 UCLASS()
-class ACoinActor : public AActor
+class ACoinActor : public AActor, public IBattleHoverInterface, public IBattleClickInterface
 {
 	GENERATED_BODY()
 
@@ -30,6 +38,10 @@ class ACoinActor : public AActor
 	//무기 타입(탱딜힐)의 아이디
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Type")
 	int TypeID = 0;
+
+	//슬롯 번호
+	UPROPERTY(VisibleAnywhere, Category = "Coin | Slot")
+	int32 SlotIndex = -1;
 
 	//무기 타입 ENum 위에거나 이거 둘 중 하나 없앨 예정
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Type")
@@ -52,12 +64,17 @@ class ACoinActor : public AActor
 	UPROPERTY(VisibleAnywhere)
 	FLinearColor TypeColor;
 
+
 /* Battle상태 변수들 */
 protected:
 	//랜덤 앞뒤 정해질 때 즉, SetCoinFace할 때 그냥 해당 WeaponID 넣어버림
 	int DecidedWeaponID = 0;
 
 	bool bIsReady = false;
+
+	bool bIsOnBattle = false;
+
+	bool bIsActed = false;
 	//이거로 Getter, Setter로 앞뒤 판별
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Face")
 	EFaceState CurrentFace = EFaceState::None;
@@ -91,11 +108,20 @@ public:
     // 인덱스 제어 함수들
     void SetSameTypeIndex(int32 NewIndex);
     void IncrementSameTypeIndex();
+	int32 GetSlotNum() const { return SlotIndex; }
 
 	int32 GetCoinID() const;
+	int32 GetCoinFrontID() const { return FrontWeaponID; }
+	int32 GetCoinBackID() const { return BackWeaponID; }
 
 	void SetCoinIsReady(bool IsReady);
 	bool GetCoinIsReady() const;
+
+	void SetCoinIsActed(const bool IsActed) { bIsActed = IsActed; }
+	bool GetCoinIsActed() const { return bIsActed; }
+
+	void SetCoinOnBattle(const bool IsOnBattle) { bIsOnBattle = IsOnBattle; }
+	bool GetCoinOnBattle() const { return bIsOnBattle; }
 
 	void SetCoinValues(
 		int CoinId,
@@ -105,7 +131,8 @@ public:
 		UTexture2D* FrontTexture, 
 		UTexture2D* BackTexture,
 		FLinearColor DecideColor,
-		int32 CoinHP
+		int32 CoinHP,
+		int32 SlotNum
 	);
 
 	/* 앞,뒤 결정 */
@@ -120,12 +147,35 @@ public:
 	/* BattleGrid에 나올 위치 설정 */
 	void SetGridPoint(FGridPoint DecidedGridPoint);
 
+	/*UI관련*/
+public:
+    UPROPERTY(BlueprintAssignable, Category = "Events|Hover")
+    FOnHoverReadyCoinDelegate OnHoverReadyCoin;
+
+    UPROPERTY(BlueprintAssignable, Category = "Events|Hover")
+    FOnHoverBattleCoinDelegate OnHoverBattleCoin;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events|Hover")
+    FOnUnhoverCoinDelegate OnUnhoverCoin;
+ 
+	UPROPERTY(BlueprintAssignable, Category = "Events|Click")
+	FOnClickedReadyCoinDelegate OnClickReadyCoin;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events|Click")
+	FOnClickedBattleCoinDelegate OnClickBattleCoin;
+
+	virtual void OnHover_Implementation() override;
+
+	virtual void OnUnhover_Implementation() override;
+
+	virtual void OnClicked_Implementation() override;
 
 /* 연출들 */
 public:
 	void DoCoinActAtBattleStart(float XLocation, float YLocation);
 
 	void DoCoinActAtBattleStartLeverDown();
+
 protected:
 	/* 레디 코인 튀어 오름 */
 	FTimerHandle JumpTimerHandle;

@@ -149,7 +149,7 @@ void ACoinActor::SetGridPoint(FGridPoint DecidedGridPoint)
 	CurrentGridPoint.GridY = DecidedGridPoint.GridY;
 }
 
-void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass WeaponTypes, UTexture2D* FrontTexture, UTexture2D* BackTexture, FLinearColor DecideColor, int32 CoinHP)
+void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass WeaponTypes, UTexture2D* FrontTexture, UTexture2D* BackTexture, FLinearColor DecideColor, int32 CoinHP, int32 SlotNum)
 {
 	if( WeaponTypes != EWeaponClass::None && FrontTexture && BackTexture)
 	{
@@ -160,7 +160,8 @@ void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass
 		FrontIconTexture = FrontTexture;
 		BackIconTexture = BackTexture;
 		TypeColor = DecideColor;
-		StatComponent->SetHP(CoinHP);
+		StatComponent->SetHP(CoinHP, true);
+		SlotIndex = SlotNum;
 	} 
 
 }
@@ -242,4 +243,42 @@ void ACoinActor::UpdateJump()
 	float CurrentPitch = FMath::Lerp(AnimStartXRot, DecidedCoinRotation.Pitch, Alpha);
 
 	SetActorLocationAndRotation(NewLoc, FRotator(CurrentPitch, 0.f, 0.f));
+}
+
+void ACoinActor::OnHover_Implementation()
+{	
+	if (GetCoinOnBattle())
+    {
+        OnHoverBattleCoin.Broadcast(this);
+    }
+    else
+    {
+        OnHoverReadyCoin.Broadcast(this);
+    }
+}
+
+void ACoinActor::OnUnhover_Implementation()
+{	
+	OnUnhoverCoin.Broadcast();
+}
+
+void ACoinActor::OnClicked_Implementation()
+{
+	if(GetCoinIsReady() && !GetCoinOnBattle())
+	{
+		OnClickReadyCoin.Broadcast(this);
+	}
+	else if(!GetCoinIsReady() && GetCoinOnBattle())
+	{
+		//한 번 Battle상태 들어가서 클릭하면 두 번째 클릭부터는 막음.
+		//CoinActionManagementWSubsystem에 바인딩
+		if(!GetCoinIsActed())
+		{
+			OnClickBattleCoin.Broadcast(this);
+		}
+		else
+		{
+			return;
+		}
+	}
 }

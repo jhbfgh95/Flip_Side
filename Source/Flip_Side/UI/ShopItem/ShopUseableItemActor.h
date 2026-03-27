@@ -89,6 +89,10 @@ private:
 	UFUNCTION()
 	void ItemBuyMovement(float Value);
 
+private:
+	void HideItem();
+	void ShowItem();
+
 public:
 	UFUNCTION()
 	void HoverdItem();

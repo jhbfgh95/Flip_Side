@@ -42,7 +42,16 @@ void AShopUseableItemActor::BeginPlay()
         //해당 소모품 정보를 받아옴
         ShopItemData = ShopItemSubSystem->GetItemDataByShopIndex(ShopItemIndex);
     }
-    SetItemMaterial();
+	if(ShopItemData.ItemID == -1)
+	{
+		
+		HideItem();
+	}
+	else
+	{
+		ShowItem();
+    	SetItemMaterial();
+	}
 
     FOnTimelineFloat ItemMoveCallBack;
 	ItemMoveCallBack.BindUFunction(this, FName("ItemHoverMovement"));
@@ -80,7 +89,7 @@ void AShopUseableItemActor::UnHoverdItem()
 void AShopUseableItemActor::ItemHoverMovement(float Value)
 {
 	FVector MoveVector = FMath::Lerp(StartLocation, ArriveLocation, Value);
-
+	
 	UseableItemMesh->SetRelativeLocation(MoveVector);
 }
 
@@ -109,6 +118,20 @@ void AShopUseableItemActor::SetItemMaterial()
 		MID->SetVectorParameterValue(FName("Front_Color"), ShopItemData.TypeColor);
 	}
 }
+
+void AShopUseableItemActor::HideItem()
+{
+	this->SetActorHiddenInGame(true);
+	this->SetActorEnableCollision(false);
+}
+	
+void AShopUseableItemActor::ShowItem()
+{
+	this->SetActorHiddenInGame(false);
+	this->SetActorEnableCollision(true);
+}
+
+
 
 void AShopUseableItemActor::InteractHover_Implementation()
 {

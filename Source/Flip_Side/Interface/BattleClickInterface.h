@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "ShopClickInterface.generated.h"
+#include "BattleClickInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UShopClickInterface : public UInterface
+class UBattleClickInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -16,13 +16,12 @@ class UShopClickInterface : public UInterface
 /**
  * 
  */
-class FLIP_SIDE_API IShopClickInterface
+class FLIP_SIDE_API IBattleClickInterface
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void InteractLeftClick();
+	void OnClicked();
+
 };

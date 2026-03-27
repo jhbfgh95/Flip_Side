@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "CoinDataTypes.h"
+#include "GridTypes.h"
 #include "Subsystems/Subsystem.h"
+#include "CoinDataTypes.h"
+#include "CoinSlotActor.h"
 #include "CoinManagementWSubsystem.generated.h"
 
 class ACoinActor;
@@ -16,12 +18,22 @@ class FLIP_SIDE_API UCoinManagementWSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 
 	UPROPERTY()
-	TArray<FCoinTypeStructure> CoinSlotArray;
+	TArray<FCoinTypeStructure> CoinSlotDataArray;
 
 	UPROPERTY()
 	TArray<ACoinActor*> BattleReadyCoins;
 
+	UPROPERTY()
 	TArray<ACoinActor*> LiveCoinStacks;
+
+	UPROPERTY()
+	TArray<ACoinSlotActor*> CoinSlots;
+
+	UPROPERTY()
+    class UW_ReadyAndSlotCoinInfo* ReadyCoinInfoWidgetInstance = nullptr;
+
+	UPROPERTY()
+	class UCoinActionManagementWSubsystem* CoinActionManager = nullptr;
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -35,13 +47,39 @@ protected:
 
 	void InstanceCoins();
 
+	void BindCoinEvents(ACoinActor* CoinActor);
+
+	void SetCoinInfoWidgetData(
+		FCoinWidgetInfoData& FrontWeaponData,
+		FCoinWidgetInfoData& BackWeaponData
+	);
+
+/* 델리게이트 바인딩 함수들 */
+protected:
+	UFUNCTION()
+    void HandleReadyCoinHovered(ACoinActor* HoveredCoin);
+
+	UFUNCTION()
+	void HandleCoinSlotHovered(class ACoinSlotActor* TargetCoinSlot);
+
+	UFUNCTION()
+	void HandleCoinUnHovered();
+	
+	UFUNCTION()
+	void HandleCoinSlotUnHovered();
+	UFUNCTION()
+	void HandleReadyCoinClicked(ACoinActor* ClickedCoin);
+
+	UFUNCTION()
+	void HandleCoinSlotClicked(ACoinActor* ReadyTargetCoin);
+
 public:
 	//서랍 초기화
 	void InitBattleReadyCoin();
 
 	void CheckBattleReadyCoinAlive();
 
-	//클릭시 해당 함수 Call
+	//이거 고쳐야하나?
 	void AddBattleReadyCoins(ACoinActor* SelectCoinActor);
 
 	// 서랍에 들어간 코인을 다시 클릭 시 취소 로직
@@ -54,4 +92,5 @@ public:
 	bool IsCoinIdInBattleReady(int32 TargetID) const;
 
 	void LockCoinReady(ACoinActor* TargetCoin);
+
 };

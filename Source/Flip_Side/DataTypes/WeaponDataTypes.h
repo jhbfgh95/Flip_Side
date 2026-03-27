@@ -107,8 +107,6 @@ struct FActionTask
 {
     GENERATED_BODY()
 
-    int32 WeaponID = -1;
-
     FGridPoint ModifiedRange;
 
     int32 ModifiedAttackPoint = 0;

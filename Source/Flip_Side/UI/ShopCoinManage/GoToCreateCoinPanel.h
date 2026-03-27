@@ -77,6 +77,7 @@ private:
 	UFUNCTION()
 	void FinishMoveLockPanel();
 
+	protected:
 	void ChangeCreateCoinMode();
 
 private:

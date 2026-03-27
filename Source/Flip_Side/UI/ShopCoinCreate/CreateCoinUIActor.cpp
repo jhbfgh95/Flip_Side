@@ -4,7 +4,6 @@
 #include "UI/ShopCoinCreate/CreateCoinUIActor.h"
 #include "Subsystem/ShopLevel/CoinCreateWSubsystem.h"
 #include "Subsystems/WorldSubsystem.h" 
-#include "Subsystem/ShopLevel/ShopWeaponDataWSubsystem.h" 
 
 #include "Subsystem/DataManagerSubsystem.h" 
 
@@ -42,7 +41,7 @@ void ACreateCoinUIActor::BeginPlay()
 {
 	Super::BeginPlay();
     CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
-	WeaponDataSubSystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+	DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 	ShopController = Cast<AShopController_FlipSide>(GetWorld()->GetFirstPlayerController());
 
 	if(CoinCreateWSubSystem)
@@ -77,7 +76,7 @@ void ACreateCoinUIActor::BeginPlay()
     EventFunc.BindUFunction(this, FName("SetCoinSideMatarial"));
     PressMachineTimeline->AddEvent(0.1f, EventFunc); 
 
-	MachineStartLocation = PressMachineMesh->GetComponentLocation();
+	MachineStartLocation = PressMachineMesh->GetRelativeLocation();
 
 }
 
@@ -97,14 +96,12 @@ void ACreateCoinUIActor::ClickCoin()
 	ArriveRotator = StartRotator + CoinTurnRotator;
 
 	//앞뒤 변경
-	if(IsCoinFront)
+	if(CoinCreateWSubSystem->GetIsCreateCoinFront())
 	{
-		IsCoinFront = false;
 		Timeline->PlayFromStart();
 	}
 	else
 	{
-		IsCoinFront = true;
 		Timeline->Reverse();
 	}
 
@@ -130,8 +127,8 @@ void ACreateCoinUIActor::RotateCoin(float Value)
 
 void ACreateCoinUIActor::FinishedRotateCoin()
 {
-	ShopController->SetLockMouse(false);
 	CoinMesh->SetRelativeRotation(ArriveRotator);
+	ShopController->SetLockMouse(false);
 }
 
 void ACreateCoinUIActor::UpdateWeaponClass(EWeaponClass weponClass)
@@ -145,14 +142,12 @@ void ACreateCoinUIActor::InitCoin(FCoinTypeStructure CoinValue, EWeaponClass wep
 	CoinInfo = CoinValue;
 	UpdateWeaponClass(weponClass);
 
-	IsCoinFront = true;
-
 	//1.ID에 맞는 값을 할당함
-	if(!WeaponDataSubSystem->TryGetWeapon(CoinValue.FrontWeaponID, FrontFaceData))
+	if(!DataManager->TryGetWeapon(CoinValue.FrontWeaponID, FrontFaceData))
 	{
 		FrontFaceData.WeaponID = -1;
 	}
-	if(!WeaponDataSubSystem->TryGetWeapon(CoinValue.BackWeaponID, BackFaceData))
+	if(!DataManager->TryGetWeapon(CoinValue.BackWeaponID, BackFaceData))
 	{
 		BackFaceData.WeaponID = -1;
 	}
@@ -172,16 +167,16 @@ void ACreateCoinUIActor::UpdateCoinWeapon(int32 WeaponID)
 	ShopController->SetLockMouse(true);
 	PressMachineTimeline->PlayFromStart();
 
-	if(IsCoinFront)
+	if(CoinCreateWSubSystem->GetIsCreateCoinFront())
 	{
-		if(!WeaponDataSubSystem->TryGetWeapon(WeaponID, FrontFaceData))
+		if(!DataManager->TryGetWeapon(WeaponID, FrontFaceData))
 		{
 			FrontFaceData.WeaponID = -1;
 		}
 	}
 	else
 	{
-		if(!WeaponDataSubSystem->TryGetWeapon(WeaponID, BackFaceData))
+		if(!DataManager->TryGetWeapon(WeaponID, BackFaceData))
 		{
 			BackFaceData.WeaponID = -1;
 		}
@@ -233,6 +228,5 @@ void ACreateCoinUIActor::ResetSideTexture()
 
 void ACreateCoinUIActor::InteractLeftClick_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("코인 회전 누름 "));
 	ClickCoin();
 }
