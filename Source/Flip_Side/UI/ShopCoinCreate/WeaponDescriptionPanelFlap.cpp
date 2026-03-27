@@ -63,7 +63,7 @@ void AWeaponDescriptionPanelFlap::EndPlay(const EEndPlayReason::Type EndPlayReas
 }
 
 
-void AWeaponDescriptionPanelFlap::OpenFlap(int Index)
+void AWeaponDescriptionPanelFlap::OpenFlap(int Index, bool IsFront)
 {
 	FlapTimeline->PlayFromStart();
 }

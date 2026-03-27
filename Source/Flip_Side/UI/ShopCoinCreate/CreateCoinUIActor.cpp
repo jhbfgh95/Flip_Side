@@ -162,12 +162,12 @@ void ACreateCoinUIActor::InitCoin(FCoinTypeStructure CoinValue, EWeaponClass wep
 	}
 }
 
-void ACreateCoinUIActor::UpdateCoinWeapon(int32 WeaponID)
+void ACreateCoinUIActor::UpdateCoinWeapon(int32 WeaponID, bool IsFront)
 {
 	ShopController->SetLockMouse(true);
 	PressMachineTimeline->PlayFromStart();
 
-	if(CoinCreateWSubSystem->GetIsCreateCoinFront())
+	if(IsFront)
 	{
 		if(!DataManager->TryGetWeapon(WeaponID, FrontFaceData))
 		{

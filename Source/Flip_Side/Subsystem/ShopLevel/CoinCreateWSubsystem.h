@@ -16,7 +16,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSelectedCoin, FCoinTypeStructure, CoinInfo, EWeaponClass, CoinClass);
 
 //무기가 변경되었을 때 델리게이트
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectedCoinUpdate, int32, WeaponID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSelectedCoinUpdate, int32, WeaponID, bool, IsFront);
 
 //코인이 클래스가 선택 됬을 때 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCoinClassUpdate,EWeaponClass, SelectedClass);

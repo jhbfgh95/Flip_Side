@@ -59,7 +59,7 @@ private:
 private:
 
 	UFUNCTION(BlueprintCallAble)
-	void OpenFlap(int index);
+	void OpenFlap(int index, bool IsFront);
 	UFUNCTION(BlueprintCallAble)
 	void CloseFlap();
 	UFUNCTION()
