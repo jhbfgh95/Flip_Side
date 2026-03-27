@@ -25,6 +25,9 @@ struct FPatternData
 	int32 Damage = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
+	float AttackApplyDelay = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
 	class UAnimMontage* PatternMontage;
 
 	//class UNaiagara...음;
@@ -43,7 +46,7 @@ public:
 	float TelegraphDuration = 1.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
-	TArray<FPatternData> PatternData; 
+	TArray<FPatternData> PatternData;
 
 public:
 	virtual void BuildTargetCells(
