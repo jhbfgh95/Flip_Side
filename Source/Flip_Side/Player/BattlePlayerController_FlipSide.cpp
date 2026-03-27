@@ -9,6 +9,8 @@
 #include "UseableItemActor.h"
 #include "LeverActor.h"
 #include "BattleManagerWSubsystem.h"
+#include "BattleHoverInterface.h"
+#include "BattleClickInterface.h"
 #include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
 #include "Subsystem/BattleLevel/CoinManagementWSubsystem.h"
@@ -59,95 +61,29 @@ void ABattlePlayerController_FlipSide::ReturnToDefaultCamera()
     }
 }
 
-// 좌클릭
 void ABattlePlayerController_FlipSide::OnLeftClick()
 {
-    UBattleManagerWSubsystem *BattleSub = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
-    UGridManagerSubsystem *GridSub = GetWorld()->GetSubsystem<UGridManagerSubsystem>();
-    if (!BattleSub || !GridSub)
-        return;
-
     FHitResult Hit;
-    ETurnState CurrentTurn = BattleSub->GetCurrentTurn();
 
-    // 레버 클릭
+    // 1. 카메라 채널로 인터페이스 기반 액터 및 레버 검출
     if (GetHitResultUnderCursor(ECC_Camera, false, Hit))
     {
-        if (ALeverActor *ClickedLever = Cast<ALeverActor>(Hit.GetActor()))
+        AActor* HitActor = Hit.GetActor();
+        if (HitActor)
         {
-            ClickedLever->OnLeverInteracted();
-            return;
-        }
-    }
-    /*
-    // CoinSelectTurn
-    if (CurrentTurn == ETurnState::CoinSelectTurn)
-    {
-        // 액터 및 그리드 통합 체크
-        if (GetHitResultUnderCursor(ECC_Camera, false, Hit))
-        {
-            AActor *HitActor = Hit.GetActor();
-
-            // 아이템 클릭
-            if (AUseableItemActor *Item = Cast<AUseableItemActor>(HitActor))
+            // 인터페이스 클릭 처리
+            if (IBattleClickInterface* Clickable = Cast<IBattleClickInterface>(HitActor))
             {
-                BattleSub->HandleItemClicked(Item);
-                return;
-            }
-
-            // 코인 클릭 시 그리드 역추적. 수정 필요(: 채널을 따로 만들든 등등...)
-            if (ACoinActor *Coin = Cast<ACoinActor>(HitActor))
-            {
-                
-                AGridActor *TargetGrid = GridSub->GetGridActor(Coin->GetDecidedGrid());
-                if (TargetGrid)
-                {
-                    BattleSub->HandleGridClicked(TargetGrid);
-                    return;
-                }
-            }
-            // 그리드 직접 클릭
-            if (AGridActor *TargetGrid = Cast<AGridActor>(HitActor))
-            {
-                BattleSub->HandleGridClicked(TargetGrid);
-                return;
-            }
-        }
-        // Camera에서 놓쳤을 경우 Visibility로 그리드 재체크
-        if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
-        {
-            if (AGridActor *TargetGrid = Cast<AGridActor>(Hit.GetActor()))
-            {
-                BattleSub->HandleGridClicked(TargetGrid);
+                Clickable->Execute_OnClicked(HitActor);
                 return;
             }
         }
     }
-    // CoinReadyTurn
-    else if (CurrentTurn == ETurnState::CoinReadyTurn)
-    {
-        if (GetHitResultUnderCursor(ECC_Camera, false, Hit))
-        {
-            if (ACoinActor *ClickedCoin = Cast<ACoinActor>(Hit.GetActor()))
-            {
-                UCoinManagementWSubsystem *CoinSub = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>();
-                if (CoinSub)
-                {
-                    int32 TargetID = ClickedCoin->GetCoinID();
-                    if (CoinSub->IsCoinIdInBattleReady(TargetID))
-                        CoinSub->RemoveBattleReadyCoins(ClickedCoin);
-                    else if (ClickedCoin->GetSameTypeIndex() == 0)
-                        CoinSub->AddBattleReadyCoins(ClickedCoin);
-                    return;
-                }
-            }
-        }
-    }
-    */
 
-    // 영역 이동 및 복귀
+    // 2. 가시성 채널로 구역(Area) 클릭 검출 (카메라 이동용)
     if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
     {
+        // CurrentHoveredArea는 CheckMouseHover에서 실시간으로 업데이트됨
         if (CurrentHoveredArea && ControlledPawn)
         {
             ControlledPawn->MoveCameraToArea(
@@ -157,7 +93,61 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
             return;
         }
     }
+
+    // 3. 허공 클릭 시 기본 시점 복귀
     ReturnToDefaultCamera();
+}
+
+void ABattlePlayerController_FlipSide::CheckMouseHover()
+{
+    FHitResult Hit;
+    AActor* CurrentActor = nullptr;
+
+    // A. 인터페이스 기반 호버링 체크 (코인, 슬롯 등)
+    if (GetHitResultUnderCursor(ECC_Camera, false, Hit))
+    {
+        CurrentActor = Hit.GetActor();
+    }
+
+    if (LastHoveredActor != CurrentActor)
+    {
+        if (LastHoveredActor)
+        {
+            if (IBattleHoverInterface* PrevHover = Cast<IBattleHoverInterface>(LastHoveredActor))
+            {
+                PrevHover->Execute_OnUnhover(LastHoveredActor);
+            }
+        }
+
+        if (CurrentActor)
+        {
+            if (IBattleHoverInterface* NewHover = Cast<IBattleHoverInterface>(CurrentActor))
+            {
+                NewHover->Execute_OnHover(CurrentActor);
+            }
+        }
+        LastHoveredActor = CurrentActor;
+    }
+
+    // B. 기존 구역(Area) 하이라이트 체크 (기존 로직 유지)
+    if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+    {
+        ABattleArea* TargetArea = Cast<ABattleArea>(Hit.GetActor());
+        if (CurrentHoveredArea != TargetArea)
+        {
+            if (CurrentHoveredArea) CurrentHoveredArea->SetHighlight(false);
+            CurrentHoveredArea = TargetArea;
+            if (CurrentHoveredArea) CurrentHoveredArea->SetHighlight(true);
+        }
+    }
+    else
+    {
+        if (CurrentHoveredArea)
+        {
+            CurrentHoveredArea->SetHighlight(false);
+            CurrentHoveredArea = nullptr;
+        }
+    }
 }
 
 // 우클릭: 디폴트 카메라 시점으로 복귀
@@ -173,42 +163,6 @@ void ABattlePlayerController_FlipSide::OnRightClick()
     }
 
     ReturnToDefaultCamera();
-}
-
-void ABattlePlayerController_FlipSide::CheckMouseHover()
-{
-    FHitResult Hit;
-    if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
-    {
-        AActor *HitActor = Hit.GetActor();
-
-        ABattleArea *TargetArea = Cast<ABattleArea>(HitActor);
-
-        // 이전에 호버링하던 곳과 지금 마우스 아래 있는 곳이 다를 때
-        if (CurrentHoveredArea != TargetArea)
-        {
-            if (CurrentHoveredArea)
-            {
-                CurrentHoveredArea->SetHighlight(false);
-            }
-
-            CurrentHoveredArea = TargetArea;
-
-            if (CurrentHoveredArea)
-            {
-                CurrentHoveredArea->SetHighlight(true);
-            }
-        }
-    }
-    else
-    {
-        // 마우스가 허공을 보거나 아무 영역도 아닐 때
-        if (CurrentHoveredArea)
-        {
-            CurrentHoveredArea->SetHighlight(false);
-            CurrentHoveredArea = nullptr;
-        }
-    }
 }
 
 void ABattlePlayerController_FlipSide::OnPossess(APawn *InPawn)

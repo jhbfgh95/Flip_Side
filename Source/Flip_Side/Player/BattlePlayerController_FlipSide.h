@@ -9,6 +9,8 @@
 class UInputMappingContext;
 class ABattlePlayerPawn_FlipSide;
 class ABattleArea;
+class IBattleHoverInterface;
+class IBattleClickInterface;
 
 UCLASS(abstract)
 class ABattlePlayerController_FlipSide : public APlayerController
@@ -37,6 +39,9 @@ protected:
 
     UPROPERTY()
     class ABattleArea* CurrentHoveredArea;
+
+	UPROPERTY()
+    AActor* LastHoveredActor;
 
 public:
 	ABattlePlayerController_FlipSide();
