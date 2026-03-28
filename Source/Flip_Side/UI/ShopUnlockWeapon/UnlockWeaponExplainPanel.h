@@ -32,14 +32,13 @@ private:
 	UPROPERTY(EditAnywhere, meta = (AccessPrivateAllow="true"))
 	class UWidgetComponent* ExplainWidget;
 private:
-	class UW_ExplainWidget* ExplainWidgetClass;
+	class UW_WeaponDescription* ExplainWidgetClass;
 private:
 	class UShopUnlockWeaponWSubsystem* ShopUnlockSubsystem;
 
-private:
-	const FFaceData* WeaponData;
+	class UDataManagerSubsystem* DataManagerSubsystem;
 
 private:
 	UFUNCTION()
-	void SetUnlockWeaponText(EWeaponClass WeaponClass,int32 ItemIndex, bool IsItemUnlock);
+	void SetUnlockWeaponText(EWeaponClass WeaponClass,int32 ItemID, bool IsItemUnlock);
 };

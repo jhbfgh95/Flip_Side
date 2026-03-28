@@ -4,8 +4,9 @@
 #include "UI/ShopUnlockWeapon/UnlockWeaponExplainPanel.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/WidgetComponent.h"
-#include "UI/W_ExplainWidget.h"
+#include "UI/W_WeaponDescription.h"
 #include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
 // Sets default values
 AUnlockWeaponExplainPanel::AUnlockWeaponExplainPanel()
 {
@@ -23,9 +24,9 @@ AUnlockWeaponExplainPanel::AUnlockWeaponExplainPanel()
 void AUnlockWeaponExplainPanel::BeginPlay()
 {
 	Super::BeginPlay();
-	ExplainWidgetClass = Cast<UW_ExplainWidget>(ExplainWidget->GetUserWidgetObject());
+	ExplainWidgetClass = Cast<UW_WeaponDescription>(ExplainWidget->GetUserWidgetObject());
 	ShopUnlockSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
-	
+	DataManagerSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 	ShopUnlockSubsystem->OnSelectUnlockWeapon.AddDynamic(this, &AUnlockWeaponExplainPanel::SetUnlockWeaponText);
 	
 }
@@ -37,10 +38,12 @@ void AUnlockWeaponExplainPanel::EndPlay(const EEndPlayReason::Type EndPlayReason
 }
 	
 
-void AUnlockWeaponExplainPanel::SetUnlockWeaponText(EWeaponClass WeaponClass ,int32 ItemIndex, bool IsItemUnlock)
+void AUnlockWeaponExplainPanel::SetUnlockWeaponText(EWeaponClass WeaponClass ,int32 ItemID, bool IsItemUnlock)
 {
 
 	//추후 무기 설명 반환하는 코드작성
+	FFaceData WeaponData;
+	DataManagerSubsystem->TryGetWeapon(ItemID, WeaponData);
 
-	ExplainWidgetClass->SetExplainText(TEXT("무기에 관한 정보"));
+	ExplainWidgetClass->SetExplainText(WeaponData.WeaponName, WeaponData.KOR_DES, WeaponData.BehaviorPoint, WeaponData.AttackPoint);
 }
