@@ -22,6 +22,7 @@ protected:
 
 private:
 	class UCoinCreateWSubsystem* CoinCreateWSubSystem;
+	class UDataManagerSubsystem* DataManagerSubsystem;
 
 protected:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
@@ -46,7 +47,7 @@ private:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* ExplainWidget;
 
-	class UW_ExplainWidget* ExplainWidgetClass;
+	class UW_WeaponDescription* ExplainWidgetClass;
 
 public:
 	UFUNCTION()
@@ -90,6 +91,9 @@ private:
 	float Radius;
 	float ShowPanelRadius;
 
+private:
+	int32 CurrentID;
+	void SetDescriptionText(int32 ID);
 
 public:
 //설명 판넬이 직선 방향으로 얼마나 움직이게 할 것인가?

@@ -6,7 +6,7 @@
 #include "Components/WidgetComponent.h"
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
-#include "UI/ShopItem/W_ShopItemExplainWidget.h"
+#include "UI/ShopItem/W_ShopItemDescription.h"
 // Sets default values
 AShopItemExplainPanel::AShopItemExplainPanel()
 {
@@ -28,7 +28,7 @@ void AShopItemExplainPanel::BeginPlay()
 {
 	Super::BeginPlay();
 	ShopItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
-	ExplainWidgetClass = Cast<UW_ShopItemExplainWidget>(ExplainWidget->GetUserWidgetObject());
+	ExplainWidgetClass = Cast<UW_ShopItemDescription>(ExplainWidget->GetUserWidgetObject());
 	DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 
 	ShopItemSubsystem->OnItemHovered.AddDynamic(this, &AShopItemExplainPanel::SetExplainPanel);
@@ -47,24 +47,10 @@ void AShopItemExplainPanel::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	
 void AShopItemExplainPanel::SetExplainPanel(FItemData ItemData)
 {
-	SetExplainPanelText(ChangeItemDataToExplain(ItemData.ItemID));
-	ExplainWidgetClass->SetItemImage(ItemData.ItemIcon);
-	//ExplainWidgetClass->SetItemCount();
+	ExplainWidgetClass->SetItemInfo(ItemData.ItemIcon, TEXT("ITemName"), ItemData.Item_DES);
 }
 
 void AShopItemExplainPanel::ResetExplainPanelText()
 {
 	ExplainWidgetClass->ResetItemWidget();
-}
-
-FString AShopItemExplainPanel::ChangeItemDataToExplain(int32 ID)
-{
-	//아이템 데이터를 받아와서 TEXT로 변환
-
-	return TEXT("데이터값 아직없음");
-}
-
-void AShopItemExplainPanel::SetExplainPanelText(FString InputText)
-{
-	ExplainWidgetClass->SetExplainText(InputText);
 }

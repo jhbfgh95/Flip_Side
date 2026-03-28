@@ -4,9 +4,10 @@
 #include "UI/CreateCoinDescriptionPanel.h"
 #include "Components/TimelineComponent.h"
 #include "Subsystem/ShopLevel/CoinCreateWSubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/WidgetComponent.h"
-#include "UI/W_ExplainWidget.h"
+#include "UI/W_WeaponDescription.h"
 
 // Sets default values
 ACreateCoinDescriptionPanel::ACreateCoinDescriptionPanel()
@@ -30,7 +31,7 @@ ACreateCoinDescriptionPanel::ACreateCoinDescriptionPanel()
 	LinearTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("LinearTimeline"));
 	
 	ExplainWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("ExplainWidget"));
-	ExplainWidget->SetupAttachment(ShowPanelMesh);
+	ExplainWidget->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -39,13 +40,13 @@ void ACreateCoinDescriptionPanel::BeginPlay()
 	Super::BeginPlay();
 
 	CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
-
+	DataManagerSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 	if(CoinCreateWSubSystem)
 	{
         CoinCreateWSubSystem->OnSelectedCoin.AddDynamic(this, &ACreateCoinDescriptionPanel::InitPannel);
 		CoinCreateWSubSystem->OnSelectedCoinUpdate.AddDynamic(this, &ACreateCoinDescriptionPanel::GetExplainByID);
 	}
-	ExplainWidgetClass = Cast<UW_ExplainWidget>(ExplainWidget->GetUserWidgetObject());
+	ExplainWidgetClass = Cast<UW_WeaponDescription>(ExplainWidget->GetUserWidgetObject());
 
 	//원운동 타임라인
 	FOnTimelineFloat UpdateCircualrCallBack;
@@ -111,6 +112,10 @@ void ACreateCoinDescriptionPanel::FinishedMoveLinear()
 		
 		CircularTimeline->PlayFromStart();
 	}
+	else
+	{
+		SetDescriptionText(CurrentID);
+	}
 }
 
 void ACreateCoinDescriptionPanel::MoveCircularPanel(float Value)
@@ -147,5 +152,19 @@ void ACreateCoinDescriptionPanel::FinishedMoveCirCular()
 
 void ACreateCoinDescriptionPanel::GetExplainByID(int32 ID, bool IsFront)
 {
+	CurrentID = ID;
 	LinearTimeline->PlayFromStart();
+
+
+
+}
+
+void ACreateCoinDescriptionPanel::SetDescriptionText(int32 ID)
+{
+	
+	//추후 무기 설명 반환하는 코드작성
+	FFaceData WeaponData;
+	DataManagerSubsystem->TryGetWeapon(ID, WeaponData);
+
+	ExplainWidgetClass->SetExplainText(WeaponData.WeaponName, WeaponData.KOR_DES, WeaponData.BehaviorPoint, WeaponData.AttackPoint);
 }

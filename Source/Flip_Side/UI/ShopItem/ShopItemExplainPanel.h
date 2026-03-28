@@ -30,7 +30,7 @@ private:
 	UPROPERTY(EditAnywhere, meta = (AccessPrivateAllow = "true"))
 	class UWidgetComponent* ExplainWidget;
 private:
-	class UW_ShopItemExplainWidget* ExplainWidgetClass;
+	class UW_ShopItemDescription* ExplainWidgetClass;
 private:
 	class UShopItemWSubsystem* ShopItemSubsystem;
 	class UDataManagerSubsystem* DataManager;
@@ -39,9 +39,6 @@ private:
 	UFUNCTION()
 	void SetExplainPanel(FItemData ItemData);
 
-	FString ChangeItemDataToExplain(int32 ID);
-
-	void SetExplainPanelText(FString InputText);
 	UFUNCTION()
 	void ResetExplainPanelText();
 };
