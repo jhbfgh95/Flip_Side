@@ -7,6 +7,7 @@
 #include "Subsystem/UnlockGISubsystem.h"
 #include "Subsystem/ShopLevel/ShopUnlockCardWSubsystem.h"
 #include "Components/Image.h"
+#include "Components/CanvasPanel.h"
 
 void UW_UnlockCardWidget::NativeConstruct()
 {
@@ -61,6 +62,7 @@ void UW_UnlockCardWidget::InitUnlockCard()
         
     }
     InitCard(UnlockCardData);
+    MainCanvas->SetRenderTranslation(FVector2D::ZeroVector);
 }
 
 FReply UW_UnlockCardWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent)
@@ -92,6 +94,9 @@ void UW_UnlockCardWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 
 void UW_UnlockCardWidget::SetCardSelect(int32 SelctCardID)
 {
+    
+    if(SelctCardID == -1)
+        return;
     if(SelctCardID == UnlockCardData.CardID)
     {
         PlayAnimation(SelectAnim);
@@ -100,6 +105,8 @@ void UW_UnlockCardWidget::SetCardSelect(int32 SelctCardID)
 	
 void UW_UnlockCardWidget::SetCardUnSelect(int32 SelctCardID)
 {
+    if(SelctCardID == -1)
+        return;
     if(SelctCardID == UnlockCardData.CardID)
     {
         PlayAnimation(UnSelectAnim);

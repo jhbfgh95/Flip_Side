@@ -81,6 +81,7 @@ void UShopUnlockCardWSubsystem::ChangeCardsLeft()
     if(0<=CurrentPage-4)
     {
         CurrentPage-=4;
+        CurrentSelectCardID = -1;
         OnChangelockCardsLeft.Broadcast();
     }
 
@@ -90,6 +91,7 @@ void UShopUnlockCardWSubsystem::ChangeCardsRight()
     if(CurrentPage+4 <CardList.Num())
     {
         CurrentPage+=4;
+        CurrentSelectCardID = -1;
         OnChangelockCardsRight.Broadcast();
     }
 }
@@ -107,6 +109,9 @@ void UShopUnlockCardWSubsystem::SelectCard(int32 SelectCardID)
 
 void UShopUnlockCardWSubsystem::UnSelectCard()
 {
-    CurrentSelectCardID = -1;
-    OnSelectUnlockCard.Broadcast(CurrentSelectCardID);
+    if(CurrentSelectCardID != -1)
+    {
+        OnUnSelectUnlockCard.Broadcast(CurrentSelectCardID);
+        CurrentSelectCardID = -1;
+    }
 }
