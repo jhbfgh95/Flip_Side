@@ -113,5 +113,7 @@ public:
 
 	int32 GetCurrentCoinCount();
 
+	int32 GetCurrentSlotNum();
+
 	void ChangeSlotCoinSide(bool IsChangedSideFront);
 };

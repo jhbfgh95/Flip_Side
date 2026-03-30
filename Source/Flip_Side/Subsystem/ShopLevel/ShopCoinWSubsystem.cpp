@@ -181,13 +181,14 @@ void UShopCoinWSubsystem::ChangeCoinSlotByIndex(int32 SlotNum)
 {
     if(SlotNum< ShopCoinSlotArray.Num())
     {
-        CurrentCoinSlotNum = SlotNum;
         if(CurrentCoinSlotNum<SlotNum)
         {
+            CurrentCoinSlotNum = SlotNum;
             OnCoinSlotChange.Broadcast(true);
         }
         else
         {
+            CurrentCoinSlotNum = SlotNum;
             OnCoinSlotChange.Broadcast(false);
         }
         
@@ -228,6 +229,12 @@ void UShopCoinWSubsystem::ChangeSlotCoinSide(bool IsChangedSideFront)
     OnChangeSlotCoinSide.Broadcast(IsChangedSideFront);
 }
 	
+int32 UShopCoinWSubsystem::GetCurrentSlotNum()
+{
+    return CurrentCoinSlotNum;
+}
+
+
 bool UShopCoinWSubsystem::GetCoinUnlockByIndex(int32 index)
 {
     if(0<=index&&index<ShopCoinSlotArray.Num())
