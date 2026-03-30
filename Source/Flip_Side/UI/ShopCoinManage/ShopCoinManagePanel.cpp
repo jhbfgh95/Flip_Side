@@ -19,7 +19,8 @@
 #include "UI/ShopCoinManage/CoinSlotLockPanel.h"
 #include "UI/ShopCoinManage/ShopCoinManageCoin.h"
 #include "UI/ShopCoinManage/ShopCoinSlotCountButton.h"
-
+#include "UI/W_WeaponDescription.h"
+#include "UI/ShopCoinManage/CoinSlotWeaponDescripPanel.h"
 // Sets default values
 AShopCoinManagePanel::AShopCoinManagePanel()
 {
@@ -34,9 +35,8 @@ AShopCoinManagePanel::AShopCoinManagePanel()
 
 	GearActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("GearActor"));
 	GearActor->SetupAttachment(RootScene);
-	
-	DescriptionMesh= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DescriptionMesh"));
-	DescriptionMesh->SetupAttachment(RootScene);
+
+
 	
 	IncreaseCountButton = CreateDefaultSubobject<UChildActorComponent>(TEXT("IncreaseCountButton"));
 	IncreaseCountButton->SetupAttachment(RootScene);
@@ -51,18 +51,11 @@ AShopCoinManagePanel::AShopCoinManagePanel()
 	LockPanel->SetupAttachment(RootScene);
 
 
-
-
-	//x타임라인들//
-
-	DescriptionTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("PanelDownTimeLine"));
-
 	//위젯들
 	PanelWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PanelWidget"));
 	PanelWidget->SetupAttachment(RootScene);
 
-	DescribeWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DescribeWidget"));
-	DescribeWidget->SetupAttachment(DescriptionMesh);
+
 
 	
 
@@ -77,24 +70,16 @@ void AShopCoinManagePanel::BeginPlay()
 	DataManagerSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 	ShopCoinSubsystem->OnCoinCountUpdate.AddDynamic(this, &AShopCoinManagePanel::SetPanelWidget);
 	
-	
+	ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &AShopCoinManagePanel::InitPanel);
 
 	//Set Actor Class
 	IncreaseCountButtonClass = Cast<AShopCoinSlotCountButton>(IncreaseCountButton->GetChildActor());;
 	DecreaseCountButtonClass = Cast<AShopCoinSlotCountButton>(DecreaseCountButton->GetChildActor());
 	LockPanelClass= Cast<ACoinSlotLockPanel>(LockPanel->GetChildActor());
 	CoinActorClass= Cast<AShopCoinManageCoin>(CoinActor->GetChildActor());
+
+
 	PanelWidgetClass = Cast<UW_CoinManagePanelWidget>(PanelWidget->GetUserWidgetObject());
-
-
-	//설명 판넬 운동 타임라인
-	FOnTimelineFloat DescriptionPanelMoveCallBack;
-	DescriptionPanelMoveCallBack.BindUFunction(this, FName("MoveDescriptionPanel"));
-	DescriptionTimeLine->AddInterpFloat(DescriptionPanelCurve, DescriptionPanelMoveCallBack);
-
-
-	DescriptionPanelStartVec = DescriptionMesh->GetRelativeLocation();
-	DescriptionPanelArriveVec = DescriptionPanelStartVec + DescriptionPanelMoveDirection;
 
 	LockPanelStartVector = LockPanel->GetRelativeLocation();
 }
@@ -105,23 +90,9 @@ void AShopCoinManagePanel::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	ShopCoinSubsystem->OnCoinCountUpdate.RemoveAll(this);
 	Super::EndPlay(EndPlayReason);
 }
-void AShopCoinManagePanel::ActiveDescriptionPanel(bool IsPanelShow)
-{
-	if(IsPanelShow)
-		DescriptionTimeLine->PlayFromStart();
-	else
-		DescriptionTimeLine->ReverseFromEnd();
-}
-
-void AShopCoinManagePanel::MoveDescriptionPanel(float Value)
-{
-	FVector MoveVec = FMath::Lerp(DescriptionPanelStartVec, DescriptionPanelArriveVec,Value);
-	DescriptionMesh->SetRelativeLocation(MoveVec);
-}
 
 void AShopCoinManagePanel::InitPanel()
 {
-	DescriptionMesh->SetRelativeLocation(DescriptionPanelStartVec);
 	
 	if(ShopCoinSubsystem->GetCurrentCoinUnlock())
 		
@@ -135,23 +106,6 @@ void AShopCoinManagePanel::InitPanel()
 void AShopCoinManagePanel::SetPanelWidget(int32 CoinSlotIndex, int32 CoinCount)
 {
 	PanelWidgetClass->SetCountText(CoinCount);
-}
-void AShopCoinManagePanel::InitPanelAfterArrive()
-{
-	if(ShopCoinSubsystem->GetCurrentCoinUnlock())
-		ActiveDescriptionPanel(true);
-}
-
-
-void AShopCoinManagePanel::OpenDescriptionPanel()
-{
-	DescriptionTimeLine->PlayFromStart();
-}
-
-void AShopCoinManagePanel::InitPanelToStart()
-{
-	if(0 < DescriptionTimeLine->GetPlaybackPosition())
-		ActiveDescriptionPanel(false);
 }
 
 

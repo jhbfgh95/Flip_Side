@@ -77,7 +77,7 @@ void ACreateCoinUIActor::BeginPlay()
     PressMachineTimeline->AddEvent(0.1f, EventFunc); 
 
 	MachineStartLocation = PressMachineMesh->GetRelativeLocation();
-
+	FrontRotator = CoinMesh->GetRelativeRotation();
 }
 
 void ACreateCoinUIActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -160,6 +160,8 @@ void ACreateCoinUIActor::InitCoin(FCoinTypeStructure CoinValue, EWeaponClass wep
 	{
 		SetCoinSideMatarial();
 	}
+	
+	CoinMesh->SetRelativeRotation(FrontRotator);
 }
 
 void ACreateCoinUIActor::UpdateCoinWeapon(int32 WeaponID, bool IsFront)

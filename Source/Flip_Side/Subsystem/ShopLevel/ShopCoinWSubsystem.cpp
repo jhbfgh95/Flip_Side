@@ -181,13 +181,14 @@ void UShopCoinWSubsystem::ChangeCoinSlotByIndex(int32 SlotNum)
 {
     if(SlotNum< ShopCoinSlotArray.Num())
     {
-        CurrentCoinSlotNum = SlotNum;
         if(CurrentCoinSlotNum<SlotNum)
         {
+            CurrentCoinSlotNum = SlotNum;
             OnCoinSlotChange.Broadcast(true);
         }
         else
         {
+            CurrentCoinSlotNum = SlotNum;
             OnCoinSlotChange.Broadcast(false);
         }
         
@@ -197,14 +198,11 @@ void UShopCoinWSubsystem::ChangeCoinSlotByIndex(int32 SlotNum)
 //현재 코인슬롯을 개방
 void UShopCoinWSubsystem::UnlockCurrentCoinSlot()
 {
-    UE_LOG(LogTemp, Warning, TEXT("%d"), ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock);
     if(!ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock)
     {
-        UE_LOG(LogTemp, Warning, TEXT("%d"), ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock);
         ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock = true;
         OnUnlockCoinSlot.Broadcast();
     }
-    
     
 }
 
@@ -223,4 +221,24 @@ void UShopCoinWSubsystem::UnlockCoin()
 int32 UShopCoinWSubsystem::GetCurrentCoinCount()
 {
     return ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum;
+}
+
+
+void UShopCoinWSubsystem::ChangeSlotCoinSide(bool IsChangedSideFront)
+{
+    OnChangeSlotCoinSide.Broadcast(IsChangedSideFront);
+}
+	
+int32 UShopCoinWSubsystem::GetCurrentSlotNum()
+{
+    return CurrentCoinSlotNum;
+}
+
+
+bool UShopCoinWSubsystem::GetCoinUnlockByIndex(int32 index)
+{
+    if(0<=index&&index<ShopCoinSlotArray.Num())
+        return ShopCoinSlotArray[index].IsUnlock;
+    else
+        return false;
 }

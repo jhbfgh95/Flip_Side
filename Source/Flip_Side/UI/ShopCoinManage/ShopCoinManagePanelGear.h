@@ -44,7 +44,7 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	FRotator GearRotateDirection;
-
+	bool IsGearRotateUp;
 
 public:
 

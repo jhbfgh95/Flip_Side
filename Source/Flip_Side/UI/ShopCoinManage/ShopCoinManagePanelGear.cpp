@@ -45,20 +45,17 @@ void AShopCoinManagePanelGear::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AShopCoinManagePanelGear::RotateGear(float Value)
 {
-    FRotator MoveRotator = FMath::Lerp(StartGearRotator, GearRotateDirection, Value);
+    FRotator MoveRotator = FMath::Lerp(StartGearRotator, ArriveGearRotator, Value);
+	if(IsGearRotateUp)
+		MoveRotator*=-1;
 	GearMesh->SetRelativeRotation(MoveRotator);
 }
 
 void AShopCoinManagePanelGear::ActiveGear(bool IsPanelMoveToBottom)
 {
+	StartGearRotator = GearMesh->GetRelativeRotation();
 	ArriveGearRotator = StartGearRotator + GearRotateDirection;
-	if(IsPanelMoveToBottom)
-	{
-		GearTimeline->ReverseFromEnd();
-	}
-	else
-	{
-		GearTimeline->PlayFromStart();
-	}
-		
+	IsGearRotateUp = IsPanelMoveToBottom;
+	ArriveGearRotator = StartGearRotator + GearRotateDirection;
+	GearTimeline->PlayFromStart();
 }
