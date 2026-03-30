@@ -16,6 +16,7 @@
 #include "W_ReadyAndSlotCoinInfo.h"
 #include "Component_Status.h"
 #include "Blueprint/UserWidget.h"
+#include "WeaponRangePreviewActor.h"
 
 #define READY_COIN_NUM 10
 
@@ -407,8 +408,8 @@ void UCoinManagementWSubsystem::InstanceCoins()
                         }
                     }
                 }
-                CoinSlots[SlotIndex]->SetFrontFaceInfo(FrontWP.WeaponIcon, FText::FromString(FrontWP.WeaponName),FText::FromString(FrontWP.KOR_DES),FrontWP.BehaviorPoint,FrontWP.AttackPoint);
-                CoinSlots[SlotIndex]->SetBackFaceInfo(BackWP.WeaponIcon, FText::FromString(BackWP.WeaponName),FText::FromString(BackWP.KOR_DES),BackWP.BehaviorPoint,BackWP.AttackPoint);
+                CoinSlots[SlotIndex]->SetFrontFaceInfo(FrontWP.WeaponIcon, FText::FromString(FrontWP.WeaponName),FText::FromString(FrontWP.KOR_DES),FrontWP.BehaviorPoint,FrontWP.AttackPoint, FrontWP.AttackAreaSpec);
+                CoinSlots[SlotIndex]->SetBackFaceInfo(BackWP.WeaponIcon, FText::FromString(BackWP.WeaponName),FText::FromString(BackWP.KOR_DES),BackWP.BehaviorPoint,BackWP.AttackPoint, BackWP.AttackAreaSpec);
                 SlotIndex++;
             }
         }
@@ -435,13 +436,27 @@ void UCoinManagementWSubsystem::HandleReadyCoinHovered(ACoinActor* HoveredCoin)
 {
     if(!HoveredCoin) return;
 
-    int32 SlotIndex = HoveredCoin->GetSlotNum(); 
+    int32 SlotIndex = HoveredCoin->GetSlotNum();
     if(SlotIndex != -1)
     {
         if (ReadyCoinInfoWidgetInstance)
-        {   
+        {
             SetCoinInfoWidgetData(CoinSlots[SlotIndex]->FrontFaceInfo, CoinSlots[SlotIndex]->BackFaceInfo);
             ReadyCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+        }
+
+        // 사거리 미리보기 그리드에 앞뒷면 사거리 표시
+        TArray<AActor*> Found;
+        UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWeaponRangePreviewActor::StaticClass(), Found);
+        if (Found.Num() > 0)
+        {
+            if (AWeaponRangePreviewActor* Preview = Cast<AWeaponRangePreviewActor>(Found[0]))
+            {
+                Preview->ShowBothFacePreview(
+                    CoinSlots[SlotIndex]->FrontFaceInfo.AttackAreaSpec,
+                    CoinSlots[SlotIndex]->BackFaceInfo.AttackAreaSpec
+                );
+            }
         }
     }
 }
@@ -449,6 +464,17 @@ void UCoinManagementWSubsystem::HandleReadyCoinHovered(ACoinActor* HoveredCoin)
 void UCoinManagementWSubsystem::HandleCoinUnHovered()
 {
     ReadyCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+
+    // 사거리 미리보기 초기화
+    TArray<AActor*> Found;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWeaponRangePreviewActor::StaticClass(), Found);
+    if (Found.Num() > 0)
+    {
+        if (AWeaponRangePreviewActor* Preview = Cast<AWeaponRangePreviewActor>(Found[0]))
+        {
+            Preview->ClearPreview();
+        }
+    }
 }
 
 void UCoinManagementWSubsystem::HandleReadyCoinClicked(ACoinActor* ClickedCoin)
@@ -460,8 +486,22 @@ void UCoinManagementWSubsystem::HandleCoinSlotHovered(ACoinSlotActor* TargetCoin
 {
     if(!TargetCoinSlot) return;
 
-    SetCoinInfoWidgetData(TargetCoinSlot->FrontFaceInfo, TargetCoinSlot->BackFaceInfo); 
+    SetCoinInfoWidgetData(TargetCoinSlot->FrontFaceInfo, TargetCoinSlot->BackFaceInfo);
     ReadyCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+
+    // 사거리 미리보기 그리드에 앞뒷면 사거리 표시
+    TArray<AActor*> Found;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWeaponRangePreviewActor::StaticClass(), Found);
+    if (Found.Num() > 0)
+    {
+        if (AWeaponRangePreviewActor* Preview = Cast<AWeaponRangePreviewActor>(Found[0]))
+        {
+            Preview->ShowBothFacePreview(
+                TargetCoinSlot->FrontFaceInfo.AttackAreaSpec,
+                TargetCoinSlot->BackFaceInfo.AttackAreaSpec
+            );
+        }
+    }
 }
 
 void UCoinManagementWSubsystem::HandleCoinSlotClicked(ACoinActor* ReadyTargetCoin)

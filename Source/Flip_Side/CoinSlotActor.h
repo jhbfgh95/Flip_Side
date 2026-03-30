@@ -6,6 +6,7 @@
 #include "SlotActor.h"
 #include "BattleHoverInterface.h"
 #include "BattleClickInterface.h"
+#include "AttackAreaTypes.h"
 #include "CoinSlotActor.generated.h"
 
 class ACoinActor;
@@ -20,6 +21,7 @@ struct FCoinWidgetInfoData
 	FText RawDescription;
 	int32 DefaultBP;
 	int32 DefaultAP;
+	FAttackAreaSpec AttackAreaSpec;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCoinSlotHovered, ACoinSlotActor*, TargetCoinSlot);
@@ -50,25 +52,28 @@ public:
 
 	void SetFrontFaceInfo(
 		class UTexture2D* Icon,
-		const FText& WeaponName, 
+		const FText& WeaponName,
 		const FText& RawDescription,
-		int32 DefaultBP, 
-		int32 DefaultAP
+		int32 DefaultBP,
+		int32 DefaultAP,
+		const FAttackAreaSpec& Spec
 	)
-		{
+	{
 		FrontFaceInfo.Icon = Icon;
 		FrontFaceInfo.WeaponName = WeaponName;
 		FrontFaceInfo.RawDescription = RawDescription;
 		FrontFaceInfo.DefaultBP = DefaultBP;
 		FrontFaceInfo.DefaultAP = DefaultAP;
+		FrontFaceInfo.AttackAreaSpec = Spec;
 	}
 
 	void SetBackFaceInfo(
 		class UTexture2D* Icon,
-		const FText& WeaponName, 
+		const FText& WeaponName,
 		const FText& RawDescription,
-		int32 DefaultBP, 
-		int32 DefaultAP
+		int32 DefaultBP,
+		int32 DefaultAP,
+		const FAttackAreaSpec& Spec
 	)
 	{
 		BackFaceInfo.Icon = Icon;
@@ -76,6 +81,7 @@ public:
 		BackFaceInfo.RawDescription = RawDescription;
 		BackFaceInfo.DefaultBP = DefaultBP;
 		BackFaceInfo.DefaultAP = DefaultAP;
+		BackFaceInfo.AttackAreaSpec = Spec;
 	}
 
 	UPROPERTY(VisibleAnywhere)

@@ -5,6 +5,7 @@
 #include "CoinActor.h"
 #include "BossManagerSubsystem.h"
 #include "FlipSideDevloperSettings.h"
+#include "WeaponRangePreviewActor.h"
 
 bool UGridManagerSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -185,7 +186,7 @@ void UGridManagerSubsystem::GetObjectsAtRange(
     {
         const int32 Depth = FMath::Max(1, Spec.ParamB);
 
-        if (Spec.Side == EAreaSide::Left)
+        if (Spec.Side == EAreaSide::Up)
         {
             const int32 MaxY = AnchorY + Depth;
             bReachedBossLine = (MaxY >= GridYSize);
@@ -497,15 +498,73 @@ void UGridManagerSubsystem::BuildCoinTargetCells(
     }
 }
 
-void UGridManagerSubsystem::PreviewHoveredCoinRange(const FGridPoint & CoinXY, const FAttackAreaSpec & Spec)
+void UGridManagerSubsystem::PreviewHoveredCoinRange(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec)
 {
+	UE_LOG(LogTemp, Log, TEXT("PreviewHoveredCoinRange 호출됨 - CoinXY(%d,%d), PreviewActor유효:%s"),
+		CoinXY.GridX, CoinXY.GridY, IsValid(PreviewActor) ? TEXT("YES") : TEXT("NO"));
 
+	ResetBattleCoinPreview();
+
+	// 사거리 계산 (단일 진실 공급원)
+	TArray<FGridPoint> RangeCells;
+
+	if (Spec.Pattern == EAttackAreaPattern::SingleCell)
+	{
+		GetValidGridsForSingleCell(CoinXY, Spec, RangeCells);
+	}
+	else
+	{
+		FGridAreaBuilder::BuildCells(Spec, GridXSize, GridYSize, RangeCells);
+	}
+
+	// 메인 그리드 하이라이트
+	if (AGridActor* CoinCell = GetGridActorAt(CoinXY.GridX, CoinXY.GridY))
+	{
+		CoinCell->ApplyCellMaterialParams(FLinearColor(0.f, 1.f, 0.3f, 1.f), 0.8f, 0.f);
+	}
+	MainPreviewCoinCell = CoinXY;
+
+	for (const FGridPoint& P : RangeCells)
+	{
+		if (P.GridX == CoinXY.GridX && P.GridY == CoinXY.GridY) continue;
+
+		if (AGridActor* Cell = GetGridActorAt(P.GridX, P.GridY))
+		{
+			Cell->ApplyCellMaterialParams(FLinearColor(1.f, 0.5f, 0.f, 1.f), 0.8f, 0.f);
+		}
+	}
+	MainPreviewHighlightedCells = RangeCells;
+
+	// PreviewActor에 계산된 RangeCells 전달
+	if (IsValid(PreviewActor))
+	{
+		PreviewActor->ShowPreview(CoinXY, RangeCells);
+	}
 }
 
 //이것도 해주세용 사거리 칠한거 다시 되돌리는거
 void UGridManagerSubsystem::ResetBattleCoinPreview()
 {
+	if (IsValid(PreviewActor))
+	{
+		PreviewActor->ClearPreview();
+	}
 
+	// 메인 그리드 초기화
+	for (const FGridPoint& P : MainPreviewHighlightedCells)
+	{
+		if (AGridActor* Cell = GetGridActorAt(P.GridX, P.GridY))
+		{
+			Cell->InitColor();
+		}
+	}
+	MainPreviewHighlightedCells.Reset();
+
+	if (AGridActor* CoinCell = GetGridActorAt(MainPreviewCoinCell.GridX, MainPreviewCoinCell.GridY))
+	{
+		CoinCell->InitColor();
+	}
+	MainPreviewCoinCell = FGridPoint{ -1, -1 };
 }
 
 // GridManagerSubsystem.cpp

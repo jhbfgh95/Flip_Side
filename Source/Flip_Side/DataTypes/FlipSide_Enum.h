@@ -94,6 +94,7 @@ enum class EItemType : uint8
 UENUM(BlueprintType)
 enum class ESingleCellWeaponType : uint8
 {
-    TypeA UMETA(DisplayName = "TypeA"),   // 0
-    TypeB UMETA(DisplayName = "TypeB"),   // 1
+    Coin UMETA(DisplayName = "Coin"),   // 0
+    Grid UMETA(DisplayName = "Grid"),   // 1
+    Other UMETA(DisplayName = "Other")
 };
