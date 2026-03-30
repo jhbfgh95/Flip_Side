@@ -10,6 +10,7 @@
 
 class AGridActor;
 class ACoinActor;
+class AWeaponRangePreviewActor;
 
 USTRUCT(BlueprintType)
 struct FCoinOnGridInfo
@@ -117,6 +118,9 @@ public:
 	void ClearBossAttackPreview();
 	*/
 
+	// WeaponRangePreviewActor가 BeginPlay에서 자신을 등록
+	void RegisterPreviewActor(AWeaponRangePreviewActor* Actor) { PreviewActor = Actor; }
+
 	using FCoinPred = TFunctionRef<bool(const FCoinOnGridInfo&)>;
 
 	void BuildCoinTargetCells(
@@ -143,4 +147,11 @@ private:
 private:
 	UPROPERTY()
 	TMap<FGridPoint, TObjectPtr<AGridActor>> GridActors;
+
+	UPROPERTY()
+	TObjectPtr<AWeaponRangePreviewActor> PreviewActor = nullptr;
+
+	// 메인 그리드 미리보기 상태 추적 (ResetBattleCoinPreview용)
+	TArray<FGridPoint> MainPreviewHighlightedCells;
+	FGridPoint MainPreviewCoinCell = FGridPoint{ -1, -1 };
 };
