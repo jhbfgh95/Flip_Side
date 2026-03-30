@@ -197,14 +197,11 @@ void UShopCoinWSubsystem::ChangeCoinSlotByIndex(int32 SlotNum)
 //현재 코인슬롯을 개방
 void UShopCoinWSubsystem::UnlockCurrentCoinSlot()
 {
-    UE_LOG(LogTemp, Warning, TEXT("%d"), ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock);
     if(!ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock)
     {
-        UE_LOG(LogTemp, Warning, TEXT("%d"), ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock);
         ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock = true;
         OnUnlockCoinSlot.Broadcast();
     }
-    
     
 }
 
@@ -223,4 +220,10 @@ void UShopCoinWSubsystem::UnlockCoin()
 int32 UShopCoinWSubsystem::GetCurrentCoinCount()
 {
     return ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum;
+}
+
+
+void UShopCoinWSubsystem::ChangeSlotCoinSide(bool IsChangedSideFront)
+{
+    OnChangeSlotCoinSide.Broadcast(IsChangedSideFront);
 }

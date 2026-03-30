@@ -43,7 +43,7 @@ void AShopCoinManageCoin::BeginPlay()
 	FOnTimelineEvent FinishedCoinTrunCallBack;
 	FinishedCoinTrunCallBack.BindUFunction(this, FName("FinishedTurnCoin"));
 	CoinTurnTimeline->SetTimelineFinishedFunc(FinishedCoinTrunCallBack);
-	
+	InitRotator = CoinMesh->GetRelativeRotation();
 	StartRotator = CoinMesh->GetRelativeRotation();
 }
 
@@ -67,6 +67,17 @@ void AShopCoinManageCoin::ChangeCoinSide()
 	StartRotator = CoinMesh->GetRelativeRotation();
 	ArriveRotator = StartRotator + CoinTurnRotator;
 
+	if(IsFront)
+	{
+		IsFront = false;
+	}
+	else
+	{
+		IsFront = true;
+	}
+	
+	ShopCoinSubsystem->ChangeSlotCoinSide(IsFront);
+	
 	CoinTurnTimeline->PlayFromStart();
 	
 }
@@ -77,6 +88,9 @@ void AShopCoinManageCoin::InteractLeftClick_Implementation()
 }	
 void AShopCoinManageCoin::InitCoin()
 {
+	IsFront = true;
+	CoinMesh->SetRelativeRotation(InitRotator);
+
 	UMaterialInstanceDynamic* MID = CoinMesh->CreateDynamicMaterialInstance(0);
 
 	if(MID)
@@ -90,7 +104,6 @@ void AShopCoinManageCoin::InitCoin()
 		
 		if(DataManagerSubsystem->TryGetWeapon(CoinData.FrontWeaponID, FrontFaceData))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("앞면 아이콘 설정"));
 			MID->SetTextureParameterValue(FName("Front_Texture"), FrontFaceData.WeaponIcon);
 			MID->SetVectorParameterValue(FName("Front_Color"), FrontFaceData.TypeColor);
 		}
@@ -101,7 +114,6 @@ void AShopCoinManageCoin::InitCoin()
 
 		if(DataManagerSubsystem->TryGetWeapon(CoinData.BackWeaponID, BackFaceData))
 		{	
-			UE_LOG(LogTemp, Warning, TEXT("뒷면아이콘  설정"));
 			MID->SetTextureParameterValue(FName("Back_Texture"), BackFaceData.WeaponIcon);
 			MID->SetVectorParameterValue(FName("Back_Color"), BackFaceData.TypeColor);
 		}

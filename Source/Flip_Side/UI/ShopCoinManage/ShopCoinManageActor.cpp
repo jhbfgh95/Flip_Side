@@ -82,12 +82,10 @@ void AShopCoinManageActor::ChangePanelToBottom()
 	if(CurrentShowPanel == CoinMPanel1)
 	{
 		Panel2Class->InitPanel();
-		Panel1Class->InitPanelToStart();
 	}
 	else
 	{
 		Panel1Class->InitPanel();
-		Panel2Class->InitPanelToStart();
 	}
 	MoveToBottomTimeline->PlayFromStart();
 }
@@ -97,12 +95,10 @@ void AShopCoinManageActor::ChangePanelToTop()
 	if(CurrentShowPanel == CoinMPanel1)
 	{
 		Panel2Class->InitPanel();
-		Panel1Class->InitPanelToStart();
 	}
 	else
 	{
 		Panel1Class->InitPanel();
-		Panel2Class->InitPanelToStart();
 	}
 	
 	MoveToTopTimeline->PlayFromStart();
@@ -124,15 +120,7 @@ void AShopCoinManageActor::FinishMovePanelToBottom()
 	CurrentShowPanel = CurrentTopPanel; 
 	CurrentTopPanel = CurrentBottomPanel;
 
-	if(CurrentShowPanel == CoinMPanel1)
-	{
-		Panel1Class->InitPanelAfterArrive();
-	}
-	else
-	{
-		Panel2Class->InitPanelAfterArrive();
-	}
-	
+
 	ShopController->SetLockMouse(false);
 	
 }
@@ -153,14 +141,7 @@ void AShopCoinManageActor::FinishMovePanelToTop()
 	CurrentShowPanel = CurrentBottomPanel;
 	CurrentBottomPanel = CurrentTopPanel;
 
-	if(CurrentShowPanel == CoinMPanel1)
-	{
-		Panel1Class->InitPanelAfterArrive();
-	}
-	else
-	{
-		Panel2Class->InitPanelAfterArrive();
-	}
+
 	
 	ShopController->SetLockMouse(false);
 }

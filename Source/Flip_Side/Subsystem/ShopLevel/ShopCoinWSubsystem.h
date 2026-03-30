@@ -41,6 +41,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeCoinSlot, bool, IsChangeToBot
 
 /*코인 슬롯 해금시 델리게이트*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockCoinSlot);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeSlotCoinSide, bool, IsFront);
 /*코안 제작 시작 시 데이터 값을 넘기는 델리게이트*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCoinCreated, int32, CreatedCoinIndex, EWeaponClass, CreateWeaponClass );
 
@@ -68,7 +69,7 @@ public:
 	FCoinCountUpdate OnCoinCountUpdate;
 	FUnlockCoinSlot OnUnlockCoinSlot;
 	FCoinCreated OnCoinCreated;
-
+	FChangeSlotCoinSide OnChangeSlotCoinSide;
 private:
 	//코인 개수를 증가 시킬수 있는가?
 	bool CanIncreaseCoin(int32 SlotNum);
@@ -110,4 +111,6 @@ public:
 	void SetSlotCoin(FCoinTypeStructure SetCoinInfo, EWeaponClass CoinClass);
 
 	int32 GetCurrentCoinCount();
+
+	void ChangeSlotCoinSide(bool IsChangedSideFront);
 };
