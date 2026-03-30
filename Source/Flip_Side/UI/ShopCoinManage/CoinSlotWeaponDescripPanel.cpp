@@ -71,26 +71,30 @@ void ACoinSlotWeaponDescripPanel::SetPanel(bool IsSlotCoinFront)
 	else
 	{
 		FFaceData FaceData;
-		if(IsSlotCoinFront)
+		if(CoinData.FrontWeaponID == -1 || CoinData.BackWeaponID == -1)
 		{
-			if(CoinData.FrontWeaponID != -1)
-			{
-				DataManager->TryGetWeapon(CoinData.FrontWeaponID, FaceData);
-				SetPanelDescrip(FaceData);
-			}
-			else
-				DescripWidgetClass->SetExplainText(TEXT(""), TEXT("무기가 장착되지 않았습니다. 해당코인은 전투에 참여하지 않습니다."),-1,-1);
+			DescripWidgetClass->SetExplainText(TEXT(""), TEXT("양면에 무기가 장착되지 않았습니다. 해당코인은 전투에 참여하지 않습니다."),-1,-1);
 		}
 		else
 		{
-			if(CoinData.BackWeaponID != -1)
+			if(IsSlotCoinFront)
 			{
-				DataManager->TryGetWeapon(CoinData.BackWeaponID, FaceData);
-				SetPanelDescrip(FaceData);
+				if(CoinData.FrontWeaponID != -1)
+				{
+					DataManager->TryGetWeapon(CoinData.FrontWeaponID, FaceData);
+					SetPanelDescrip(FaceData);
+				}
 			}
 			else
-				DescripWidgetClass->SetExplainText(TEXT(""), TEXT("무기가 장착되지 않았습니다. 해당코인은 전투에 참여하지 않습니다."),-1,-1);
+			{
+				if(CoinData.BackWeaponID != -1)
+				{
+					DataManager->TryGetWeapon(CoinData.BackWeaponID, FaceData);
+					SetPanelDescrip(FaceData);
+				}
+			}
 		}
+		
 		
 	}
 	
