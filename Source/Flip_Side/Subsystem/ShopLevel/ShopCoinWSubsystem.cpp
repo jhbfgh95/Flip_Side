@@ -227,3 +227,11 @@ void UShopCoinWSubsystem::ChangeSlotCoinSide(bool IsChangedSideFront)
 {
     OnChangeSlotCoinSide.Broadcast(IsChangedSideFront);
 }
+	
+bool UShopCoinWSubsystem::GetCoinUnlockByIndex(int32 index)
+{
+    if(0<=index&&index<ShopCoinSlotArray.Num())
+        return ShopCoinSlotArray[index].IsUnlock;
+    else
+        return false;
+}

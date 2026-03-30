@@ -88,6 +88,7 @@ public:
 	void UnlockCurrentCoinSlot();
 	//현재 코인슬롯이 해금되었는지 반환
 	bool GetCurrentCoinUnlock();
+	bool GetCoinUnlockByIndex(int32 index);
 	//현재 코인슬롯 번호에 해당하는 코인 정보를 가져옴
 	FCoinTypeStructure GetSlotCoin(int32 index);
 	EWeaponClass GetSlotCoinClass(int32 index);
