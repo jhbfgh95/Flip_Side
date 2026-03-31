@@ -41,6 +41,7 @@ public:
 		const FText& WeaponName, 
 		const FText& RawDescription,
 		int32 DefaultBP, 
-		int32 DefaultAP
+		int32 DefaultAP,
+		FLinearColor typeColor
 	);
 };

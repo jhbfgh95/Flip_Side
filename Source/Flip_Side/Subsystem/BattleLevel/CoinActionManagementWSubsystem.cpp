@@ -82,6 +82,7 @@ void UCoinActionManagementWSubsystem::InitWeaponAction()
     SelectedAction->SetFinalAttackPoint(-1);
     SelectedAction->SetFinalBehaviorPoint(-1);
     SelectedAction->SetCasterCoin(nullptr);
+    SelectedAction->SetInRangeBoss(nullptr);
     RepeatActionCnt = 1;
     CurrentInputState = EActionInputState::None;
     ValidTargetGrids.Empty();
@@ -213,7 +214,18 @@ void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedC
     {
         if(AreaSpec.Pattern == EAttackAreaPattern::SingleCell)
         {
-            CurrentInputState = EActionInputState::WaitingForCoinClick;
+            if(AreaSpec.ParamB == 0)
+            {
+                CurrentInputState = EActionInputState::WaitingForCoinClick;
+            }
+            else if(AreaSpec.ParamB == 1)
+            {
+                CurrentInputState = EActionInputState::WaitingForGridClick;
+            }
+            else if(AreaSpec.ParamB == 2)
+            {
+                CurrentInputState = EActionInputState::WaitingForOtherClick;
+            }
         }
         else
         {
@@ -226,11 +238,17 @@ void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedC
     {
         ExecuteTimeAction(ClickedCoin);
     }
-    else
+    /*
+    else if(CurrentInputState == EActionInputState::WaitingForGridClick)
     {
-        return;
-    }
+        //GridManager에 신호보내기
 
+    }
+    else if()
+    {
+        //OtherManager에 신호보내기
+    }
+        */
 }
 
 //즉발 즉, 하나 선택X

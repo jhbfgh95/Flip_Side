@@ -157,8 +157,8 @@ void UCrossingLevelGISubsystem::GenerateTestCoin()
     SlotTestCoin1.FrontWeaponID = 7;
     SlotTestCoin1.BackWeaponID = 8;
 
-    SlotTestCoin2.FrontWeaponID = 12;
-    SlotTestCoin2.BackWeaponID = 13;
+    SlotTestCoin2.FrontWeaponID = 14;
+    SlotTestCoin2.BackWeaponID = 15;
 
     SetSlotCoin(0, SlotTestCoin);
     SetSlotCoin(1, SlotTestCoin1);

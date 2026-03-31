@@ -64,6 +64,11 @@ void ACoinActor::BeginPlay()
 
 		CoinHPUI->SetVisibility(false);
 	}
+
+	if(StatComponent)
+	{
+		StatComponent->OnDead.AddDynamic(this, &ACoinActor::CoinDead);
+	}
 }
 
 void ACoinActor::Tick(float DeltaTime)
@@ -327,4 +332,10 @@ void ACoinActor::OnClicked_Implementation()
 			return;
 		}
 	}
+}
+
+void ACoinActor::CoinDead()
+{
+	//frag로 막 깨지는거 + 폭발로 연출
+	Destroy();
 }

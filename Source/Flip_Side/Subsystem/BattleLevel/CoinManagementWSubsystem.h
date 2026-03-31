@@ -10,6 +10,8 @@
 #include "CoinSlotActor.h"
 #include "CoinManagementWSubsystem.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRangeWanted);
+
 class ACoinActor;
 
 UCLASS()
@@ -94,4 +96,7 @@ public:
 
 	void LockCoinReady(ACoinActor* TargetCoin);
 
+	//외부 사거리 카메라에 바인딩할 델리게이트
+	UPROPERTY(BlueprintAssignable, Category = "Events|Hover")
+	FOnRangeWanted OnRangeWanted;
 };

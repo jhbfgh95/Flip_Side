@@ -122,12 +122,6 @@ bool UBossManagerSubsystem::StartBossSetting()
         return false;
     }
 
-    if (CurrentBoss->IsDead())
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[BossManager] StartBossSetting failed: boss dead"));
-        return false;
-    }
-
     if (!PrepareCurrentPattern())
     {
         UE_LOG(LogTemp, Warning, TEXT("[BossManager] StartBossSetting failed: PrepareCurrentPattern failed"));
@@ -199,14 +193,7 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
         ClearCurrentTurn();
         return;
     }
-
-    if (CurrentBoss->IsDead())
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[BossManager] ExecuteCurrentPattern skipped: boss dead"));
-        ClearCurrentTurn();
-        return;
-    }
-
+    
     CurrentBoss->PlayAttack();
 
     UWorld* World = GetWorld();

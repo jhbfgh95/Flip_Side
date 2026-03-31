@@ -16,8 +16,6 @@ void UWeaponLogicLibrary::Test_Logic(UWeapon_Action* WeaponContext)
 //쇠파이프↓
 void UWeaponLogicLibrary::SteelPipe_Logic(UWeapon_Action* WeaponContext)
 {
-    UE_LOG(LogTemp, Warning, TEXT("SteelPipe ON"));
-
     if(!WeaponContext) return;
 
     ABossActor* Boss;
@@ -29,12 +27,11 @@ void UWeaponLogicLibrary::SteelPipe_Logic(UWeapon_Action* WeaponContext)
 
     int32 FinalDmg = AP * BP;
 
-    UComponent_Status* TargetStat = Boss->GetStatusComponent();
-
-    if(TargetStat)
+    if(Boss)
     {
-        TargetStat->ApplyDamage(FinalDmg, WeaponContext->GetCasterCoin());
+        Boss->ApplyDamage(FinalDmg, WeaponContext->GetCasterCoin());
     }
+
 
     UE_LOG(LogTemp, Warning, TEXT("SteelPipe ON"));
 }
@@ -51,11 +48,9 @@ void UWeaponLogicLibrary::SteamChainSaw_Logic(UWeapon_Action* WeaponContext)
 
     int32 FinalDmg = AP;
 
-    UComponent_Status* TargetStat = Boss->GetStatusComponent();
-
-    if(TargetStat)
+    if(Boss)
     {
-        TargetStat->ApplyDamage(FinalDmg, WeaponContext->GetCasterCoin());
+        Boss->ApplyDamage(FinalDmg, WeaponContext->GetCasterCoin());
     }
 
     UE_LOG(LogTemp, Warning, TEXT("Logic Chainsaw"));
@@ -90,10 +85,10 @@ void UWeaponLogicLibrary::BloodCanon_Logic(UWeapon_Action* WeaponContext)
 
     AP += BP;
 
-    TargetStat = Boss->GetStatusComponent();
-
-    TargetStat->ApplyDamage(AP, WeaponContext->GetCasterCoin());
-
+    if(Boss)
+    {
+        Boss->ApplyDamage(AP, WeaponContext->GetCasterCoin());
+    }
 }
 //자동터렛↓
 void UWeaponLogicLibrary::AutoTurretSet_Logic(UWeapon_Action* WeaponContext)
@@ -249,9 +244,6 @@ void UWeaponLogicLibrary::Adrenaline_Logic(UWeapon_Action* WeaponContext)
     });
 
     TargetStat->AddBuffs(Info);
-
-    UE_LOG(LogTemp, Warning, TEXT("긴급소생 적용"));
-
     
 }
 //증폭조준↓

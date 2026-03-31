@@ -2,11 +2,17 @@
 
 
 #include "UI/W_BossHP.h"
+#include "Components/Image.h"
 #include "Components/ProgressBar.h"
 
 void UW_BossHP::NativeConstruct()
 {
     Super::NativeConstruct();
+
+    if(ClearImage) 
+    {
+        ClearImage->SetVisibility(ESlateVisibility::Hidden);
+    }
 }
 
 void UW_BossHP::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -92,7 +98,7 @@ void UW_BossHP::ChangeMaxHp(int32 AddMaxHp)
 
 void UW_BossHP::ChangeCurrentHp(int32 AddHpValue)
 {
-    StartPercent = CurrentHp/MaxHp;
+    StartPercent = (float)CurrentHp/MaxHp;
 
     if( MaxHp <= CurrentHp + AddHpValue )
     {
@@ -109,7 +115,6 @@ void UW_BossHP::ChangeCurrentHp(int32 AddHpValue)
     }
 
     TargetPercent = (float)CurrentHp/MaxHp;
-
 
     StartHpAnimation();
 }
@@ -138,14 +143,14 @@ void UW_BossHP::ChangeMaxShield(int32 AddMaxShield)
 
     StartShieldAnimation();
 }
-	
+
 void UW_BossHP::ChangeCurrentShield(int32 AddShieldValue)
 {
-    StartPercent = CurrentShield/MaxShield;
+    StartPercent = (float)CurrentShield/MaxShield;
 
-    if( MaxHp <= CurrentShield + AddShieldValue )
+    if( MaxShield <= CurrentShield + AddShieldValue )
     {
-        CurrentShield = MaxHp;
+        CurrentShield = MaxShield;
     }
     else if(CurrentShield + AddShieldValue<=0)
     {
@@ -156,11 +161,9 @@ void UW_BossHP::ChangeCurrentShield(int32 AddShieldValue)
         CurrentShield += AddShieldValue;
     }
 
-
-    TargetPercent = CurrentShield/MaxShield;
+    TargetPercent = (float)CurrentShield/MaxShield;
 
     StartShieldAnimation();
-
 }
 	
 void UW_BossHP::SetBossHpPercentage(float Perecetage)
@@ -189,4 +192,13 @@ void UW_BossHP::StartShieldAnimation()
 
 	AnimTime = 0;
     IsShieldAnimating = true;
+}
+
+void UW_BossHP::ShowClearImage()
+{
+    if (ClearImage)
+    {
+        // 이미지를 화면에 보여줍니다 (클릭 이벤트를 무시하려면 HitTestInvisible 추천)
+        ClearImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+    }
 }

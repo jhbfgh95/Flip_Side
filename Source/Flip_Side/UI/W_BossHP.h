@@ -31,10 +31,14 @@ private:
 	float TargetPercent;
 
 private:
+	UPROPERTY(VisibleAnywhere, Category = "HP")
 	int32 MaxHp;
+	UPROPERTY(VisibleAnywhere,  Category = "HP")
 	int32 CurrentHp;
 
+	UPROPERTY(VisibleAnywhere,  Category = "Shield")
 	int32 MaxShield;
+	UPROPERTY(VisibleAnywhere,  Category = "Shield")
 	int32 CurrentShield;
 
 	private:
@@ -44,6 +48,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* ShieldProgressBar;
 
+	UPROPERTY(meta = (BindWidget))
+    class UImage* ClearImage;
+
 private:
 	void SetBossHpPercentage(float Perecetage);
 	void SetBossShieldPercentage(float Perecetage);
@@ -52,7 +59,7 @@ private:
 	void StartShieldAnimation();
 
 
-	public:
+public:
 
 	void InitBossHp(int32 SetMaxHp);
 	void InitBossShield(int32 SetMaxShield);
@@ -62,5 +69,10 @@ private:
 
 	void ChangeMaxShield(int32 AddMaxShield);
 	void ChangeCurrentShield(int32 AddShieldValue);
+
+
+
+	UFUNCTION()
+	void ShowClearImage();
 
 };

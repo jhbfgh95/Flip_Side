@@ -408,8 +408,8 @@ void UCoinManagementWSubsystem::InstanceCoins()
                         }
                     }
                 }
-                CoinSlots[SlotIndex]->SetFrontFaceInfo(FrontWP.WeaponIcon, FText::FromString(FrontWP.WeaponName),FText::FromString(FrontWP.KOR_DES),FrontWP.BehaviorPoint,FrontWP.AttackPoint, FrontWP.AttackAreaSpec);
-                CoinSlots[SlotIndex]->SetBackFaceInfo(BackWP.WeaponIcon, FText::FromString(BackWP.WeaponName),FText::FromString(BackWP.KOR_DES),BackWP.BehaviorPoint,BackWP.AttackPoint, BackWP.AttackAreaSpec);
+                CoinSlots[SlotIndex]->SetFrontFaceInfo(FrontWP.WeaponIcon, FText::FromString(FrontWP.WeaponName),FText::FromString(FrontWP.KOR_DES),FrontWP.BehaviorPoint,FrontWP.AttackPoint, FrontWP.AttackAreaSpec, TypeDatas.TypeColor);
+                CoinSlots[SlotIndex]->SetBackFaceInfo(BackWP.WeaponIcon, FText::FromString(BackWP.WeaponName),FText::FromString(BackWP.KOR_DES),BackWP.BehaviorPoint,BackWP.AttackPoint, BackWP.AttackAreaSpec, TypeDatas.TypeColor);
                 SlotIndex++;
             }
         }
@@ -458,6 +458,7 @@ void UCoinManagementWSubsystem::HandleReadyCoinHovered(ACoinActor* HoveredCoin)
                 );
             }
         }
+        OnRangeWanted.Broadcast();
     }
 }
 
@@ -501,6 +502,8 @@ void UCoinManagementWSubsystem::HandleCoinSlotHovered(ACoinSlotActor* TargetCoin
                 TargetCoinSlot->BackFaceInfo.AttackAreaSpec
             );
         }
+        OnRangeWanted.Broadcast();
+
     }
 }
 
@@ -523,7 +526,8 @@ void UCoinManagementWSubsystem::SetCoinInfoWidgetData(FCoinWidgetInfoData& Front
         FrontWeaponData.WeaponName,
         FrontWeaponData.RawDescription,
         FrontWeaponData.DefaultBP,
-        FrontWeaponData.DefaultAP
+        FrontWeaponData.DefaultAP,
+        FrontWeaponData.TypeColor
     );
                     
     ReadyCoinInfoWidgetInstance->SetReadyCoinInfo(
@@ -532,6 +536,7 @@ void UCoinManagementWSubsystem::SetCoinInfoWidgetData(FCoinWidgetInfoData& Front
         BackWeaponData.WeaponName,
         BackWeaponData.RawDescription,
         BackWeaponData.DefaultBP,
-        BackWeaponData.DefaultAP
+        BackWeaponData.DefaultAP,
+        BackWeaponData.TypeColor
     );
 }

@@ -22,6 +22,7 @@ struct FCoinWidgetInfoData
 	int32 DefaultBP;
 	int32 DefaultAP;
 	FAttackAreaSpec AttackAreaSpec;
+	FLinearColor TypeColor;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCoinSlotHovered, ACoinSlotActor*, TargetCoinSlot);
@@ -34,9 +35,6 @@ class FLIP_SIDE_API ACoinSlotActor : public ASlotActor, public IBattleHoverInter
 	GENERATED_BODY()
 
 	ACoinSlotActor();
-	
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* InvisiblePlane;
 
 	int32 OutCoinNum = 0;
 	
@@ -56,7 +54,8 @@ public:
 		const FText& RawDescription,
 		int32 DefaultBP,
 		int32 DefaultAP,
-		const FAttackAreaSpec& Spec
+		const FAttackAreaSpec& Spec,
+		FLinearColor typeColor
 	)
 	{
 		FrontFaceInfo.Icon = Icon;
@@ -65,6 +64,7 @@ public:
 		FrontFaceInfo.DefaultBP = DefaultBP;
 		FrontFaceInfo.DefaultAP = DefaultAP;
 		FrontFaceInfo.AttackAreaSpec = Spec;
+		FrontFaceInfo.TypeColor = typeColor;
 	}
 
 	void SetBackFaceInfo(
@@ -73,7 +73,8 @@ public:
 		const FText& RawDescription,
 		int32 DefaultBP,
 		int32 DefaultAP,
-		const FAttackAreaSpec& Spec
+		const FAttackAreaSpec& Spec,
+		FLinearColor typeColor
 	)
 	{
 		BackFaceInfo.Icon = Icon;
@@ -82,15 +83,16 @@ public:
 		BackFaceInfo.DefaultBP = DefaultBP;
 		BackFaceInfo.DefaultAP = DefaultAP;
 		BackFaceInfo.AttackAreaSpec = Spec;
+		BackFaceInfo.TypeColor = typeColor;
 	}
 
 	UPROPERTY(VisibleAnywhere)
 	TArray<ACoinActor*> AllowcatedCoins;
 public:
-	UPROPERTY()
+    UPROPERTY(BlueprintAssignable, Category = "Events|Hover")
 	FOnCoinSlotHovered OnCoinSlotHovered;
 
-	UPROPERTY()
+    UPROPERTY(BlueprintAssignable, Category = "Events|Hover")
 	FOnCoinSlotUnHovered OnCoinSlotUnHovered;
 
 	UPROPERTY()

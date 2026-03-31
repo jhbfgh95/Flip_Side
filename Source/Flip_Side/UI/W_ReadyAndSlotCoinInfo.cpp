@@ -11,13 +11,14 @@ void UW_ReadyAndSlotCoinInfo::NativeConstruct()
 	Super::NativeConstruct();
 }
 
-void UW_ReadyAndSlotCoinInfo::SetReadyCoinInfo(bool FaceFlag, UTexture2D * Icon, const FText & WeaponName, const FText & RawDescription, int32 DefaultBP, int32 DefaultAP)
+void UW_ReadyAndSlotCoinInfo::SetReadyCoinInfo(bool FaceFlag, UTexture2D * Icon, const FText & WeaponName, const FText & RawDescription, int32 DefaultBP, int32 DefaultAP, FLinearColor typeColor)
 {
     if(FaceFlag)
     {
         if (HoveredFrontWeaponIcon && Icon)
         {
             HoveredFrontWeaponIcon->SetBrushFromTexture(Icon);
+            HoveredFrontWeaponIcon->SetColorAndOpacity(typeColor);
         }
         if (HoveredFrontWeaponName)
         {
@@ -43,6 +44,7 @@ void UW_ReadyAndSlotCoinInfo::SetReadyCoinInfo(bool FaceFlag, UTexture2D * Icon,
         if (HoveredBackWeaponIcon && Icon)
         {
             HoveredBackWeaponIcon->SetBrushFromTexture(Icon);
+            HoveredBackWeaponIcon->SetColorAndOpacity(typeColor);
         }
         if (HoveredBackWeaponName)
         {

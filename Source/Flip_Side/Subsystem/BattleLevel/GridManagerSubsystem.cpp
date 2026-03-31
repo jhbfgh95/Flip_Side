@@ -301,7 +301,7 @@ void UGridManagerSubsystem::GetObjectsAtRange(
             if (UBossManagerSubsystem* BossMgr = World->GetSubsystem<UBossManagerSubsystem>())
             {
                 ABossActor* Boss = BossMgr->GetCurrentBoss();
-                if (IsValid(Boss) && !Boss->IsDead())
+                if (IsValid(Boss))
                 {
                     Infos.Boss = Boss;
                 }
