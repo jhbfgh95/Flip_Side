@@ -18,7 +18,7 @@ ACoinActor::ACoinActor()
 
 	CoinMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Coin Mesh"));
 	CoinMesh->SetupAttachment(RootComponent);
-	
+
 	StatComponent = CreateDefaultSubobject<UComponent_Status>(TEXT("StatComponent"));
 
 	CoinHPUI = CreateDefaultSubobject<UWidgetComponent>(TEXT("Coin HP UI"));
@@ -29,16 +29,16 @@ ACoinActor::ACoinActor()
 	CurrentGridPoint.GridY = -1;
 }
 
-void ACoinActor::OnConstruction(const FTransform& Transform)
+void ACoinActor::OnConstruction(const FTransform &Transform)
 {
 	Super::OnConstruction(Transform);
 
-	//TypeColors DB에서 받아오기 / HP도 마찬가지 -> DB만들어주면 이거 고치기
-	if(FrontIconTexture && BackIconTexture)
+	// TypeColors DB에서 받아오기 / HP도 마찬가지 -> DB만들어주면 이거 고치기
+	if (FrontIconTexture && BackIconTexture)
 	{
-		UMaterialInstanceDynamic* MID = CoinMesh->CreateDynamicMaterialInstance(0);
+		UMaterialInstanceDynamic *MID = CoinMesh->CreateDynamicMaterialInstance(0);
 
-		if(MID)
+		if (MID)
 		{
 			MID->SetTextureParameterValue(FName("Front_Texture"), FrontIconTexture);
 			MID->SetTextureParameterValue(FName("Back_Texture"), BackIconTexture);
@@ -55,7 +55,7 @@ void ACoinActor::BeginPlay()
 	if (CoinHPUI)
 	{
 		HPWidget = Cast<UW_CoinHPWidget>(CoinHPUI->GetUserWidgetObject());
-		
+
 		if (HPWidget && StatComponent)
 		{
 			StatComponent->OnHpChanged.AddUObject(HPWidget, &UW_CoinHPWidget::ChangeCurrentHp);
@@ -73,40 +73,40 @@ void ACoinActor::Tick(float DeltaTime)
 
 int32 ACoinActor::GetSameTypeIndex() const
 {
-    return SameTypeIndex;
+	return SameTypeIndex;
 }
 
 int32 ACoinActor::GetFrontWeaponID() const
 {
-    return FrontWeaponID;
+	return FrontWeaponID;
 }
 
 void ACoinActor::DecrementSameTypeIndex()
 {
-    if (SameTypeIndex > 0)
-    {
-        SameTypeIndex--;
-    }
+	if (SameTypeIndex > 0)
+	{
+		SameTypeIndex--;
+	}
 }
 
 void ACoinActor::SetOriginSlotLocation(FVector InLoc)
 {
-    OriginSlotLocation = InLoc;
+	OriginSlotLocation = InLoc;
 }
 
 FVector ACoinActor::GetOriginSlotLocation() const
 {
-    return OriginSlotLocation;
+	return OriginSlotLocation;
 }
 
 void ACoinActor::SetSameTypeIndex(int32 NewIndex)
 {
-    SameTypeIndex = NewIndex;
+	SameTypeIndex = NewIndex;
 }
 
 void ACoinActor::IncrementSameTypeIndex()
 {
-    SameTypeIndex++;
+	SameTypeIndex++;
 }
 
 void ACoinActor::SetCoinIsReady(bool IsReady)
@@ -141,30 +141,31 @@ FGridPoint ACoinActor::GetDecidedGrid() const
 
 void ACoinActor::SetCoinFace(EFaceState DecidedFace)
 {
-	if(DecidedFace == EFaceState::None) return;
+	if (DecidedFace == EFaceState::None)
+		return;
 
 	CurrentFace = DecidedFace;
-	
-	if(CurrentFace == EFaceState::Front)
+
+	if (CurrentFace == EFaceState::Front)
 	{
 		DecidedWeaponID = FrontWeaponID;
 	}
-	else if(CurrentFace == EFaceState::Back)
+	else if (CurrentFace == EFaceState::Back)
 	{
 		DecidedWeaponID = BackWeaponID;
 	}
 }
 
-//BattleManager에서 SetGridPoint 부를 때 X, Y 최대값을 GridManager에서 받아서 그거 넘어가면 Return하고 랜덤값 다시 만드는 코드 있어야함!! 
+// BattleManager에서 SetGridPoint 부를 때 X, Y 최대값을 GridManager에서 받아서 그거 넘어가면 Return하고 랜덤값 다시 만드는 코드 있어야함!!
 void ACoinActor::SetGridPoint(FGridPoint DecidedGridPoint)
 {
 	CurrentGridPoint.GridX = DecidedGridPoint.GridX;
 	CurrentGridPoint.GridY = DecidedGridPoint.GridY;
 }
 
-void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass WeaponTypes, UTexture2D* FrontTexture, UTexture2D* BackTexture, FLinearColor DecideColor, int32 CoinHP, int32 SlotNum)
+void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass WeaponTypes, UTexture2D *FrontTexture, UTexture2D *BackTexture, FLinearColor DecideColor, int32 CoinHP, int32 SlotNum)
 {
-	if( WeaponTypes != EWeaponClass::None && FrontTexture && BackTexture)
+	if (WeaponTypes != EWeaponClass::None && FrontTexture && BackTexture)
 	{
 		CoinID = CoinId;
 		FrontWeaponID = FrontId;
@@ -175,13 +176,12 @@ void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass
 		TypeColor = DecideColor;
 		StatComponent->SetHP(CoinHP, true);
 		SlotIndex = SlotNum;
-	} 
-
+	}
 }
 
 void ACoinActor::SetCoinOnBattle(const bool IsOnBattle)
-{ 	
-	bIsOnBattle = IsOnBattle; 
+{
+	bIsOnBattle = IsOnBattle;
 }
 
 void ACoinActor::SetUIVisibility(const bool bUIVisibile)
@@ -192,54 +192,56 @@ void ACoinActor::SetUIVisibility(const bool bUIVisibile)
 void ACoinActor::DoCoinActAtBattleStartLeverDown()
 {
 	StartX = GetActorLocation().X;
-    TargetX = StartX + 1040.f; // 목표: 현재 위치 + 1040
-    MoveElapsedTime = 0.0f;
+	TargetX = StartX + 1040.f; // 목표: 현재 위치 + 1040
+	MoveElapsedTime = 0.0f;
 
-    GetWorld()->GetTimerManager().ClearTimer(LeverMoveTimerHandle);
-    
-    GetWorld()->GetTimerManager().SetTimer(LeverMoveTimerHandle, this, &ACoinActor::UpdateCoinMoveAtBattleStart, 0.01f, true);
+	GetWorld()->GetTimerManager().ClearTimer(LeverMoveTimerHandle);
+
+	GetWorld()->GetTimerManager().SetTimer(LeverMoveTimerHandle, this, &ACoinActor::UpdateCoinMoveAtBattleStart, 0.01f, true);
 }
 
 void ACoinActor::UpdateCoinMoveAtBattleStart()
 {
 	MoveElapsedTime += 0.01f;
-    
-    float Alpha = FMath::Clamp(MoveElapsedTime / MoveTime, 0.0f, 1.0f);
 
-    float NewX = FMath::Lerp(StartX, TargetX, Alpha);
+	float Alpha = FMath::Clamp(MoveElapsedTime / MoveTime, 0.0f, 1.0f);
 
-    FVector CurrentLoc = GetActorLocation();
-    SetActorLocation(FVector(NewX, CurrentLoc.Y, CurrentLoc.Z));
+	float NewX = FMath::Lerp(StartX, TargetX, Alpha);
 
-    if (Alpha >= 1.0f)
-    {
-        GetWorld()->GetTimerManager().ClearTimer(LeverMoveTimerHandle);
-    }
+	FVector CurrentLoc = GetActorLocation();
+	SetActorLocation(FVector(NewX, CurrentLoc.Y, CurrentLoc.Z));
+
+	if (Alpha >= 1.0f)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(LeverMoveTimerHandle);
+	}
 }
 
 void ACoinActor::DoCoinActAtBattleStart(float XLocation, float YLocation)
 {
-	if(!bIsOnBattle) return;
+	if (!bIsOnBattle)
+		return;
 
-	if(CurrentGridPoint.GridX == -1 && CurrentGridPoint.GridY == -1) return;
+	if (CurrentGridPoint.GridX == -1 && CurrentGridPoint.GridY == -1)
+		return;
 
 	JumpElapsedTime = 0.0f;
 
 	DecidedGridLocation = FVector(XLocation, YLocation, -80.f);
-	//앞뒤
-	switch(CurrentFace)
+	// 앞뒤
+	switch (CurrentFace)
 	{
-		case EFaceState::Front:
-			AnimStartXRot = 1080.0f;
-			DecidedCoinRotation = FRotator(0.f,-180.f,0.f);
-			break;
-		case EFaceState::Back:
-			AnimStartXRot = -1260.0f;
-			DecidedCoinRotation = FRotator(-180.f,0.f,0.f);
-			break;
+	case EFaceState::Front:
+		AnimStartXRot = 1080.0f;
+		DecidedCoinRotation = FRotator(0.f, -180.f, 0.f);
+		break;
+	case EFaceState::Back:
+		AnimStartXRot = -1260.0f;
+		DecidedCoinRotation = FRotator(-180.f, 0.f, 0.f);
+		break;
 	}
 
-	//텔포
+	// 텔포
 	TeleportTo(DecidedGridLocation, FRotator::ZeroRotator);
 
 	if (CoinMesh)
@@ -247,7 +249,7 @@ void ACoinActor::DoCoinActAtBattleStart(float XLocation, float YLocation)
 		CoinMesh->SetRelativeRotation(FRotator(AnimStartXRot, 0.f, 0.f));
 	}
 
-	//올라가는 연출
+	// 올라가는 연출
 	GetWorld()->GetTimerManager().SetTimer(JumpTimerHandle, this, &ACoinActor::UpdateJump, 0.01f, true);
 }
 
@@ -256,20 +258,25 @@ void ACoinActor::UpdateJump()
 	JumpElapsedTime += 0.01f;
 	float Alpha = JumpElapsedTime / JumpDuration;
 
-	if(Alpha >= 1.0f)
+	if (Alpha >= 1.0f)
 	{
 		SetActorLocation(DecidedGridLocation);
-		
+
 		if (CoinMesh)
 		{
 			CoinMesh->SetRelativeRotation(DecidedCoinRotation);
+
+			// 배틀 코인 클릭 가능하도록 콜리전 복구
+			SetActorEnableCollision(true);
+			CoinMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			CoinMesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
 		}
-		
+
 		GetWorld()->GetTimerManager().ClearTimer(JumpTimerHandle);
 		return;
 	}
 
-	//포물선 공식
+	// 포물선 공식
 	float ZOffset = 4.0f * JumpHeight * Alpha * (1.0f - Alpha);
 	FVector NewLoc = DecidedGridLocation;
 	NewLoc.Z += ZOffset;
@@ -282,37 +289,36 @@ void ACoinActor::UpdateJump()
 	{
 		CoinMesh->SetRelativeRotation(FRotator(CurrentPitch, 0.f, 0.f));
 	}
-
 }
 
 void ACoinActor::OnHover_Implementation()
-{	
+{
 	if (GetCoinOnBattle())
-    {
-        OnHoverBattleCoin.Broadcast(this);
-    }
-    else
-    {
-        OnHoverReadyCoin.Broadcast(this);
-    }
+	{
+		OnHoverBattleCoin.Broadcast(this);
+	}
+	else
+	{
+		OnHoverReadyCoin.Broadcast(this);
+	}
 }
 
 void ACoinActor::OnUnhover_Implementation()
-{	
+{
 	OnUnhoverCoin.Broadcast();
 }
 
 void ACoinActor::OnClicked_Implementation()
 {
-	if(GetCoinIsReady() && !GetCoinOnBattle())
+	if (GetCoinIsReady() && !GetCoinOnBattle())
 	{
 		OnClickReadyCoin.Broadcast(this);
 	}
-	else if(!GetCoinIsReady() && GetCoinOnBattle())
+	else if (!GetCoinIsReady() && GetCoinOnBattle())
 	{
-		//한 번 Battle상태 들어가서 클릭하면 두 번째 클릭부터는 막음.
-		//CoinActionManagementWSubsystem에 바인딩
-		if(!GetCoinIsActed())
+		// 한 번 Battle상태 들어가서 클릭하면 두 번째 클릭부터는 막음.
+		// CoinActionManagementWSubsystem에 바인딩
+		if (!GetCoinIsActed())
 		{
 			OnClickBattleCoin.Broadcast(this);
 		}

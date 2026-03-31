@@ -9,7 +9,11 @@
 
 void UWeapon_Action::SetFinalAttackPoint(const int32 AttackPoint)
 {
-    if(AttackPoint < 0) FinalAttackPoint = 0;
+    if(AttackPoint < 0)
+    {
+        FinalAttackPoint = 0;
+        return;
+    }
 
     FinalAttackPoint = AttackPoint;
 }

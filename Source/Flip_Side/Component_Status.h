@@ -43,7 +43,7 @@ struct FBuffInfo
     FString BuffName;
 
     UPROPERTY(BlueprintReadOnly)
-    UTexture2D* BuffIcon;
+    UTexture2D* BuffIcon = nullptr;
 
 	FOnCalculateStats::FDelegate StatDelegate = FOnCalculateStats::FDelegate();
     FOnPreTakeDamage::FDelegate DamageDelegate = FOnPreTakeDamage::FDelegate();

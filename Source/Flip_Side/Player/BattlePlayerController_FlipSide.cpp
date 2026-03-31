@@ -65,8 +65,7 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
 {
     FHitResult Hit;
 
-    // 1. 카메라 채널로 인터페이스 기반 액터 및 레버 검출
-    if (GetHitResultUnderCursor(ECC_Camera, false, Hit))
+    if (GetHitResultUnderCursor(ECC_Camera, true, Hit)) 
     {
         AActor* HitActor = Hit.GetActor();
         if (HitActor)
@@ -80,7 +79,6 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
         }
     }
 
-    // 2. 가시성 채널로 구역(Area) 클릭 검출 (카메라 이동용)
     if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
     {
         // CurrentHoveredArea는 CheckMouseHover에서 실시간으로 업데이트됨
@@ -103,8 +101,7 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
     FHitResult Hit;
     AActor* CurrentActor = nullptr;
 
-    // A. 인터페이스 기반 호버링 체크 (코인, 슬롯 등)
-    if (GetHitResultUnderCursor(ECC_Camera, false, Hit))
+    if (GetHitResultUnderCursor(ECC_Camera, true, Hit))
     {
         CurrentActor = Hit.GetActor();
     }
