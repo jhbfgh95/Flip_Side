@@ -76,7 +76,7 @@ protected:
 	void SetBattleCoinInfo(
 		UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
 		int32 DefaultBP, int32 ModifiedBP, 
-		int32 DefaultAP, int32 ModifiedAP
+		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor
 	);
 
 protected:

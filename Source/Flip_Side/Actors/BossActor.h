@@ -103,6 +103,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	void PlayAttack();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Boss")
+	void DisPlayOutline();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Boss")
+	void UnDisPlayOutline();
+
 public:
 	ABossActor();
 

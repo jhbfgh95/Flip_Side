@@ -82,7 +82,6 @@ void UCoinActionManagementWSubsystem::InitWeaponAction()
     SelectedAction->SetFinalAttackPoint(-1);
     SelectedAction->SetFinalBehaviorPoint(-1);
     SelectedAction->SetCasterCoin(nullptr);
-    SelectedAction->SetInRangeBoss(nullptr);
     RepeatActionCnt = 1;
     CurrentInputState = EActionInputState::None;
     ValidTargetGrids.Empty();
@@ -124,7 +123,11 @@ bool UCoinActionManagementWSubsystem::ApplyRangedThings(const FGridPoint& Target
         }
     }
 
-    SelectedAction->SetInRangeBoss(GridInfos.Boss);
+    if(GridInfos.Boss)
+    {
+        SelectedAction->SetInRangeBoss(GridInfos.Boss);
+    }
+
     /*
     for(AActor* Actor : Infos.Others)
     {
@@ -178,7 +181,7 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
             SetBattleCoinInfo(
                 SelectWeapon.WeaponIcon, FText::FromString(SelectWeapon.WeaponName), FText::FromString(SelectWeapon.KOR_DES), 
                 SelectWeapon.BehaviorPoint, ActionTask.ModifiedBehaviorPoint, 
-                SelectWeapon.AttackPoint, ActionTask.ModifiedAttackPoint
+                SelectWeapon.AttackPoint, ActionTask.ModifiedAttackPoint, SelectWeapon.TypeColor
             );
 
             SetCasterCoin(HoveredCoin);
@@ -310,14 +313,14 @@ void UCoinActionManagementWSubsystem::ExecuteTimeAction(ACoinActor* TargetCoin)
 void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
         UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
 		int32 DefaultBP, int32 ModifiedBP, 
-		int32 DefaultAP, int32 ModifiedAP)
+		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor)
 {
     if(BattleCoinInfoWidgetInstance)
     {
         BattleCoinInfoWidgetInstance->UpdateBattleCoinInfo(
             Icon, WeaponName, RawDescription,
             DefaultBP, ModifiedBP,
-            DefaultAP, ModifiedAP
+            DefaultAP, ModifiedAP, WeaponColor
         );
         BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);
     }
@@ -327,6 +330,10 @@ void UCoinActionManagementWSubsystem::HandleCoinUnHovered()
 {
     if (CurrentInputState == EActionInputState::None)
     {
+        if(SelectedAction)
+        {
+            SelectedAction->InitInRangeBoss();
+        }
         InitWeaponAction();
     }
 }
