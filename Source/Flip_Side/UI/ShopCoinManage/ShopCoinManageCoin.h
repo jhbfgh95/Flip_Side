@@ -6,7 +6,6 @@
 #include "GameFramework/Actor.h"
 #include "Interface/ShopMouseInterface.h"
 #include "ShopCoinManageCoin.generated.h"
-
 UCLASS()
 class FLIP_SIDE_API AShopCoinManageCoin : public AActor, public IShopMouseInterface
 {
@@ -48,7 +47,9 @@ private:
 
 	FRotator StartRotator;
 	FRotator ArriveRotator;
-	
+private:
+	bool IsFront = true;
+	FRotator InitRotator;
 private:
 	UFUNCTION()
 	void TurnCoinMovement(float Value);

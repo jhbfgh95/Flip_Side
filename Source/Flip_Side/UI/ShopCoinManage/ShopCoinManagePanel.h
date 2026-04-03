@@ -31,9 +31,7 @@ private:
 	// 기어 메쉬
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
 	class UChildActorComponent* GearActor;
-	// 설명 메쉬 메쉬
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
-	class UStaticMeshComponent* DescriptionMesh;
+
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category = "Components")
 	class UChildActorComponent* IncreaseCountButton;
@@ -52,7 +50,7 @@ private:
 	class AShopCoinSlotCountButton* DecreaseCountButtonClass;
 	class ACoinSlotLockPanel* LockPanelClass;
 	class AShopCoinManageCoin* CoinActorClass;
-
+	class ACoinSlotWeaponDescripPanel* DescripClass;
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* PanelWidget;
@@ -61,49 +59,34 @@ private:
 	class UWidgetComponent* DescribeWidget;
 
 private:
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	class UTimelineComponent* DescriptionTimeLine;
+	class UW_CoinManagePanelWidget* PanelWidgetClass;
 	
-	UPROPERTY(EditAnywhere, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
-	class UCurveFloat* DescriptionPanelCurve;
+	class UW_WeaponDescription* WeaponDesWidgetClass;
+
 
 private:
 	class UShopCoinWSubsystem* ShopCoinSubsystem;
 	class UDataManagerSubsystem* DataManagerSubsystem;
 
-private:
-	class UW_CoinManagePanelWidget* PanelWidgetClass;
 
 	private:
 	FVector LockPanelStartVector;
-private:
-
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	FVector DescriptionPanelMoveDirection;
-
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	FVector DescriptionPanelStartVec;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	FVector DescriptionPanelArriveVec;
+	private:
+	FVector DescripanelStartVector;
 	
+
+
+private:
 
 private:
 	UFUNCTION()
 	void SetPanelWidget(int32 CoinSlotIndex, int32 CoinCount);
 
+
 public:
-
+	UFUNCTION()
 	void InitPanel();
-	void InitPanelAfterArrive();
-	void InitPanelToStart();
 
-	UFUNCTION()
-	void MoveDescriptionPanel(float Value);
-
-	UFUNCTION()
-	void OpenDescriptionPanel();
-
-	void ActiveDescriptionPanel(bool IsPanelShow);
 
 	void InitPanelCoin();
 };

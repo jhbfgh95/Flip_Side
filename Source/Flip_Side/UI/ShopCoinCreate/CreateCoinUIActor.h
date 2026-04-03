@@ -106,7 +106,8 @@ private:
 	class UCurveFloat* CoinRotationCurve;
 
 private:
-	//코인 회전 시작 변수
+
+	FRotator FrontRotator;
 	FRotator StartRotator;
 	
 	FRotator ArriveRotator;

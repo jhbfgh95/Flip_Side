@@ -67,10 +67,22 @@ void UCoinCreateWSubsystem::ChangeSelectedCoinWeapon(int32 WeaponID)
 {
     if(bIsCreateCoinFront)
     {
+        if(SelectedCoin.BackWeaponID == WeaponID)
+        {
+            OnWarningSameWeapon.Broadcast();
+            return;
+        }
+
         SelectedCoin.FrontWeaponID = WeaponID;
     }
     else
     {
+        if(SelectedCoin.FrontWeaponID == WeaponID)
+        {
+            OnWarningSameWeapon.Broadcast();
+            return;
+        }
+
         SelectedCoin.BackWeaponID = WeaponID;
     }
     OnSelectedCoinUpdate.Broadcast(WeaponID,bIsCreateCoinFront);

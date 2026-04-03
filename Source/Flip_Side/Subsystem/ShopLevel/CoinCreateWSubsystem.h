@@ -20,6 +20,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSelectedCoinUpdate, int32, WeaponI
 
 //코인이 클래스가 선택 됬을 때 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCoinClassUpdate,EWeaponClass, SelectedClass);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWarningSameWeapon);
 
 UCLASS()
 class FLIP_SIDE_API UCoinCreateWSubsystem : public UWorldSubsystem
@@ -48,7 +49,7 @@ public:
 	FSelectedCoinUpdate OnSelectedCoinUpdate;
 	//코인의 클래스가 변경됬을 때
 	FCoinClassUpdate OnCoinClassUpdate;
-
+	FWarningSameWeapon OnWarningSameWeapon;
 public:	
 	//선택한 코인반환
 	FCoinTypeStructure GetSelectCoin();

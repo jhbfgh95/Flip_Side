@@ -131,7 +131,6 @@ void AShopSlotCoinCountActor::SetCoinSide()
 	if(MID)
 	{
 		FCoinTypeStructure CoinData = ShopCoinSubsystem->GetSlotCoin(CoinSlot);
-		EWeaponClass CurrentWeaponClass = ShopCoinSubsystem->GetSlotCoinClass(CoinSlot);
 
 		FFaceData FrontFaceData; 
 		FFaceData BackFaceData;
