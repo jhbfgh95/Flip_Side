@@ -224,4 +224,6 @@ protected:
 
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION()
+	void CoinDead();
 };

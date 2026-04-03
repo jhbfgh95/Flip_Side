@@ -12,13 +12,13 @@ void UW_BattleCoinInfo::NativeConstruct()
 void UW_BattleCoinInfo::UpdateBattleCoinInfo(
 	UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
 	int32 DefaultBP, int32 ModifiedBP, 
-	int32 DefaultAP, int32 ModifiedAP
-	/*int32 DefaultRange, int32 ModifiedRange*/
+	int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor
     )
 {
 	if (HoveredWeaponIcon && Icon)
 	{
 		HoveredWeaponIcon->SetBrushFromTexture(Icon);
+		HoveredWeaponIcon->SetColorAndOpacity(WeaponColor);
 	}
 	if (HoveredWeaponName)
 	{
@@ -50,7 +50,6 @@ void UW_BattleCoinInfo::UpdateBattleCoinInfo(
 		FFormatNamedArguments Args;
         Args.Add(TEXT("BP"), FormatStatWithDiff(DefaultBP, ModifiedBP));
 		Args.Add(TEXT("AP"), FormatStatWithDiff(DefaultAP, ModifiedAP));
-		//Args.Add(TEXT("Range"), FormatStatWithDiff(DefaultRange, ModifiedRange));
 
 		HoveredWeaponDes->SetText(FText::Format(RawDescription, Args));
 	}

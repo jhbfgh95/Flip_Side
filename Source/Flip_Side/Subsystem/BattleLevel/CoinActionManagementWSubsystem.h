@@ -62,6 +62,7 @@ public:
 
 	//코인 이펙트 시간
 	float CoinNaiagaraTime = 0.5f;
+
 protected:
 	//GridManager에서 Range 넣어서 뭐있는지 알아서 UWeaponAction에 넣어줌.
 	bool ApplyRangedThings(const FGridPoint& TargetGridPoint);
@@ -75,7 +76,7 @@ protected:
 	void SetBattleCoinInfo(
 		UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
 		int32 DefaultBP, int32 ModifiedBP, 
-		int32 DefaultAP, int32 ModifiedAP
+		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor
 	);
 
 protected:

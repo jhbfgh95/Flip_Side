@@ -81,6 +81,7 @@ void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
             if (ABossActor* Boss = BossManager->GetCurrentBoss())
             {
                 Boss->OnBossAttackEnded.AddDynamic(this, &UBattleManagerWSubsystem::DoSettingTurn);
+                Boss->OnBossDead.AddDynamic(this, &UBattleManagerWSubsystem::Lets_GO_ShopLevel);
             }
         }
     }
@@ -238,4 +239,13 @@ void UBattleManagerWSubsystem::DoSettingTurn()
     BossManager->StartBossSetting();
 
     TurnProgressing();
+}
+
+void UBattleManagerWSubsystem::Lets_GO_ShopLevel()
+{
+    UGameInstance* GameInstance = GetWorld()->GetGameInstance();
+    if(GameInstance)
+    {
+        GameInstance->GetSubsystem<ULevelGISubsystem>()->MoveLevel("L_ShopLevel");
+    }
 }

@@ -47,6 +47,8 @@ public:
 
 	virtual bool GetInRangeBoss(ABossActor*& OutBoss) const;
 
+	virtual void InitInRangeBoss();
+
 	void CreateTestRange();
 
 	virtual void ExecuteAction();

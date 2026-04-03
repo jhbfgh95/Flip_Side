@@ -69,6 +69,7 @@ enum class EActionInputState : uint8
     WaitingForCoinClick, //코인 클릭 기다리기
     ExecutingAction, //바로 실행
     WaitingForGridClick,
+    WaitingForOtherClick,
     WaitingForGridClickForItem //아이템 입력받고, 그리드 입력 기다림
 };
 

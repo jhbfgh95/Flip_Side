@@ -3,8 +3,7 @@
 
 ACoinSlotActor::ACoinSlotActor()
 {
-    InvisiblePlane = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("InvisiblePlane Component"));
-	InvisiblePlane->SetupAttachment(RootComponent);
+
 }
 
 void ACoinSlotActor::BeginPlay()

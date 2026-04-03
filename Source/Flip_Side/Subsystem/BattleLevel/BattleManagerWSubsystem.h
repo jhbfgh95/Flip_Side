@@ -88,4 +88,8 @@ public:
 	ETurnState GetCurrentTurn();
 
 	bool StartBattleFromLever();
+
+protected:
+	UFUNCTION()
+	void Lets_GO_ShopLevel();
 };
