@@ -96,3 +96,8 @@ void AGameMode_Shop::SetUnlockCardMode()
 {   
     OnUnlockCardMode.Broadcast();
 }
+	
+void AGameMode_Shop::SetCheckBossMode()
+{
+    OnCheckBossMode.Broadcast();
+}

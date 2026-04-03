@@ -14,7 +14,8 @@ class FLIP_SIDE_API ASelectClassLever : public ALeverActor,public IShopMouseInte
 {
 	GENERATED_BODY()
 	
-ASelectClassLever();
+protected:
+	ASelectClassLever();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

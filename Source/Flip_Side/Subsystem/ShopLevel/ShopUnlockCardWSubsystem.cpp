@@ -16,7 +16,7 @@ bool UShopUnlockCardWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
     }
 
     const FString MapName = World->GetMapName();
-    return MapName.Contains(TEXT("L_ShopLevel")) || MapName.Contains(TEXT("L_ShopTutorialLevel"));
+    return MapName.Contains(TEXT("L_ShopLevel")) || MapName.Contains(TEXT("L_Tutorial_Shop_Level"));
 } 
 
 void UShopUnlockCardWSubsystem::OnWorldBeginPlay(UWorld& World)

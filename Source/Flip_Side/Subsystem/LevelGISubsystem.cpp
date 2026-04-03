@@ -16,11 +16,11 @@ void ULevelGISubsystem::MovingTutorialLevel(int32 tutorialflag)
 {
     if(tutorialflag == 0)
     {
-        //UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("Tutorial_Shop_Level")));
+        UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_Tutorial_Shop_Level")));
     }
     else if(tutorialflag == 1)
     {
-        //UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("Tutorial_Battle_Level")));
+        UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_Stage_Battle_Tutorial")));
     }
 }
 

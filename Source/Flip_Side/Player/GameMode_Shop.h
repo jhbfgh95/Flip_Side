@@ -25,6 +25,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockWeaponMode);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockCardMode);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCheckBossMode);
+
 UCLASS()
 class FLIP_SIDE_API AGameMode_Shop : public AGameModeBase
 {
@@ -51,6 +53,8 @@ public:
 	FUnlockWeaponMode OnUnlockWeaponMode;
 	
 	FUnlockCardMode OnUnlockCardMode;
+
+	FCheckBossMode OnCheckBossMode;
 public:
 	void SetShopMainMode();
 	void SetCheckBossMode();
@@ -62,7 +66,7 @@ public:
 	void SetUnlockCardMode();
 
 public:
-	void ChangeBattleLevel();
+	virtual void ChangeBattleLevel();
 	void InsertDataInSubysytem();
 	void CheckCanGameStart();
 

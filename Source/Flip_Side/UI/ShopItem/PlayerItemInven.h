@@ -49,7 +49,7 @@ private:
 
 bool IsInvenOpen = false;
 
-private:
+protected:
 	UFUNCTION()
 	void InvenMeshMovement(float Value);	
 

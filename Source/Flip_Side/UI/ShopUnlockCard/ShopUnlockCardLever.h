@@ -14,7 +14,7 @@ UCLASS()
 class FLIP_SIDE_API AShopUnlockCardLever : public ALeverActor, public IShopMouseInterface
 {
 	GENERATED_BODY()
-
+protected:
 	AShopUnlockCardLever();
 private:
 	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess="true"))
@@ -29,4 +29,5 @@ public:
 
 	virtual void InteractLeftClick_Implementation() override;
 
+	void UnlockCard();
 };
