@@ -31,7 +31,10 @@ public:
 /* UI */
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> ShopWigetClass;
+	TSubclassOf<UUserWidget> ShopWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> BossWidgetClass;
 
 	//코인제작 UI
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
@@ -80,6 +83,8 @@ private:
 	UPROPERTY()
 	UUserWidget* UnlockCardWidget;
 	UPROPERTY()
+	UUserWidget* BossWidget;
+	UPROPERTY()
 	UUserWidget* BlockWidget;
 private:
 	void InitWidget(TSubclassOf<UUserWidget> WidgetClass, UUserWidget*& widget,int32 ZOrder);
@@ -124,6 +129,9 @@ public:
 
 	UFUNCTION()
 	void SetUnlockCardModeWidget();
+
+	UFUNCTION()
+	void SetBossStateModeWidget();
 
 	void HideModeChangeWidget();
 

@@ -145,6 +145,11 @@ void AShopUseableItemActor::InteractUnHover_Implementation()
 
 void AShopUseableItemActor::InteractLeftClick_Implementation()
 {
+	ClickItem();
+}
+
+void AShopUseableItemActor::ClickItem()
+{
 	ItemBuyTimeline->PlayFromStart();
 	ShopItemSubSystem->BuyItem(ShopItemData);
 }

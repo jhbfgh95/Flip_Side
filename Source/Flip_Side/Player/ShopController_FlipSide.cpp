@@ -31,6 +31,7 @@ void AShopController_FlipSide::BeginPlay()
         ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopController_FlipSide::SetSelectCardModeWidget);
         ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopController_FlipSide::SetUnlockWeaponModeWidget);
         ShopGameMode->OnUnlockCardMode.AddDynamic(this, &AShopController_FlipSide::SetUnlockCardModeWidget);
+        ShopGameMode->OnCheckBossMode.AddDynamic(this, &AShopController_FlipSide::SetBossStateModeWidget);
     }
 
     
@@ -50,6 +51,8 @@ void AShopController_FlipSide::BeginPlay()
     InitWidget(UnlockWeaponWidgetClass, UnlockWeaponWidget,0);
 
     InitWidget(UnlockCardWidgetClass, UnlockCardWidget,0);
+
+    InitWidget(BossWidgetClass, BossWidget,0);
 
     //상점 메인
     InitWidget(ShopMainWigetClass, ShopMainWiget,1);
@@ -275,5 +278,15 @@ void AShopController_FlipSide::SetLockMouse(bool IsMouseLock)
     {
         BlockWidget->SetVisibility(ESlateVisibility::Hidden);
         CanClick = true;
+    }
+}
+	
+void AShopController_FlipSide::SetBossStateModeWidget()
+{
+    if(BossWidget)
+    {
+        HideWidgetList();
+        AddOpenWidgetList(BossWidget);
+        ViewWidgetList();
     }
 }

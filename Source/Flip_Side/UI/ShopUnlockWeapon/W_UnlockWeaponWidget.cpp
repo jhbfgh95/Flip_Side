@@ -12,8 +12,8 @@ void UW_UnlockWeaponWidget::NativeConstruct()
     UnlockWeaponSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
     UnlockWeaponSubsystem->OnChangeUnlockWaeponClass.AddDynamic(this, &UW_UnlockWeaponWidget::SetUnlockWeaponGrid);
 
-    CurrentUnlockGrid = DealWUnlockGrid;
-    
+    CurrentUnlockGrid = nullptr;
+    DealWUnlockGrid->InitPanelAnimation();
     TankWUnlockGrid->InitPanelAnimation();
     UtilWUnlockGrid->InitPanelAnimation();
 
@@ -27,20 +27,31 @@ void UW_UnlockWeaponWidget::NativeDestruct()
 
 void UW_UnlockWeaponWidget::SetDealWUnlockGrid()
 {
-    if(CurrentUnlockGrid != DealWUnlockGrid)
+
+    if(CurrentUnlockGrid&&CurrentUnlockGrid != DealWUnlockGrid)
     {
         CurrentUnlockGrid->CloseUnlockPanel();
         DealWUnlockGrid->OpenUnlockPanel();
         CurrentUnlockGrid=DealWUnlockGrid;
     }
 
+    if(!CurrentUnlockGrid)
+    {
+        DealWUnlockGrid->OpenUnlockPanel();
+        CurrentUnlockGrid=DealWUnlockGrid;
+    }
 }
     
 void UW_UnlockWeaponWidget::SetTankWUnlockGrid()
 {
-    if(CurrentUnlockGrid != TankWUnlockGrid)
+    if(CurrentUnlockGrid&&CurrentUnlockGrid != TankWUnlockGrid)
     {
         CurrentUnlockGrid->CloseUnlockPanel();
+        TankWUnlockGrid->OpenUnlockPanel();
+        CurrentUnlockGrid=TankWUnlockGrid;
+    }
+    if(!CurrentUnlockGrid)
+    {
         TankWUnlockGrid->OpenUnlockPanel();
         CurrentUnlockGrid=TankWUnlockGrid;
     }
@@ -48,9 +59,15 @@ void UW_UnlockWeaponWidget::SetTankWUnlockGrid()
     
 void UW_UnlockWeaponWidget::SetUtilWUnlockGrid()
 {
-    if(CurrentUnlockGrid != UtilWUnlockGrid)
+    if(CurrentUnlockGrid&&CurrentUnlockGrid != UtilWUnlockGrid)
     {
         CurrentUnlockGrid->CloseUnlockPanel();
+        UtilWUnlockGrid->OpenUnlockPanel();
+        CurrentUnlockGrid=UtilWUnlockGrid;
+    }
+
+    if(!CurrentUnlockGrid)
+    {
         UtilWUnlockGrid->OpenUnlockPanel();
         CurrentUnlockGrid=UtilWUnlockGrid;
     }

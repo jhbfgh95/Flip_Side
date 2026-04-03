@@ -26,7 +26,7 @@ private:
 	class UShopUnlockWeaponWSubsystem* UnlockWeaponSubsystem;
 	class UUnlockGISubsystem* UnlockGISubsystem;
 	class UDataManagerSubsystem* DataManager;
-private:
+protected:
 
 	UPROPERTY(meta = (BindWidget))
 	class UImage* LockImage;

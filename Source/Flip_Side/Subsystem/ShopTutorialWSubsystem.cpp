@@ -14,7 +14,7 @@ bool UShopTutorialWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
         return false;
 
     const FString MapName = World->GetName();
-    return MapName.Contains(TEXT("L_ShopTutorialLevel"));
+    return MapName.Contains(TEXT("L_Tutorial_Shop_Level"));
 }
 
 void UShopTutorialWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
@@ -43,10 +43,10 @@ bool UShopTutorialWSubsystem::SetTutorialEvent(int32 EventOrder, TScriptInterfac
 	
 void UShopTutorialWSubsystem::ExecuteEvents(int32 EventOrder)
 {
-    if(ReadyTutorialEvents.Num()<= EventOrder)
+    if(ReadyTutorialEvents.Num()<= EventOrder || EventOrder==-1)
         return;
     
-    if(0<EventOrder-1)
+    if(0<=EventOrder-1)
     {
         for(TScriptInterface<IShopTutorialInterface>& TutorialObject : ReadyTutorialEvents[EventOrder-1].TutorialEvents)
         {

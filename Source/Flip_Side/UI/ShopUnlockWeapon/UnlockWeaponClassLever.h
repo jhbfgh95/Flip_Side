@@ -15,7 +15,7 @@ UCLASS()
 class FLIP_SIDE_API AUnlockWeaponClassLever : public ALeverActor, public IShopMouseInterface
 {
 	GENERATED_BODY()
-
+protected:
 	AUnlockWeaponClassLever();
 protected:
 	// Called when the game starts or when spawned

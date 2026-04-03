@@ -14,7 +14,7 @@ UCLASS()
 class FLIP_SIDE_API AShopUseableItemActor : public AActor, public IShopMouseInterface
 {
 	GENERATED_BODY()
-
+protected:
 	AShopUseableItemActor();
 protected:
 	virtual void BeginPlay() override;
@@ -92,6 +92,9 @@ private:
 private:
 	void HideItem();
 	void ShowItem();
+
+protected:
+	void ClickItem();
 
 public:
 	UFUNCTION()

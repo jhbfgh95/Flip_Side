@@ -21,7 +21,7 @@ protected:
 	class UUnlockGISubsystem* UnlockSubsystem;
 	class UShopUnlockCardWSubsystem* ShopUnlockCardSubsystem;
 
-private:
+protected:
 
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent) override;
 

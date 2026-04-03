@@ -20,7 +20,7 @@ protected:
 private:
 	class UShopCardWSubsystem* ShopCardSubSystem;
 	class UUnlockGISubsystem* UnlockSubsystem;
-private:
+protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* LeftCardButton;
 	
