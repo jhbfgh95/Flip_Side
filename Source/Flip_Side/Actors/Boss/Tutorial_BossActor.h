@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Actors/BossActor.h"
+#include "BossActor.h"
 #include "Tutorial_BossActor.generated.h"
 
 /**

@@ -51,7 +51,7 @@ enum class EGridOccupyingType : uint8
     None UMETA(DisplayName = "None"),
     Coin UMETA(DisplayName = "Coin"),
     Wall UMETA(DisplayName = "Wall"),
-    Item UMETA(DisplayName = "Item"),
+    Turret UMETA(DisplayName = "Item"),
 };
 
 UENUM(BlueprintType)

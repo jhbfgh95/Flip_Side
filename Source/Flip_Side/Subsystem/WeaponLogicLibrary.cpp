@@ -4,6 +4,8 @@
 #include "Weapon_Action.h"
 #include "CoinActor.h"
 #include "BossActor.h"
+#include "GridActor.h"
+#include "Turret_OtherActor.h"
 
 void UWeaponLogicLibrary::Test_Logic(UWeapon_Action* WeaponContext)
 {
@@ -95,7 +97,30 @@ void UWeaponLogicLibrary::AutoTurretSet_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
 
-    UE_LOG(LogTemp, Warning, TEXT("Logic AutoTurret"));
+    AGridActor* TargetGrid = WeaponContext->GetTargetGrid();
+    ACoinActor* CasterCoin = WeaponContext->GetCasterCoin();
+
+    if (!TargetGrid) return;
+    
+    FString TurretPath = TEXT("/Game/Others/BP_Turret_OtherActor.BP_Turret_OtherActor_C");
+    UClass* TurretClass = StaticLoadClass(ATurret_OtherActor::StaticClass(), nullptr, *TurretPath);
+    
+    UWorld* World = TargetGrid->GetWorld();
+    if (World  && TurretClass)
+    {
+        FVector SpawnLocation = FVector(TargetGrid->GetGridWorldXY().X, TargetGrid->GetGridWorldXY().Y, -80.f); 
+        FRotator SpawnRotation = FRotator::ZeroRotator; 
+
+        ATurret_OtherActor* SpawnedActor = World->SpawnActor<ATurret_OtherActor>(TurretClass, SpawnLocation, SpawnRotation);
+
+        if (SpawnedActor)
+        {
+            TargetGrid->SetOccupied(true, EGridOccupyingType::Turret, SpawnedActor);
+            SpawnedActor->SetTurretSpawnGrid(TargetGrid->GetGridPoint());
+            SpawnedActor->SetTurretAttackPoint(WeaponContext->GetFinalAttackPoint());
+        }
+    }
+    
 }
 //스나이퍼↓
 void UWeaponLogicLibrary::SniperRifle_Logic(UWeapon_Action* WeaponContext)

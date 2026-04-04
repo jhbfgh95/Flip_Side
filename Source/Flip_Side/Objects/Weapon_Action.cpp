@@ -4,6 +4,7 @@
 #include "Objects/Weapon_Action.h"
 #include "ActionLogicRegistryGISubsystem.h"
 #include "Engine/World.h"
+#include "GridActor.h"
 #include "DataManagerSubsystem.h"
 #include "WeaponLogicLibrary.h"
 
@@ -61,6 +62,11 @@ void UWeapon_Action::SetSingleCellTargetCoin(ACoinActor* TargetCoin)
     InRangeCoins.Add(TargetCoin);
 
     SetWeaponData();
+}
+
+void UWeapon_Action::SetGridForAction(AGridActor* targetGrid)
+{
+    TargetGrid = targetGrid;
 }
 
 void UWeapon_Action::SetWeaponData()

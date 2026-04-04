@@ -47,6 +47,11 @@ void UCoinActionManagementWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
             }
         }
     }
+
+    if(GridManager)
+    {
+        GridManager->OnGridClickedForCoin.BindDynamic(this, &UCoinActionManagementWSubsystem::ExecuteGridAction);
+    }
 }
 
 bool UCoinActionManagementWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -88,6 +93,7 @@ void UCoinActionManagementWSubsystem::InitWeaponAction()
     if (GridManager)
     {
         GridManager->ResetBattleCoinPreview();
+        GridManager->SetGridClickFlag(EGridClickFlag::None);
     }
 
     if (BattleCoinInfoWidgetInstance)
@@ -195,7 +201,7 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
                 ApplyRangedThings(CoinGrid);
             }
 
-            GridManager->PreviewHoveredCoinRange(CoinGrid, AreaSpec);
+            GridManager->PreviewHoveredCoinRange(CoinGrid, AreaSpec, LastGridPoint);
         }
     }
 }
@@ -220,10 +226,13 @@ void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedC
             if(AreaSpec.ParamB == 0)
             {
                 CurrentInputState = EActionInputState::WaitingForCoinClick;
+                GridManager->SetGridClickFlag(EGridClickFlag::CoinAction);
             }
             else if(AreaSpec.ParamB == 1)
             {
                 CurrentInputState = EActionInputState::WaitingForGridClick;
+                GridManager->SetGridClickFlag(EGridClickFlag::CoinAction);
+
             }
             else if(AreaSpec.ParamB == 2)
             {
@@ -242,16 +251,11 @@ void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedC
         ExecuteTimeAction(ClickedCoin);
     }
     /*
-    else if(CurrentInputState == EActionInputState::WaitingForGridClick)
-    {
-        //GridManager에 신호보내기
-
-    }
     else if()
     {
         //OtherManager에 신호보내기
     }
-        */
+    */
 }
 
 //즉발 즉, 하나 선택X
@@ -284,10 +288,11 @@ void UCoinActionManagementWSubsystem::ExecuteTimeAction(ACoinActor* TargetCoin)
 {
     if (RepeatActionCnt <= 0) return;
 
-    //여기서? 코인 적용 칸도 제한함
+    //여기서 코인 적용 칸도 제한함
     if(!ApplyRangedThings(TargetCoin->GetDecidedGrid()))
-    {
-        CancelSelectWeapon(); //사거리 바깥 선택 시 걍 초기화.
+    {   //사거리 바깥 선택 시 걍 초기화.
+        //로직 상 문제가 살짝 있음. 이거 아예 초기화 말고 안된다고 띄워주는 피드백이 필요함. 왜냐면 이거 넘어가면 그냥 해당 코인은 Acted가 켜져서 한 번 클릭 미스하면 다시 못누름
+        CancelSelectWeapon(); 
         return;
     }
 
@@ -302,11 +307,38 @@ void UCoinActionManagementWSubsystem::ExecuteTimeAction(ACoinActor* TargetCoin)
     SelectedAction->ExecuteAction();
     RepeatActionCnt--;
 
-    if(RepeatActionCnt <= 0)
+    if(RepeatActionCnt <= 0) 
     {
         InitWeaponAction();
     }
     
+}
+
+//Grid를 클릭해야 하는 코인 액션
+void UCoinActionManagementWSubsystem::ExecuteGridAction(AGridActor* targetGrid)
+{
+    if (RepeatActionCnt <= 0) return;
+
+    if(!ApplyRangedThings(targetGrid->GetGridPoint()))
+    {
+        //위와 같은 문제점 공유
+        CancelSelectWeapon(); 
+        return;
+    }
+
+    
+    if (SelectedAction && SelectedAction->GetCasterCoin())
+    {
+        SelectedAction->GetCasterCoin()->SetCoinIsActed(true);
+        SelectedAction->SetGridForAction(targetGrid);
+        SelectedAction->ExecuteAction();
+        RepeatActionCnt--;
+    }
+
+    if(RepeatActionCnt <= 0) 
+    {
+        InitWeaponAction();
+    }
 }
 
 //호버링 시 UI세팅

@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Actors/Tutorial_BossActor.h"
+#include "Tutorial_BossActor.h"
 #include "W_BossHP.h"
 
 void ATutorial_BossActor::BeginPlay()

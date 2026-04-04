@@ -66,4 +66,3 @@ struct FAttackAreaSpec
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 Flags = 0;
 };
-DB.db에 item테이블에 item_name추가됐는데 이걸 datamanagersubsystem에서 loaditem 함수에 

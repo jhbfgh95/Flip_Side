@@ -343,6 +343,7 @@ void UBossManagerSubsystem::ShowTelegraphPreview(const TArray<FGridPoint>& Cells
     {
         if (AGridActor* Grid = GridMgr->GetGridActor(Cell))
         {
+            Grid->bIsBossAttack = true;
             Grid->ApplyCellMaterialParams(Color, 0.9f, 0.0f);
         }
     }

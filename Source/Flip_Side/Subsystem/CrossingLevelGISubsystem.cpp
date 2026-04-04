@@ -143,13 +143,16 @@ int32 UCrossingLevelGISubsystem::GetMakedItemNum() const
 void UCrossingLevelGISubsystem::GenerateTestCoin()
 {
     FCoinTypeStructure SlotTestCoin;
-    SlotTestCoin.SameTypeCoinNum = 10;
+    SlotTestCoin.SameTypeCoinNum = 5;
 
     FCoinTypeStructure SlotTestCoin1;
-    SlotTestCoin1.SameTypeCoinNum = 10;
+    SlotTestCoin1.SameTypeCoinNum = 5;
 
     FCoinTypeStructure SlotTestCoin2;
-    SlotTestCoin2.SameTypeCoinNum = 10;
+    SlotTestCoin2.SameTypeCoinNum = 5;
+
+    FCoinTypeStructure SlotTestCoin3;
+    SlotTestCoin3.SameTypeCoinNum = 5;
 
     SlotTestCoin.FrontWeaponID = 1;
     SlotTestCoin.BackWeaponID = 2;
@@ -160,9 +163,13 @@ void UCrossingLevelGISubsystem::GenerateTestCoin()
     SlotTestCoin2.FrontWeaponID = 14;
     SlotTestCoin2.BackWeaponID = 15;
 
+    SlotTestCoin3.FrontWeaponID = 4;
+    SlotTestCoin3.BackWeaponID = 5;
+
     SetSlotCoin(0, SlotTestCoin);
     SetSlotCoin(1, SlotTestCoin1);
     SetSlotCoin(2, SlotTestCoin2);
+    SetSlotCoin(3, SlotTestCoin3);
 
         //걍 id 1, 2, 3만 불러오게 설정
     for(int32 k = 0; k<3;k++)

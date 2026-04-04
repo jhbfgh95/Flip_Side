@@ -301,6 +301,7 @@ void ACoinActor::OnHover_Implementation()
 	if (GetCoinOnBattle())
 	{
 		OnHoverBattleCoin.Broadcast(this);
+		CoinHoverOutline();
 	}
 	else
 	{
@@ -311,6 +312,7 @@ void ACoinActor::OnHover_Implementation()
 void ACoinActor::OnUnhover_Implementation()
 {
 	OnUnhoverCoin.Broadcast();
+	CoinUnHoverOutline();
 }
 
 void ACoinActor::OnClicked_Implementation()

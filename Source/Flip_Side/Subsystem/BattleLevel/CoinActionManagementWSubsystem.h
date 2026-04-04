@@ -8,7 +8,6 @@
 #include "CoinActionManagementWSubsystem.generated.h"
 
 
-//포탑 설치는 EAcionInputState에 하나 더 추가해야겠다..
 UCLASS()
 class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 {
@@ -39,7 +38,6 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 
 	UPROPERTY()
     class UW_BattleCoinInfo* BattleCoinInfoWidgetInstance = nullptr;
-
 
 public:
 	//이거로 코인 선택하는거 잠궜습니다.
@@ -72,6 +70,11 @@ protected:
 	void ExecuteNowAction();
 
 	void ExecuteTimeAction(ACoinActor* TargetCoin);
+
+	UFUNCTION()
+	void ExecuteGridAction(AGridActor* targetGrid);
+
+	void SetCoinActorForGrid();
 
 	void SetBattleCoinInfo(
 		UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 

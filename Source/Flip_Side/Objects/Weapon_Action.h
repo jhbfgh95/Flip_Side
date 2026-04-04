@@ -22,8 +22,12 @@ class FLIP_SIDE_API UWeapon_Action : public UActionBase
 	int32 FinalBehaviorPoint = 0;
 
 	UPROPERTY()
-	class ACoinActor* CasterCoin;
+	class ACoinActor* CasterCoin = nullptr;
 
+	UPROPERTY()
+	class AGridActor* TargetGrid = nullptr;
+
+	//굳이 필요없지만 나중에 버프등의 아이콘 넣을 수도 있으니까
 	UPROPERTY()
 	FFaceData WeaponData;
 
@@ -35,10 +39,14 @@ public:
 
 	virtual void SetSingleCellTargetCoin(ACoinActor* TargetCoin);
 
+	virtual void SetGridForAction(class AGridActor* targetGrid);
+
 	void SetWeaponData();
 
 	void SetCasterCoin(ACoinActor* InCaster) { CasterCoin = InCaster; }
     ACoinActor* GetCasterCoin() const { return CasterCoin; }
+
+	AGridActor* GetTargetGrid() const { return TargetGrid; }
 
 	/*Get은 CoinActionStaticLibrary에서 */
 

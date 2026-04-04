@@ -53,6 +53,17 @@ public:
 	float Phase2StartTime = 0.f;
 };
 
+UENUM(BlueprintType)
+enum class EGridClickFlag : uint8
+{
+	None,
+	CoinAction,
+	ItemAction
+};
+
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnGridClickedForCoin, AGridActor*, targetGrid);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnGridClickedForItem, AGridActor*,  targetGrid);
+
 UCLASS()
 class FLIP_SIDE_API UGridManagerSubsystem : public UWorldSubsystem
 {
@@ -105,18 +116,10 @@ public:
 	void GetValidGridsForSingleCell(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, TArray<FGridPoint>& VadlidCells);
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
-	void PreviewHoveredCoinRange(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec);
+	void PreviewHoveredCoinRange(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, const FGridPoint& finalRange);
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void ResetBattleCoinPreview();
-	
-	/*
-	UFUNCTION(BlueprintCallable, Category="Grid|Boss")
-	void PreviewBossAttack(const FAttackAreaSpec& Spec);
-
-	UFUNCTION(BlueprintCallable, Category="Grid|Boss")
-	void ClearBossAttackPreview();
-	*/
 
 	// WeaponRangePreviewActor가 BeginPlay에서 자신을 등록
 	void RegisterPreviewActor(AWeaponRangePreviewActor* Actor) { PreviewActor = Actor; }
@@ -128,6 +131,12 @@ public:
 		TArray<FGridPoint>& OutCells
 	) const;
 
+/* 클릭 함수 및 델리게이트 변수들 */
+public:
+	void SetGridClickFlag(EGridClickFlag clickFlag = EGridClickFlag::None);
+
+	FOnGridClickedForCoin OnGridClickedForCoin;
+	FOnGridClickedForItem OnGridClickedForItem;
 private:
 	void InstanceGrid();
 
@@ -143,6 +152,12 @@ private:
 	void TickPhase1(FGridPoint Cell);
 	void StartPhase2(FGridPoint Cell);
 	void TickPhase2(FGridPoint Cell);
+
+/* Click Members */
+	EGridClickFlag ClickFlag = EGridClickFlag::None;
+
+	UFUNCTION()
+	void BindForGridClick(AGridActor* targetGrid);
 
 private:
 	UPROPERTY()

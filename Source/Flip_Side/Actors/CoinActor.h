@@ -94,7 +94,7 @@ public:
 	class UComponent_Status* StatComponent;
 
 	//이거 퍼블릭으로 빼면 오히려 커스텀 스킨을 적용할 수 있다고 생각한다.
-	UPROPERTY(EditAnywhere, Category = "Coin | Component")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,Category = "Coin | Component")
 	class UStaticMeshComponent* CoinMesh;
 
 	//해당 위젯도 마찬가지.
@@ -177,6 +177,12 @@ public:
 	virtual void OnUnhover_Implementation() override;
 
 	virtual void OnClicked_Implementation() override;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Coin | Outline")
+	void CoinHoverOutline();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Coin | Outline")
+	void CoinUnHoverOutline();
 
 /* 연출들 */
 public:

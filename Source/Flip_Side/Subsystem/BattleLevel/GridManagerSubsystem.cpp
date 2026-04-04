@@ -83,6 +83,8 @@ void UGridManagerSubsystem::InstanceGrid()
 
 			if (!NewGrid) continue;
 
+            NewGrid->OnGridClicked.AddDynamic(this, &UGridManagerSubsystem::BindForGridClick);
+
 			NewGrid->SetGridXY(X, Y);     
 			NewGrid->FinishSpawning(SpawnTM);
 
@@ -442,40 +444,6 @@ void UGridManagerSubsystem::BuildBossAttackCells(const FAttackAreaSpec& Spec, TA
 }
 
 // ======================
-// Boss Attack Preview (Telegraph)
-// ======================
-
-// ���� ��� �� ��
-/*
-void UGridManagerSubsystem::PreviewBossAttack(const FAttackAreaSpec& Spec)
-{
-    TArray<FGridPoint> AttackCells;
-    BuildBossAttackCells(Spec, AttackCells);
-
-    for (const FGridPoint& P : AttackCells)
-    {
-        if (AGridActor* Grid = GetGridActorAt(P))
-        {
-            // Grid->SetDanger(true);
-            // Grid->SetPreviewColor(FLinearColor::Red);
-        }
-    }
-}
-
-void UGridManagerSubsystem::ClearBossAttackPreview()
-{
-    for (const auto& Pair : GridActors)
-    {
-        if (AGridActor* Grid = Pair.Value.Get())
-        {
-            // Grid->SetDanger(false);
-            // Grid->ResetPreviewColor();
-        }
-    }
-}
-*/
-
-// ======================
 // Lambda-based Single Target Spec
 // ======================
 
@@ -498,7 +466,7 @@ void UGridManagerSubsystem::BuildCoinTargetCells(
     }
 }
 
-void UGridManagerSubsystem::PreviewHoveredCoinRange(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec)
+void UGridManagerSubsystem::PreviewHoveredCoinRange(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, const FGridPoint& finalRange)
 {
 	UE_LOG(LogTemp, Log, TEXT("PreviewHoveredCoinRange 호출됨 - CoinXY(%d,%d), PreviewActor유효:%s"),
 		CoinXY.GridX, CoinXY.GridY, IsValid(PreviewActor) ? TEXT("YES") : TEXT("NO"));
@@ -520,7 +488,11 @@ void UGridManagerSubsystem::PreviewHoveredCoinRange(const FGridPoint& CoinXY, co
 	// 메인 그리드 하이라이트
 	if (AGridActor* CoinCell = GetGridActorAt(CoinXY.GridX, CoinXY.GridY))
 	{
-		CoinCell->ApplyCellMaterialParams(FLinearColor(0.f, 1.f, 0.3f, 1.f), 0.8f, 0.f);
+        CoinCell->bIsCoinRangePreview = true;
+		CoinCell->CoinRangeSet.Color = FLinearColor(0.f, 1.f, 0.3f, 1.f);
+		CoinCell->CoinRangeSet.Intensity = 0.8f;
+		CoinCell->CoinRangeSet.DoorOpen = 0.f;
+		CoinCell->InitColor();
 	}
 	MainPreviewCoinCell = CoinXY;
 
@@ -530,7 +502,11 @@ void UGridManagerSubsystem::PreviewHoveredCoinRange(const FGridPoint& CoinXY, co
 
 		if (AGridActor* Cell = GetGridActorAt(P.GridX, P.GridY))
 		{
-			Cell->ApplyCellMaterialParams(FLinearColor(1.f, 0.5f, 0.f, 1.f), 0.8f, 0.f);
+			Cell->bIsCoinRangePreview = true;
+			Cell->CoinRangeSet.Color = FLinearColor(1.f, 0.5f, 0.f, 1.f);
+			Cell->CoinRangeSet.Intensity = 0.8f;
+			Cell->CoinRangeSet.DoorOpen = 0.f;
+			Cell->InitColor();
 		}
 	}
 	MainPreviewHighlightedCells = RangeCells;
@@ -542,7 +518,6 @@ void UGridManagerSubsystem::PreviewHoveredCoinRange(const FGridPoint& CoinXY, co
 	}
 }
 
-//이것도 해주세용 사거리 칠한거 다시 되돌리는거
 void UGridManagerSubsystem::ResetBattleCoinPreview()
 {
 	if (IsValid(PreviewActor))
@@ -555,6 +530,7 @@ void UGridManagerSubsystem::ResetBattleCoinPreview()
 	{
 		if (AGridActor* Cell = GetGridActorAt(P.GridX, P.GridY))
 		{
+            Cell->bIsCoinRangePreview = false;
 			Cell->InitColor();
 		}
 	}
@@ -562,16 +538,30 @@ void UGridManagerSubsystem::ResetBattleCoinPreview()
 
 	if (AGridActor* CoinCell = GetGridActorAt(MainPreviewCoinCell.GridX, MainPreviewCoinCell.GridY))
 	{
+        CoinCell->bIsCoinRangePreview = false;
 		CoinCell->InitColor();
 	}
 	MainPreviewCoinCell = FGridPoint{ -1, -1 };
 }
 
-// GridManagerSubsystem.cpp
-
 bool UGridManagerSubsystem::IsInGrid(int32 X, int32 Y) const
 {
     return (0 <= X && X < GridXSize) && (0 <= Y && Y < GridYSize);
+}
+
+
+void UGridManagerSubsystem::BindForGridClick(AGridActor* targetGrid)
+{
+    if(!targetGrid || ClickFlag == EGridClickFlag::None) return;
+
+    if(ClickFlag == EGridClickFlag::CoinAction)
+    {
+        OnGridClickedForCoin.ExecuteIfBound(targetGrid);
+    }
+    else if(ClickFlag == EGridClickFlag::ItemAction)
+    {
+        OnGridClickedForItem.ExecuteIfBound(targetGrid);
+    }
 }
 
 void UGridManagerSubsystem::StopDoorFx(const FGridPoint& Cell)
@@ -686,14 +676,66 @@ void UGridManagerSubsystem::TickPhase2(FGridPoint Cell)
     // Door_Open: 0.4 -> 0
     const float Door = FMath::Lerp(0.4f, 0.0f, Alpha);
 
-    CellActor->ApplyCellMaterialParams(
-        FLinearColor(1.f, 1.f, 1.f, 1.f),  // Outline FFFFFFFF
-        0.4f,                               // Fill_intensity ����
-        Door
-    );
+    if(!CellActor->bIsBossAttack)
+    {
+        CellActor->ApplyCellMaterialParams(
+            FLinearColor(1.f, 1.f, 1.f, 1.f),  // Outline FFFFFFFF
+            0.03f,                               // Fill_intensity ����
+            Door
+        );
+    }
+    else
+    {
+        CellActor->InitColor();
+    }
+
 
     if (Alpha >= 1.f)
     {
         StopDoorFx(Cell);
+    }
+}
+
+
+void UGridManagerSubsystem::SetGridClickFlag(EGridClickFlag clickFlag)
+{ 
+    ClickFlag = clickFlag;
+    if(ClickFlag == EGridClickFlag::CoinAction)
+    {
+        for (const auto& Pair : GridActors)
+        {
+            const FGridPoint& GridP = Pair.Key;
+            AGridActor* Grid = Pair.Value.Get();
+            if (!IsValid(Grid)) continue;
+
+            if(Grid->GetIsOccupied()) continue;
+            Grid->HoverFlag = 1;
+
+        }
+    }
+    else if(ClickFlag == EGridClickFlag::ItemAction)
+    {
+        for (const auto& Pair : GridActors)
+        {
+            const FGridPoint& GridP = Pair.Key;
+            AGridActor* Grid = Pair.Value.Get();
+            if (!IsValid(Grid)) continue;
+
+            if(Grid->GetIsOccupied()) continue;
+            Grid->HoverFlag = 2;
+        }       
+    }
+    else
+    {
+        for (const auto& Pair : GridActors)
+        {
+            const FGridPoint& GridP = Pair.Key;
+            AGridActor* Grid = Pair.Value.Get();
+            if (!IsValid(Grid)) continue;
+
+            if(Grid->GetIsOccupied()) continue;
+            Grid->HoverFlag = 0;
+
+        }
     }
 }
