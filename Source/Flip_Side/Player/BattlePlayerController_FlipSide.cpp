@@ -47,9 +47,14 @@ void ABattlePlayerController_FlipSide::BeginPlay()
     if (ControlledPawn)
     {
         // 디폴트 카메라 시점
-        DefaultCameraLocation = FVector(-1656.599739f, -1043.456394f, 2234.021618f);
-        DefaultCameraRotation = FRotator(-35.0f, -0.20f, 0.0f);
+        DefaultCameraLocation = FVector(-1820.0f, -990.0f, 2220.0f);
+        DefaultCameraRotation = FRotator(-35.0f, 0.0f, 0.0f);
         DefaultCameraArmLength = 0.0f;
+    }
+
+    if (UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>())
+    {
+        BattleManager->OnTurnChanged.AddDynamic(this, &ABattlePlayerController_FlipSide::OnTurnChanged);
     }
 }
 
@@ -168,4 +173,22 @@ void ABattlePlayerController_FlipSide::OnPossess(APawn *InPawn)
 
     ControlledPawn = Cast<ABattlePlayerPawn_FlipSide>(InPawn);
     check(ControlledPawn);
+}
+
+void ABattlePlayerController_FlipSide::OnTurnChanged(ETurnState NewTurn)
+{
+    if (!ControlledPawn) return;
+
+    if (NewTurn == ETurnState::CoinSelectTurn)
+    {
+        GetWorldTimerManager().SetTimer(CoinSelectCameraDelayHandle, [this]()
+        {
+            if (ControlledPawn)
+                ControlledPawn->MoveCameraToArea(CoinSelectCameraLocation, CoinSelectCameraRotation, CoinSelectCameraArmLength);
+        }, CoinSelectCameraDelay, false);
+    }
+    else if (NewTurn == ETurnState::CoinReadyTurn)
+    {
+        ControlledPawn->MoveCameraToArea(DefaultCameraLocation, DefaultCameraRotation, DefaultCameraArmLength);
+    }
 }

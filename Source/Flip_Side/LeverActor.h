@@ -41,4 +41,10 @@ public:
 	class UStaticMeshComponent* LeverMesh;
 
     void OnLeverInteracted();
+
+	UFUNCTION()
+	void OnLeverMoveComplete() {}
+
+	UFUNCTION()
+	void OnLeverReturnComplete() {}
 };

@@ -112,6 +112,7 @@ void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
             LiveCoinStacks.Add(BattleReadyCoins[i]);
             BattleReadyCoins[i]->SetCoinOnBattle(false);
             BattleReadyCoins[i]->SetCoinIsActed(false);
+            BattleReadyCoins[i]->SetCoinIsReady(true);
             BattleReadyCoins[i]->CoinMesh->SetVisibility(false);
             BattleReadyCoins[i]->CoinHPUI->SetVisibility(false);
         }
@@ -232,15 +233,16 @@ void UCoinManagementWSubsystem::ArrangeSlotCoins(int32 FrontWeaponID)
         EndLoc.Y += (i * 35.f);
 
         FLatentActionInfo LatentInfo;
-        LatentInfo.CallbackTarget = nullptr;
+        LatentInfo.CallbackTarget = this;
         LatentInfo.UUID = Coin->GetUniqueID();
         LatentInfo.Linkage = 0;
+        LatentInfo.ExecutionFunction = FName("OnArrangeSlotMoveComplete");
 
         UKismetSystemLibrary::MoveComponentTo(
             Coin->GetRootComponent(), 
             EndLoc, 
             Coin->GetActorRotation(), 
-            true, true, 0.15f, false, EMoveComponentAction::Move, LatentInfo
+            true, true, 0.35f, false, EMoveComponentAction::Move, LatentInfo
         );
     }
 }

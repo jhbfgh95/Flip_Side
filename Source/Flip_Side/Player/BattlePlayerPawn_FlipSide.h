@@ -39,5 +39,5 @@ private:
     float TargetArmLength;       // 목표 거리 (SpringArm의 길이)
 
     UPROPERTY(EditAnywhere, Category = "Camera Settings")
-    float InterpolationSpeed = 5.0f; // 이동 속도
+    float InterpolationSpeed = 2.5f; // 이동 속도
 };

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "FlipSide_Enum.h"
 #include "BattlePlayerController_FlipSide.generated.h"
 
 class UInputMappingContext;
@@ -20,6 +21,23 @@ private:
     FVector DefaultCameraLocation;
     FRotator DefaultCameraRotation;
     float DefaultCameraArmLength;
+
+	UPROPERTY(EditAnywhere, Category = "Camera")
+    FVector CoinSelectCameraLocation;
+
+    UPROPERTY(EditAnywhere, Category = "Camera")
+    FRotator CoinSelectCameraRotation;
+
+    UPROPERTY(EditAnywhere, Category = "Camera")
+    float CoinSelectCameraArmLength = 0.f;
+
+    UPROPERTY(EditAnywhere, Category = "Camera")
+    float CoinSelectCameraDelay = 0.6f;
+
+    FTimerHandle CoinSelectCameraDelayHandle;
+
+    UFUNCTION()
+    void OnTurnChanged(ETurnState NewTurn);
 
 protected:
 	TObjectPtr<ABattlePlayerPawn_FlipSide> ControlledPawn;

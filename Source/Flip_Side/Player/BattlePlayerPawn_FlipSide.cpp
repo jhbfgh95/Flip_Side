@@ -34,8 +34,8 @@ void ABattlePlayerPawn_FlipSide::BeginPlay()
 	Super::BeginPlay();
 	
 	// 고정 좌푯값
-    TargetLocation = FVector(-1656.599739f, -1043.456394f, 2234.021618f); 
-    TargetRotation = FRotator(-35.0f, -0.20f, 0.0f);
+    TargetLocation = FVector(-1820.0f, -990.0f, 2220.0f); 
+    TargetRotation = FRotator(-35.0f, 0.0f, 0.0f);
     TargetArmLength = 0.0f; 
 
     // 게임 시작 시 Pawn을 즉시 그 위치로 설정

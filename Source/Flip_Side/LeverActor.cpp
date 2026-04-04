@@ -51,6 +51,7 @@ void ALeverActor::PlayLeverAnimation()
     LatentInfo.CallbackTarget = this;
     LatentInfo.UUID = GetUniqueID();
     LatentInfo.Linkage = 0;
+    LatentInfo.ExecutionFunction = FName("OnLeverMoveComplete");
 
     // 레버 내려가는 연출
     UKismetSystemLibrary::MoveComponentTo(
@@ -73,6 +74,7 @@ void ALeverActor::PlayLeverAnimation()
         FLatentActionInfo ReturnInfo;
         ReturnInfo.CallbackTarget = this;
         ReturnInfo.UUID = GetUniqueID() + 1;
+        ReturnInfo.ExecutionFunction = FName("OnLeverReturnComplete");
         
         UKismetSystemLibrary::MoveComponentTo(
             LeverMesh, 

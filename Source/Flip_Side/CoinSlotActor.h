@@ -35,8 +35,6 @@ class FLIP_SIDE_API ACoinSlotActor : public ASlotActor, public IBattleHoverInter
 	GENERATED_BODY()
 
 	ACoinSlotActor();
-
-	int32 OutCoinNum = 0;
 	
 protected:
 	virtual void BeginPlay() override;

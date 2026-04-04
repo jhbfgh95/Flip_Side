@@ -77,6 +77,8 @@ protected:
 	UFUNCTION()
 	void HandleCoinSlotClicked(ACoinActor* ReadyTargetCoin);
 
+	UFUNCTION()
+	void OnArrangeSlotMoveComplete() {}
 public:
 	//서랍 초기화
 	void InitBattleReadyCoin();

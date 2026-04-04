@@ -1,4 +1,5 @@
 #include "CoinSlotActor.h"
+#include "CoinActor.h"
 #include "Components/StaticMeshComponent.h"
 
 ACoinSlotActor::ACoinSlotActor()
@@ -28,11 +29,12 @@ void ACoinSlotActor::OnUnhover_Implementation()
 
 void ACoinSlotActor::OnClicked_Implementation()
 {
-    if(AllowcatedCoins.IsValidIndex(OutCoinNum))
+    for (ACoinActor* Coin : AllowcatedCoins)
     {
-        OnCoinSlotClicked.Broadcast(AllowcatedCoins[OutCoinNum]);
-        OutCoinNum++;
+        if (Coin && !Coin->GetCoinIsReady() && Coin->SameTypeIndex == 0)
+        {
+            OnCoinSlotClicked.Broadcast(Coin);
+            return;
+        }
     }
-    
-    return;
 }
