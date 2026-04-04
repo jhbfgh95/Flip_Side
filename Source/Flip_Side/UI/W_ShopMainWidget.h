@@ -20,7 +20,7 @@ class FLIP_SIDE_API UW_ShopMainWidget : public UUserWidget
 
 
 	class AGameMode_Shop* shopGameMode;
-private:
+protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* GameStartButton;
 
@@ -57,7 +57,7 @@ public:
 	void ClickUnlockWeaponButton();
 	
 	UFUNCTION()
-	void ClickBattleStartButton();
+	virtual void ClickBattleStartButton();
 	
 	UFUNCTION()
 	void ClickUnlockCardButton();

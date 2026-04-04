@@ -6,7 +6,10 @@
 void UUnlockGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
-    
+    if(DealUnlockArray.Num()<=0)
+    {
+        DealUnlockArray.Add(1);
+    }
 }
 
 int32 UUnlockGISubsystem::GetUnlockCardID(int32 index)

@@ -39,7 +39,8 @@ public class Flip_Side : ModuleRules
 			"Flip_Side/UI/ShopUnlockCard",
 			"Flip_Side/UI/ShopUnlockWeapon",
 			"Flip_Side/BossPattern",
-			"Flip_Side/Actors"
+			"Flip_Side/Actors",
+			"Flip_Side/ShopTutorial"
 		});
 
 

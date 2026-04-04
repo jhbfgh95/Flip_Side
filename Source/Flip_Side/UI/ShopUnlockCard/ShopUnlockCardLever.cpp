@@ -18,10 +18,15 @@ void AShopUnlockCardLever::BeginPlay()
 
 void AShopUnlockCardLever::ExecuteLeverLogic() 
 {
-    UnlockCardSubsystem->UnlockCard();
+    UnlockCard();
 }
 
 void AShopUnlockCardLever::InteractLeftClick_Implementation()
 {
 	OnLeverInteracted();
+}
+	
+void AShopUnlockCardLever::UnlockCard()
+{
+    UnlockCardSubsystem->UnlockCard();
 }

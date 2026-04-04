@@ -37,7 +37,7 @@ private: // 컴포넌트
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* PressMachineMesh;
 	
-private:
+protected:
 	ACreateCoinUIActor();
 
 protected:
@@ -66,7 +66,7 @@ private: //코인정보
 	EWeaponClass WeaponType = EWeaponClass::Tank;
 
 
-private:
+protected:
 	//코인무기가 업데이트 됬을 때 설정하는 함수
 	UFUNCTION()
 	void UpdateCoinWeapon(int32 WeaponIndex, bool IsFront);
