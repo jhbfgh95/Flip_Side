@@ -38,6 +38,9 @@ struct FItemData
     // DB���� ���� �ڵ� ���ڿ�
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString BehaviorCode;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FString ItemName;
 };
 
 /**

@@ -408,7 +408,7 @@ bool UDataManagerSubsystem::LoadBosses()
 bool UDataManagerSubsystem::LoadItems()
 {
     const TCHAR* Sql =
-        TEXT("SELECT i.item_id, i.item_range, i.item_effect_value, i.icon_path, i.item_description AS item_des, i.item_type_id, i.behavior, t.item_type_color FROM item i JOIN item_type t ON i.item_type_id = t.item_type_id;");
+        TEXT("SELECT i.item_id, i.item_range, i.item_effect_value, i.icon_path, i.item_description AS item_des, i.item_type_id, i.behavior, t.item_type_color, i.item_name FROM item i JOIN item_type t ON i.item_type_id = t.item_type_id;");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
@@ -439,6 +439,7 @@ bool UDataManagerSubsystem::LoadItems()
         {
             Item.TypeColor = FLinearColor::White;
         }
+        Item.ItemName = GetColTextUTF8(Stmt, 8);
         ItemByID.Add(Item.ItemID, Item);
         Items.Add(Item);
     }
