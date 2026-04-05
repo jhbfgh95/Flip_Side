@@ -1,18 +1,15 @@
 #include "BossPatternBase.h"
-#include "BossManagerSubsystem.h"
 #include "GridManagerSubsystem.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Component_Status.h"
+#include "CoinActor.h"
+#include "Base_OtherActor.h"
 
 void UBossPatternBase::BuildTargetCells(
-	UBossManagerSubsystem* BossManager,
 	ABossActor* Boss,
 	TArray<FGridPoint>& OutCells, int32 PatternNum)
 {
-	if (!BossManager)
-	{
-		return;
-	}
-
-	UWorld* World = BossManager->GetWorld();
+	UWorld* World = GetWorld();
 	if (!World)
 	{
 		return;
@@ -36,9 +33,53 @@ void UBossPatternBase::BuildTargetCells(
 }
 
 void UBossPatternBase::ExecutePattern(
-	UBossManagerSubsystem* BossManager,
 	ABossActor* Boss,
 	const TArray<FGridPoint>& InLockedCells,
 	const TArray<ACoinActor*>& InLockedTargets, int32 PatternNum)
 {
+}
+
+void UBossPatternBase::ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, ABossActor* Boss, int32 Damage)
+{
+    for (ACoinActor* Coin : LockedTargets)
+    {
+        if (!IsValid(Coin)) continue;
+
+        UComponent_Status* StatusComp = Coin->FindComponentByClass<UComponent_Status>();
+        if (!StatusComp)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[BossPattern] CoinID=%d has no Component_Status"), Coin->GetCoinID());
+            continue;
+        }
+
+        const int32 PrevHP = StatusComp->GetHP();
+        const int32 NextHP = PrevHP - FMath::Max(0, Damage);
+
+        StatusComp->ApplyDamage(Damage, Boss);
+
+        UE_LOG(LogTemp, Log, TEXT("[BossPattern] Damage Applied - CoinID=%d HP %d -> %d"),
+            Coin->GetCoinID(), PrevHP, FMath::Max(0, NextHP));
+	}
+}
+void UBossPatternBase::PlayPatternEffect_Implementation(int32 PatternNum, FVector EffectLocation)
+{
+	if(!PatternData.IsValidIndex(PatternNum)) return;
+	if(!PatternData[PatternNum].PatternEffect.IsNull())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Naiagara On"));
+
+		UNiagaraSystem* DefaultEffect = PatternData[PatternNum].PatternEffect.LoadSynchronous();
+
+		if (DefaultEffect)
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+				GetWorld(), 
+				DefaultEffect, 
+				EffectLocation, 
+				FRotator::ZeroRotator,
+				PatternData[PatternNum].PatternScale
+			);
+		}
+	}
+
 }

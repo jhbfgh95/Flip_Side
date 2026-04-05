@@ -11,7 +11,6 @@
 #include "LevelGISubsystem.h"
 #include "CoinManagementWSubsystem.h"
 #include "BossManagerSubsystem.h"
-#include "BossSetupGISubsystem.h"
 #include "CrossingLevelGISubsystem.h"
 #include "UseableItemWSubsystem.h"
 #include "GridManagerSubsystem.h"
@@ -60,19 +59,6 @@ bool UBattleManagerWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
     Super::OnWorldBeginPlay(InWorld);
-
-    UGameInstance* GI = InWorld.GetGameInstance();
-    if (GI)
-    {
-        ULevelGISubsystem* LevelGI = GI->GetSubsystem<ULevelGISubsystem>();
-        UBossSetupGISubsystem* BossSetupGI = GI->GetSubsystem<UBossSetupGISubsystem>();
-
-        if (LevelGI && BossSetupGI)
-        {
-            const int32 StageIndex = LevelGI->GetBattleLevelIndex();
-            BossSetupGI->PrepareBossForStage(StageIndex);
-        }
-    }
 
     if (BossManager)
     {
@@ -226,6 +212,7 @@ void UBattleManagerWSubsystem::DoBossTurn()
 {
     CoinActionManager->SetTurn(false);
     ItemManager->SetTurn(false);
+    ActingManager->PlayBossPatternAct();
     BossManager->ExecuteCurrentPattern();
     TurnStackInit();
 }
@@ -234,9 +221,15 @@ void UBattleManagerWSubsystem::DoSettingTurn()
 {
     GenerateRandomStates();
     ActingManager->DoSettingAct();
-    GridManager->InitCoinOccupied();
+    GridManager->InitGrids();
     CoinManager->CheckBattleReadyCoinAlive();
     BossManager->StartBossSetting();
+    TSoftClassPtr<ABase_PatternVisualActor> VisualClass = BossManager->GetCurrentPatternVisualClass();
+
+    if (!VisualClass.IsNull())
+    {
+        ActingManager->PrepareBossVisualActor(VisualClass);
+    }
 
     TurnProgressing();
 }
@@ -246,6 +239,19 @@ void UBattleManagerWSubsystem::Lets_GO_ShopLevel()
     UGameInstance* GameInstance = GetWorld()->GetGameInstance();
     if(GameInstance)
     {
-        GameInstance->GetSubsystem<ULevelGISubsystem>()->MoveLevel("L_ShopLevel");
+        ULevelGISubsystem* LevelMan = GameInstance->GetSubsystem<ULevelGISubsystem>();
+
+        if(LevelMan)
+        {
+            //튜토리얼 클리어시, 시작화면으로 아니면 바로 상점레벨로
+            if(LevelMan->GetBattleLevelIndex() == 0)
+            {
+                LevelMan->MoveStartLevel();
+            }
+            else
+            {
+                LevelMan->MoveShopLevel();
+            }
+        }
     }
 }

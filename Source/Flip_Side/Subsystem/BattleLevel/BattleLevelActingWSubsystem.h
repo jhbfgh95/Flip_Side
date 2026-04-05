@@ -11,6 +11,8 @@ class ACoinActor;
 DECLARE_DELEGATE_OneParam(FOnDrawMove, bool);
 DECLARE_DELEGATE(FOnGear);
 
+class ABase_PatternVisualActor;
+
 UCLASS()
 class FLIP_SIDE_API UBattleLevelActingWSubsystem : public UWorldSubsystem
 {
@@ -27,6 +29,9 @@ class FLIP_SIDE_API UBattleLevelActingWSubsystem : public UWorldSubsystem
 
 	UPROPERTY()
 	class UGridManagerSubsystem* GridManager;
+
+	UPROPERTY()
+    TObjectPtr<ABase_PatternVisualActor> CurrentVisualActor = nullptr;
 
 /* Battle Start */
 protected:
@@ -46,6 +51,12 @@ public:
 public:
 	void DoSettingAct();
 
+	void PrepareBossVisualActor(TSoftClassPtr<class ABase_PatternVisualActor> VisualClass);
+
+/* Boss Turn */
+public:
+	void PlayBossPatternAct();
+	
 /* 연출용 델리게이트 */
 public:
 	FOnDrawMove DoDrawMove;

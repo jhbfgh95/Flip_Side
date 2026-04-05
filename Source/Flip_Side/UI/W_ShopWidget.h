@@ -13,9 +13,6 @@ class UW_ShopWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level")
-	TArray<FString> BattleLevelNames;
 	
 protected:
 	UPROPERTY(meta = (BindWidgetOptional))

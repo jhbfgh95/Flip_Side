@@ -5,6 +5,7 @@
 #include "Component_Status.h"
 #include "W_CoinHPWidget.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "GeometryCollection/GeometryCollectionComponent.h"
 #include "DataTypes/GridTypes.h"
 #include "FlipSide_Enum.h"
 #include "DataTypes/WeaponDataTypes.h"
@@ -18,6 +19,12 @@ ACoinActor::ACoinActor()
 
 	CoinMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Coin Mesh"));
 	CoinMesh->SetupAttachment(RootComponent);
+
+	FracturedCoin = CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("Fractured Coin"));
+	FracturedCoin->SetupAttachment(RootComponent);
+	FracturedCoin->SetVisibility(false);
+	FracturedCoin->SetSimulatePhysics(false);
+	FracturedCoin->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	StatComponent = CreateDefaultSubobject<UComponent_Status>(TEXT("StatComponent"));
 
@@ -68,6 +75,7 @@ void ACoinActor::BeginPlay()
 	if(StatComponent)
 	{
 		StatComponent->OnDead.AddDynamic(this, &ACoinActor::CoinDead);
+		StatComponent->OnHpChanged.AddUObject(this, &ACoinActor::OnCoinHpChanged);
 	}
 }
 
@@ -338,6 +346,54 @@ void ACoinActor::OnClicked_Implementation()
 
 void ACoinActor::CoinDead()
 {
-	//frag로 막 깨지는거 + 폭발로 연출
-	Destroy();
+	if (CoinMesh && FracturedCoin)
+    {
+        CoinMesh->SetVisibility(false);
+        CoinMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+        FracturedCoin->SetVisibility(true);
+        FracturedCoin->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+        FracturedCoin->SetSimulatePhysics(true);
+
+		FVector CenterLoc = GetActorLocation();
+		float Radius = 50.f;
+		float Strength = 100.f;
+
+		FracturedCoin->AddRadialImpulse(CenterLoc, Radius, Strength, ERadialImpulseFalloff::RIF_Constant, true);
+    }
+
+    if (CoinHPUI)
+    {
+        CoinHPUI->SetVisibility(false);
+    }
+
+	SetLifeSpan(0.6f);
+}
+
+void ACoinActor::OnCoinHpChanged(int32 DeltaHP)
+{
+    if (DeltaHP < 0 && CoinMesh)
+    {
+        UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(CoinMesh->GetMaterial(0));
+        if (MID)
+        {
+            MID->SetScalarParameterValue(FName("Flash_Intensity"), 2.5f);
+            UE_LOG(LogTemp, Warning, TEXT("SDF"));
+        }
+
+        // 0.15초 뒤에 ResetFlash 함수를 호출하여 원래 상태로 복구
+        GetWorld()->GetTimerManager().SetTimer(FlashTimerHandle, this, &ACoinActor::ResetFlash, 0.15f, false);
+    }
+}
+
+void ACoinActor::ResetFlash()
+{
+    if (CoinMesh)
+    {
+        UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(CoinMesh->GetMaterial(0));
+        if (MID)
+        {
+            MID->SetScalarParameterValue(FName("Flash_Intensity"), 0.0f);
+        }
+    }
 }

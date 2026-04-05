@@ -97,6 +97,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly,Category = "Coin | Component")
 	class UStaticMeshComponent* CoinMesh;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Coin | Component")
+	class UGeometryCollectionComponent* FracturedCoin;
+
 	//해당 위젯도 마찬가지.
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Component")
 	TObjectPtr<class UWidgetComponent> CoinHPUI;
@@ -232,4 +235,11 @@ protected:
 
 	UFUNCTION()
 	void CoinDead();
+
+	UFUNCTION()
+    void OnCoinHpChanged(int32 DeltaHP);
+
+    void ResetFlash();
+
+	FTimerHandle FlashTimerHandle;
 };

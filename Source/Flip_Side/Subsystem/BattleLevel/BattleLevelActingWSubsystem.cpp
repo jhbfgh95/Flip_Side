@@ -7,6 +7,7 @@
 #include "GridTypes.h"
 #include "GridActor.h"
 #include "CoinActor.h"
+#include "Base_PatternVisualActor.h"
 
 void UBattleLevelActingWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -115,4 +116,33 @@ void UBattleLevelActingWSubsystem::DoSettingAct()
 {
     //뭐 또 타이머든 뭐든 써서 n초 후에 세팅 다 하고 다음 턴으로 넘어갈텐데 이제 그동안 연출되는 것들 다 여기에
     DoDrawMove.ExecuteIfBound(false);
+}
+
+void UBattleLevelActingWSubsystem::PrepareBossVisualActor(TSoftClassPtr<ABase_PatternVisualActor> VisualClass)
+{
+    if (IsValid(CurrentVisualActor))
+    {
+        CurrentVisualActor->Destroy();
+        CurrentVisualActor = nullptr;
+    }
+
+    if (VisualClass.IsNull()) return;
+
+    UClass* LoadedClass = VisualClass.LoadSynchronous();
+    if (LoadedClass)
+    {
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+        // 위치 파라미터 없이 클래스만으로 스폰
+        CurrentVisualActor = GetWorld()->SpawnActor<ABase_PatternVisualActor>(LoadedClass, SpawnParams);
+    }
+}
+
+void UBattleLevelActingWSubsystem::PlayBossPatternAct()
+{
+    if (IsValid(CurrentVisualActor))
+    {
+        CurrentVisualActor->PlayBossPatternAct();
+    }
 }

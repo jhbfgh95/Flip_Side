@@ -4,8 +4,8 @@
 #include "BossPatternBase.h"
 #include "GridManagerSubsystem.h"
 #include "CoinActor.h"
-#include "Component_Status.h"
 #include "GridActor.h"
+#include "Base_PatternVisualActor.h"
 #include "BossSetupGISubsystem.h"
 
 #include "Engine/World.h"
@@ -165,18 +165,28 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
 
     TurnContext.CurrentPattern = PickedPattern;
     TurnContext.CurrentPatternIndex = PatternIndex;
-    TurnContext.CurrentPattern->BuildTargetCells(this, CurrentBoss, TurnContext.LockedCells, TurnContext.CurrentPatternIndex);
-
+    TurnContext.CurrentPattern->BuildTargetCells(CurrentBoss, TurnContext.LockedCells, TurnContext.CurrentPatternIndex);
+    
     if (PickedPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
     {
         CurrentBoss->SetPatternAnim(PickedPattern->PatternData[TurnContext.CurrentPatternIndex].PatternMontage);
     }
 
-    BuildLockedTargetsFromCells(TurnContext.LockedCells, TurnContext.LockedTargets);
     ShowTelegraphPreview(TurnContext.LockedCells, FLinearColor(1.f, 0.f, 0.f, 1.f));
 
     TurnContext.bPrepared = true;
     return true;
+}
+
+
+TSoftClassPtr<ABase_PatternVisualActor> UBossManagerSubsystem::GetCurrentPatternVisualClass() const
+{
+    if (TurnContext.CurrentPattern && TurnContext.CurrentPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
+    {
+        return TurnContext.CurrentPattern->PatternData[TurnContext.CurrentPatternIndex].VisualActorClass;
+    }
+    
+    return nullptr;
 }
 
 void UBossManagerSubsystem::ExecuteCurrentPattern()
@@ -193,6 +203,8 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
         ClearCurrentTurn();
         return;
     }
+
+    BuildLockedTargetsFromCells(TurnContext.LockedCells, TurnContext.LockedTargets);
     
     CurrentBoss->PlayAttack();
 
@@ -219,42 +231,28 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
 
 void UBossManagerSubsystem::ApplyCurrentPattern()
 {
-    if (!TurnContext.bPrepared)
-    {
-        return;
-    }
+    if (!TurnContext.bPrepared) return;
 
-    TArray<ACoinActor*> ValidLockedTargets;
-    for (const FLockedBossTarget& LockedTarget : TurnContext.LockedTargets)
-    {
-        if (!IsValid(LockedTarget.CoinActor))
+        TArray<ACoinActor*> ValidLockedTargets;
+        for (const FLockedBossTarget& LockedTarget : TurnContext.LockedTargets)
         {
-            continue;
+            if (!IsValid(LockedTarget.CoinActor)) continue;
+
+            if (IsStillOnLockedCell(LockedTarget))
+            {
+                ValidLockedTargets.Add(LockedTarget.CoinActor);
+            }
         }
 
-        if (IsStillOnLockedCell(LockedTarget))
+        if (TurnContext.CurrentPattern)
         {
-            ValidLockedTargets.Add(LockedTarget.CoinActor);
+            TurnContext.CurrentPattern->ExecutePattern(
+                CurrentBoss,
+                TurnContext.LockedCells,
+                ValidLockedTargets,
+                TurnContext.CurrentPatternIndex
+            );
         }
-        else
-        {
-            UE_LOG(LogTemp, Log, TEXT("[BossManager] CoinID=%d evaded from locked cell (%d,%d)"),
-                LockedTarget.CoinID,
-                LockedTarget.LockedGrid.GridX,
-                LockedTarget.LockedGrid.GridY);
-        }
-    }
-
-    if (TurnContext.CurrentPattern)
-    {
-        TurnContext.CurrentPattern->ExecutePattern(
-            this,
-            CurrentBoss,
-            TurnContext.LockedCells,
-            ValidLockedTargets,
-            TurnContext.CurrentPatternIndex
-        );
-    }
 
     ClearCurrentTurn();
 }
@@ -273,62 +271,6 @@ void UBossManagerSubsystem::ClearCurrentTurn()
     }
 
     TurnContext.Reset();
-}
-
-void UBossManagerSubsystem::GetCoinsOnCells(const TArray<FGridPoint>& Cells, TArray<ACoinActor*>& OutCoins) const
-{
-    OutCoins.Reset();
-
-    UGridManagerSubsystem* GridMgr = GetWorld()->GetSubsystem<UGridManagerSubsystem>();
-    if (!GridMgr)
-    {
-        return;
-    }
-
-    TArray<FCoinOnGridInfo> OccupiedCoins;
-    GridMgr->CollectOccupiedCoins(OccupiedCoins);
-
-    for (const FCoinOnGridInfo& Info : OccupiedCoins)
-    {
-        if (!IsValid(Info.CoinActor))
-        {
-            continue;
-        }
-
-        if (IsCellIncluded(Info.GridXY, Cells))
-        {
-            OutCoins.Add(Info.CoinActor);
-        }
-    }
-}
-
-void UBossManagerSubsystem::ApplyDamageToLockedTargets(const TArray<ACoinActor*>& LockedTargets, int32 Damage)
-{
-    for (ACoinActor* Coin : LockedTargets)
-    {
-        if (!IsValid(Coin))
-        {
-            continue;
-        }
-
-        UComponent_Status* StatusComp = Coin->FindComponentByClass<UComponent_Status>();
-        if (!StatusComp)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("[BossManager] CoinID=%d has no Component_Status"),
-                Coin->GetCoinID());
-            continue;
-        }
-
-        const int32 PrevHP = StatusComp->GetHP();
-        const int32 NextHP = PrevHP - FMath::Max(0, Damage);
-
-        StatusComp->ApplyDamage(Damage, CurrentBoss);
-
-        UE_LOG(LogTemp, Log, TEXT("[BossManager] Damage Applied - CoinID=%d HP %d -> %d"),
-            Coin->GetCoinID(),
-            PrevHP,
-            FMath::Max(0, NextHP));
-    }
 }
 
 void UBossManagerSubsystem::ShowTelegraphPreview(const TArray<FGridPoint>& Cells, const FLinearColor& Color)
@@ -427,3 +369,4 @@ bool UBossManagerSubsystem::IsStillOnLockedCell(const FLockedBossTarget& LockedT
     return CurrentGrid.GridX == LockedTarget.LockedGrid.GridX
         && CurrentGrid.GridY == LockedTarget.LockedGrid.GridY;
 }
+

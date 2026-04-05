@@ -1,16 +1,27 @@
 #include "Tutorial_BossPattern.h"
-#include "BossManagerSubsystem.h"
 #include "GridManagerSubsystem.h"
 #include "BossActor.h"
+#include "GridActor.h"
 #include "Tutorial_BossActor.h"
 
 void UTutorial_BossPattern::ExecutePattern(
-	UBossManagerSubsystem* BossManager,
 	ABossActor* Boss,
 	const TArray<FGridPoint>& InLockedCells,
 	const TArray<ACoinActor*>& InLockedTargets, int32 PatternNum)
 {
-	if (!BossManager)
+	if (!Boss)
+	{
+		return;
+	}
+
+	UWorld* World = Boss->GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	UGridManagerSubsystem* GridMgr = World->GetSubsystem<UGridManagerSubsystem>();
+	if (!GridMgr)
 	{
 		return;
 	}
@@ -19,11 +30,14 @@ void UTutorial_BossPattern::ExecutePattern(
 
 	if(PatternNum == 0 || PatternNum == 1)
 	{
-		TArray<ACoinActor*> ActualTargets;
-		BossManager->GetCoinsOnCells(InLockedCells, ActualTargets);
+		FVector2D AnchorGrid2D = GridMgr->GetGridActor(PatternData[PatternNum].PatternSpec.AnchorCell)->GetGridWorldXY();
+		FVector SpawnLocation = FVector(AnchorGrid2D.X, AnchorGrid2D.Y, -80.f);
 
-		const int32 FinalDamage = Boss ? (Boss->GetAttackPoint() + PatternData[PatternNum].Damage) : PatternData[PatternNum].Damage;
-		BossManager->ApplyDamageToLockedTargets(ActualTargets, FinalDamage);
+		const int32 FinalDamage = Boss->GetAttackPoint() + PatternData[PatternNum].Damage;
+		
+		PlayPatternEffect(PatternNum, SpawnLocation);
+
+		ExecuteDamage(InLockedTargets, Boss, FinalDamage);
 	}
     else
     {
@@ -32,7 +46,7 @@ void UTutorial_BossPattern::ExecutePattern(
         if (TutoBoss)
         {
             TutoBoss->ApplyShieldHeal(TutoBoss->GetAttackPoint(), TutoBoss);
+			PlayPatternEffect(PatternNum, TutoBoss->GetSelfEffectLocation());
         }
     }
-
 }

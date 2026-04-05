@@ -110,7 +110,7 @@ public:
 	AGridActor* GetGridActor(const FGridPoint& P) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
-	void InitCoinOccupied();
+	void InitGrids();
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void GetValidGridsForSingleCell(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, TArray<FGridPoint>& VadlidCells);

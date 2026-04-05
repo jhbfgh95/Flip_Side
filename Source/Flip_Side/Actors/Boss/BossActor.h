@@ -49,7 +49,7 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
-	class USkeletalMeshComponent* BossMesh;
+	class USceneComponent* BossRoot;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
 	class UWidgetComponent* BossHPUI = nullptr;
@@ -72,6 +72,16 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	void BossMontageEnded(class UAnimMontage* TargetMontage, bool bInterrupted);
+
+/* Can Custom */
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
+	class USkeletalMeshComponent* BossMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
+	class USceneComponent* BossSelfEffectLoc;
+
+/*Functions*/
 public:
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	void InitializeFromBossData(const FBossData& InData);
@@ -90,6 +100,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	int32 GetPatternCount() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
+	FVector GetSelfEffectLocation() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	UBossPatternBase* GetPattern() const;

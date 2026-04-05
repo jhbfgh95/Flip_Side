@@ -13,6 +13,9 @@ void UBossSetupGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
     }
 
     ClearPreparedBoss();
+
+    //테스트용
+    PrepareBossForStage(0);
 }
 
 bool UBossSetupGISubsystem::PickRandomThemeFromStageBosses(

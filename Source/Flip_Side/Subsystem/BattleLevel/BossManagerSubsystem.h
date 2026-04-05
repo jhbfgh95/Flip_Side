@@ -10,6 +10,7 @@ class ABossActor;
 class UBossPatternBase;
 class ACoinActor;
 class AGridActor;
+class ABase_PatternVisualActor;
 
 USTRUCT(BlueprintType)
 struct FLockedBossTarget
@@ -105,6 +106,9 @@ public:
     const FBossStageContext& GetStageContext() const { return StageContext; }
 
     UFUNCTION(BlueprintCallable, Category = "Boss")
+    TSoftClassPtr<ABase_PatternVisualActor> GetCurrentPatternVisualClass() const;
+
+    UFUNCTION(BlueprintCallable, Category = "Boss")
     bool StartBossSetting();
 
     UFUNCTION(BlueprintCallable, Category = "Boss")
@@ -112,9 +116,6 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Boss")
     void ClearCurrentTurn();
-
-    void GetCoinsOnCells(const TArray<FGridPoint>& Cells, TArray<ACoinActor*>& OutCoins) const;
-    void ApplyDamageToLockedTargets(const TArray<ACoinActor*>& LockedTargets, int32 Damage);
 
 private:
     bool Internal_SpawnBoss(const FBossData& InBossData);

@@ -56,7 +56,7 @@ void AGameMode_Shop::ChangeBattleLevel()
         UE_LOG(LogTemp, Warning, TEXT("%d 번째 카드 아이디 :  %d"), i, CardArray[i]);
     }
 
-    LevelSubsystem->MoveBattleLevel("L_StageOne");
+    LevelSubsystem->MoveBattleLevel();
 }
 
 

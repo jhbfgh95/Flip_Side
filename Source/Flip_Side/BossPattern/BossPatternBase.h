@@ -6,7 +6,7 @@
 #include "AttackAreaTypes.h"
 #include "BossPatternBase.generated.h"
 
-class UBossManagerSubsystem;
+//class UBossManagerSubsystem;
 class ABossActor;
 class ACoinActor;
 
@@ -30,7 +30,15 @@ struct FPatternData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
 	TObjectPtr<class UAnimMontage> PatternMontage = nullptr;
 
-	//class UNaiagara...음;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern | Visual")
+    TSoftObjectPtr<class UNiagaraSystem> PatternEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern | Visual")
+    FVector PatternScale;
+
+	//투사체 등의 비쥬얼
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern | Visual")
+	TSoftClassPtr<class ABase_PatternVisualActor> VisualActorClass;
 };
 
 UCLASS(Abstract, Blueprintable, EditInlineNew, DefaultToInstanced)
@@ -43,29 +51,32 @@ public:
 	FLinearColor TelegraphColor = FLinearColor::Red;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
-	float TelegraphDuration = 1.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
 	TArray<FPatternData> PatternData;
 
 public:
+	/* Build For Cells */
 	virtual void BuildTargetCells(
-		UBossManagerSubsystem* BossManager,
 		ABossActor* Boss,
 		TArray<FGridPoint>& OutCells, int32 PatternNum);
 
 	virtual void ExecutePattern(
-		UBossManagerSubsystem* BossManager,
 		ABossActor* Boss,
 		const TArray<FGridPoint>& InLockedCells,
 		const TArray<ACoinActor*>& InLockedTargets, int32 PatternNum);
 
+	/* For Real Damage */
 	UFUNCTION(BlueprintCallable, Category = "Pattern")
-	virtual float GetTelegraphDuration() const { return TelegraphDuration; }
-
+	virtual void ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, ABossActor* Boss, int32 Damage);
+	
+	/* Getter */
 	UFUNCTION(BlueprintCallable, Category = "Pattern")
 	virtual FLinearColor GetTelegraphColor() const { return TelegraphColor; }
 
 	UFUNCTION(BlueprintCallable, Category = "Pattern")
 	virtual FString GetPatternName(int32 PatternIndex) const { return PatternData[PatternIndex].PatternName; }
+
+	/* 이펙트 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Boss Pattern | Effect")
+	void PlayPatternEffect(int32 PatternNum, FVector EffectLocation);
+	virtual void PlayPatternEffect_Implementation(int32 PatternNum, FVector EffectLocation);
 };

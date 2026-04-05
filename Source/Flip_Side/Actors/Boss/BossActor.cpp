@@ -1,4 +1,5 @@
 #include "BossActor.h"
+#include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/WidgetComponent.h"
 #include "W_BossHP.h"
@@ -7,11 +8,17 @@ ABossActor::ABossActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	BossRoot = CreateDefaultSubobject<USceneComponent>(TEXT("BossRootComp"));
+	RootComponent = BossRoot;
+
 	BossMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	SetRootComponent(BossMesh);
+	BossMesh->SetupAttachment(RootComponent);
+
+	BossSelfEffectLoc = CreateDefaultSubobject<USceneComponent>(TEXT("SelfEffectLocation"));
+	BossSelfEffectLoc->SetupAttachment(RootComponent);
 
 	BossHPUI = CreateDefaultSubobject<UWidgetComponent>(TEXT("Boss HP UI"));
-	BossHPUI->SetupAttachment(RootComponent);
+	BossHPUI->SetupAttachment(BossMesh);
 }
 
 void ABossActor::BeginPlay()
@@ -71,6 +78,18 @@ UBossPatternBase* ABossActor::GetPattern() const
 	}
 
 	return Pattern;
+}
+
+FVector ABossActor::GetSelfEffectLocation() const
+{
+	
+	if (BossSelfEffectLoc)
+	{
+		return BossSelfEffectLoc->GetComponentLocation();
+	}
+		
+	return GetActorLocation();
+	
 }
 
 void ABossActor::PlayTelegraph()

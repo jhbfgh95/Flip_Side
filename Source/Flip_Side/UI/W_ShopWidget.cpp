@@ -15,8 +15,6 @@ void UW_ShopWidget::HandleNextClicked()
     ULevelGISubsystem* LevelSubsystem = GI->GetSubsystem<ULevelGISubsystem>();
     int32 CurrentBattleLevel = LevelSubsystem->GetBattleLevelIndex();
     
-    if(BattleLevelNames.IsValidIndex(CurrentBattleLevel))
-    {
-        LevelSubsystem->MoveBattleLevel(BattleLevelNames[CurrentBattleLevel]);
-    }
+    LevelSubsystem->MoveBattleLevel();
+  
 }

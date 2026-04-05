@@ -17,7 +17,8 @@ public class Flip_Side : ModuleRules
 			"SQLiteCore", 
 			"SQLiteSupport", 
 			"Niagara",
-			"UMG"
+			"UMG",
+			"GeometryCollectionEngine"
 			 });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

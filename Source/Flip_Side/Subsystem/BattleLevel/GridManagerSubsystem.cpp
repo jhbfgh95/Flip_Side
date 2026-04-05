@@ -146,7 +146,7 @@ void UGridManagerSubsystem::CollectOccupiedCoins(TArray<FCoinOnGridInfo>& OutCoi
 }
 
 //park
-void UGridManagerSubsystem::InitCoinOccupied()
+void UGridManagerSubsystem::InitGrids()
 {
     for (const auto& Pair : GridActors)
 	{
@@ -154,12 +154,17 @@ void UGridManagerSubsystem::InitCoinOccupied()
 		AGridActor* Grid = Pair.Value.Get();
 		if (!IsValid(Grid)) continue;
 
-		if (Grid->GetCurrentOccupyingThing() != EGridOccupyingType::Coin)
+        //설치물 아니면 전부 지워져야합니다.
+		if (Grid->GetCurrentOccupyingThing() == EGridOccupyingType::Wall || Grid->GetCurrentOccupyingThing() == EGridOccupyingType::Turret)
+        {   Grid->bIsBossAttack = false;
+            Grid->InitColor();
 			continue;
+        }
 
 		Grid->ClearOccupied();
 	}
 }
+
 
 //park
 void UGridManagerSubsystem::GetObjectsAtRange(
