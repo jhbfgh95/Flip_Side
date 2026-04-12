@@ -7,6 +7,11 @@
 void UW_BattleCoinInfo::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	if (HoveredWeaponIcon)
+    {
+        DynamicMaterial = HoveredWeaponIcon->GetDynamicMaterial();
+    }
 }
 
 void UW_BattleCoinInfo::UpdateBattleCoinInfo(
@@ -15,11 +20,11 @@ void UW_BattleCoinInfo::UpdateBattleCoinInfo(
 	int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor
     )
 {
-	if (HoveredWeaponIcon && Icon)
-	{
-		HoveredWeaponIcon->SetBrushFromTexture(Icon);
-		HoveredWeaponIcon->SetColorAndOpacity(WeaponColor);
-	}
+	if (HoveredWeaponIcon && Icon && DynamicMaterial)
+    {
+        DynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), Icon);
+        DynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), WeaponColor);
+    }
 	if (HoveredWeaponName)
 	{
 		HoveredWeaponName->SetText(WeaponName);

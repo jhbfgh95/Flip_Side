@@ -5,20 +5,27 @@
 #include "Components/Image.h"
 #include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 void UW_ReadyAndSlotCoinInfo::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+    if (HoveredFrontWeaponIcon && HoveredBackWeaponIcon)
+    {
+        FrontDynamicMaterial = HoveredFrontWeaponIcon->GetDynamicMaterial();
+        BackDynamicMaterial = HoveredBackWeaponIcon->GetDynamicMaterial();
+    }
 }
 
 void UW_ReadyAndSlotCoinInfo::SetReadyCoinInfo(bool FaceFlag, UTexture2D * Icon, const FText & WeaponName, const FText & RawDescription, int32 DefaultBP, int32 DefaultAP, FLinearColor typeColor)
 {
     if(FaceFlag)
     {
-        if (HoveredFrontWeaponIcon && Icon)
+        if (HoveredFrontWeaponIcon && Icon && FrontDynamicMaterial)
         {
-            HoveredFrontWeaponIcon->SetBrushFromTexture(Icon);
-            HoveredFrontWeaponIcon->SetColorAndOpacity(typeColor);
+            FrontDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), Icon);
+            FrontDynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), typeColor);
         }
         if (HoveredFrontWeaponName)
         {
@@ -41,10 +48,10 @@ void UW_ReadyAndSlotCoinInfo::SetReadyCoinInfo(bool FaceFlag, UTexture2D * Icon,
     }
     else
     {
-        if (HoveredBackWeaponIcon && Icon)
+        if (HoveredBackWeaponIcon && Icon && BackDynamicMaterial)
         {
-            HoveredBackWeaponIcon->SetBrushFromTexture(Icon);
-            HoveredBackWeaponIcon->SetColorAndOpacity(typeColor);
+            BackDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), Icon);
+            BackDynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), typeColor);
         }
         if (HoveredBackWeaponName)
         {

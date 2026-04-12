@@ -33,6 +33,12 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class URichTextBlock* HoveredBackWeaponDes;
 
+	UPROPERTY()
+	class UMaterialInstanceDynamic* FrontDynamicMaterial;
+
+	UPROPERTY()
+	class UMaterialInstanceDynamic* BackDynamicMaterial;
+
 public:
 	//FaceFlag true면 앞 false면 뒤
 	void SetReadyCoinInfo(

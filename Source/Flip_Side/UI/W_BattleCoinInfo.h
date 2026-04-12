@@ -24,6 +24,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class URichTextBlock* HoveredWeaponDes;
 
+	UPROPERTY()
+	class UMaterialInstanceDynamic* DynamicMaterial;
+
 public:
 	void UpdateBattleCoinInfo(
 		class UTexture2D* Icon, 

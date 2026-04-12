@@ -1,7 +1,6 @@
 #include "BossActor.h"
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Components/WidgetComponent.h"
 #include "W_BossHP.h"
 
 ABossActor::ABossActor()
@@ -16,9 +15,6 @@ ABossActor::ABossActor()
 
 	BossSelfEffectLoc = CreateDefaultSubobject<USceneComponent>(TEXT("SelfEffectLocation"));
 	BossSelfEffectLoc->SetupAttachment(RootComponent);
-
-	BossHPUI = CreateDefaultSubobject<UWidgetComponent>(TEXT("Boss HP UI"));
-	BossHPUI->SetupAttachment(BossMesh);
 }
 
 void ABossActor::BeginPlay()
@@ -26,8 +22,17 @@ void ABossActor::BeginPlay()
 	Super::BeginPlay();
 
 	AnimInstance = BossMesh->GetAnimInstance();
-	BossHpWidget = Cast<UW_BossHP>(BossHPUI->GetUserWidgetObject());
-	BossHpWidget->InitBossHp(MaxHP);
+	if(BossHPWidgetClass)
+	{
+		BossHpWidget = CreateWidget<UW_BossHP>(GetWorld(), BossHPWidgetClass);
+		if(BossHpWidget)
+		{
+			BossHpWidget->AddToViewport();
+			BossHpWidget->SetVisibility(ESlateVisibility::Visible);
+			BossHpWidget->InitBossHp(MaxHP);
+		}
+	}
+
 	if (AnimInstance)
     {
         AnimInstance->OnMontageEnded.AddUniqueDynamic(this, &ABossActor::BossMontageEnded);

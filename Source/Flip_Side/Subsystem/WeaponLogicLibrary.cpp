@@ -80,12 +80,12 @@ void UWeaponLogicLibrary::BloodCanon_Logic(UWeapon_Action* WeaponContext)
 
     for(ACoinActor* Coin : RangedCoins)
     {
+        if(Coin == WeaponContext->GetCasterCoin()) continue;
         TargetStat = Coin->StatComponent;
 
         TargetStat->ApplyDamage(AP, WeaponContext->GetCasterCoin());
+        AP += BP;
     }
-
-    AP += BP;
 
     if(Boss)
     {
@@ -215,12 +215,86 @@ void UWeaponLogicLibrary::EnemyOfSpear_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
 
-    UE_LOG(LogTemp, Warning, TEXT("Logic EOS"));
+    if(!WeaponContext->GetCasterCoin()) return;
+
+    TArray<ACoinActor*> RangedCoins = WeaponContext->GetInRangeCoins();
+    if(RangedCoins.IsEmpty()) return;
+
+    //코인들 버프 줄 스텟 컴포넌트
+    UComponent_Status* TargetStat = nullptr;
+    //자신 데미지
+    UComponent_Status* MyStat = WeaponContext->GetCasterCoin()->StatComponent;
+    int32 AP = WeaponContext->GetFinalAttackPoint();
+    int32 BP = WeaponContext->GetFinalBehaviorPoint();
+
+    /* 버프를 줄 코인들의 개수 (기획서)*/
+    int32 BuffCoinNum = 0;
+
+    if(RangedCoins.Num() > (AP + 2)) BuffCoinNum = RangedCoins.Num();
+    else BuffCoinNum = AP + 2;
+
+    /* 루프 */
+    int32 i = 0;
+
+    /* 자신에게 데미지 로직 버프 걸어둠 */
+    FBuffInfo MyInfo;
+    MyInfo.BuffName = TEXT("창의 적");
+    MyInfo.DamageDelegate = FOnPreTakeDamage::FDelegate::CreateLambda([MyStat, AP, BuffCoinNum](int32 InDmg, int32& OutDmg, bool& bIsIgnore)
+    {
+        float DmgReduction =  FMath::Clamp(BuffCoinNum * (95 - ((AP * 10)/ 100.0f)* InDmg) + InDmg, 0, 100.0f);
+        OutDmg = FMath::RoundToInt(DmgReduction);
+    });
+
+    for(ACoinActor* Coin : RangedCoins)
+    {
+        if(i >= BuffCoinNum) break;
+        TargetStat = Coin->StatComponent;
+        if(Coin == WeaponContext->GetCasterCoin()) continue;
+
+        FBuffInfo Info;
+        Info.BuffName = TEXT("창의 적");
+
+        Info.DamageDelegate = FOnPreTakeDamage::FDelegate::CreateLambda([TargetStat, AP](int32 InDmg, int32& OutDmg, bool& bIsIgnore)
+        {
+
+            float DmgReduction = FMath::Clamp(((AP * 12) / 100.0f), 0.0f, 1.0f);
+
+            OutDmg = FMath::RoundToInt(OutDmg * (1.0f - DmgReduction));
+            UE_LOG(LogTemp, Warning, TEXT("창의적 발동"));
+
+        });
+
+        TargetStat->AddBuffs(Info);
+        i++;
+    }   
+
+    UE_LOG(LogTemp, Warning, TEXT("창의적 적용"));
+
 }
 //건틀릿↓
 void UWeaponLogicLibrary::Gauntlet_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
+
+    ABossActor* Boss;
+    if(!WeaponContext->GetInRangeBoss(Boss) || !WeaponContext->GetCasterCoin()) return;
+
+    int32 AP = WeaponContext->GetFinalAttackPoint();
+    int32 BP = WeaponContext->GetFinalBehaviorPoint();
+
+    float Chance = AP + 1;
+    float Death = BP * 10;
+    if(FMath::RandRange(1, 100) <= Chance)
+    {
+        //int 최대치
+        Boss->ApplyDamage(TNumericLimits<int32>::Max(), WeaponContext->GetCasterCoin());
+        return;
+    }
+    
+    if(FMath::RandRange(1, 100) <= Death)
+    {
+        WeaponContext->GetCasterCoin()->StatComponent->OnDead.Broadcast();
+    }
 }
 
 /* -- 유틸 -- */
@@ -245,7 +319,20 @@ void UWeaponLogicLibrary::CrossShiled_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
 
-    UE_LOG(LogTemp, Warning, TEXT("Logic Gauntlet"));
+    TArray<ACoinActor*> RangedCoins = WeaponContext->GetInRangeCoins();
+    if(RangedCoins.IsEmpty() || !WeaponContext->GetCasterCoin()) return;
+
+    UComponent_Status* TargetStat = nullptr;
+    int32 AP = WeaponContext->GetFinalAttackPoint();
+    int32 BP = WeaponContext->GetFinalBehaviorPoint();
+
+    for(ACoinActor* Coin : RangedCoins)
+    {
+        TargetStat = Coin->StatComponent;
+
+        TargetStat->ApplyShield(AP, WeaponContext->GetCasterCoin());
+    }   
+    
 }
 //아드레날린↓
 void UWeaponLogicLibrary::Adrenaline_Logic(UWeapon_Action* WeaponContext)

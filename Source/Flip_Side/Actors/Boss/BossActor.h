@@ -51,8 +51,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
 	class USceneComponent* BossRoot;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
-	class UWidgetComponent* BossHPUI = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Boss", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UUserWidget> BossHPWidgetClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss")
 	class UW_BossHP* BossHpWidget = nullptr;

@@ -41,7 +41,6 @@ void ATurret_OtherActor::OnUnhover_Implementation()
         GridManager->ResetBattleCoinPreview();
         if(CachedBoss)
         {
-            CachedBoss->ApplyDamage(AttackPoint, this);
             CachedBoss->UnDisPlayOutline();
         }
     }

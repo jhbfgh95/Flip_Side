@@ -11,6 +11,7 @@ class UBossPatternBase;
 class ACoinActor;
 class AGridActor;
 class ABase_PatternVisualActor;
+class ABase_OtherActor;
 
 USTRUCT(BlueprintType)
 struct FLockedBossTarget
@@ -25,6 +26,9 @@ struct FLockedBossTarget
 
     UPROPERTY(BlueprintReadOnly)
     TObjectPtr<ACoinActor> CoinActor = nullptr;
+
+    UPROPERTY(BlueprintReadOnly)
+    TObjectPtr<ABase_OtherActor> OtherActor = nullptr;
 };
 
 USTRUCT(BlueprintType)
