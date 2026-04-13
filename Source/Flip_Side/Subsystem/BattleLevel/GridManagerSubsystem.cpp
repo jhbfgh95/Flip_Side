@@ -361,8 +361,8 @@ void UGridManagerSubsystem::GetValidGridsForSingleCell(
             }
         };
 
-    const int32 AnchorX = CoinXY.GridX + Spec.AnchorCell.GridX;
-    const int32 AnchorY = CoinXY.GridY + Spec.AnchorCell.GridY;
+    const int32 AnchorX = Spec.AnchorCell.GridX;
+    const int32 AnchorY = Spec.AnchorCell.GridY;
 
     // 1) UseAnchorCell
     if (Spec.AnchorMode == EAreaAnchor::UseAnchorCell)
@@ -481,13 +481,21 @@ void UGridManagerSubsystem::PreviewHoveredCoinRange(const FGridPoint& CoinXY, co
 	// 사거리 계산 (단일 진실 공급원)
 	TArray<FGridPoint> RangeCells;
 
+	FAttackAreaSpec ResolvedSpec = Spec;
+	// UseAnchorCell 계열은 finalRange(최종 사거리)를 기준으로 상대 오프셋 AnchorCell을 실제 절대 좌표로 바꿔준다.
+	if (ResolvedSpec.AnchorMode == EAreaAnchor::UseAnchorCell)
+	{
+		ResolvedSpec.AnchorCell.GridX = finalRange.GridX + Spec.AnchorCell.GridX;
+		ResolvedSpec.AnchorCell.GridY = finalRange.GridY + Spec.AnchorCell.GridY;
+	}
+
 	if (Spec.Pattern == EAttackAreaPattern::SingleCell)
 	{
-		GetValidGridsForSingleCell(CoinXY, Spec, RangeCells);
+		GetValidGridsForSingleCell(CoinXY, ResolvedSpec, RangeCells);
 	}
 	else
 	{
-		FGridAreaBuilder::BuildCells(Spec, GridXSize, GridYSize, RangeCells);
+		FGridAreaBuilder::BuildCells(ResolvedSpec, GridXSize, GridYSize, RangeCells);
 	}
 
 	// 메인 그리드 하이라이트

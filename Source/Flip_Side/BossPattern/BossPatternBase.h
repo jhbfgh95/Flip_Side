@@ -9,6 +9,7 @@
 //class UBossManagerSubsystem;
 class ABossActor;
 class ACoinActor;
+class ABase_OtherActor;
 
 USTRUCT(BlueprintType)
 struct FPatternData
@@ -62,11 +63,13 @@ public:
 	virtual void ExecutePattern(
 		ABossActor* Boss,
 		const TArray<FGridPoint>& InLockedCells,
-		const TArray<ACoinActor*>& InLockedTargets, int32 PatternNum);
+		const TArray<ACoinActor*>& InLockedTargets,
+		const TArray<ABase_OtherActor*>& InLockedOthers,
+		int32 PatternNum);
 
 	/* For Real Damage */
 	UFUNCTION(BlueprintCallable, Category = "Pattern")
-	virtual void ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, ABossActor* Boss, int32 Damage);
+	virtual void ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, const TArray<ABase_OtherActor*>& LockedOthers, ABossActor* Boss, int32 Damage);
 	
 	/* Getter */
 	UFUNCTION(BlueprintCallable, Category = "Pattern")
