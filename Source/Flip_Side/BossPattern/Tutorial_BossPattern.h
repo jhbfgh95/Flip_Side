@@ -19,5 +19,7 @@ class FLIP_SIDE_API UTutorial_BossPattern : public UBossPatternBase
 	virtual void ExecutePattern(
 		ABossActor* Boss,
 		const TArray<FGridPoint>& InLockedCells,
-		const TArray<ACoinActor*>& InLockedTargets, int32 PatternNum) override;	
+		const TArray<ACoinActor*>& InLockedTargets,
+		const TArray<ABase_OtherActor*>& InLockedOthers,
+		int32 PatternNum) override;	
 };

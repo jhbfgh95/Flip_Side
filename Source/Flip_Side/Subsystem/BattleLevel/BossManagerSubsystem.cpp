@@ -7,6 +7,7 @@
 #include "GridActor.h"
 #include "Base_PatternVisualActor.h"
 #include "BossSetupGISubsystem.h"
+#include "Actors/Others/Base_OtherActor.h"
 
 #include "Engine/World.h"
 #include "TimerManager.h"
@@ -234,13 +235,16 @@ void UBossManagerSubsystem::ApplyCurrentPattern()
     if (!TurnContext.bPrepared) return;
 
         TArray<ACoinActor*> ValidLockedTargets;
+        TArray<ABase_OtherActor*> ValidLockedOthers;
         for (const FLockedBossTarget& LockedTarget : TurnContext.LockedTargets)
         {
-            if (!IsValid(LockedTarget.CoinActor)) continue;
-
-            if (IsStillOnLockedCell(LockedTarget))
+            if (IsValid(LockedTarget.CoinActor) && IsStillOnLockedCell(LockedTarget))
             {
                 ValidLockedTargets.Add(LockedTarget.CoinActor);
+            }
+            else if (IsValid(LockedTarget.OtherActor))
+            {
+                ValidLockedOthers.Add(LockedTarget.OtherActor);
             }
         }
 
@@ -250,6 +254,7 @@ void UBossManagerSubsystem::ApplyCurrentPattern()
                 CurrentBoss,
                 TurnContext.LockedCells,
                 ValidLockedTargets,
+                ValidLockedOthers,
                 TurnContext.CurrentPatternIndex
             );
         }
@@ -338,21 +343,30 @@ void UBossManagerSubsystem::BuildLockedTargetsFromCells(
 
     for (const FCoinOnGridInfo& Info : OccupiedCoins)
     {
-        if (!IsValid(Info.CoinActor))
-        {
-            continue;
-        }
-
-        if (!IsCellIncluded(Info.GridXY, Cells))
-        {
-            continue;
-        }
+        if (!IsValid(Info.CoinActor)) continue;
+        if (!IsCellIncluded(Info.GridXY, Cells)) continue;
 
         FLockedBossTarget NewTarget;
         NewTarget.CoinID = Info.CoinID;
         NewTarget.LockedGrid = Info.GridXY;
         NewTarget.CoinActor = Info.CoinActor;
+        OutLockedTargets.Add(NewTarget);
+    }
 
+    for (const FGridPoint& Cell : Cells)
+    {
+        AGridActor* GridActor = GridMgr->GetGridActor(Cell);
+        if (!IsValid(GridActor)) continue;
+
+        const EGridOccupyingType Type = GridActor->GetCurrentOccupyingThing();
+        if (Type != EGridOccupyingType::Wall && Type != EGridOccupyingType::Turret) continue;
+
+        ABase_OtherActor* Other = Cast<ABase_OtherActor>(GridActor->GetCurrentOccupied());
+        if (!IsValid(Other)) continue;
+
+        FLockedBossTarget NewTarget;
+        NewTarget.LockedGrid = Cell;
+        NewTarget.OtherActor = Other;
         OutLockedTargets.Add(NewTarget);
     }
 }

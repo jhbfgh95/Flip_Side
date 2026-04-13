@@ -3,7 +3,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Component_Status.h"
 #include "CoinActor.h"
-#include "Base_OtherActor.h"
+#include "Actors/Others/Base_OtherActor.h"
 
 void UBossPatternBase::BuildTargetCells(
 	ABossActor* Boss,
@@ -35,11 +35,13 @@ void UBossPatternBase::BuildTargetCells(
 void UBossPatternBase::ExecutePattern(
 	ABossActor* Boss,
 	const TArray<FGridPoint>& InLockedCells,
-	const TArray<ACoinActor*>& InLockedTargets, int32 PatternNum)
+	const TArray<ACoinActor*>& InLockedTargets,
+	const TArray<ABase_OtherActor*>& InLockedOthers,
+	int32 PatternNum)
 {
 }
 
-void UBossPatternBase::ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, ABossActor* Boss, int32 Damage)
+void UBossPatternBase::ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, const TArray<ABase_OtherActor*>& LockedOthers, ABossActor* Boss, int32 Damage)
 {
     for (ACoinActor* Coin : LockedTargets)
     {
@@ -60,6 +62,12 @@ void UBossPatternBase::ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, A
         UE_LOG(LogTemp, Log, TEXT("[BossPattern] Damage Applied - CoinID=%d HP %d -> %d"),
             Coin->GetCoinID(), PrevHP, FMath::Max(0, NextHP));
 	}
+
+    for (ABase_OtherActor* Other : LockedOthers)
+    {
+        if (!IsValid(Other)) continue;
+        Other->ApplyDamage(Damage, Boss);
+    }
 }
 void UBossPatternBase::PlayPatternEffect_Implementation(int32 PatternNum, FVector EffectLocation)
 {

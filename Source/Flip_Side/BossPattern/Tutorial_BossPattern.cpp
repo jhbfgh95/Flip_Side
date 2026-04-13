@@ -3,11 +3,14 @@
 #include "BossActor.h"
 #include "GridActor.h"
 #include "Tutorial_BossActor.h"
+#include "Actors/Others/Base_OtherActor.h"
 
 void UTutorial_BossPattern::ExecutePattern(
 	ABossActor* Boss,
 	const TArray<FGridPoint>& InLockedCells,
-	const TArray<ACoinActor*>& InLockedTargets, int32 PatternNum)
+	const TArray<ACoinActor*>& InLockedTargets,
+	const TArray<ABase_OtherActor*>& InLockedOthers,
+	int32 PatternNum)
 {
 	if (!Boss)
 	{
@@ -37,7 +40,7 @@ void UTutorial_BossPattern::ExecutePattern(
 		
 		PlayPatternEffect(PatternNum, SpawnLocation);
 
-		ExecuteDamage(InLockedTargets, Boss, FinalDamage);
+		ExecuteDamage(InLockedTargets, InLockedOthers, Boss, FinalDamage);
 	}
     else
     {
