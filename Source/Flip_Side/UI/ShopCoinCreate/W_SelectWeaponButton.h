@@ -19,9 +19,7 @@ class FLIP_SIDE_API UW_SelectWeaponButton : public UUserWidget
 	
 
 private:
-	class UCoinCreateWSubsystem* CoinCreateWSubSystem;
-	
-	class UShopWeaponDataWSubsystem* WeaponDataSubSystem;
+	class UShopCoinWSubsystem* CoinWSubsystem;
 
 	class UDataManagerSubsystem* DataManager;
 	

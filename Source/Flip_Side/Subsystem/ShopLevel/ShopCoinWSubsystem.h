@@ -38,13 +38,15 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCoinCountUpdate , int32 , CoinSlot
 
 /*코인 슬롯이 변경되었을 떄 델리게이트 위에서 아래로 변경 됬는지 검사*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeCoinSlot, bool, IsChangeToBottom);
-
 /*코인 슬롯 해금시 델리게이트*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockCoinSlot);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeSlotCoinSide, bool, IsFront);
 /*코안 제작 시작 시 데이터 값을 넘기는 델리게이트*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCoinCreated, int32, CreatedCoinIndex, EWeaponClass, CreateWeaponClass );
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSetWeapon, int32, WeaponID);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSelectCoinSlot);
 UCLASS()
 class FLIP_SIDE_API UShopCoinWSubsystem : public UWorldSubsystem
 {
@@ -70,11 +72,16 @@ public:
 	FUnlockCoinSlot OnUnlockCoinSlot;
 	FCoinCreated OnCoinCreated;
 	FChangeSlotCoinSide OnChangeSlotCoinSide;
+	FSetWeapon OnSetWeapon;
+	FSelectCoinSlot OnSelectCoinSlot;
+
 private:
 	//코인 개수를 증가 시킬수 있는가?
 	bool CanIncreaseCoin(int32 SlotNum);
 	//코인 개수를 감소 시킬수 있는가?
 	bool CanDecreaseCoin(int32 SlotNum);
+
+	int32 GetSameWeaponCoinSlot(int32 SlotNum);
 
 public:
 	//코인슬롯을 증가시키는 방향으로 변경
@@ -100,6 +107,12 @@ public:
 	void IncreaseSlotCoinCount();
 	/*현재 코인슬롯의 코인 개수 감소*/
 	void DecreaseSlotCoinCount();
+
+	
+	void IncreaseSlotCoinCount(int32 SlotNum);
+	void DecreaseSlotCoinCount(int32 SlotNum);
+
+
 	//슬롯 번호에 해당하는 코인 초기화
 	void ResetCoin(int32 SlotNum);
 
@@ -111,9 +124,28 @@ public:
 	//현재 코인슬롯의 코인을 할당
 	void SetSlotCoin(FCoinTypeStructure SetCoinInfo, EWeaponClass CoinClass);
 
-	int32 GetCurrentCoinCount();
+	void ChangeSlotCoinSide(bool IsChangedSideFront);
 
+public:
+	int32 GetCurrentCoinCount();
 	int32 GetCurrentSlotNum();
 
-	void ChangeSlotCoinSide(bool IsChangedSideFront);
+
+public:
+	void SelectCoin(int32 SlotNum);
+	
+private:
+	bool IsCreateCoinFront;
+public:	
+
+	//코인에 무기 장착
+	void SetWeaponToCoinSide(int32 WeaponID);
+	//코인의 앞뒤를 변경
+	void ChangeCoinSide();
+	/*현재 제작중인 코인이 앞면인지*/
+	bool GetIsCreateCoinFront();
+	
+public:
+	int32 GetCurrentCoinWeaponID(bool IsFront);
+	
 };
