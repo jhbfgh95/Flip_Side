@@ -47,7 +47,6 @@ void UW_WeaponSelectGrid::NativeConstruct()
 
 void UW_WeaponSelectGrid::NativeDestruct()
 {
-    
     UnlockSubSystem->OnWeaponUnlock.RemoveAll(this);
     Super::NativeDestruct();
 }

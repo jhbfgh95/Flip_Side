@@ -40,7 +40,7 @@ void UShopCoinWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         ShopCoinSlotArray[i].CoinClass = EWeaponClass::None;
     }
 
-    
+    IsCreateCoinFront = true;
 }
 
 
@@ -74,6 +74,30 @@ bool UShopCoinWSubsystem::CanDecreaseCoin(int32 SlotNum)
     return true;
 }
 
+
+int32 UShopCoinWSubsystem::GetSameWeaponCoinSlot(int32 SlotNum)
+{
+    FCoinTypeStructure CheckCoinData;
+    for(int i = 0; i < ShopCoinSlotArray.Num(); i++)
+    {
+        if(ShopCoinSlotArray[i].IsUnlock)
+        {
+            if(ShopCoinSlotArray[i].CoinData.FrontWeaponID != -1 && ShopCoinSlotArray[i].CoinData.BackWeaponID != -1)
+            {
+                if((ShopCoinSlotArray[i].CoinData.FrontWeaponID == ShopCoinSlotArray[SlotNum].CoinData.FrontWeaponID)
+                    &&(ShopCoinSlotArray[i].CoinData.BackWeaponID= ShopCoinSlotArray[SlotNum].CoinData.BackWeaponID))
+                {
+                    return i;
+                }
+            }
+        }
+    }
+    return -1;
+}
+
+
+
+
 void UShopCoinWSubsystem::IncreaseSlotCoinCount()
 {
     if(CanIncreaseCoin(CurrentCoinSlotNum))
@@ -91,6 +115,25 @@ void UShopCoinWSubsystem::DecreaseSlotCoinCount()
         TotalCoinCount--;
         ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum--;
         OnCoinCountUpdate.Broadcast(CurrentCoinSlotNum,ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
+    }
+}
+
+void UShopCoinWSubsystem::IncreaseSlotCoinCount(int32 SlotNum)
+{
+    if(CanIncreaseCoin(SlotNum))
+    {
+        TotalCoinCount++;
+        ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum++;
+        OnCoinCountUpdate.Broadcast(SlotNum,ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum);
+    }
+}
+void UShopCoinWSubsystem::DecreaseSlotCoinCount(int32 SlotNum)
+{
+    if(CanDecreaseCoin(SlotNum))
+    {
+        TotalCoinCount--;
+        ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum--;
+        OnCoinCountUpdate.Broadcast(SlotNum,ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum);
     }
 }
 
@@ -241,4 +284,56 @@ bool UShopCoinWSubsystem::GetCoinUnlockByIndex(int32 index)
         return ShopCoinSlotArray[index].IsUnlock;
     else
         return false;
+}
+	
+void UShopCoinWSubsystem::SelectCoin(int32 SlotNum)
+{
+    IsCreateCoinFront = true;
+    
+    if(ShopCoinSlotArray.IsValidIndex(SlotNum))
+        CurrentCoinSlotNum = SlotNum;
+
+    OnCoinSlotChange.Broadcast(true);
+    //코인 선택
+}
+	
+void UShopCoinWSubsystem::ChangeCoinSide()
+{
+    if(IsCreateCoinFront)
+        IsCreateCoinFront = false;
+    else
+        IsCreateCoinFront = true;
+}
+
+bool UShopCoinWSubsystem::GetIsCreateCoinFront()
+{
+    return IsCreateCoinFront;
+}
+
+
+void UShopCoinWSubsystem::SetWeaponToCoinSide(int32 WeaponID)
+{
+
+    if(IsCreateCoinFront)
+    {
+        ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.FrontWeaponID = WeaponID;
+    }
+    else
+    {
+        ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.BackWeaponID = WeaponID;
+    }
+    UE_LOG(LogTemp,Warning, TEXT("AAAA"));
+    OnSetWeapon.Broadcast(WeaponID);
+}
+	
+int32 UShopCoinWSubsystem::GetCurrentCoinWeaponID(bool IsFront)
+{
+    if(IsCreateCoinFront)
+    {
+        return ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.FrontWeaponID;
+    }
+    else
+    {
+        return ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.BackWeaponID;
+    }
 }

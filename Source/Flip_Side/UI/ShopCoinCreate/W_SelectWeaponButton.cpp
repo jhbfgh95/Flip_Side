@@ -6,7 +6,7 @@
 #include "Player/ShopController_FlipSide.h"
 #include "Components/Button.h"
 
-#include "Subsystem/ShopLevel/CoinCreateWSubsystem.h"
+#include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 
 #include "Subsystems/WorldSubsystem.h" 
@@ -16,10 +16,10 @@ void UW_SelectWeaponButton::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    CoinCreateWSubSystem =  GetWorld()->GetSubsystem<UCoinCreateWSubsystem>();
+    CoinWSubsystem =  GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     DataManager = GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 
-    if(CoinCreateWSubSystem)
+    if(CoinWSubsystem)
     {
         if(WeaponButton)
         {
@@ -30,7 +30,7 @@ void UW_SelectWeaponButton::NativeConstruct()
 
 void UW_SelectWeaponButton::SelectWeapon()
 {
-    CoinCreateWSubSystem->ChangeSelectedCoinWeapon(WeaponData.WeaponID);
+    CoinWSubsystem->SetWeaponToCoinSide(WeaponData.WeaponID);
 }
 
 void UW_SelectWeaponButton::InitButton(int32 ID)

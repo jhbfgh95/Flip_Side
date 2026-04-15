@@ -46,9 +46,9 @@ void AShopCoinSlotCountButton::BeginPlay()
 void AShopCoinSlotCountButton::InteractLeftClick_Implementation()
 {
 	if(IsIncrease)
-		ShopCoinSubsystem->IncreaseSlotCoinCount();
+		ShopCoinSubsystem->IncreaseSlotCoinCount(IndexNum);
 	else
-		ShopCoinSubsystem->DecreaseSlotCoinCount();
+		ShopCoinSubsystem->DecreaseSlotCoinCount(IndexNum);
 
 	ButtonPressTimeline->PlayFromStart();
 }

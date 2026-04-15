@@ -55,6 +55,8 @@ private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	bool IsIncrease = false;
 
+private:
+	int32 IndexNum = 0;
 
 
 };
