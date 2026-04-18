@@ -69,6 +69,11 @@ void UWeapon_Action::SetGridForAction(AGridActor* targetGrid)
     TargetGrid = targetGrid;
 }
 
+void UWeapon_Action::SetOtherForAction(ABase_OtherActor* targetOther)
+{
+    TargetOther = targetOther;
+}
+
 void UWeapon_Action::SetWeaponData()
 {
     auto* DM = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();

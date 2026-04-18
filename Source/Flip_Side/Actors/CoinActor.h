@@ -16,6 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoverReadyCoinDelegate, ACoinActo
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoverBattleCoinDelegate, ACoinActor*, HoveredCoin);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedReadyCoinDelegate, ACoinActor*, HoveredCoin);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedBattleCoinDelegate, ACoinActor*, HoveredCoin);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemExcuteCoinDelegate, ACoinActor*, ClickedCoin);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoverCoinDelegate);
 UCLASS()
 class ACoinActor : public AActor, public IBattleHoverInterface, public IBattleClickInterface
@@ -73,8 +74,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	bool bIsOnBattle = false;
+
 	UPROPERTY(VisibleAnywhere)
 	bool bIsActed = false;
+
+	UPROPERTY(VisibleAnywhere)
+	bool ItemFlag = false;
 	//이거로 Getter, Setter로 앞뒤 판별
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Face")
 	EFaceState CurrentFace = EFaceState::None;
@@ -96,6 +101,9 @@ public:
 	//이거 퍼블릭으로 빼면 오히려 커스텀 스킨을 적용할 수 있다고 생각한다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly,Category = "Coin | Component")
 	class UStaticMeshComponent* CoinMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,Category = "Coin | Component")
+	class UStaticMeshComponent* CoinActedMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Coin | Component")
 	class UGeometryCollectionComponent* FracturedCoin;
@@ -128,11 +136,14 @@ public:
 	void SetCoinIsReady(bool IsReady);
 	bool GetCoinIsReady() const;
 
-	void SetCoinIsActed(const bool IsActed) { bIsActed = IsActed; }
-	bool GetCoinIsActed() const { return bIsActed; }
+	void SetCoinIsActed(const bool IsActed);
+	bool GetCoinIsActed() const;
 
 	void SetCoinOnBattle(const bool IsOnBattle);
 	bool GetCoinOnBattle() const { return bIsOnBattle; }
+
+	void SetCoinItemFlag(const bool IsItem ){ ItemFlag = IsItem; }
+	bool GetCoinItemFlag() const { return ItemFlag; }
 
 	void SetCoinValues(
 		int CoinId,
@@ -174,6 +185,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events|Click")
 	FOnClickedBattleCoinDelegate OnClickBattleCoin;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events|Click")
+	FOnItemExcuteCoinDelegate OnCoinClickForItemExcute;
 
 	virtual void OnHover_Implementation() override;
 

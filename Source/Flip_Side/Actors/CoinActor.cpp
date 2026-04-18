@@ -20,6 +20,10 @@ ACoinActor::ACoinActor()
 	CoinMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Coin Mesh"));
 	CoinMesh->SetupAttachment(RootComponent);
 
+	CoinActedMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Acted Coin Mesh"));
+	CoinActedMesh->SetupAttachment(RootComponent);
+	CoinActedMesh->SetVisibility(false);
+
 	FracturedCoin = CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("Fractured Coin"));
 	FracturedCoin->SetupAttachment(RootComponent);
 	FracturedCoin->SetVisibility(false);
@@ -125,6 +129,25 @@ void ACoinActor::IncrementSameTypeIndex()
 void ACoinActor::SetCoinIsReady(bool IsReady)
 {
 	bIsReady = IsReady;
+}
+
+void ACoinActor::SetCoinIsActed(const bool IsActed)
+{ 
+	bIsActed = IsActed;
+	if(bIsActed)
+	{
+		CoinActedMesh->SetVisibility(true);
+	}
+	else
+	{
+		CoinActedMesh->SetVisibility(false);
+	}
+	
+}
+
+bool ACoinActor::GetCoinIsActed() const
+{ 
+	return bIsActed; 
 }
 
 bool ACoinActor::GetCoinIsReady() const
@@ -331,15 +354,25 @@ void ACoinActor::OnClicked_Implementation()
 	}
 	else if (!GetCoinIsReady() && GetCoinOnBattle())
 	{
-		// 한 번 Battle상태 들어가서 클릭하면 두 번째 클릭부터는 막음.
-		// CoinActionManagementWSubsystem에 바인딩
-		if (!GetCoinIsActed())
+		//아이템 플래그가 켜져서, 아이템을 적용해야하면 아이템 매니저로 델리게이트를 보내고
+		if(GetCoinItemFlag())
 		{
-			OnClickBattleCoin.Broadcast(this);
+			//이거 아ㅣㅇ템ㅁ ㅐ니저에 바ㅣㅇㄴ딩.
+			OnCoinClickForItemExcute.Broadcast(this);
 		}
 		else
 		{
-			return;
+			//아니면, 일단 배틀상태의 코인이기 때문에 한 번 배틀상태의 코인이라고 말한 후에 막는다.
+			// 한 번 Battle상태 들어가서 클릭하면 두 번째 클릭부터는 막음.
+			// CoinActionManagementWSubsystem에 바인딩
+			if (!GetCoinIsActed())
+			{
+				OnClickBattleCoin.Broadcast(this);
+			}
+			else
+			{
+				return;
+			}
 		}
 	}
 }

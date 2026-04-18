@@ -115,6 +115,7 @@ void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
             BattleReadyCoins[i]->SetCoinIsReady(true);
             BattleReadyCoins[i]->CoinMesh->SetVisibility(false);
             BattleReadyCoins[i]->CoinHPUI->SetVisibility(false);
+            BattleReadyCoins[i]->StatComponent->ClearTurnBasedBuffs();
         }
     }
 
@@ -134,9 +135,9 @@ void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
                 Coin->SetActorScale3D(FVector(1.f, 1.f, 1.f));
                 Coin->CoinMesh->SetVisibility(true);
                 Coin->CoinHPUI->SetVisibility(true);
+                Coin->StatComponent->ClearTurnBasedBuffs();
                 AddBattleReadyCoins(Coin, false);
                 LockCoinReady(Coin);
-                
                 WeaponIDsToArrange.Add(Coin->GetFrontWeaponID()); 
             }
         }
@@ -421,6 +422,17 @@ void UCoinManagementWSubsystem::InstanceCoins()
 TArray<ACoinActor*> UCoinManagementWSubsystem::GetReadyCoins() const
 {
     return BattleReadyCoins;
+}
+
+void UCoinManagementWSubsystem::SetBattleCoinItemFlags(bool bEnabled)
+{
+    for (ACoinActor* Coin : BattleReadyCoins)
+    {
+        if (IsValid(Coin) && Coin->GetCoinOnBattle())
+        {
+            Coin->SetCoinItemFlag(bEnabled);
+        }
+    }
 }
 
 //여기서 코인 액션 매니저 가지고와서 바인딩

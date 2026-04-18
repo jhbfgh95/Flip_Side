@@ -55,6 +55,8 @@ public:
 
 	UFUNCTION()
 	void HandleCoinUnHovered();
+
+	bool TryExecuteOtherAction(class ABase_OtherActor* TargetOther);
 public:
 	EActionInputState CurrentInputState = EActionInputState::None;
 
@@ -79,7 +81,8 @@ protected:
 	void SetBattleCoinInfo(
 		UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
 		int32 DefaultBP, int32 ModifiedBP, 
-		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor
+		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor,
+		const TArray<struct FBuffInfo>& ActiveBuffs
 	);
 
 protected:

@@ -1,6 +1,7 @@
 #include "Objects/Item_Action.h"
 #include "Engine/World.h"
 #include "DataManagerSubsystem.h"
+#include "FlipSide_Enum.h"
 #include "Subsystem/BattleLevel/ActionLogicRegistryGISubsystem.h"
 void UItem_Action::SetItemEffectValue(const int32 OnItemEffectValue)
 {
@@ -12,20 +13,20 @@ int32 UItem_Action::GetItemEffectValue() const
     return ItemEffectValue;
 }
 
-void UItem_Action::SetItemType(const int32 TypeID)
+/*
+void UItem_Action::SetItemType(const EItemType TypeID)
 {
-    ItemTypeID = TypeID;
+    ItemType = TypeID;
 }
 
-int32 UItem_Action::GetItemTypeID() const
+EItemType UItem_Action::GetItemTypeID() const
 {
-    return ItemTypeID;
+    return ItemType;
 }
+*/
 
 void UItem_Action::SetTargetGrid(AGridActor* Grid)
 {
-    if(!TargetGrid) return; // 그리드가 비워져있으면 해당 그리드를 타겟하지 말라는 의도?
-
     TargetGrid = Grid;
 }
 

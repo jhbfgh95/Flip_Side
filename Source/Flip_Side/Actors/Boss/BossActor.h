@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "BossPatternBase.h"
 #include "BossDataTypes.h"
+#include "CoinDataTypes.h"
 #include "BossActor.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBossAttackEndedDelegate);
@@ -29,6 +30,21 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss | Stat")
 	int32 CurrentHP = 0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss | Stat")
+	int32 MaxShield = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss | Stat")
+	int32 CurrentShield = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss | CC")
+	FCCStructure AppliedCC;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss | CC")
+	bool bIsOnCC = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss | CC")
+	int32 CCDuration = 0;
+
 /*Impelments Datas*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
 	int32 ThemeID = 0;
@@ -46,6 +62,18 @@ public:
 	//하지만, 보호막 등의 "먼저" 줄어들어야 하는 스탯이 있다면, 하위 액터에서 상속해서 쓰면 된다.
 	UFUNCTION()
 	virtual void ApplyDamage(int32 Damage, AActor* DamageCauser);
+
+	virtual int32 ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCauser);
+
+	virtual int32 ApplyShieldOnlyDamage(int32 Damage, AActor* DamageCauser);
+
+	virtual void ApplyShieldHeal(int32 Heal, AActor* HealCauser);
+
+	virtual void ApplyCC(const FCCStructure& CC);
+
+	virtual void RemoveCC();
+
+	virtual bool ConsumeCCForBossTurn();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
@@ -95,9 +123,29 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	const FString& GetBossName() const { return BossName; }
 
+/* Status Functions*/
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	int32 GetAttackPoint() const { return AttackPoint; }
 
+	UFUNCTION(BlueprintCallable, Category = "Boss")
+	int32 GetCurrentShield() const { return CurrentShield; }
+
+	UFUNCTION(BlueprintCallable, Category = "Boss")
+	int32 GetMaxShield() const { return MaxShield; }
+
+	UFUNCTION(BlueprintCallable, Category = "Boss")
+	bool HasShield() const { return CurrentShield > 0; }
+
+	UFUNCTION(BlueprintCallable, Category = "Boss|CC")
+	bool GetOnIsOnCC() const { return bIsOnCC; }
+
+	UFUNCTION(BlueprintCallable, Category = "Boss|CC")
+	ECCTypes GetAppliedCCType() const { return AppliedCC.CCType; }
+
+	UFUNCTION(BlueprintCallable, Category = "Boss|CC")
+	bool IsStunned() const { return bIsOnCC && AppliedCC.CCType == ECCTypes::Stun; }
+	
+/* Getters */
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	int32 GetPatternCount() const;
 
@@ -115,6 +163,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	void PlayAttack();
+
+	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
+	void FinishBossAttack();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Boss")
 	void DisPlayOutline();

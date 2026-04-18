@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Component_Status.h"
 #include "Blueprint/UserWidget.h"
 #include "W_BattleCoinInfo.generated.h"
 
@@ -27,6 +28,28 @@ private:
 	UPROPERTY()
 	class UMaterialInstanceDynamic* DynamicMaterial;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UImage* HoveredBuffIcon1;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UImage* HoveredBuffIcon2;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UImage* HoveredBuffIcon3;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UImage* HoveredBuffIcon4;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UImage* HoveredBuffIcon5;
+
+	UPROPERTY()
+	TArray<class UImage*> BuffIconImages;
+
+	void CacheBuffIconImages();
+	void SetBuffIconImage(class UImage* BuffImage, class UTexture2D* Icon);
+	void UpdateBuffIcons(const TArray<FBuffInfo>& ActiveBuffs);
+
 public:
 	void UpdateBattleCoinInfo(
 		class UTexture2D* Icon, 
@@ -34,7 +57,8 @@ public:
 		const FText& RawDescription, 
 		int32 DefaultBP, int32 ModifiedBP, 
 		int32 DefaultAP, int32 ModifiedAP,
-		FLinearColor WeaponColor
+		FLinearColor WeaponColor,
+		const TArray<FBuffInfo>& ActiveBuffs
 		/*int32 DefaultRange, int32 ModifiedRange */
 	);
 };

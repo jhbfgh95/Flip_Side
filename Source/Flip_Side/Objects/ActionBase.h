@@ -20,10 +20,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Action", meta = (AllowPrivateAccess = "true"))
 	class ABossActor* InRangeBoss;
 
-	/* //장애물, 포탑 등을 Other이라 칭함.
+	//장애물, 포탑 등을 Other이라 칭함.
 	UPROPERTY(EditAnywhere, Category = "Action", meta = (AllowPrivateAccess = "true"))
-	TArray<class AOtherBase> InRangeOthers;
-	*/
+	TArray<class ABase_OtherActor*> InRangeOthers;
+	
 
 	FGridPoint FinalActionRange;
 
@@ -41,9 +41,11 @@ public:
 
 	virtual void SetInRangeBoss(ABossActor* TargetBoss);
 
-	//virtual void SetInRangeOthers(const AOtherActor* TargetOthers);
+	virtual void SetInRangeOthers(ABase_OtherActor* TargetOthers);
 
 	virtual TArray<class ACoinActor*> GetInRangeCoins();
+
+	virtual TArray<class ABase_OtherActor*> GetInRangeOthers();
 
 	virtual bool GetInRangeBoss(ABossActor*& OutBoss) const;
 

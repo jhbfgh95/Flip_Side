@@ -4,6 +4,7 @@
 #include "ActionBase.h"
 #include "CoinActor.h"
 #include "BossActor.h"
+#include "Base_OtherActor.h"
 #include "DataTypes/GridTypes.h"
 
 void UActionBase::CreateTestRange()
@@ -43,6 +44,18 @@ void UActionBase::SetInRangeBoss(ABossActor* TargetBoss)
     }
 }
 
+void UActionBase::SetInRangeOthers(ABase_OtherActor* TargetOthers)
+{
+    if(TargetOthers)
+    {
+        InRangeOthers.Add(TargetOthers);
+    }
+    else
+    {
+        InRangeOthers.Empty();
+    }
+}
+
 void UActionBase::InitInRangeBoss()
 {
 	if(InRangeBoss)
@@ -56,6 +69,11 @@ void UActionBase::InitInRangeBoss()
 TArray<ACoinActor*> UActionBase::GetInRangeCoins()
 {
     return InRangeCoins;
+}
+
+TArray<ABase_OtherActor*> UActionBase::GetInRangeOthers()
+{
+    return InRangeOthers;
 }
 
 bool UActionBase::GetInRangeBoss(ABossActor*& OutBoss) const

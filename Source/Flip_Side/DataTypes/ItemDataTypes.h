@@ -18,7 +18,7 @@ struct FItemData
     int32 ItemTypeID = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    EItemType ItemType = EItemType::Buff;
+    EItemType ItemType = EItemType::CoinBuff;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 ItemRange = 0;

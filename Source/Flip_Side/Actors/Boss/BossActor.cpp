@@ -30,6 +30,14 @@ void ABossActor::BeginPlay()
 			BossHpWidget->AddToViewport();
 			BossHpWidget->SetVisibility(ESlateVisibility::Visible);
 			BossHpWidget->InitBossHp(MaxHP);
+			if(MaxShield > 0)
+			{
+				if(CurrentShield <= 0)
+				{
+					CurrentShield = MaxShield;
+				}
+				BossHpWidget->InitBossShield(MaxShield);
+			}
 		}
 	}
 
@@ -51,23 +59,144 @@ void ABossActor::InitializeFromBossData(const FBossData& InData)
 
 void ABossActor::ApplyDamage(int32 Damage, AActor* DamageCauser)
 {
-	if(!DamageCauser) return;
+	ApplyDamageAndReturnHPDamage(Damage, DamageCauser);
+}
 
-	if(CurrentHP - Damage <= 0)
+int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCauser)
+{
+	if(!DamageCauser) return 0;
+
+	int32 FinalDamage = FMath::Max(0, Damage);
+	int32 ActualDamageToHP = FinalDamage;
+
+	if(CurrentShield > 0)
 	{
-		//죽는 애니메이션 + 위젯
-		if(AnimInstance && BossClearAnim)
+		const int32 ShieldDamage = FMath::Min(CurrentShield, FinalDamage);
+		CurrentShield -= ShieldDamage;
+		ActualDamageToHP = FinalDamage - ShieldDamage;
+
+		if(BossHpWidget && ShieldDamage > 0)
 		{
-			BossHpWidget->ChangeCurrentHp(-Damage);
-			AnimInstance->Montage_Play(BossClearAnim);
-			return;
+			BossHpWidget->ChangeCurrentShield(-ShieldDamage);
+		}
+
+		if(ActualDamageToHP <= 0)
+		{
+			if(BossHitAnim && AnimInstance) AnimInstance->Montage_Play(BossHitAnim);
+			return 0;
 		}
 	}
 
-	if(BossHitAnim) AnimInstance->Montage_Play(BossHitAnim);
+	if(ActualDamageToHP <= 0) return 0;
 
-	BossHpWidget->ChangeCurrentHp(-Damage);
-	CurrentHP -= Damage;
+	CurrentHP -= ActualDamageToHP;
+
+	if(BossHpWidget)
+	{
+		BossHpWidget->ChangeCurrentHp(-ActualDamageToHP);
+	}
+
+	if(CurrentHP <= 0)
+	{
+		if(BossHpWidget)
+		{
+			BossHpWidget->ShowClearImage();
+		}
+
+		if(AnimInstance && BossClearAnim)
+		{
+			AnimInstance->Montage_Play(BossClearAnim);
+		}
+	}
+	else
+	{
+		if(BossHitAnim && AnimInstance) AnimInstance->Montage_Play(BossHitAnim);
+	}
+
+	return ActualDamageToHP;
+}
+
+int32 ABossActor::ApplyShieldOnlyDamage(int32 Damage, AActor* DamageCauser)
+{
+	if(!DamageCauser) return 0;
+
+	const int32 ShieldDamage = FMath::Min(CurrentShield, FMath::Max(0, Damage));
+	if(ShieldDamage <= 0) return 0;
+
+	CurrentShield -= ShieldDamage;
+
+	if(BossHpWidget)
+	{
+		BossHpWidget->ChangeCurrentShield(-ShieldDamage);
+	}
+
+	if(BossHitAnim && AnimInstance) AnimInstance->Montage_Play(BossHitAnim);
+
+	return ShieldDamage;
+}
+
+void ABossActor::ApplyShieldHeal(int32 Heal, AActor* HealCauser)
+{
+	if(!HealCauser || MaxShield <= 0) return;
+
+	const int32 OldShield = CurrentShield;
+	CurrentShield = FMath::Clamp(CurrentShield + FMath::Max(0, Heal), 0, MaxShield);
+
+	const int32 ActualHealedAmount = CurrentShield - OldShield;
+	if(ActualHealedAmount > 0 && BossHpWidget)
+	{
+		BossHpWidget->ChangeCurrentShield(ActualHealedAmount);
+	}
+}
+
+void ABossActor::ApplyCC(const FCCStructure& CC)
+{
+	if(CC.CCType == ECCTypes::None || CC.CCDuration <= 0) return;
+
+	AppliedCC = CC;
+	bIsOnCC = true;
+	CCDuration = AppliedCC.CCDuration;
+
+	UE_LOG(LogTemp, Warning, TEXT("[BossActor] CC Applied Type=%d Duration=%d"), static_cast<int32>(AppliedCC.CCType), CCDuration);
+}
+
+void ABossActor::RemoveCC()
+{
+	AppliedCC = FCCStructure();
+	bIsOnCC = false;
+	CCDuration = 0;
+
+	UE_LOG(LogTemp, Warning, TEXT("[BossActor] CC Removed"));
+}
+
+bool ABossActor::ConsumeCCForBossTurn()
+{
+	if(!bIsOnCC)
+	{
+		return true;
+	}
+
+	if(AppliedCC.CCType == ECCTypes::Stun)
+	{
+		CCDuration--;
+
+		UE_LOG(LogTemp, Warning, TEXT("[BossActor] Stunned. Skip boss attack. Remain=%d"), CCDuration);
+
+		if(CCDuration <= 0)
+		{
+			RemoveCC();
+		}
+
+		return false;
+	}
+
+	CCDuration--;
+	if(CCDuration <= 0)
+	{
+		RemoveCC();
+	}
+
+	return true;
 }
 
 int32 ABossActor::GetPatternCount() const
@@ -114,6 +243,14 @@ void ABossActor::PlayAttack()
 	}
 
    	AnimInstance->Montage_Play(SelectedPatternAnim);
+}
+
+void ABossActor::FinishBossAttack()
+{
+	if(OnBossAttackEnded.IsBound())
+	{
+		OnBossAttackEnded.Broadcast();
+	}
 }
 
 void ABossActor::BossMontageEnded(UAnimMontage * TargetMontage, bool bInterrupted)

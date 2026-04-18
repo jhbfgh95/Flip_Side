@@ -206,6 +206,7 @@ void UBattleManagerWSubsystem::DoCoinSelectTurn()
     MatchCoinsToRandomState();
     CoinActionManager->SetTurn(true);
     ItemManager->SetTurn(true);
+    ItemManager->CoinBindsToItemMan();
 }
 
 void UBattleManagerWSubsystem::DoBossTurn()

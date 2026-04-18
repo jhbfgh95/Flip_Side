@@ -15,10 +15,11 @@ class FLIP_SIDE_API UItem_Action : public UActionBase
 	
 	int32 ItemEffectValue = 0;
 
-	int32 ItemTypeID = 0;
-	//흠.. 설치하는거 오브젝트를 어떻게 넣을지 고민해봐야하겠음
-
-	class AGridActor* TargetGrid;
+	/* //현재 아이템 자체가 타입을 가져서 클릭에서 분기하기 때문에 딱히 필요없을 것으로 생각.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EItemType ItemType = EItemType::CoinBuff;
+	*/
+	class AGridActor* TargetGrid = nullptr;
 
 	FItemData ItemInfo;
 
@@ -27,11 +28,13 @@ public:
 
 	virtual int32 GetItemEffectValue() const;
 	
-	virtual void SetItemType(const int32 TypeID);
-
-	virtual int32 GetItemTypeID() const;
-
+	/*
+	virtual void SetItemType(const EItemType TypeID);
+	virtual EItemType GetItemTypeID() const;
+	*/
 	virtual void ExecuteAction() override;
 
 	virtual void SetTargetGrid(class AGridActor* Grid);
+
+	AGridActor* GetTargetGrid() const { return TargetGrid; }
 };

@@ -4,10 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "BattleHoverInterface.h"
+#include "BattleClickInterface.h"
+#include "FlipSide_Enum.h"
 #include "UseableItemActor.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoverItemDelegate, AUseableItemActor*, HoveredItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGridClickItemDelegate, AUseableItemActor*, ClickedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCoinClickItemDelegate, AUseableItemActor*, ClickedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOtherClickItemDelegate, AUseableItemActor*, ClickedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoverItemDelegate);
+
 UCLASS()
-class AUseableItemActor : public AActor
+class AUseableItemActor : public AActor, public IBattleHoverInterface, public IBattleClickInterface
 {
 	GENERATED_BODY()
 
@@ -17,9 +26,12 @@ class AUseableItemActor : public AActor
 	UPROPERTY(EditAnywhere, Category = "UseableItem | Component", meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* UseableItemMesh;
 	
+	UPROPERTY(VisibleAnywhere, Category = "UseableItem | ID")
+	int32 ItemID = 0;
+
 	UPROPERTY(VisibleAnywhere, Category = "UseableItem | Type")
-	int32 ItemID = 0;	
-	
+	EItemType ItemType = EItemType::CoinBuff;
+
 	UPROPERTY(VisibleAnywhere)
 	UTexture2D* ItemTexture;
 
@@ -31,22 +43,48 @@ public:
 
 	int32 GetItemID() const;
 
-	void SetItemValues(int TheItemID, UTexture2D* ItemTex, FLinearColor Color);
+	EItemType GetItemType() const { return ItemType; }
 
-    void SetGrabbed(bool bGrab);
-    bool GetIsGrabbed() const { return bIsGrabbed; }
+	UFUNCTION()
+	void SetItemValues(int TheItemID, EItemType theItemType ,UTexture2D* ItemTex, FLinearColor Color);
 
+	UFUNCTION()
     void SetOriginLocation(FVector InLoc) { OriginLocation = InLoc; }
+	UFUNCTION()
     FVector GetOriginLocation() const { return OriginLocation; }
+
+/* 인풋 관련 */
+public:
+	UFUNCTION()
+	virtual void OnHover_Implementation() override;
+
+	UFUNCTION()
+	virtual void OnUnhover_Implementation() override;
+
+	UFUNCTION()
+	virtual void OnClicked_Implementation() override;
+	
+	UPROPERTY()
+	FOnHoverItemDelegate OnHoverItem;
+
+	UPROPERTY()
+	FOnUnhoverItemDelegate OnUnhoverItem;
+
+	UPROPERTY()
+	FOnGridClickItemDelegate OnGridClickItem;
+
+	UPROPERTY()
+	FOnCoinClickItemDelegate OnCoinClickItem;
+
+	UPROPERTY()
+	FOnOtherClickItemDelegate OnOtherClickItem;
+
 protected:
 	virtual void BeginPlay() override;
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 	
 	virtual void Tick(float DeltaTime) override;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | State")
-    bool bIsGrabbed = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | State")
     FVector OriginLocation;

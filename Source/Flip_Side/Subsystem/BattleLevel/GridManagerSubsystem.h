@@ -133,7 +133,9 @@ public:
 
 /* 클릭 함수 및 델리게이트 변수들 */
 public:
-	void SetGridClickFlag(EGridClickFlag clickFlag = EGridClickFlag::None);
+	void SetGridClickFlag(EGridClickFlag clickFlag = EGridClickFlag::None, bool bUpdateHoverFlags = true);
+
+	void SetGridItemFlags(int32 InItemFlag);
 
 	FOnGridClickedForCoin OnGridClickedForCoin;
 	FOnGridClickedForItem OnGridClickedForItem;

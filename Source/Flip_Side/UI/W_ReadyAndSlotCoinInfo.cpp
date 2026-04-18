@@ -7,6 +7,14 @@
 #include "Components/TextBlock.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
+namespace
+{
+	FText FormatReadyCoinStat(int32 Value, const TCHAR* ColorTag, const TCHAR* StatLabel)
+	{
+		return FText::FromString(FString::Printf(TEXT("<%s>[%s] %d</>"), ColorTag, StatLabel, Value));
+	}
+}
+
 void UW_ReadyAndSlotCoinInfo::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -37,11 +45,8 @@ void UW_ReadyAndSlotCoinInfo::SetReadyCoinInfo(bool FaceFlag, UTexture2D * Icon,
 
             //언리얼 기본 포맷 
             //사용 : {BP} 만큼 데미지를 줍니다
-            FString BPString = FString::Printf(TEXT("<White>%d</>"), DefaultBP);
-            FString APString = FString::Printf(TEXT("<White>%d</>"), DefaultAP);
-
-            Args.Add(TEXT("BP"), FText::FromString(BPString));
-            Args.Add(TEXT("AP"), FText::FromString(APString));
+            Args.Add(TEXT("BP"), FormatReadyCoinStat(DefaultBP, TEXT("BPColor"), TEXT("BP")));
+            Args.Add(TEXT("AP"), FormatReadyCoinStat(DefaultAP, TEXT("APColor"), TEXT("AP")));
 
             HoveredFrontWeaponDes->SetText(FText::Format(RawDescription, Args));
         }
@@ -63,11 +68,8 @@ void UW_ReadyAndSlotCoinInfo::SetReadyCoinInfo(bool FaceFlag, UTexture2D * Icon,
             //사용 : {BP} 만큼 데미지를 줍니다
             FFormatNamedArguments Args;
 
-            FString BPString = FString::Printf(TEXT("<White>%d</>"), DefaultBP);
-            FString APString = FString::Printf(TEXT("<White>%d</>"), DefaultAP);
-
-            Args.Add(TEXT("BP"), FText::FromString(BPString));
-            Args.Add(TEXT("AP"), FText::FromString(APString));
+            Args.Add(TEXT("BP"), FormatReadyCoinStat(DefaultBP, TEXT("BPColor"), TEXT("BP")));
+            Args.Add(TEXT("AP"), FormatReadyCoinStat(DefaultAP, TEXT("APColor"), TEXT("AP")));
             //Args.Add(TEXT("Range"), FormatStatWithDiff(DefaultRange, ModifiedRange));
 
             HoveredBackWeaponDes->SetText(FText::Format(RawDescription, Args));

@@ -48,6 +48,11 @@ void ATurret_OtherActor::OnUnhover_Implementation()
 
 void ATurret_OtherActor::OnClicked_Implementation()
 {
+    if(TryBroadcastOtherClicked())
+    {
+        return;
+    }
+
     if(GridManager)
     {
         if(CachedBoss && !bIsActed)

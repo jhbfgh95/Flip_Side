@@ -39,8 +39,8 @@ FActionTask UComponent_Status::GetModifiedStats()
 	if(OnCalculateStats.IsBound())
 	{
 		OnCalculateStats.Broadcast(FinalTask);
+         UE_LOG(LogTemp, Warning, TEXT("%d %d"), FinalTask.ModifiedAttackPoint, FinalTask.ModifiedBehaviorPoint)
 	}
-
 
 	return FinalTask;
 }
@@ -73,6 +73,8 @@ void UComponent_Status::ApplyDamage(int32 Damage, AActor* DamageCauser)
         OnPreTakeDamage.Broadcast(Damage, FinalDamage, bIsIgnored);
     }
 
+    if(FinalDamage < 0) FinalDamage = 0;
+
     if (bIsIgnored)
     {
         return;
@@ -93,7 +95,7 @@ void UComponent_Status::ApplyDamage(int32 Damage, AActor* DamageCauser)
 	}
 	else
 	{
-		HPChanged(Damage);
+		HPChanged(FinalDamage);
 	}
 
     if (HP <= 0)
@@ -164,6 +166,30 @@ void UComponent_Status::CheckAttackerPostBuff(AActor* Target, int32 DealtDmg)
     }
 }
 
+void UComponent_Status::ClearDebuffs()
+{
+    bool bRemovedDebuff = false;
+
+    for(int32 i = ActiveBuffs.Num() - 1; i >= 0; --i)
+    {
+        const FBuffInfo& Buff = ActiveBuffs[i];
+        if(!Buff.bIsDebuff) continue;
+
+        if(Buff.StatHandle.IsValid()) OnCalculateStats.Remove(Buff.StatHandle);
+        if(Buff.DamageHandle.IsValid()) OnPreTakeDamage.Remove(Buff.DamageHandle);
+		if(Buff.PreGiveHandle.IsValid()) OnPreGiveDamage.Remove(Buff.PreGiveHandle);
+        if(Buff.PostGiveHandle.IsValid()) OnPostGiveDamage.Remove(Buff.PostGiveHandle);
+
+        ActiveBuffs.RemoveAt(i);
+        bRemovedDebuff = true;
+    }
+
+    if(bRemovedDebuff && OnBuffListChanged.IsBound())
+    {
+        OnBuffListChanged.Broadcast(false);
+    }
+}
+
 void UComponent_Status::ClearTurnBasedBuffs()
 {
 	for(const FBuffInfo& Buff : ActiveBuffs)
@@ -194,7 +220,14 @@ void UComponent_Status::ApplyHeal(int32 Heal, AActor* HealCauser)
 void UComponent_Status::ApplyShield(int32 AddShield, AActor* ShieldCauser)
 {
 	if(HP <= 0) return;
+	const int32 PrevShield = Shield;
 	Shield = FMath::Clamp(Shield + AddShield, 0, MAX_SHIELD);
+	const int32 DeltaShield = Shield - PrevShield;
+
+	if (DeltaShield != 0)
+	{
+		OnShieldChanged.Broadcast(DeltaShield);
+	}
 }
 
 void UComponent_Status::ApplyCC(FCCStructure CC)

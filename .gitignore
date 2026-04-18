@@ -14,3 +14,9 @@ Saved
 *.xcodeproj
 *.xcworkspace
 *.code-workspace
+
+# Codex conversation artifacts
+/.codex/
+/codex-notes/
+/NOTES.md
+/AGENTS.md

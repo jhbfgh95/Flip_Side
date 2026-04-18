@@ -431,7 +431,7 @@ bool UDataManagerSubsystem::LoadItems()
         const FString itemdes = GetColText(Stmt, 4);
         Item.Item_DES = itemdes;
         Item.ItemTypeID = GetColInt(Stmt, 5);
-        if (Item.ItemTypeID == 1)      Item.ItemType = EItemType::Buff;
+        if (Item.ItemTypeID == 1)      Item.ItemType = EItemType::CoinBuff;
         else if (Item.ItemTypeID == 2) Item.ItemType = EItemType::Install;
         Item.BehaviorCode = GetColText(Stmt, 6);
         const FString ColorHex = GetColText(Stmt, 7);

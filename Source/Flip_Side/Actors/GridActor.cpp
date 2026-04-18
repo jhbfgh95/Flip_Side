@@ -6,6 +6,7 @@
 #include "BattleHoverInterface.h"
 #include "FlipSide_Enum.h"
 #include "GridTypes.h"
+#include "Base_OtherActor.h"
 
 AGridActor::AGridActor()
 {
@@ -46,6 +47,11 @@ void AGridActor::SetOccupied(bool IsOccupied, EGridOccupyingType OccupyType, AAc
 		bIsOccupied = IsOccupied;
 		CurrentOccupying= OccupyType;
 		CurrentObject = OccupieActor;
+
+		if(ABase_OtherActor* OtherActor = Cast<ABase_OtherActor>(OccupieActor))
+		{
+			OtherActor->SetOccupiedGrid(this);
+		}
 	}
 }
 
@@ -55,7 +61,7 @@ bool AGridActor::GetIsOccupied() { return bIsOccupied; }
 //그리드에 뭐 올라가있는지
 EGridOccupyingType AGridActor::GetCurrentOccupyingThing() {  return CurrentOccupying; }
 
-//코인 "순간이동"
+//코인 순간이동 및 장애물등의 설치
 FVector2D AGridActor::GetGridWorldXY()
 {
 	FTransform GridTransform = GridRootComp->GetComponentTransform();
@@ -71,11 +77,16 @@ void AGridActor::ClearOccupied()
 	bIsOccupied = false;
 	bIsBossAttack = false;
 	bBossColorFirstSetted = false;
+	ItemFlag = 0;
 
 	bIsCoinRangePreview = false;
 	
 	InitColor();
 	CurrentOccupying = EGridOccupyingType::None;
+	if(ABase_OtherActor* OtherActor = Cast<ABase_OtherActor>(CurrentObject))
+	{
+		OtherActor->SetOccupiedGrid(nullptr);
+	}
 	CurrentObject = nullptr;
 }
 

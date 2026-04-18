@@ -7,6 +7,11 @@
 #include "BattleClickInterface.h"
 #include "Base_OtherActor.generated.h"
 
+class ABase_OtherActor;
+
+DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FOnOtherClickedDelegate, ABase_OtherActor*, ClickedOther);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOtherDeadDelegate, ABase_OtherActor*, DeadOther);
+
 UENUM(BlueprintType)
 enum class EOthersType : uint8
 {
@@ -37,8 +42,17 @@ class FLIP_SIDE_API ABase_OtherActor : public AActor, public IBattleClickInterfa
 
 	UPROPERTY(VisibleAnywhere, Category = "Others | Stat")
 	int32 CurrentHP = 0;
+
+	UPROPERTY(VisibleAnywhere, Category = "Others | Grid")
+	class AGridActor* OccupiedGrid = nullptr;
 public:	
 	ABase_OtherActor();
+
+	UPROPERTY()
+	FOnOtherClickedDelegate OnOtherClicked;
+
+	UPROPERTY()
+	FOnOtherDeadDelegate OnOtherDead;
 
 	EOthersType GetOtherType() const { return MyType; }
 
@@ -48,8 +62,15 @@ public:
 
 	void ApplyHeal(const int32 heal, AActor* healCauser);
 
+	void SetOccupiedGrid(class AGridActor* InGrid) { OccupiedGrid = InGrid; }
+
+	class AGridActor* GetOccupiedGrid() const { return OccupiedGrid; }
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Others | Dead")
 	void ActingDeadEffect();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Others | Click")
+	void OnDefaultClicked();
 
 protected:
 	virtual void BeginPlay() override;
@@ -57,6 +78,8 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void OnClicked_Implementation() override;
+
+	bool TryBroadcastOtherClicked();
 
 	void OnDead();
 

@@ -62,6 +62,7 @@ enum class ECCTypes : uint8
     Sleep UMETA(DisplayName = "Sleep")
 };
 
+//코인 액션 기준
 UENUM(BlueprintType)
 enum class EActionInputState : uint8
 {
@@ -70,7 +71,7 @@ enum class EActionInputState : uint8
     ExecutingAction, //바로 실행
     WaitingForGridClick,
     WaitingForOtherClick,
-    WaitingForGridClickForItem //아이템 입력받고, 그리드 입력 기다림
+    WaitingForItemExecute //아이템이 코인에 적용되기 위해서 기다림.
 };
 
 UENUM(BlueprintType)
@@ -85,8 +86,9 @@ enum class EActionRepeatType : uint8
 UENUM(BlueprintType)
 enum class EItemType : uint8
 {
-    Buff    UMETA(DisplayName = "버프형"),   // DB item_type_id = 1
+    CoinBuff    UMETA(DisplayName = "코인 버프형"),   // DB item_type_id = 1
     Install UMETA(DisplayName = "설치형"),   // DB item_type_id = 2
+    OtherBuff UMETA(DisplayName = "설치 버프") 
 };
 
 /**

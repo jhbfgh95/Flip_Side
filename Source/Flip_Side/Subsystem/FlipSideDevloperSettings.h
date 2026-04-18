@@ -12,6 +12,8 @@ class ASlotActor;
 class ACoinSlotActor;
 class UW_ReadyAndSlotCoinInfo;
 class UW_BattleCoinInfo;
+class UW_ItemInfo;
+class UUserWidget;
 class AUseableItemActor;
 
 UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="My Manager Settings"))
@@ -38,9 +40,8 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "UseableItem | Spawn")
 	TSoftClassPtr<ASlotActor> UseableItemSlotActor;
 	
-	UPROPERTY(EditAnywhere, config, Category = "UseableItem | UI",
-		meta = (AllowedClasses = "/Script/UMG.UserWidget"))
-	TSoftClassPtr<UUserWidget> ItemHoverWidget;
+	UPROPERTY(EditAnywhere, config, Category = "UseableItem | UI")
+	TSoftClassPtr<UW_ItemInfo> ItemHoverWidget;
 
 	UPROPERTY(EditAnywhere, Config, Category = "GridSpawn")
 	TSoftClassPtr<class AGridActor> GridActor;

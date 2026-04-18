@@ -3,6 +3,7 @@
 #include "WeaponDataTypes.h"
 #include "FlipSide_Enum.h"
 #include "CoinActor.h"
+#include "Base_OtherActor.h"
 #include "GridActor.h"
 #include "Weapon_Action.h"
 #include "W_BattleCoinInfo.h"
@@ -83,10 +84,12 @@ void UCoinActionManagementWSubsystem::InitWeaponAction()
     DefaultGrid.GridY = -1;
     SelectedAction->SetActionRange(DefaultGrid);
     SelectedAction->SetInRangeCoins(nullptr);
+    SelectedAction->SetInRangeOthers(nullptr);
     SelectedAction->SetLogicID(-1);
     SelectedAction->SetFinalAttackPoint(-1);
     SelectedAction->SetFinalBehaviorPoint(-1);
     SelectedAction->SetCasterCoin(nullptr);
+    SelectedAction->SetOtherForAction(nullptr);
     RepeatActionCnt = 1;
     CurrentInputState = EActionInputState::None;
     ValidTargetGrids.Empty();
@@ -106,7 +109,9 @@ bool UCoinActionManagementWSubsystem::ApplyRangedThings(const FGridPoint& Target
 {
     if(!GridManager) return false;
 
-    if(CurrentInputState == EActionInputState::WaitingForCoinClick || CurrentInputState == EActionInputState::WaitingForGridClick)
+    if(CurrentInputState == EActionInputState::WaitingForCoinClick ||
+        CurrentInputState == EActionInputState::WaitingForGridClick ||
+        CurrentInputState == EActionInputState::WaitingForOtherClick)
     {
         if(!ValidTargetGrids.Contains(TargetGridPoint))
         {
@@ -134,15 +139,14 @@ bool UCoinActionManagementWSubsystem::ApplyRangedThings(const FGridPoint& Target
         SelectedAction->SetInRangeBoss(GridInfos.Boss);
     }
 
-    /*
-    for(AActor* Actor : Infos.Others)
+    for(AActor* Actor : GridInfos.Others)
     {
-        if(AOtherActor* Others = Cast<AOtherActor>(Actor))
+        if(ABase_OtherActor* Others = Cast<ABase_OtherActor>(Actor))
         {
             SelectedAction->SetInRangeOthers(Others);
         }
     }
-    */
+    
 
     return true;
 
@@ -172,6 +176,7 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
             SelectedAction->SetActionRange(LastGridPoint);
             SelectedAction->SetFinalAttackPoint(SelectWeapon.AttackPoint + ActionTask.ModifiedAttackPoint);
             SelectedAction->SetFinalBehaviorPoint(SelectWeapon.BehaviorPoint + ActionTask.ModifiedBehaviorPoint);
+            SelectedAction->SetFinalRange(LastGridPoint.GridX, LastGridPoint.GridY);
             switch(SelectWeapon.ActionRepeatType)
             {
                 case EActionRepeatType::Behavior :
@@ -187,7 +192,8 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
             SetBattleCoinInfo(
                 SelectWeapon.WeaponIcon, FText::FromString(SelectWeapon.WeaponName), FText::FromString(SelectWeapon.KOR_DES), 
                 SelectWeapon.BehaviorPoint, ActionTask.ModifiedBehaviorPoint, 
-                SelectWeapon.AttackPoint, ActionTask.ModifiedAttackPoint, SelectWeapon.TypeColor
+                SelectWeapon.AttackPoint, ActionTask.ModifiedAttackPoint, SelectWeapon.TypeColor,
+                HoveredCoin->StatComponent->ActiveBuffs
             );
 
             SetCasterCoin(HoveredCoin);
@@ -250,12 +256,6 @@ void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedC
     {
         ExecuteTimeAction(ClickedCoin);
     }
-    /*
-    else if()
-    {
-        //OtherManager에 신호보내기
-    }
-    */
 }
 
 //즉발 즉, 하나 선택X
@@ -314,6 +314,46 @@ void UCoinActionManagementWSubsystem::ExecuteTimeAction(ACoinActor* TargetCoin)
     
 }
 
+bool UCoinActionManagementWSubsystem::TryExecuteOtherAction(ABase_OtherActor* TargetOther)
+{
+    if(CurrentInputState != EActionInputState::WaitingForOtherClick)
+    {
+        return false;
+    }
+
+    if(RepeatActionCnt <= 0)
+    {
+        return true;
+    }
+
+    if(!TargetOther || !TargetOther->GetOccupiedGrid())
+    {
+        CancelSelectWeapon();
+        return true;
+    }
+
+    if(!ApplyRangedThings(TargetOther->GetOccupiedGrid()->GetGridPoint()))
+    {
+        CancelSelectWeapon();
+        return true;
+    }
+
+    if(SelectedAction && SelectedAction->GetCasterCoin())
+    {
+        SelectedAction->GetCasterCoin()->SetCoinIsActed(true);
+        SelectedAction->SetOtherForAction(TargetOther);
+        SelectedAction->ExecuteAction();
+        RepeatActionCnt--;
+    }
+
+    if(RepeatActionCnt <= 0)
+    {
+        InitWeaponAction();
+    }
+
+    return true;
+}
+
 //Grid를 클릭해야 하는 코인 액션
 void UCoinActionManagementWSubsystem::ExecuteGridAction(AGridActor* targetGrid)
 {
@@ -345,14 +385,16 @@ void UCoinActionManagementWSubsystem::ExecuteGridAction(AGridActor* targetGrid)
 void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
         UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
 		int32 DefaultBP, int32 ModifiedBP, 
-		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor)
+		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor,
+        const TArray<FBuffInfo>& ActiveBuffs)
 {
     if(BattleCoinInfoWidgetInstance)
     {
         BattleCoinInfoWidgetInstance->UpdateBattleCoinInfo(
             Icon, WeaponName, RawDescription,
             DefaultBP, ModifiedBP,
-            DefaultAP, ModifiedAP, WeaponColor
+            DefaultAP, ModifiedAP, WeaponColor,
+            ActiveBuffs
         );
         BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);
     }

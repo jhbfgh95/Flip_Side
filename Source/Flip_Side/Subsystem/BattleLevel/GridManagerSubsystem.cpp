@@ -710,9 +710,14 @@ void UGridManagerSubsystem::TickPhase2(FGridPoint Cell)
 }
 
 
-void UGridManagerSubsystem::SetGridClickFlag(EGridClickFlag clickFlag)
+void UGridManagerSubsystem::SetGridClickFlag(EGridClickFlag clickFlag, bool bUpdateHoverFlags)
 { 
     ClickFlag = clickFlag;
+    if (!bUpdateHoverFlags)
+    {
+        return;
+    }
+
     if(ClickFlag == EGridClickFlag::CoinAction)
     {
         for (const auto& Pair : GridActors)
@@ -736,6 +741,7 @@ void UGridManagerSubsystem::SetGridClickFlag(EGridClickFlag clickFlag)
 
             if(Grid->GetIsOccupied()) continue;
             Grid->HoverFlag = 2;
+            Grid->SetItemFlag(1);
         }       
     }
     else
@@ -748,7 +754,26 @@ void UGridManagerSubsystem::SetGridClickFlag(EGridClickFlag clickFlag)
 
             if(Grid->GetIsOccupied()) continue;
             Grid->HoverFlag = 0;
+            Grid->SetItemFlag(0);
 
         }
+    }
+}
+
+void UGridManagerSubsystem::SetGridItemFlags(int32 InItemFlag)
+{
+    for (const auto& Pair : GridActors)
+    {
+        AGridActor* Grid = Pair.Value.Get();
+        if (!IsValid(Grid)) continue;
+
+        if (Grid->GetIsOccupied())
+        {
+            Grid->SetItemFlag(0);
+            continue;
+        }
+
+        Grid->SetItemFlag(InItemFlag);
+        Grid->HoverFlag = InItemFlag > 0 ? 2 : 0;
     }
 }

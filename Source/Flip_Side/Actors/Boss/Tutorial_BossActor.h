@@ -15,15 +15,10 @@ UCLASS()
 class FLIP_SIDE_API ATutorial_BossActor : public ABossActor
 {
 	GENERATED_BODY()
-	
-	UPROPERTY(VisibleAnywhere, Category = "Boss | Stat")
-	int32 CurrentShield = 50;
 
 protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void ApplyDamage(int32 Damage, AActor* DamageCauser) override;
-
-	void ApplyShieldHeal(int Heal, AActor* HealCauser);
+	ATutorial_BossActor();
 };

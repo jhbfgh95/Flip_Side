@@ -9,7 +9,6 @@ void UActionLogicRegistryGISubsystem::Initialize(FSubsystemCollectionBase& Colle
     Super::Initialize(Collection);
 
     RegisterWeaponLogic();
-    RegisterBossLogic();
     RegisterItemLogic();
 }
 
@@ -125,17 +124,12 @@ void UActionLogicRegistryGISubsystem::RegisterWeaponLogic()
     });
 }
 
-void UActionLogicRegistryGISubsystem::RegisterBossLogic()
-{
-
-}
-
 void UActionLogicRegistryGISubsystem::RegisterItemLogic()
 {
     //보호막 융해로 바꿀것
     ItemMap.Add(1, [](UActionBase* Context) {
         if (UItem_Action* ItemAction = Cast<UItem_Action>(Context)) {
-            UItemLogicLibrary::Test_Item(ItemAction);
+            UItemLogicLibrary::MeltShieldPotion_Logic(ItemAction);
         }
     });
 
@@ -163,4 +157,9 @@ void UActionLogicRegistryGISubsystem::RegisterItemLogic()
         }
     });
 
+    ItemMap.Add(6, [](UActionBase* Context) {
+        if (UItem_Action* ItemAction = Cast<UItem_Action>(Context)) {
+            UItemLogicLibrary::WallPotion_Logic(ItemAction);
+        }
+    });
 }

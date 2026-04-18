@@ -24,7 +24,7 @@ public:
 	static void Buger_Logic(UWeapon_Action* WeaponContext);
 
 	static void BloodCanon_Logic(UWeapon_Action* WeaponContext);
-	//나중에
+
 	static void AutoTurretSet_Logic(UWeapon_Action* WeaponContext);
 
 	static void SniperRifle_Logic(UWeapon_Action* WeaponContext);

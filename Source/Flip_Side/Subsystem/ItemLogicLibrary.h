@@ -15,7 +15,7 @@ class FLIP_SIDE_API UItemLogicLibrary : public UBlueprintFunctionLibrary
 public:
 	static void Test_Item(UItem_Action* ItemContext);
 
-	//이거 나중에 보호막 융해
+	//보호막 융해
 	static void MeltShieldPotion_Logic(UItem_Action* ItemContext);
 
 	//이것도 나중에 피의 갈망
@@ -29,4 +29,7 @@ public:
 
 	//사방팔방 나중에
 	static void EverwherePotion_Logic(UItem_Action* ItemContext);
+
+	//융기 물약
+	static void WallPotion_Logic(UItem_Action* ItemContext);
 };

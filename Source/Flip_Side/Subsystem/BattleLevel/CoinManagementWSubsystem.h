@@ -92,6 +92,8 @@ public:
 
 	TArray<ACoinActor*> GetReadyCoins() const;
 
+	void SetBattleCoinItemFlags(bool bEnabled);
+
 	bool IsCoinInBattleReady(ACoinActor* InCoin) const;
 
 	bool IsCoinIdInBattleReady(int32 TargetID) const;

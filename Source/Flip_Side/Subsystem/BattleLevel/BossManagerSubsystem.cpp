@@ -205,6 +205,13 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
         return;
     }
 
+    if (!CurrentBoss->ConsumeCCForBossTurn())
+    {
+        ClearCurrentTurn();
+        CurrentBoss->FinishBossAttack();
+        return;
+    }
+
     BuildLockedTargetsFromCells(TurnContext.LockedCells, TurnContext.LockedTargets);
     
     CurrentBoss->PlayAttack();

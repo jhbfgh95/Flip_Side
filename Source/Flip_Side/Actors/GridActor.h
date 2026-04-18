@@ -72,6 +72,8 @@ public:
 
 	int32 HoverFlag = 0;
 
+	int32 ItemFlag = 0;
+
 	virtual void OnClicked_Implementation() override;
 
 	virtual void OnHover_Implementation() override;
@@ -84,11 +86,9 @@ public:
 
 	UFUNCTION()
 	void SetOccupied(bool IsOccupied, EGridOccupyingType OccupyType, AActor* OccupieActor);
-	/*
-	//아이템 타입(설치형인지, 아닌지를 좀 알 필요가 있을지도 모르겠음 이건 소모품쪽에서 한 번 이야기 해봐야함)
-	UFUNCTION()
-	void SetItem(FItemType ItemType)
-	*/
+
+	void SetItemFlag(int32 InItemFlag) { ItemFlag = InItemFlag; }
+
 /* Getter */
 	UFUNCTION()
 	bool GetIsOccupied();
@@ -105,6 +105,8 @@ public:
 	
 	UFUNCTION()
 	FGridPoint GetGridPoint() const;
+
+	int32 GetItemFlag() const { return ItemFlag; }
 
 /* Initialization*/
 	UFUNCTION(BlueprintCallable)

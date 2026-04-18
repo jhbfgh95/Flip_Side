@@ -171,10 +171,8 @@ void UCrossingLevelGISubsystem::GenerateTestCoin()
     SetSlotCoin(2, SlotTestCoin2);
     SetSlotCoin(3, SlotTestCoin3);
 
-        //걍 id 1, 2, 3만 불러오게 설정
-    for(int32 k = 0; k<3;k++)
-    {
-        //SetBattleCardID(k,k);
-        SetBattleUseItemID(k+1,k,3);
-    }
+        //걍 id 4, 5, 6만 불러오게 설정
+    SetBattleUseItemID(1,0,3);
+    SetBattleUseItemID(2,1,3);
+    SetBattleUseItemID(4,2,3);
 }

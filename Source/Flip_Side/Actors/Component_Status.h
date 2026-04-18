@@ -124,6 +124,8 @@ public:
 	//버프 추가 
 	void AddBuffs(const FBuffInfo& Info);
 
+	void ClearDebuffs();
+
 	void ClearTurnBasedBuffs();
 
 	//보호막 추가 데미지 등

@@ -34,13 +34,11 @@ void ABase_OtherActor::ApplyDamage(const int32 damage, AActor* damageCauser)
 {
 	if(!damageCauser) return;
 	
-	int32 FinalHP = CurrentHP - damage;
-	if(FinalHP <= 0)
+	CurrentHP = FMath::Clamp(CurrentHP - damage, 0, OtherActorMaxHP);
+	if(CurrentHP <= 0)
 	{
 		OnDead();
 	}
-
-	CurrentHP = FinalHP;
 	//UI 바꾸는 함수
 }
 
@@ -54,11 +52,25 @@ void ABase_OtherActor::ApplyHeal(const int32 heal, AActor* healCauser)
 void ABase_OtherActor::OnDead()
 {
 	ActingDeadEffect();
-	//Timer 
-	Destroy();
+	OnOtherDead.Broadcast(this);
 }
 
 void ABase_OtherActor::OnClicked_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("DFSAD"));
+	if(TryBroadcastOtherClicked())
+	{
+		return;
+	}
+
+	OnDefaultClicked();
+}
+
+bool ABase_OtherActor::TryBroadcastOtherClicked()
+{
+	if(OnOtherClicked.IsBound())
+	{
+		return OnOtherClicked.Execute(this);
+	}
+
+	return false;
 }
