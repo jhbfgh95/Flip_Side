@@ -26,7 +26,7 @@ void AShopCoinManagePanelGear::BeginPlay()
 {
 	Super::BeginPlay();
 	ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
-	ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AShopCoinManagePanelGear::ActiveGear);
+	//ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AShopCoinManagePanelGear::ActiveGear);
 
 	FOnTimelineFloat GearMoveCallBack;
 	GearMoveCallBack.BindUFunction(this, FName("RotateGear"));

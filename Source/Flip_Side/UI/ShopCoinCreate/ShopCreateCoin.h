@@ -19,14 +19,13 @@ class FLIP_SIDE_API AShopCreateCoin : public AActor, public IShopMouseInterface
 protected:
 	AShopCreateCoin();	
 private:
-	//코인 제작 서브 시스템
 	class UShopCoinWSubsystem* CoinWSubSystem;
 	//무기 정보 서브시스템
 	class UDataManagerSubsystem* DataManager;
 
 	class AShopController_FlipSide* ShopController;
 	
-private: // 컴포넌트	
+private:
 
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* RootScene;
@@ -43,10 +42,21 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-public:	
-	//코인 면 변경
+
+
+private:
+	UFUNCTION()
+	void SetWeaponAdaptor(int32 WeaponID);
+
+private:
+
 	void ChangeCoinSide();
 
+	UFUNCTION()
+	void SetCoin();
+	//코인이 처음 설정 됬을 때 초기화
+	UFUNCTION()
+	void SetCoinWeaponID();
 private: //코인정보
 
 	//현재 코인 면 데이터
@@ -55,9 +65,6 @@ private: //코인정보
 
 
 protected:
-	//코인무기가 업데이트 됬을 때 설정하는 함수
-	UFUNCTION()
-	void UpdateCoinWeapon(int32 WeaponID);
 
 	//코인 메테리얼 색깔,무기 변경
 	UFUNCTION()
@@ -74,12 +81,7 @@ protected:
 	UFUNCTION()
 	void FinishedRotateCoin();
 
-	//코인이 처음 설정 됬을 때 초기화
-	UFUNCTION()
-	void InitCoin(FCoinTypeStructure CoinValue, EWeaponClass weponClass);
 
-	//코안 면 초기화
-	void ResetSideTexture();
 
 private:
 	//코인 회전 애니메이션 타임라인 컴포넌트

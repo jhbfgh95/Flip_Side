@@ -8,8 +8,6 @@ void UW_WeaponDescription::SetExplainText(const FString & WeaponName, const FStr
 {
     FFormatNamedArguments Args;
 
-    //언리얼 기본 포맷 
-    //사용 : {BP} 만큼 데미지를 줍니다
     if(DefaultBP != -1)
     {
         FString BPString = FString::Printf(TEXT("<White>%d</>"), DefaultBP);

@@ -10,26 +10,27 @@ void UW_ShopUnlockCoinSlot::NativeConstruct()
     Super::NativeConstruct();
     ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &UW_ShopUnlockCoinSlot::SetWidgetActive);
-
+    ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &UW_ShopUnlockCoinSlot::SetWidgetActive);
     UnlockCoinSlotButton->OnClicked.AddDynamic(this, &UW_ShopUnlockCoinSlot::ClickUnlockButton);
-    SetWidgetActive(true);
+    SetWidgetActive();
 }
 
 void UW_ShopUnlockCoinSlot::NativeDestruct()
 {
     ShopCoinSubsystem->OnCoinSlotChange.RemoveAll(this);
+    ShopCoinSubsystem->OnUnlockCoinSlot.RemoveAll(this);
     Super::NativeDestruct();
 }
 
-void UW_ShopUnlockCoinSlot::SetWidgetActive(bool IsMoveBottom)
+void UW_ShopUnlockCoinSlot::SetWidgetActive()
 {
     if(ShopCoinSubsystem->GetCurrentCoinUnlock())
     {
-        SetVisibility(ESlateVisibility::Collapsed);
+        UnlockCoinSlotButton->SetVisibility(ESlateVisibility::Collapsed);
     }
     else
     {
-        SetVisibility(ESlateVisibility::Visible);
+        UnlockCoinSlotButton->SetVisibility(ESlateVisibility::Visible);
     }
 }
 void UW_ShopUnlockCoinSlot::ClickUnlockButton()

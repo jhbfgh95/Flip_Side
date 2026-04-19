@@ -49,7 +49,7 @@ private:
 	void SetPanelUnlockSlot();
 
 	UFUNCTION()
-	void SetPanelChangeSlot(bool IsChangeToBottom);
+	void SetPanelChangeSlot();
 
 	UFUNCTION()
 	void SetPanelCoinCreate(int32 CreatedCoinIndex, EWeaponClass CreateWeaponClass);

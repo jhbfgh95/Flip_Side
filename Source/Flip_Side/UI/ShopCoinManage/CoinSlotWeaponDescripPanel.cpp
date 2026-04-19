@@ -104,7 +104,7 @@ void ACoinSlotWeaponDescripPanel::SetPanelUnlockSlot()
 {
 	SetPanel(true);
 }
-void ACoinSlotWeaponDescripPanel::SetPanelChangeSlot(bool IsChangeToBottom)
+void ACoinSlotWeaponDescripPanel::SetPanelChangeSlot()
 {
 	SetPanel(true);
 }

@@ -24,7 +24,7 @@ void UW_WeaponGridContainer::NativeDestruct()
     Super::NativeDestruct();
 }
 
-void UW_WeaponGridContainer::SetUnlockImageSlotChange(bool IsChangeBottom)
+void UW_WeaponGridContainer::SetUnlockImageSlotChange()
 {
     SetUnlockImage();
 }   

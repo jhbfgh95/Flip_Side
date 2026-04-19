@@ -40,11 +40,9 @@ void AShopCreateCoin::BeginPlay()
 	{
 		
 		//코인클래스 변경됬을때
-		CoinWSubSystem->OnSetWeapon.AddDynamic(this, &AShopCreateCoin::UpdateCoinWeapon);
+		CoinWSubSystem->OnSetWeapon.AddDynamic(this, &AShopCreateCoin::SetWeaponAdaptor);
 		//코인 상태 업데이트 됬을때
-		//CoinWSubSystem->OnSelectedCoinUpdate.AddDynamic(this, &AShopCreateCoin::UpdateCoinWeapon);
-		//코인 생성이 클릭 됬을 떄
-		//CoinWSubSystem->OnSelectedCoin.AddDynamic(this, &AShopCreateCoin::InitCoin);
+		CoinWSubSystem->OnCoinSlotChange.AddDynamic(this, &AShopCreateCoin::SetCoin);
 	}
 
 
@@ -58,14 +56,26 @@ void AShopCreateCoin::BeginPlay()
 
 
 	FrontRotator = CoinMesh->GetRelativeRotation();
+
+	SetCoin();
 }
 
 void AShopCreateCoin::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	CoinWSubSystem->OnSetWeapon.RemoveAll(this);
-	//CoinWSubSystem->OnSelectedCoinUpdate.RemoveAll(this);
-	//CoinWSubSystem->OnSelectedCoin.RemoveAll(this);
+	CoinWSubSystem->OnCoinSlotChange.RemoveAll(this);
 	Super::EndPlay(EndPlayReason);
+}
+
+void AShopCreateCoin::SetCoin()
+{
+	/*
+	if(!CoinWSubSystem->GetIsCreateCoinFront())
+	{
+		ClickCoin();
+	}*/
+	SetCoinWeaponID();
+	SetCoinSideMatarial();
 }
 
 void AShopCreateCoin::ClickCoin()
@@ -101,53 +111,18 @@ void AShopCreateCoin::FinishedRotateCoin()
 }
 
 
-//코인 선택됬을 때 초기화
-void AShopCreateCoin::InitCoin(FCoinTypeStructure CoinValue, EWeaponClass weponClass)
+void AShopCreateCoin::SetCoinWeaponID()
 {
-
 	//1.ID에 맞는 값을 할당함
-	if(!DataManager->TryGetWeapon(CoinValue.FrontWeaponID, FrontFaceData))
+	if(!DataManager->TryGetWeapon(CoinWSubSystem->GetCurrentCoinWeaponID(true), FrontFaceData))
 	{
 		FrontFaceData.WeaponID = -1;
 	}
-	if(!DataManager->TryGetWeapon(CoinValue.BackWeaponID, BackFaceData))
+	if(!DataManager->TryGetWeapon(CoinWSubSystem->GetCurrentCoinWeaponID(false), BackFaceData))
 	{
 		BackFaceData.WeaponID = -1;
 	}
-
-	if(weponClass == EWeaponClass::None)
-	{
-		ResetSideTexture();
-	}
-	else
-	{
-		SetCoinSideMatarial();
-	}
-	
-	CoinMesh->SetRelativeRotation(FrontRotator);
 }
-
-void AShopCreateCoin::UpdateCoinWeapon(int32 WeaponID)
-{
-	//ShopController->SetLockMouse(true);
-	bool IsFront = CoinWSubSystem->GetIsCreateCoinFront();
-	if(IsFront)
-	{
-		if(!DataManager->TryGetWeapon(WeaponID, FrontFaceData))
-		{
-			FrontFaceData.WeaponID = -1;
-		}
-	}
-	else
-	{
-		if(!DataManager->TryGetWeapon(WeaponID, BackFaceData))
-		{
-			BackFaceData.WeaponID = -1;
-		}
-	}
-	SetCoinSideMatarial();
-}
-
 
 void AShopCreateCoin::SetCoinSideMatarial()
 {
@@ -179,19 +154,12 @@ void AShopCreateCoin::SetCoinSideMatarial()
 }
 
 
-void AShopCreateCoin::ResetSideTexture()
-{
-	UTexture* Tex = nullptr;
-	UMaterialInstanceDynamic* MID = CoinMesh->CreateDynamicMaterialInstance(0);
-	if(MID)
-	{
-		MID->SetVectorParameterValue(FName("Front_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
-		MID->SetVectorParameterValue(FName("Back_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
-	}
-}
-
-
 void AShopCreateCoin::InteractLeftClick_Implementation()
 {
 	ClickCoin();
+}
+
+void AShopCreateCoin::SetWeaponAdaptor(int32 WeaponID)
+{
+	SetCoin();
 }

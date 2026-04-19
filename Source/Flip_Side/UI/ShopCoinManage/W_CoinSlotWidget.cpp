@@ -5,6 +5,7 @@
 
 #include "Components/Image.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
 
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
@@ -25,7 +26,11 @@ void UW_CoinSlotWidget::NativeConstruct()
 
     CoinSubsystem->OnSetWeapon.AddDynamic(this, &UW_CoinSlotWidget::SetWeaponTexture);
     CoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &UW_CoinSlotWidget::UnlockSlot);
+    CoinSubsystem->OnCoinCountUpdate.AddDynamic(this, &UW_CoinSlotWidget::SetCountText);
+
     SlotButton->OnClicked.AddDynamic(this, &UW_CoinSlotWidget::PressSlotButton);
+
+    SlotIndexText->SetText(FText::AsNumber(SlotIndex+1));
 }
 	
 void UW_CoinSlotWidget::NativeDestruct()
@@ -60,7 +65,6 @@ void UW_CoinSlotWidget::SetWeaponTexture(int32 WeaponID)
         }
     }
 }
-
 	
 void UW_CoinSlotWidget::UnlockSlot()
 {
@@ -71,4 +75,12 @@ void UW_CoinSlotWidget::UnlockSlot()
 void UW_CoinSlotWidget::PressSlotButton()
 {
     CoinSubsystem->SelectCoin(SlotIndex);
+}
+
+void UW_CoinSlotWidget::SetCountText(int32 SlotNum, int32 Count)
+{
+    if(SlotNum != SlotIndex)
+        return;
+
+    CoinCountText->SetText(FText::AsNumber(Count));
 }

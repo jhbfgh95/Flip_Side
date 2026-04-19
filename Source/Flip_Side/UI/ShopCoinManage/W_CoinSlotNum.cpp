@@ -1,9 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
+#include "UI/ShopCoinManage/W_CoinManagePanelWidget.h"
 #include "UI/ShopCoinManage/W_CoinSlotNum.h"
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
-
+#include "Components/TextBlock.h"
 void UW_CoinSlotNum::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -12,7 +13,7 @@ void UW_CoinSlotNum::NativeConstruct()
     CoinSubsystem->OnCoinSlotChange.AddDynamic(this,&UW_CoinSlotNum::SetSlotNumText);
 
     
-    SetSlotNumText(true);
+    SetSlotNumText();
 
 }
 
@@ -22,7 +23,7 @@ void UW_CoinSlotNum::NativeDestruct()
     Super::NativeDestruct();
 }
 	
-void UW_CoinSlotNum::SetSlotNumText(bool IsChangeToBottom)
+void UW_CoinSlotNum::SetSlotNumText()
 {
-    SetCountText(CoinSubsystem->GetCurrentSlotNum()+1);
+    CountText->SetText(FText::AsNumber(CoinSubsystem->GetCurrentSlotNum()));
 }
