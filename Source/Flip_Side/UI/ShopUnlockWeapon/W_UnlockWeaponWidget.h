@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "WeaponDataTypes.h"
+#include "DataTypes/WeaponDataTypes.h"
 #include "W_UnlockWeaponWidget.generated.h"
 
 /**
@@ -19,26 +21,26 @@ private:
 	virtual void NativeDestruct() override;
 private:
 	class UShopUnlockWeaponWSubsystem* UnlockWeaponSubsystem;
+	class UDataManagerSubsystem* DataSubsystem;
 private:
-	UPROPERTY(meta = (BindWidget))
-	class UW_UnlockWeaponGrid* DealWUnlockGrid;	
-	
-	UPROPERTY(meta = (BindWidget))
-	class UW_UnlockWeaponGrid* TankWUnlockGrid;	
-	
-	UPROPERTY(meta = (BindWidget))
-	class UW_UnlockWeaponGrid* UtilWUnlockGrid;	
+	UPROPERTY(meta =(BindWidget))
+	UUserWidget* UnlockButton;
 
-	class UW_UnlockWeaponGrid* CurrentUnlockGrid;
-	
-	UFUNCTION()
-	void SetDealWUnlockGrid();
-	UFUNCTION()
-	void SetTankWUnlockGrid();
-	UFUNCTION()
-	void SetUtilWUnlockGrid();
-	UFUNCTION()
-	void SetUnlockWeaponGrid(EWeaponClass weaponClass);
+	UPROPERTY(meta = (BindWidget))
+	class UW_WeaponDescription* WeaponDes;
 
-	void HideAllUnlockGrid();
+private:
+
+	void SetDesText(FFaceData FaceData);
+	void SetDes(int32 WeaponID);
+
+private:
+
+	UFUNCTION()
+	void SetWidgetState(EWeaponClass WeaponClass, int32 WeaponID, bool IsItemUnlock);
+
+	UFUNCTION()
+	void HideWidget();
+	UFUNCTION()
+	void VisibleWidget();
 };
