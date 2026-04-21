@@ -11,7 +11,7 @@
  * 
  */
 //코인이 클래스가 선택 됬을 때 델리게이트
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemSelecte, FItemData, ItemInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemSelect, FItemData, ItemInfo);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemHover, FItemData, ItemInfo);
 
@@ -34,7 +34,7 @@ private:
 
 public:
 	//아이템 선택 됬을때 델리게이트
-	FItemSelecte OnItemSelected;
+	FItemSelect OnItemSelected;
 	//아이템을 올려둘 시
 	FItemHover OnItemHovered;
 	//아이템에서 마우스를 땔때
@@ -73,4 +73,7 @@ public:
 	int32 GetPlayerItemNum();
 
 	FSelectItem GetPlayerItem(int32 index);
+
+	TArray<FItemData> GetShopItemList();
+
 };

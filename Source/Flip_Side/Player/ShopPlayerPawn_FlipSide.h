@@ -45,6 +45,11 @@ private:
 
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	FVector UnlockCardLocation;
+
+private:
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	FRotator MainRotation;
+
 private:
 	void SetCameraOrthographic();
 	void SetCameraPerspective();
