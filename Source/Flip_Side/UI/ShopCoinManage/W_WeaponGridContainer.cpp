@@ -16,6 +16,8 @@ void UW_WeaponGridContainer::NativeConstruct()
     DealGridButton->OnClicked.AddDynamic(this, &UW_WeaponGridContainer::SetDealGrid);
     TankGridButton->OnClicked.AddDynamic(this, &UW_WeaponGridContainer::SetTankGrid);
     UtilGridButton->OnClicked.AddDynamic(this, &UW_WeaponGridContainer::SetUtilGrid);
+
+    SetDealGrid();
 }
 void UW_WeaponGridContainer::NativeDestruct()
 {

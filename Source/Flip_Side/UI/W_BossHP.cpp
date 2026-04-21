@@ -4,7 +4,8 @@
 #include "UI/W_BossHP.h"
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
-
+#include "Components/UniformGridPanel.h"
+#include "UI/W_BossHpElement.h"
 void UW_BossHP::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -13,6 +14,13 @@ void UW_BossHP::NativeConstruct()
     {
         ClearImage->SetVisibility(ESlateVisibility::Hidden);
     }
+    
+
+    for(int i =0; i<HpGrid->GetChildrenCount(); i++)
+    {
+        HpElements.Add(Cast<UW_BossHpElement>(HpGrid->GetChildAt(i)));
+    }
+    
 }
 
 void UW_BossHP::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -60,6 +68,18 @@ void UW_BossHP::InitBossHp(int32 SetMaxHp)
 {
     MaxHp = SetMaxHp;
     CurrentHp = SetMaxHp;
+    
+    int32 RemainderHp = MaxHp % 10;
+    int32 DividsHp = MaxHp / 10;
+    for(int i =0; i<HpElements.Num(); i++)
+    {
+        if(i<RemainderHp)
+        {
+            HpElements[i]->InitElementHp(DividsHp+1);
+        }
+        else
+            HpElements[i]->InitElementHp(DividsHp);
+    }
 }
 
 void UW_BossHP::InitBossShield(int32 SetMaxShield)
@@ -98,6 +118,7 @@ void UW_BossHP::ChangeMaxHp(int32 AddMaxHp)
 
 void UW_BossHP::ChangeCurrentHp(int32 AddHpValue)
 {
+    /*
     StartPercent = (float)CurrentHp/MaxHp;
 
     if( MaxHp <= CurrentHp + AddHpValue )
@@ -116,7 +137,28 @@ void UW_BossHP::ChangeCurrentHp(int32 AddHpValue)
 
     TargetPercent = (float)CurrentHp/MaxHp;
 
-    StartHpAnimation();
+    StartHpAnimation();*/
+
+    //HpElements[GetCurrentHpElemetNum()]
+    if(0<=AddHpValue)
+    {
+        for(int i =0; i< AddHpValue; i++)
+        {
+            CurrentHp++;
+            HpElements[GetCurrentHpElemetNum()]->IncreaseHp();
+        }
+    }
+    else
+    {
+        int32 ChangeValue = FMath::Abs(AddHpValue);
+        for(int i =0; i< ChangeValue; i++)
+        {
+            HpElements[GetCurrentHpElemetNum()]->DecreaseHp();
+            CurrentHp--;
+        }
+    }
+    
+
 }
 
 	
@@ -201,4 +243,13 @@ void UW_BossHP::ShowClearImage()
         // 이미지를 화면에 보여줍니다 (클릭 이벤트를 무시하려면 HitTestInvisible 추천)
         ClearImage->SetVisibility(ESlateVisibility::HitTestInvisible);
     }
+}
+	
+int UW_BossHP::GetCurrentHpElemetNum()
+{
+    int Num = (CurrentHp % HpElements.Num()) - 1;
+    if (Num <=-1)
+        return 9;
+    else 
+        return Num;
 }

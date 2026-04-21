@@ -380,3 +380,14 @@ void UShopCoinWSubsystem::ExecuteWarning(int32 WarningCode)
 {
     OnWarningCreate.Broadcast(WarningCode);
 }
+	
+void UShopCoinWSubsystem::HoverWeapon(int32 WeaponID)
+{
+    OnHoverWeapon.Broadcast(WeaponID);
+}
+	
+
+void UShopCoinWSubsystem::UnHoverWeapon()
+{
+    OnUnHoverWeapon.Broadcast();
+}

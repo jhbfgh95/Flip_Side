@@ -10,6 +10,7 @@
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "WeaponDataTypes.h"
+#include "Components/Border.h"
 void UW_CoinSlotWidget::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -27,16 +28,20 @@ void UW_CoinSlotWidget::NativeConstruct()
     CoinSubsystem->OnSetWeapon.AddDynamic(this, &UW_CoinSlotWidget::SetWeaponTexture);
     CoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &UW_CoinSlotWidget::UnlockSlot);
     CoinSubsystem->OnCoinCountUpdate.AddDynamic(this, &UW_CoinSlotWidget::SetCountText);
+    CoinSubsystem->OnCoinSlotChange.AddDynamic(this, &UW_CoinSlotWidget::SetBackGround);
 
     SlotButton->OnClicked.AddDynamic(this, &UW_CoinSlotWidget::PressSlotButton);
 
     SlotIndexText->SetText(FText::AsNumber(SlotIndex+1));
+    
+    BackGroundBorder->SetRenderOpacity(0.7f);
 }
 	
 void UW_CoinSlotWidget::NativeDestruct()
 {
     CoinSubsystem->OnUnlockCoinSlot.RemoveAll(this);
     CoinSubsystem->OnSetWeapon.RemoveAll(this);
+    CoinSubsystem->OnCoinSlotChange.RemoveAll(this);
     Super::NativeDestruct();
 }
 
@@ -83,4 +88,13 @@ void UW_CoinSlotWidget::SetCountText(int32 SlotNum, int32 Count)
         return;
 
     CoinCountText->SetText(FText::AsNumber(Count));
+}
+
+	
+void UW_CoinSlotWidget::SetBackGround()
+{
+    if(CoinSubsystem->GetCurrentSlotNum()==SlotIndex)
+        BackGroundBorder->SetRenderOpacity(1.2f);
+    else
+        BackGroundBorder->SetRenderOpacity(0.7f);
 }

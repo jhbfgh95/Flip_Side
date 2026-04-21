@@ -43,4 +43,9 @@ private:
 	UFUNCTION()
 	void SetDes(int32 WeaponID);
 
+	
+	UFUNCTION()
+	void ShowDesPanel(int32 WeaponID);
+	UFUNCTION()
+	void HideDesPanel();
 };

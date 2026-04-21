@@ -24,6 +24,8 @@ void UW_SelectWeaponButton::NativeConstruct()
         if(WeaponButton)
         {
             WeaponButton->OnClicked.AddDynamic(this, &UW_SelectWeaponButton::SelectWeapon);
+            WeaponButton->OnHovered.AddDynamic(this, &UW_SelectWeaponButton::HoverWeapon);
+            WeaponButton->OnUnhovered.AddDynamic(this, &UW_SelectWeaponButton::UnHoverWeapon);
         }
     }
 }
@@ -55,4 +57,14 @@ void UW_SelectWeaponButton::InitButton(int32 ID)
     {
         SetVisibility(ESlateVisibility::Hidden);
     }
+}
+	
+void UW_SelectWeaponButton::HoverWeapon()
+{
+    CoinWSubsystem->HoverWeapon(WeaponData.WeaponID);
+}
+	
+void UW_SelectWeaponButton::UnHoverWeapon()
+{
+    CoinWSubsystem->UnHoverWeapon();
 }

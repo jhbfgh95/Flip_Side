@@ -44,6 +44,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UW_CoinCountButton* DecreaseButton;
 
+	UPROPERTY(meta = (BindWidget))
+	class UBorder* BackGroundBorder;
+
 
 private:
 	UPROPERTY()
@@ -57,6 +60,8 @@ private:
 	UFUNCTION()
 	void PressSlotButton();
 
+	UFUNCTION()
+	void SetBackGround();
 
 public:
 	UFUNCTION()

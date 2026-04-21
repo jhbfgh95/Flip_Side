@@ -47,4 +47,8 @@ public:
 	void SelectWeapon();
 	
 	void InitButton(int32 ID);
+	UFUNCTION()
+	void HoverWeapon();
+	UFUNCTION()
+	void UnHoverWeapon();
 };

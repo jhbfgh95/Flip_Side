@@ -40,6 +40,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCoinCountUpdate , int32 , CoinSlot
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangeCoinSlot);
 /*코인 슬롯 해금시 델리게이트*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockCoinSlot);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHoverWeapon,int32, WeaponID);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnHoverWeapon);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeSlotCoinSide, bool, IsFront);
 /*코안 제작 시작 시 데이터 값을 넘기는 델리게이트*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCoinCreated, int32, CreatedCoinIndex, EWeaponClass, CreateWeaponClass );
@@ -76,6 +81,8 @@ public:
 	FChangeSlotCoinSide OnChangeSlotCoinSide;
 	FSetWeapon OnSetWeapon;
 	FWarningCreate OnWarningCreate;
+	FHoverWeapon OnHoverWeapon;
+	FUnHoverWeapon OnUnHoverWeapon;
 private:
 	//코인 개수를 증가 시킬수 있는가?
 	bool CanIncreaseCoin(int32 SlotNum);
@@ -150,4 +157,9 @@ public:
 	int32 GetCurrentCoinWeaponID(bool IsFront);
 	
 	void ExecuteWarning(int32 WarningCode);
+
+public:
+	void HoverWeapon(int32 WeaponID);
+	void UnHoverWeapon();
+
 };

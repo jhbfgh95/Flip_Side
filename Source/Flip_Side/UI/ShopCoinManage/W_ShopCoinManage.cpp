@@ -16,6 +16,10 @@ void UW_ShopCoinManage::NativeConstruct()
 	CoinSubsystem->OnChangeSlotCoinSide.AddDynamic(this, &UW_ShopCoinManage::CoinFlipAdaptor);
 	CoinSubsystem->OnCoinSlotChange.AddDynamic(this, &UW_ShopCoinManage::CoinSlotChangeAdaptor);
 	CoinSubsystem->OnSetWeapon.AddDynamic(this, &UW_ShopCoinManage::SetWeaponAdaptor);
+	CoinSubsystem->OnHoverWeapon.AddDynamic(this, &UW_ShopCoinManage::ShowDesPanel);
+	CoinSubsystem->OnUnHoverWeapon.AddDynamic(this, &UW_ShopCoinManage::HideDesPanel);
+
+	WeaponDes->SetVisibility(ESlateVisibility::Hidden);
 }
 
 
@@ -24,6 +28,8 @@ void UW_ShopCoinManage::NativeDestruct()
     CoinSubsystem->OnChangeSlotCoinSide.RemoveAll(this);
 	CoinSubsystem->OnCoinSlotChange.RemoveAll(this);
 	CoinSubsystem->OnSetWeapon.RemoveAll(this);
+	CoinSubsystem->OnHoverWeapon.RemoveAll(this);
+	CoinSubsystem->OnUnHoverWeapon.RemoveAll(this);
     Super::NativeDestruct();
 }
 
@@ -37,7 +43,6 @@ void UW_ShopCoinManage::SetDes(int32 WeaponID)
 void UW_ShopCoinManage::CoinFlipAdaptor(bool IsCoinFront)
 {
     FCoinTypeStructure CoinData = CoinSubsystem->GetCurrentSlotCoin();
-
 	if(IsCoinFront)
 	{
 		SetDes(CoinData.FrontWeaponID);
@@ -66,4 +71,16 @@ void UW_ShopCoinManage::SetDesText(FFaceData FaceData)
 		WeaponDes->SetExplainText(FaceData.WeaponName, FaceData.KOR_DES, FaceData.BehaviorPoint, FaceData.AttackPoint);
 	else
 		WeaponDes->SetExplainTextEmpty();
+}
+	
+void UW_ShopCoinManage::ShowDesPanel(int32 WeaponID)
+{
+	
+	WeaponDes->SetVisibility(ESlateVisibility::Visible);
+	SetDes(WeaponID);
+}
+	
+void UW_ShopCoinManage::HideDesPanel()
+{
+	WeaponDes->SetVisibility(ESlateVisibility::Hidden);
 }

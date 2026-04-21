@@ -75,4 +75,14 @@ public:
 	UFUNCTION()
 	void ShowClearImage();
 
+private:
+
+	UPROPERTY(meta = (BindWidget))
+	class UUniformGridPanel* HpGrid;
+
+	TArray<class UW_BossHpElement*> HpElements;
+
+	int GetCurrentHpElemetNum();
+
+
 };
