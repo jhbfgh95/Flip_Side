@@ -19,21 +19,35 @@ class FLIP_SIDE_API UW_BossHpElement : public UUserWidget
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* ElementImage;
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* ShieldElementImage;
 	
-	UMaterialInstanceDynamic* MID;
+	UMaterialInstanceDynamic* HpMID;
+	UMaterialInstanceDynamic* ShieldMID;
 private:
 	
-	UPROPERTY(EditAnywhere, meta =(BindWidget))
+	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess))
 	TArray<FLinearColor> HpLevelColor;
 
+	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess))
+	TArray<FLinearColor> ShieldLevelColor;
+
 	int32 ElementHp = 1;
+	int32 ElementShield = 1;
 private:
 	void SetHpMaterial(int32 HpLevel);
 
+	void SetShieldMaterial(int32 HpLevel);
 public:
 	void InitElementHp(int32 HpValue);
+
+	void InitElementShield(int32 ShieldValue);
 
 	void DecreaseHp();
 	
 	void IncreaseHp();
+
+	void DecreaseShield();
+	void IncreaseShield();
 };

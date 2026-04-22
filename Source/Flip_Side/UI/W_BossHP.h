@@ -41,23 +41,17 @@ private:
 	UPROPERTY(VisibleAnywhere,  Category = "Shield")
 	int32 CurrentShield;
 
-	private:
-	UPROPERTY(meta = (BindWidget))
-	class UProgressBar* HpProgressBar;
-	
-	UPROPERTY(meta = (BindWidget))
-	class UProgressBar* ShieldProgressBar;
+
+private:
 
 	UPROPERTY(meta = (BindWidget))
     class UImage* ClearImage;
 
-private:
-	void SetBossHpPercentage(float Perecetage);
-	void SetBossShieldPercentage(float Perecetage);
-
-	void StartHpAnimation();
-	void StartShieldAnimation();
-
+	UPROPERTY(meta = (BindWidget))
+    class UTextBlock* HpText;
+	
+	UPROPERTY(meta = (BindWidget))
+    class UTextBlock* ShieldText;
 
 public:
 
@@ -69,8 +63,6 @@ public:
 
 	void ChangeMaxShield(int32 AddMaxShield);
 	void ChangeCurrentShield(int32 AddShieldValue);
-
-
 
 	UFUNCTION()
 	void ShowClearImage();
@@ -84,5 +76,6 @@ private:
 
 	int GetCurrentHpElemetNum();
 
+	int GetCurrentShieldElemetNum();
 
 };

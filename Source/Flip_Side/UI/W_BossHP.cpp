@@ -6,6 +6,7 @@
 #include "Components/ProgressBar.h"
 #include "Components/UniformGridPanel.h"
 #include "UI/W_BossHpElement.h"
+#include "Components/TextBlock.h"
 void UW_BossHP::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -27,48 +28,14 @@ void UW_BossHP::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
     Super::NativeTick(MyGeometry, InDeltaTime);
 
-    if (IsHpAnimating)
-    {
-        AnimTime += InDeltaTime;
-
-        float Alpha = AnimTime / Duration;
-        Alpha = FMath::Clamp(Alpha, 0.0f, 1.0f);
-
-        float AnimPercent = FMath::Lerp(StartPercent, TargetPercent, Alpha);
-
-        SetBossHpPercentage(AnimPercent);
-
-        // 종료 처리
-        if (Alpha >= 1.0f)
-        {
-            IsHpAnimating = false;
-        }
-    }
-    
-    if(IsShieldAnimating)
-    {
-        AnimTime += InDeltaTime;
-
-        float Alpha = AnimTime / Duration;
-        Alpha = FMath::Clamp(Alpha, 0.0f, 1.0f);
-
-        float AnimPercent = FMath::Lerp(StartPercent, TargetPercent, Alpha);
-
-        SetBossShieldPercentage(AnimPercent);
-
-        // 종료 처리
-        if (Alpha >= 1.0f)
-        {
-            IsShieldAnimating = false;
-        }
-    }
 }
 
 void UW_BossHP::InitBossHp(int32 SetMaxHp)
 {
     MaxHp = SetMaxHp;
     CurrentHp = SetMaxHp;
-    
+    HpText->SetText(FText::AsNumber(CurrentHp));
+
     int32 RemainderHp = MaxHp % 10;
     int32 DividsHp = MaxHp / 10;
     for(int i =0; i<HpElements.Num(); i++)
@@ -86,8 +53,20 @@ void UW_BossHP::InitBossShield(int32 SetMaxShield)
 {
     MaxShield = SetMaxShield;
     CurrentShield = SetMaxShield;
-    if(0<MaxShield)
-        ShieldProgressBar->SetPercent(CurrentShield/MaxShield);
+
+    int32 RemainderShield = MaxShield % 10;
+    int32 DividsShield = MaxShield / 10;
+    for(int i =0; i<HpElements.Num(); i++)
+    {
+        if(i<RemainderShield)
+        {
+            HpElements[i]->InitElementShield(DividsShield+1);
+        }
+        else
+            HpElements[i]->InitElementShield(DividsShield);
+    }
+
+    ShieldText->SetText(FText::AsNumber(CurrentShield));
 
 }
 
@@ -100,44 +79,12 @@ void UW_BossHP::ChangeMaxHp(int32 AddMaxHp)
         return;
     }
 
-    StartPercent = CurrentHp/MaxHp;
-
-    if(MaxHp + AddMaxHp <=0)
-    {
-        TargetPercent = 0;
-    }
-    else
-    {
-        MaxHp += AddMaxHp;
-    }
-
-    TargetPercent = CurrentHp/MaxHp;
-
-    StartHpAnimation();
+    MaxHp += AddMaxHp;
+    HpText->SetText(FText::AsNumber(CurrentHp));
 }
 
 void UW_BossHP::ChangeCurrentHp(int32 AddHpValue)
 {
-    /*
-    StartPercent = (float)CurrentHp/MaxHp;
-
-    if( MaxHp <= CurrentHp + AddHpValue )
-    {
-        CurrentHp = MaxHp;
-    }
-    else if(CurrentHp + AddHpValue<=0)
-    {
-        CurrentHp = 0;
-        UE_LOG(LogTemp, Warning, TEXT("1111"));
-    }
-    else
-    {
-        CurrentHp += AddHpValue;
-    }
-
-    TargetPercent = (float)CurrentHp/MaxHp;
-
-    StartHpAnimation();*/
 
     //HpElements[GetCurrentHpElemetNum()]
     if(0<=AddHpValue)
@@ -158,6 +105,7 @@ void UW_BossHP::ChangeCurrentHp(int32 AddHpValue)
         }
     }
     
+    HpText->SetText(FText::AsNumber(CurrentHp));
 
 }
 
@@ -170,71 +118,37 @@ void UW_BossHP::ChangeMaxShield(int32 AddMaxShield)
         return;
     }
 
-    StartPercent = CurrentShield/MaxShield;
+    MaxShield += AddMaxShield;
 
-    if(MaxShield + AddMaxShield <=0)
-    {
-        TargetPercent = 0;
-    }
-    else
-    {
-        MaxShield += AddMaxShield;
-    }
-
-    TargetPercent = (float)CurrentShield/MaxShield;
-
-    StartShieldAnimation();
+    ShieldText->SetText(FText::AsNumber(CurrentShield));
 }
 
 void UW_BossHP::ChangeCurrentShield(int32 AddShieldValue)
 {
-    StartPercent = (float)CurrentShield/MaxShield;
-
-    if( MaxShield <= CurrentShield + AddShieldValue )
+    UE_LOG(LogTemp, Warning, TEXT("보호막 변동값%d"), AddShieldValue);
+    if(0<=AddShieldValue)
     {
-        CurrentShield = MaxShield;
-    }
-    else if(CurrentShield + AddShieldValue<=0)
-    {
-        CurrentShield = 0;
+        for(int i =0; i< AddShieldValue; i++)
+        {
+            CurrentShield++;
+            HpElements[GetCurrentShieldElemetNum()]->IncreaseShield();
+        }
     }
     else
     {
-        CurrentShield += AddShieldValue;
+        int32 ChangeValue = FMath::Abs(AddShieldValue);
+        for(int i =0; i< ChangeValue; i++)
+        {
+            
+            HpElements[GetCurrentShieldElemetNum()]->DecreaseShield();
+            CurrentShield--;
+        }
     }
-
-    TargetPercent = (float)CurrentShield/MaxShield;
-
-    StartShieldAnimation();
-}
-	
-void UW_BossHP::SetBossHpPercentage(float Perecetage)
-{
-    UE_LOG(LogTemp, Warning, TEXT("%f"), Perecetage);
-    HpProgressBar->SetPercent(Perecetage);
-}
-	
-
-void UW_BossHP::SetBossShieldPercentage(float Perecetage)
-{
     
-    ShieldProgressBar->SetPercent(Perecetage);
-        
+    ShieldText->SetText(FText::AsNumber(CurrentShield));
 }
 
 
-void UW_BossHP::StartHpAnimation()
-{
-    
-	AnimTime = 0;
-    IsHpAnimating = true;
-}
-void UW_BossHP::StartShieldAnimation()
-{
-
-	AnimTime = 0;
-    IsShieldAnimating = true;
-}
 
 void UW_BossHP::ShowClearImage()
 {
@@ -248,6 +162,15 @@ void UW_BossHP::ShowClearImage()
 int UW_BossHP::GetCurrentHpElemetNum()
 {
     int Num = (CurrentHp % HpElements.Num()) - 1;
+    if (Num <=-1)
+        return 9;
+    else 
+        return Num;
+}
+	
+int UW_BossHP::GetCurrentShieldElemetNum()
+{
+        int Num = (CurrentShield % HpElements.Num()) - 1;
     if (Num <=-1)
         return 9;
     else 
