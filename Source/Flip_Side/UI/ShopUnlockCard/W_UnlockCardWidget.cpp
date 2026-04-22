@@ -18,10 +18,6 @@ void UW_UnlockCardWidget::NativeConstruct()
     ShopUnlockCardSubsystem->OnSelectUnlockCard.AddDynamic(this, &UW_UnlockCardWidget::SetCardSelect);
     ShopUnlockCardSubsystem->OnUnlockSelectCard.AddDynamic(this, &UW_UnlockCardWidget::SetUnlockCard);
 
-    ShopUnlockCardSubsystem->OnChangelockCardsLeft.AddDynamic(this, &UW_UnlockCardWidget::InitUnlockCard);
-    ShopUnlockCardSubsystem->OnChangelockCardsRight.AddDynamic(this, &UW_UnlockCardWidget::InitUnlockCard);
-
-    ShopUnlockCardSubsystem->OnUnSelectUnlockCard.AddDynamic(this, &UW_UnlockCardWidget::SetCardUnSelect);
     
 }
 
@@ -29,8 +25,6 @@ void UW_UnlockCardWidget::NativeDestruct()
 {
     ShopUnlockCardSubsystem->OnSelectUnlockCard.RemoveAll(this);
     ShopUnlockCardSubsystem->OnUnlockSelectCard.RemoveAll(this);
-    ShopUnlockCardSubsystem->OnUnSelectUnlockCard.RemoveAll(this);
-
     ShopUnlockCardSubsystem->OnChangelockCardsLeft.RemoveAll(this);
     ShopUnlockCardSubsystem->OnChangelockCardsRight.RemoveAll(this);
     Super::NativeDestruct();
@@ -41,28 +35,10 @@ void UW_UnlockCardWidget::InitCardShowIndex(int32 index)
     CardShowIndex = index;
 }
 
-void UW_UnlockCardWidget::InitUnlockCard()
+void UW_UnlockCardWidget::InitUnlockCard(FCardData SetCardData)
 {
-    UnlockCardData = ShopUnlockCardSubsystem->GetCurrnetPageCardData(CardShowIndex);
-    if(UnlockCardData.CardID== -1)
-    {
-        SetVisibility(ESlateVisibility::Hidden);
-    }
-    else
-    {
-        SetVisibility(ESlateVisibility::Visible);
-    }
-    if(UnlockSubsystem->IsCardUnlockByID(UnlockCardData.CardID))
-    {
-        LockImage->SetVisibility(ESlateVisibility::Hidden);
-    }
-    else
-    {
-        LockImage->SetVisibility(ESlateVisibility::Visible);
-        
-    }
-    InitCard(UnlockCardData);
-    MainCanvas->SetRenderTranslation(FVector2D::ZeroVector);
+    UnlockCardData = SetCardData;
+    InitCard(SetCardData);
 }
 
 FReply UW_UnlockCardWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent)
@@ -99,25 +75,17 @@ void UW_UnlockCardWidget::SetCardSelect(int32 SelctCardID)
         return;
     if(SelctCardID == UnlockCardData.CardID)
     {
-        PlayAnimation(SelectAnim);
+        //PlayAnimation(SelectAnim);
     }
 }
 	
-void UW_UnlockCardWidget::SetCardUnSelect(int32 SelctCardID)
-{
-    if(SelctCardID == -1)
-        return;
-    if(SelctCardID == UnlockCardData.CardID)
-    {
-        PlayAnimation(UnSelectAnim);
-    }
-}
 
 void UW_UnlockCardWidget::SetUnlockCard(int32 UnlockCardID)
 {
     if(UnlockCardData.CardID == UnlockCardID)
     {
-        PlayAnimation(UnlockCardAnim);
+        //PlayAnimation(UnlockCardAnim);
+        LockImage->SetVisibility(ESlateVisibility::Hidden);
     }
 }
 	

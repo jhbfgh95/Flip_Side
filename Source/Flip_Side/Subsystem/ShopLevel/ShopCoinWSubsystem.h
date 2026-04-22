@@ -138,6 +138,7 @@ public:
 public:
 	int32 GetCurrentCoinCount();
 	int32 GetCurrentSlotNum();
+	int32 GetTotalCoinCount();
 
 
 public:

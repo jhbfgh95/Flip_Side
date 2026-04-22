@@ -376,6 +376,11 @@ int32 UShopCoinWSubsystem::GetCurrentCoinWeaponID(bool IsFront)
 }
 
 	
+int32 UShopCoinWSubsystem::GetTotalCoinCount()
+{
+    return TotalCoinCount;
+}
+	
 void UShopCoinWSubsystem::ExecuteWarning(int32 WarningCode)
 {
     OnWarningCreate.Broadcast(WarningCode);
