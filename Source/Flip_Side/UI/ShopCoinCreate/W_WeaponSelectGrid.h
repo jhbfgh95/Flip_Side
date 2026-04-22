@@ -22,38 +22,14 @@ protected:
 
 private:
     class UUnlockGISubsystem* UnlockSubSystem;
+
 private:
 
     TArray<class UW_SelectWeaponButton*> SelectWeaponButtons;
 
-    int32 ButtonNum = 9;
+    UPROPERTY(meta = (BindWidget))
+    class UUniformGridPanel* ButtonGrid;
 
-    int32 CurrentPage = 0;
-
-    UPROPERTY(meta = (BindWidget))
-    class UButton* NextPageButton;
-
-    UPROPERTY(meta = (BindWidget))
-    class UButton* PreviousPageButton;
-
-    UPROPERTY(meta = (BindWidget))
-    UW_SelectWeaponButton* SelectWeaponButton1;
-    UPROPERTY(meta = (BindWidget))
-    UW_SelectWeaponButton* SelectWeaponButton2;
-    UPROPERTY(meta = (BindWidget))
-    UW_SelectWeaponButton* SelectWeaponButton3;
-    UPROPERTY(meta = (BindWidget))
-    UW_SelectWeaponButton* SelectWeaponButton4;
-    UPROPERTY(meta = (BindWidget))
-    UW_SelectWeaponButton* SelectWeaponButton5;
-    UPROPERTY(meta = (BindWidget))
-    UW_SelectWeaponButton* SelectWeaponButton6;
-    UPROPERTY(meta = (BindWidget))
-    UW_SelectWeaponButton* SelectWeaponButton7;
-    UPROPERTY(meta = (BindWidget))
-    UW_SelectWeaponButton* SelectWeaponButton8;
-    UPROPERTY(meta = (BindWidget))
-    UW_SelectWeaponButton* SelectWeaponButton9;
 private:
     
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
@@ -61,9 +37,16 @@ private:
     
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
     UWidgetAnimation* CloseWeaponGridAnim;
+
+
+private:
+    void AddButton(int32 ID);
+    UFUNCTION()
+    void OnWeaponUnlockAdaptor(EWeaponClass WeaponClass,int32 ID);
+
 public:
     UFUNCTION()
-    void InitWeaponGrid(EWeaponClass WeaponClass,int32 Index);
+    void InitWeaponGrid();
 
     UPROPERTY(EditAnywhere)
     TSubclassOf<class UW_SelectWeaponButton> WeaponSelectButton;
@@ -74,13 +57,6 @@ public:
     UPROPERTY(EditAnywhere, Category = "Info")
 	EWeaponClass GridWeaponClass;
 
-    UFUNCTION()
-	void SetNextPageGrid();
-
-	UFUNCTION()
-	void SetPreviousPageGrid();
-
-	void SetPageButton();
 
     void OpenWeaponGrid();
     void CloseWeaponGrid();

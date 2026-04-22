@@ -18,8 +18,8 @@ void UW_ShopItemDescription::SetItemInfo(class UTexture2D* Icon,const FString& I
 
     if(MID && Icon)
     {
-        MID->SetTextureParameterValue(FName("IconTexture"), Icon);
-        MID->SetScalarParameterValue(FName("IsItemHover"), 1);
+        //MID->SetTextureParameterValue(FName("IconTexture"), Icon);
+        //MID->SetScalarParameterValue(FName("IsItemHover"), 1);
     
     }
 

@@ -11,7 +11,7 @@
  * 
  */
 UCLASS()
-class FLIP_SIDE_API UW_CoinSlotNum : public UW_CoinManagePanelWidget
+class FLIP_SIDE_API UW_CoinSlotNum : public UUserWidget
 {
 	GENERATED_BODY()
 	
@@ -22,6 +22,10 @@ class FLIP_SIDE_API UW_CoinSlotNum : public UW_CoinManagePanelWidget
 private:
 	class UShopCoinWSubsystem* CoinSubsystem;
 
+private:
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* CountText;
+
 	UFUNCTION()
-	void SetSlotNumText(bool IsChangeToBottom);
+	void SetSlotNumText();
 };

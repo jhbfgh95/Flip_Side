@@ -35,31 +35,20 @@ public:
 	//아이디
     UPROPERTY(meta = (BindWidget))
     class UButton* WeaponButton;
-
 	
     UPROPERTY(meta = (BindWidget))
     class UTextBlock* WeaponNameBlock;
 
 	UPROPERTY(EditAnywhere, Category="Button")
-	class UTexture2D* WeapoTexture;
-
-    UPROPERTY(EditAnywhere, Category = "UI")
-    class UMaterialInterface* MaskMaterialBase; 
-
-    UPROPERTY()
-    class UMaterialInstanceDynamic* DynamicMaskMaterial;
-
-
-	//함수
-	//class UW_CoinCreateWidget* CoinCreateWidget;
+	class UTexture2D* WeaponTexture;
 
 	//코인 면 설정
 	UFUNCTION()
 	void SelectWeapon();
 	
 	void InitButton(int32 ID);
-
-
-	//찾는 버튼인지 판단
-	bool IsFindWeapon(FText FindText);
+	UFUNCTION()
+	void HoverWeapon();
+	UFUNCTION()
+	void UnHoverWeapon();
 };

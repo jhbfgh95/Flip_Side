@@ -5,95 +5,60 @@
 #include "Components/Button.h"
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponGrid.h"
 #include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
+#include "UI/W_WeaponDescription.h"
+
 void UW_UnlockWeaponWidget::NativeConstruct()
 {
     Super::NativeConstruct();
     
     UnlockWeaponSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
-    UnlockWeaponSubsystem->OnChangeUnlockWaeponClass.AddDynamic(this, &UW_UnlockWeaponWidget::SetUnlockWeaponGrid);
-
-    CurrentUnlockGrid = nullptr;
-    DealWUnlockGrid->InitPanelAnimation();
-    TankWUnlockGrid->InitPanelAnimation();
-    UtilWUnlockGrid->InitPanelAnimation();
-
+    DataSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+    UnlockWeaponSubsystem->OnSelectUnlockWeapon.AddDynamic(this, &UW_UnlockWeaponWidget::SetWidgetState);
 }
 
 void UW_UnlockWeaponWidget::NativeDestruct()
 {
-    UnlockWeaponSubsystem->OnChangeUnlockWaeponClass.RemoveAll(this);
+    UnlockWeaponSubsystem->OnSelectUnlockWeapon.RemoveAll(this);
     Super::NativeDestruct();
 }
 
-void UW_UnlockWeaponWidget::SetDealWUnlockGrid()
+void UW_UnlockWeaponWidget::SetWidgetState(EWeaponClass WeaponClass, int32 WeaponID, bool IsItemUnlock)
 {
-
-    if(CurrentUnlockGrid&&CurrentUnlockGrid != DealWUnlockGrid)
+    if(IsItemUnlock)
     {
-        CurrentUnlockGrid->CloseUnlockPanel();
-        DealWUnlockGrid->OpenUnlockPanel();
-        CurrentUnlockGrid=DealWUnlockGrid;
-    }
-
-    if(!CurrentUnlockGrid)
+        //UnlockButton->SetVisibility(ESlateVisibility::Collapsed);
+    }   
+    else
     {
-        DealWUnlockGrid->OpenUnlockPanel();
-        CurrentUnlockGrid=DealWUnlockGrid;
+        //UnlockButton->SetVisibility(ESlateVisibility::Visible);
     }
+    SetDes(WeaponID);
 }
-    
-void UW_UnlockWeaponWidget::SetTankWUnlockGrid()
+	
+void UW_UnlockWeaponWidget::HideWidget()
 {
-    if(CurrentUnlockGrid&&CurrentUnlockGrid != TankWUnlockGrid)
-    {
-        CurrentUnlockGrid->CloseUnlockPanel();
-        TankWUnlockGrid->OpenUnlockPanel();
-        CurrentUnlockGrid=TankWUnlockGrid;
-    }
-    if(!CurrentUnlockGrid)
-    {
-        TankWUnlockGrid->OpenUnlockPanel();
-        CurrentUnlockGrid=TankWUnlockGrid;
-    }
+    UnlockButton->SetVisibility(ESlateVisibility::Collapsed);
 }
-    
-void UW_UnlockWeaponWidget::SetUtilWUnlockGrid()
+	
+void UW_UnlockWeaponWidget::VisibleWidget()
 {
-    if(CurrentUnlockGrid&&CurrentUnlockGrid != UtilWUnlockGrid)
-    {
-        CurrentUnlockGrid->CloseUnlockPanel();
-        UtilWUnlockGrid->OpenUnlockPanel();
-        CurrentUnlockGrid=UtilWUnlockGrid;
-    }
-
-    if(!CurrentUnlockGrid)
-    {
-        UtilWUnlockGrid->OpenUnlockPanel();
-        CurrentUnlockGrid=UtilWUnlockGrid;
-    }
+    UnlockButton->SetVisibility(ESlateVisibility::Visible);
 }
 
-void UW_UnlockWeaponWidget::HideAllUnlockGrid()
+
+void UW_UnlockWeaponWidget::SetDes(int32 WeaponID)
 {
-    DealWUnlockGrid->CloseUnlockPanel();
-    TankWUnlockGrid->CloseUnlockPanel();
-    UtilWUnlockGrid->CloseUnlockPanel();
+    FFaceData FaceData;
+    DataSubsystem->TryGetWeapon(WeaponID, FaceData);
+	SetDesText(FaceData);
 }
 
-void UW_UnlockWeaponWidget::SetUnlockWeaponGrid(EWeaponClass weaponClass)
+
+void UW_UnlockWeaponWidget::SetDesText(FFaceData FaceData)
 {
-    switch (weaponClass)
-    {
-        case EWeaponClass::Tank:
-            SetTankWUnlockGrid();
-            break;
-        case EWeaponClass::Deal:
-            SetDealWUnlockGrid();
-            break;
-        case EWeaponClass::Heal:
-            SetUtilWUnlockGrid();
-            break;
-        default:
-            break;
-    }
+    if(FaceData.WeaponID != -1)
+		WeaponDes->SetExplainText(FaceData.WeaponName, FaceData.KOR_DES, FaceData.BehaviorPoint, FaceData.AttackPoint);
+	else
+		WeaponDes->SetExplainTextEmpty();
 }

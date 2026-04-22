@@ -31,7 +31,7 @@ void AShopCoinManageActor::BeginPlay()
 	Super::BeginPlay();
 	
 	ShopCoinSubsystem= GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
-	ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AShopCoinManageActor::ChangePanel);
+	//ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AShopCoinManageActor::ChangePanel);
 	ShopCoinSubsystem->OnCoinCreated.AddDynamic(this, &AShopCoinManageActor::InitSlotPanelCoin);
 	
 	ShopController = Cast<AShopController_FlipSide>(GetWorld()->GetFirstPlayerController());

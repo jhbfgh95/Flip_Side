@@ -37,16 +37,23 @@ struct FShopCoinSlotData
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCoinCountUpdate , int32 , CoinSlotIndex, int32, CoinCount);
 
 /*코인 슬롯이 변경되었을 떄 델리게이트 위에서 아래로 변경 됬는지 검사*/
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeCoinSlot, bool, IsChangeToBottom);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangeCoinSlot);
 /*코인 슬롯 해금시 델리게이트*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockCoinSlot);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHoverWeapon,int32, WeaponID);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnHoverWeapon);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeSlotCoinSide, bool, IsFront);
 /*코안 제작 시작 시 데이터 값을 넘기는 델리게이트*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCoinCreated, int32, CreatedCoinIndex, EWeaponClass, CreateWeaponClass );
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSetWeapon, int32, WeaponID);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSelectCoinSlot);
+// WarningNum == 0 같은 무기 앞뒤 / == 1 같은 코인이 슬롯에 존재 / == 2 슬롯 잠김 / ==3 양면에 무기 없음 / == 4 전체 개수 꽉참 / == 5 슬롯 개수 꽉참
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWarningCreate, int32, WarningNum);
+
 UCLASS()
 class FLIP_SIDE_API UShopCoinWSubsystem : public UWorldSubsystem
 {
@@ -73,16 +80,18 @@ public:
 	FCoinCreated OnCoinCreated;
 	FChangeSlotCoinSide OnChangeSlotCoinSide;
 	FSetWeapon OnSetWeapon;
-	FSelectCoinSlot OnSelectCoinSlot;
-
+	FWarningCreate OnWarningCreate;
+	FHoverWeapon OnHoverWeapon;
+	FUnHoverWeapon OnUnHoverWeapon;
 private:
 	//코인 개수를 증가 시킬수 있는가?
 	bool CanIncreaseCoin(int32 SlotNum);
 	//코인 개수를 감소 시킬수 있는가?
 	bool CanDecreaseCoin(int32 SlotNum);
 
-	int32 GetSameWeaponCoinSlot(int32 SlotNum);
+	int32 GetSameWeaponInCoinSlot(int32 SlotNum);
 
+	bool IsTrySetSameWeapon(bool IsFront, int32 WeaponID);
 public:
 	//코인슬롯을 증가시키는 방향으로 변경
 	void ChangeCoinSlotRight();
@@ -129,6 +138,7 @@ public:
 public:
 	int32 GetCurrentCoinCount();
 	int32 GetCurrentSlotNum();
+	int32 GetTotalCoinCount();
 
 
 public:
@@ -144,8 +154,13 @@ public:
 	void ChangeCoinSide();
 	/*현재 제작중인 코인이 앞면인지*/
 	bool GetIsCreateCoinFront();
-	
 public:
 	int32 GetCurrentCoinWeaponID(bool IsFront);
 	
+	void ExecuteWarning(int32 WarningCode);
+
+public:
+	void HoverWeapon(int32 WeaponID);
+	void UnHoverWeapon();
+
 };

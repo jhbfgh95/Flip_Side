@@ -46,7 +46,7 @@ private:
 
 private:
 	UFUNCTION()
-	void SetUnlockImageSlotChange(bool IsChangeBottom);
+	void SetUnlockImageSlotChange();
 	UFUNCTION()
 	void SetUnlockImage();
 

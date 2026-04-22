@@ -69,13 +69,13 @@ void AGoToCreateCoinPanel::BeginPlay()
 	ArriveVector = StartVector + TargetVector;
 
 
-	ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AGoToCreateCoinPanel::InitLockPanel);
+	//ShopCoinSubsystem->OnCoinSlotChange.AddDynamic(this, &AGoToCreateCoinPanel::InitLockPanel);
 	ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &AGoToCreateCoinPanel::OpenlockPanel);
 }
 
 void AGoToCreateCoinPanel::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	ShopCoinSubsystem->OnCoinSlotChange.RemoveAll(this);
+	//ShopCoinSubsystem->OnCoinSlotChange.RemoveAll(this);
 	ShopCoinSubsystem->OnUnlockCoinSlot.RemoveAll(this);
 
 	Super::EndPlay(EndPlayReason);

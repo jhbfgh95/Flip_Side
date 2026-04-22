@@ -23,7 +23,7 @@ private:
 	UPROPERTY(meta= (BindWidget))
 	class UButton* UnlockCoinSlotButton;
 	UFUNCTION()
-	void SetWidgetActive(bool ISChangeBottom);
+	void SetWidgetActive();
 	UFUNCTION()
 	void ClickUnlockButton();
 };

@@ -129,3 +129,9 @@ FSelectItem UShopItemWSubsystem::GetPlayerItem(int32 index)
     }
     return DefaultSelecttemData;
 }
+
+
+TArray<FItemData> UShopItemWSubsystem::GetShopItemList()
+{
+    return ShopItemArray;
+}

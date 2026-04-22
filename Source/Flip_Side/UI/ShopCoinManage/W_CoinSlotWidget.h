@@ -31,12 +31,22 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	class UImage* BackWeaponImage;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* CoinCountText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* SlotIndexText;
 	
 	UPROPERTY(meta = (BindWidget))
 	class UW_CoinCountButton* IncreaseButton;
 	
 	UPROPERTY(meta = (BindWidget))
 	class UW_CoinCountButton* DecreaseButton;
+
+	UPROPERTY(meta = (BindWidget))
+	class UBorder* BackGroundBorder;
+
 
 private:
 	UPROPERTY()
@@ -49,9 +59,15 @@ private:
 
 	UFUNCTION()
 	void PressSlotButton();
+
+	UFUNCTION()
+	void SetBackGround();
+
 public:
 	UFUNCTION()
 	void SetWeaponTexture(int32 WeaponID);
 	UFUNCTION()
 	void UnlockSlot();
+	UFUNCTION()
+	void SetCountText(int32 SlotNum, int32 Count);
 };

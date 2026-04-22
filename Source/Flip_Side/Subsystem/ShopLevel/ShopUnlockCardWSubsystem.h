@@ -15,7 +15,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangelockCardsLeft);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangelockCardsRight);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectUnlockCard, int32, SelectCardDataID);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnSelectUnlockCard, int32, SelectCardDataID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnSelectUnlockCard);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnlockSelectCard, int32, SelectCardDataID);
 UCLASS()
@@ -61,4 +61,8 @@ public:
 
 	void SelectCard(int32 SelectCardID);
 	void UnSelectCard();
+
+	int32 GetCardListNum();
+
+	TArray<FCardData> GetCardListArray();
 };

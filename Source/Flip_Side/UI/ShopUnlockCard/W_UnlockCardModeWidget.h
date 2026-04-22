@@ -17,39 +17,54 @@ class FLIP_SIDE_API UW_UnlockCardModeWidget : public UUserWidget
 
 private:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 private:
 	class UShopUnlockCardWSubsystem* ShopUnlockCardSubsystem;
-
-
-private:
-
+	class UDataManagerSubsystem* DataSubsystem;
 private:
 	
 	UPROPERTY(meta =(BindWidget))
-	class UW_UnlockCardWidget* UnlockCardWidget1;
-	
-	UPROPERTY(meta =(BindWidget))
-	class UW_UnlockCardWidget* UnlockCardWidget2;
-	
-	UPROPERTY(meta =(BindWidget))
-	class UW_UnlockCardWidget* UnlockCardWidget3;
-	
-	UPROPERTY(meta =(BindWidget))
-	class UW_UnlockCardWidget* UnlockCardWidget4;
+	class UUniformGridPanel* CardGrid;
 
 	UPROPERTY(meta = (BindWidget))
-	class UButton* LeftPageButton;
+	class UButton* UnlockButton;
 
+
+private:
+	
 	UPROPERTY(meta = (BindWidget))
-	class UButton* RightPageButton;
+	class UW_CardWidget* SelectUnlockCardWidget;
+
+private:
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
+	TSubclassOf<UUserWidget> UnlockCardWidget;
+
+	TArray<class UW_UnlockCardWidget> UnlockCards;
+
+private:
+	int32 ColumnCount = 4;
+
 
 private:
 	class UUnlockGISubsystem* UnlockSubsystem;
 
-	void InitUnlockCards();
+
+	UFUNCTION()
+	void UnlockCard();
+
 	UFUNCTION()
 	void ChangeCardsLeft();
+
 	UFUNCTION()
 	void ChangeCardsRight();
+
+	UFUNCTION()
+	void SelectCard(int32 SelectCardDataID);
+
+	UFUNCTION()
+	void UnSelectCard();
+
+	UFUNCTION()
+	void ExcuteUnlock(int32 unlockCardId);
 };

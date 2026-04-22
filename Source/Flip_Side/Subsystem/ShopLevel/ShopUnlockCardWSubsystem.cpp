@@ -100,7 +100,7 @@ void UShopUnlockCardWSubsystem::SelectCard(int32 SelectCardID)
 {
     if(CurrentSelectCardID != SelectCardID)
     {
-        OnUnSelectUnlockCard.Broadcast(CurrentSelectCardID);
+        OnUnSelectUnlockCard.Broadcast();
         CurrentSelectCardID = SelectCardID;
         OnSelectUnlockCard.Broadcast(SelectCardID);
     }
@@ -111,7 +111,18 @@ void UShopUnlockCardWSubsystem::UnSelectCard()
 {
     if(CurrentSelectCardID != -1)
     {
-        OnUnSelectUnlockCard.Broadcast(CurrentSelectCardID);
+        OnUnSelectUnlockCard.Broadcast();
         CurrentSelectCardID = -1;
     }
+}
+
+int32 UShopUnlockCardWSubsystem::GetCardListNum()
+{
+    return CardList.Num(); 
+}
+
+
+TArray<FCardData> UShopUnlockCardWSubsystem::GetCardListArray()
+{
+    return CardList;
 }

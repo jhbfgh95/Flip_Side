@@ -24,47 +24,19 @@ private:
 
 private:
 	virtual void NativeConstruct() override;
-
+    virtual void NativeDestruct() override;
 private:
-
-    UPROPERTY(meta = (BindWidget))
-    class UW_UnlockWeaponButton* UnlockButton1;
-    UPROPERTY(meta = (BindWidget))
-    class UW_UnlockWeaponButton* UnlockButton2;
-    UPROPERTY(meta = (BindWidget))
-    class UW_UnlockWeaponButton* UnlockButton3;
-    UPROPERTY(meta = (BindWidget))
-    class UW_UnlockWeaponButton* UnlockButton4;
-    UPROPERTY(meta = (BindWidget))
-    class UW_UnlockWeaponButton* UnlockButton5;
-    UPROPERTY(meta = (BindWidget))
-    class UW_UnlockWeaponButton* UnlockButton6;
-    UPROPERTY(meta = (BindWidget))
-    class UW_UnlockWeaponButton* UnlockButton7;
-    UPROPERTY(meta = (BindWidget))
-    class UW_UnlockWeaponButton* UnlockButton8;
-    UPROPERTY(meta = (BindWidget))
-    class UW_UnlockWeaponButton* UnlockButton9;
-private:
-    UPROPERTY(meta = (BindWidget))
-    class UButton* NextPageButton;
-
-    UPROPERTY(meta = (BindWidget))
-    class UButton* PreviousPageButton;
 
 	TArray<class UW_UnlockWeaponButton*> UnlockButtons;
 
-	int32 CurrentPage = 0;
+    UPROPERTY(meta = (BindWidget))
+    class UUniformGridPanel* ButtonGrid;
 
 
 private:
+    void InitWeaponGrid();
 
-    UPROPERTY(meta = (BindWidgetAnim), Transient)
-    UWidgetAnimation* OpenPanelAnim;
-
-    UPROPERTY(meta = (BindWidgetAnim), Transient)
-    UWidgetAnimation* ClosePanelAnim;
-
+    void AddButton(int32 WeaponID);
 public:
 
     UPROPERTY(EditAnywhere)
@@ -76,18 +48,4 @@ public:
 	UPROPERTY(EditAnywhere)
 	int32 ColumnCount;
 
-	UFUNCTION()
-	void SetNextPageGrid();
-
-	UFUNCTION()
-	void SetPreviousPageGrid();
-
-	void SetPageButton();
-
-
-    void OpenUnlockPanel();
-    
-    void CloseUnlockPanel();
-
-    void InitPanelAnimation();
 };

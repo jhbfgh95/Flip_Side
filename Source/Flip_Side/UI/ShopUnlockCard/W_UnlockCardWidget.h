@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "UI/W_CardWidget.h"
+#include "DataTypes/CardTypes.h"
 #include "W_UnlockCardWidget.generated.h"
 
 /**
@@ -54,8 +55,6 @@ private:
 	UFUNCTION()
 	void SetCardSelect(int32 SelctCardID);
 	UFUNCTION()
-	void SetCardUnSelect(int32 SelctCardID);
-	UFUNCTION()
 	void SetUnlockCard(int32 UnlockCardID);
 
 private:
@@ -65,7 +64,7 @@ public:
 	void HideLockIamge();
 	
 	UFUNCTION()
-	void InitUnlockCard();
+	void InitUnlockCard(FCardData SetCardData);
 
 	void InitCardShowIndex(int32 index);
 };
