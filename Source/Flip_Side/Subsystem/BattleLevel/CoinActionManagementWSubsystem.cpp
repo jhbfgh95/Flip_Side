@@ -125,7 +125,10 @@ bool UCoinActionManagementWSubsystem::ApplyRangedThings(const FGridPoint& Target
 
     FObjectOnGridInfo GridInfos;
 
-    GridManager->GetObjectsAtRange(AreaSpec, SelectedAction->GetActionRange(), OutCells, GridInfos);
+    const FGridPoint RangeForQuery = (AreaSpec.AnchorMode == EAreaAnchor::UseAnchorCell)
+        ? FGridPoint{0, 0}
+        : SelectedAction->GetActionRange();
+    GridManager->GetObjectsAtRange(AreaSpec, RangeForQuery, OutCells, GridInfos);
     for(AActor* Actor : GridInfos.Coins)
     {
         if(ACoinActor* Coin = Cast<ACoinActor>(Actor))
@@ -189,6 +192,16 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
             AreaSpec = SelectWeapon.AttackAreaSpec;
             AreaSpec.AnchorCell = CoinGrid;
 
+            if (AreaSpec.Pattern == EAttackAreaPattern::CircleOnCell)
+            {
+                AreaSpec.ParamA += ActionTask.ModifiedRange.GridY;
+            }
+            else if (AreaSpec.Pattern == EAttackAreaPattern::RectFromCell)
+            {
+                AreaSpec.ParamB += ActionTask.ModifiedRange.GridY;
+                UE_LOG(LogTemp, Warning, TEXT("[LensDebug] RectFromCell ParamB=%d, ModifiedRangeY=%d"), AreaSpec.ParamB, ActionTask.ModifiedRange.GridY);
+            }
+
             SetBattleCoinInfo(
                 SelectWeapon.WeaponIcon, FText::FromString(SelectWeapon.WeaponName), FText::FromString(SelectWeapon.KOR_DES), 
                 SelectWeapon.BehaviorPoint, ActionTask.ModifiedBehaviorPoint, 
@@ -207,7 +220,10 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
                 ApplyRangedThings(CoinGrid);
             }
 
-            GridManager->PreviewHoveredCoinRange(CoinGrid, AreaSpec, LastGridPoint);
+            const FGridPoint PreviewFinalRange = (AreaSpec.AnchorMode == EAreaAnchor::UseAnchorCell)
+                ? FGridPoint{0, 0}
+                : LastGridPoint;
+            GridManager->PreviewHoveredCoinRange(CoinGrid, AreaSpec, PreviewFinalRange);
         }
     }
 }

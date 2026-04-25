@@ -451,7 +451,8 @@ bool UDataManagerSubsystem::LoadItems()
 bool UDataManagerSubsystem::LoadCards()
 {
     const TCHAR* Sql =
-        TEXT("SELECT CardID, icon_path, CardName, Card_Description ")
+        TEXT("SELECT CardID, icon_path, CardName, Card_Description,")
+        TEXT("       trigger_count, attack_add, behavior_add, range_add, extra_actions, b_lifesteal ")
         TEXT("FROM Card;");
 
     FSQLitePreparedStatement Stmt;
@@ -465,12 +466,21 @@ bool UDataManagerSubsystem::LoadCards()
     {
         FCardData Card;
 
-        Card.CardID = GetColInt(Stmt, 0);
-
+        Card.CardID           = GetColInt(Stmt, 0);
         const FString IconPath = GetColText(Stmt, 1);
-        Card.CardName = GetColText(Stmt, 2);
-        Card.Card_Description = GetColText(Stmt, 3);
+        Card.CardName         = GetColTextUTF8(Stmt, 2);
+        Card.Card_Description = GetColTextUTF8(Stmt, 3);
+        Card.TriggerCount     = GetColInt(Stmt, 4);
+        Card.AttackAdd        = GetColInt(Stmt, 5);
+        Card.BehaviorAdd      = GetColInt(Stmt, 6);
+        Card.RangeAdd         = GetColInt(Stmt, 7);
+        Card.ExtraActions     = GetColInt(Stmt, 8);
+        Card.bLifeSteal       = GetColInt(Stmt, 9) != 0;
 
+        if (!IconPath.IsEmpty())
+        {
+            Card.Icon = LoadObject<UTexture2D>(nullptr, *IconPath);
+        }
 
         CardByID.Add(Card.CardID, Card);
         Cards.Add(Card);

@@ -10,8 +10,10 @@
 #include "Subsystem/CrossingLevelGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
+#include "Subsystem/CardLogicLibrary.h"
 #include "Component_Status.h"
 #include "CoinActor.h"
+#include "GridActor.h"
 
 #include "DataTypes/GridTypes.h"
 #include "DataTypes/WeaponDataTypes.h"
@@ -47,6 +49,8 @@ void UStageCardWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     {
         StageHUDClass = Settings->StageHUDWidgetClass.LoadSynchronous();
     }
+
+    FCardLogicLibrary::BuildLogicTable(CardLogicTable);
 }
 
 void UStageCardWSubsystem::Deinitialize()
@@ -137,9 +141,9 @@ void UStageCardWSubsystem::RefreshHandFromGI()
     // �׽�Ʈ�� �ڵ� ä��
     if (IsEmpty())
     {
-        CrossingGI->SetBattleCardID(1, 0);
-        CrossingGI->SetBattleCardID(2, 1);
-        CrossingGI->SetBattleCardID(3, 2);
+        CrossingGI->SetBattleCardID(3, 0);
+        CrossingGI->SetBattleCardID(5, 1);
+        CrossingGI->SetBattleCardID(6, 2);
 
         UE_LOG(LogTemp, Warning, TEXT("[StageCard] BattleCardIDs were empty. Filled with 1,2,3 for test."));
     }
@@ -228,6 +232,19 @@ void UStageCardWSubsystem::ClearAllModifiers()
     CoinMods.Empty();
 }
 
+void UStageCardWSubsystem::ClearPromotionHighlight()
+{
+    if (GridSubsys && PromotionHighlightedGrid.GridX >= 0)
+    {
+        if (AGridActor* PrevGrid = GridSubsys->GetGridActor(PromotionHighlightedGrid))
+        {
+            PrevGrid->SetPromotionHighlight(false);
+        }
+    }
+    PromotionHighlightedGrid.GridX = -1;
+    PromotionHighlightedGrid.GridY = -1;
+}
+
 FCoinCardModifiers UStageCardWSubsystem::GetModifiersForCoin(ACoinActor* Coin) const
 {
     if (!IsValid(Coin))
@@ -247,42 +264,6 @@ void UStageCardWSubsystem::CollectCoinsOnField(TArray<FCoinOnGridInfo>& OutCoins
     GridSubsys->CollectOccupiedCoins(OutCoins);
 }
 
-bool UStageCardWSubsystem::TryGetCoinFaceData(ACoinActor* Coin, FFaceData& OutFace) const
-{
-    if (!IsValid(Coin)) return false;
-
-    UWorld* World = GetWorld();
-    if (!World) return false;
-
-    UGameInstance* GI = World->GetGameInstance();
-    if (!GI) return false;
-
-    UDataManagerSubsystem* LocalDM = GI->GetSubsystem<UDataManagerSubsystem>();
-    if (!LocalDM) return false;
-
-    // ������ ���� WeaponID
-    const int32 WeaponID = Coin->GetCoinFaceID();
-    return LocalDM->TryGetWeapon(WeaponID, OutFace);
-}
-
-int32 UStageCardWSubsystem::GetCoinRangeValue(const FFaceData& Face) const
-{
-    // range = max(x,y) �� ����(���� ����)
-    return FMath::Max(Face.AttackRange.GridX, Face.AttackRange.GridY);
-}
-
-bool UStageCardWSubsystem::AreAllFieldCoinsFront(const TArray<FCoinOnGridInfo>& FieldCoins) const
-{
-    for (const FCoinOnGridInfo& Info : FieldCoins)
-    {
-        ACoinActor* Coin = Info.CoinActor;
-        if (!IsValid(Coin)) continue;
-
-        if (Coin->GetCoinDecidedFace() != EFaceState::Front)
-            return false;
-    }
-    return true;
-}
 
 void UStageCardWSubsystem::ExecuteCardsEffect()
 {
@@ -297,259 +278,97 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
         return;
     }
 
-    // 현재 필드 코인들의 턴 버프 제거
+    // 필드 코인 턴 버프 초기화
     for (const FCoinOnGridInfo& Info : FieldCoins)
     {
-        ACoinActor* Coin = Info.CoinActor;
-        if (!IsValid(Coin))
-            continue;
-
-        UComponent_Status* StatusComp = Coin->FindComponentByClass<UComponent_Status>();
-        if (!IsValid(StatusComp))
-            continue;
-
-        StatusComp->ClearTurnBasedBuffs();
+        if (!IsValid(Info.CoinActor)) continue;
+        UComponent_Status* StatusComp = Info.CoinActor->FindComponentByClass<UComponent_Status>();
+        if (IsValid(StatusComp)) StatusComp->ClearTurnBasedBuffs();
     }
 
-    // CoinMods와 동일한 타입으로 맞춤
-    TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers> LocalMods;
-
-    auto AddMods =
-        [&LocalMods](ACoinActor* Coin, int32 AddAttack, int32 AddBehavior, int32 AddRange, bool bAddLifeSteal = false, int32 AddExtraActions = 0)
-        {
-            if (!IsValid(Coin))
-                return;
-
-            FCoinCardModifiers& Mods = LocalMods.FindOrAdd(Coin);
-            Mods.AttackAdd += AddAttack;
-            Mods.BehaviorAdd += AddBehavior;
-            Mods.RangeAdd += AddRange;
-            Mods.ExtraActions += AddExtraActions;
-
-            if (bAddLifeSteal)
-            {
-                Mods.bLifeSteal = true;
-            }
-        };
-
+    // 프로모션 카드 보유 여부 확인 -> 랜덤 그리드 빛내기
+    bool bHasPromotion = false;
     for (int32 Slot = 0; Slot < HandCount; ++Slot)
     {
-        if (!bHasCard.IsValidIndex(Slot) || !bHasCard[Slot])
-            continue;
-
-        if (!HandCards.IsValidIndex(Slot))
-            continue;
-
-        const int32 CardID = HandCards[Slot].CardID;
-        if (CardID < 0)
-            continue;
-
-        switch (CardID)
+        if (bHasCard.IsValidIndex(Slot) && bHasCard[Slot] && HandCards[Slot].CardID == 3)
         {
-        case 1: // Encore
-        {
-            if (!AreAllFieldCoinsFront(FieldCoins))
-                break;
-
-            ACoinActor* TargetCoin = nullptr;
-
-            for (const FCoinOnGridInfo& Info : FieldCoins)
-            {
-                if (IsValid(Info.CoinActor))
-                {
-                    TargetCoin = Info.CoinActor;
-                    break;
-                }
-            }
-
-            if (!IsValid(TargetCoin))
-                break;
-
-            AddMods(TargetCoin, 0, 0, 0, false, 1);
-            break;
-        }
-
-        case 2: // Long Range Amplifier
-        {
-            int32 CountRange3 = 0;
-
-            for (const FCoinOnGridInfo& Info : FieldCoins)
-            {
-                ACoinActor* Coin = Info.CoinActor;
-                if (!IsValid(Coin))
-                    continue;
-
-                FFaceData Face;
-                if (!TryGetCoinFaceData(Coin, Face))
-                    continue;
-
-                const int32 R = GetCoinRangeValue(Face);
-                if (R >= 3)
-                {
-                    ++CountRange3;
-                }
-            }
-
-            if (CountRange3 < 6)
-                break;
-
-            for (const FCoinOnGridInfo& Info : FieldCoins)
-            {
-                ACoinActor* Coin = Info.CoinActor;
-                if (!IsValid(Coin))
-                    continue;
-
-                FFaceData Face;
-                if (!TryGetCoinFaceData(Coin, Face))
-                    continue;
-
-                const int32 R = GetCoinRangeValue(Face);
-                AddMods(Coin, R, 0, 0);
-            }
-
-            break;
-        }
-
-        case 3: // Promotion
-        {
-            for (const FCoinOnGridInfo& Info : FieldCoins)
-            {
-                ACoinActor* Coin = Info.CoinActor;
-                if (!IsValid(Coin))
-                    continue;
-
-                FFaceData Face;
-                if (!TryGetCoinFaceData(Coin, Face))
-                    continue;
-
-                if (Face.WeaponID == 3)
-                {
-                    AddMods(Coin, 3, 3, 2, true);
-                }
-            }
-            break;
-        }
-
-        case 4: // Golden Opportunity
-        {
-            break;
-        }
-
-        case 5: // One for All
-        {
-            ACoinActor* OnlyCoin = nullptr;
-            int32 ValidCount = 0;
-
-            for (const FCoinOnGridInfo& Info : FieldCoins)
-            {
-                if (!IsValid(Info.CoinActor))
-                    continue;
-
-                ++ValidCount;
-                OnlyCoin = Info.CoinActor;
-
-                if (ValidCount > 1)
-                    break;
-            }
-
-            if (ValidCount == 1 && IsValid(OnlyCoin))
-            {
-                AddMods(OnlyCoin, 5, 5, 5);
-            }
-
-            break;
-        }
-
-        case 6: // Alliance
-        {
-            TMap<EWeaponClass, int32> ClassCount;
-
-            for (const FCoinOnGridInfo& Info : FieldCoins)
-            {
-                ACoinActor* Coin = Info.CoinActor;
-                if (!IsValid(Coin))
-                    continue;
-
-                FFaceData Face;
-                if (!TryGetCoinFaceData(Coin, Face))
-                    continue;
-
-                ClassCount.FindOrAdd(Face.WeaponType)++;
-            }
-
-            for (const TPair<EWeaponClass, int32>& Pair : ClassCount)
-            {
-                const EWeaponClass TargetClass = Pair.Key;
-                const int32 Count = Pair.Value;
-
-                if (Count < 6)
-                    continue;
-
-                for (const FCoinOnGridInfo& Info : FieldCoins)
-                {
-                    ACoinActor* Coin = Info.CoinActor;
-                    if (!IsValid(Coin))
-                        continue;
-
-                    FFaceData Face;
-                    if (!TryGetCoinFaceData(Coin, Face))
-                        continue;
-
-                    if (Face.WeaponType != TargetClass)
-                        continue;
-
-                    if (TargetClass == EWeaponClass::Deal)
-                    {
-                        AddMods(Coin, 4, 0, 0);
-                    }
-                    else if (TargetClass == EWeaponClass::Tank)
-                    {
-                    }
-                    else
-                    {
-                        AddMods(Coin, 0, 4, 0);
-                    }
-                }
-            }
-
-            break;
-        }
-
-        default:
+            bHasPromotion = true;
             break;
         }
     }
 
+    if (bHasPromotion && GridSubsys && GridSubsys->GridXSize > 0 && GridSubsys->GridYSize > 0)
+    {
+        FGridPoint RandPoint;
+        RandPoint.GridX = FMath::RandRange(0, GridSubsys->GridXSize - 1);
+        RandPoint.GridY = FMath::RandRange(0, GridSubsys->GridYSize - 1);
+
+        if (AGridActor* HighlightGrid = GridSubsys->GetGridActor(RandPoint))
+        {
+            HighlightGrid->SetPromotionHighlight(true);
+            PromotionHighlightedGrid = RandPoint;
+        }
+    }
+
+    TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers> LocalMods;
+
+    // 핸드 카드마다 테이블에서 로직 조회 후 실행
+    for (int32 Slot = 0; Slot < HandCount; ++Slot)
+    {
+        const bool bHas = bHasCard.IsValidIndex(Slot) && bHasCard[Slot];
+        UE_LOG(LogTemp, Warning, TEXT("[StageCard] Slot=%d, bHasCard=%d, CardID=%d"),
+            Slot, bHas ? 1 : 0, bHas ? HandCards[Slot].CardID : -1);
+
+        if (!bHas) continue;
+
+        const FCardData& Card = HandCards[Slot];
+        if (Card.CardID < 0) continue;
+
+        if (Card.CardID == 3)
+        {
+            // 프로모션: 빛나는 칸에 쇠파이프(WeaponID==3) 코인이 있을 때만 버프
+            if (PromotionHighlightedGrid.GridX >= 0)
+            {
+                FCardLogicLibrary::ApplyPromotion(Card, FieldCoins, LocalMods, DM, PromotionHighlightedGrid);
+            }
+        }
+        else if (const FCardLogicFn* Logic = CardLogicTable.Find(Card.CardID))
+        {
+            (*Logic)(Card, FieldCoins, LocalMods, DM);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[StageCard] CardID=%d 에 등록된 로직 없음"), Card.CardID);
+        }
+    }
+
+    // modifier를 Component_Status 버프로 등록
     for (const TPair<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Pair : LocalMods)
     {
         ACoinActor* Coin = Pair.Key.Get();
-        const FCoinCardModifiers& Mods = Pair.Value;
-
-        if (!IsValid(Coin))
-            continue;
+        if (!IsValid(Coin)) continue;
 
         UComponent_Status* StatusComp = Coin->FindComponentByClass<UComponent_Status>();
         if (!IsValid(StatusComp))
         {
-            UE_LOG(LogTemp, Warning, TEXT("[StageCard] ExecuteCardsEffect: %s has no StatusComponent."), *GetNameSafe(Coin));
+            UE_LOG(LogTemp, Warning, TEXT("[StageCard] %s has no StatusComponent."), *GetNameSafe(Coin));
             continue;
         }
 
+        const int32 AttackAdd   = Pair.Value.AttackAdd;
+        const int32 BehaviorAdd = Pair.Value.BehaviorAdd;
+        const int32 RangeAdd    = Pair.Value.RangeAdd;
+
         FBuffInfo BuffInfo;
         BuffInfo.BuffName = TEXT("StageCardBuff");
-
-        const int32 AttackAdd = Mods.AttackAdd;
-        const int32 BehaviorAdd = Mods.BehaviorAdd;
-        const int32 RangeAdd = Mods.RangeAdd;
-
         BuffInfo.StatDelegate = FOnCalculateStats::FDelegate::CreateWeakLambda(
             StatusComp,
             [AttackAdd, BehaviorAdd, RangeAdd](FActionTask& Task)
             {
-                Task.ModifiedAttackPoint += AttackAdd;
+                Task.ModifiedAttackPoint   += AttackAdd;
                 Task.ModifiedBehaviorPoint += BehaviorAdd;
-                Task.ModifiedRange.GridX += RangeAdd;
-                Task.ModifiedRange.GridY += RangeAdd;
+                Task.ModifiedRange.GridX   += RangeAdd;
+                Task.ModifiedRange.GridY   += RangeAdd;
             });
 
         StatusComp->AddBuffs(BuffInfo);
