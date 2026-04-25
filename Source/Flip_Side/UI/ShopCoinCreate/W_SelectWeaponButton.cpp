@@ -68,3 +68,8 @@ void UW_SelectWeaponButton::UnHoverWeapon()
 {
     CoinWSubsystem->UnHoverWeapon();
 }
+	
+UButton* UW_SelectWeaponButton::GetWeaponButton()
+{
+    return WeaponButton;
+}

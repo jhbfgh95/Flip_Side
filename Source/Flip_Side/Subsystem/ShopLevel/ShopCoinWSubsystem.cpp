@@ -287,6 +287,15 @@ bool UShopCoinWSubsystem::GetCurrentCoinUnlock()
     return ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock;
 }
 
+	
+void UShopCoinWSubsystem::UnlockCoinSlot(int32 SlotNum)
+{
+    if(!ShopCoinSlotArray[SlotNum].IsUnlock)
+    {
+        ShopCoinSlotArray[SlotNum].IsUnlock = true;
+        OnUnlockCoinSlot.Broadcast();
+    }
+}
 
 void UShopCoinWSubsystem::UnlockCoin()
 {

@@ -25,7 +25,7 @@ private:
 	
 protected:
 	virtual void NativeConstruct() override;
-public:
+
 
 	FFaceData WeaponData;
 
@@ -41,7 +41,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="Button")
 	class UTexture2D* WeaponTexture;
-
+public:
 	//코인 면 설정
 	UFUNCTION()
 	void SelectWeapon();
@@ -51,4 +51,6 @@ public:
 	void HoverWeapon();
 	UFUNCTION()
 	void UnHoverWeapon();
+
+	UButton* GetWeaponButton();
 };

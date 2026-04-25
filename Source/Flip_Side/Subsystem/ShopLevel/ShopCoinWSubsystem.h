@@ -102,6 +102,7 @@ public:
 	//현재 코인슬롯을 개방
 
 	void UnlockCurrentCoinSlot();
+	void UnlockCoinSlot(int32 SlotNum);
 	//현재 코인슬롯이 해금되었는지 반환
 	bool GetCurrentCoinUnlock();
 	bool GetCoinUnlockByIndex(int32 index);

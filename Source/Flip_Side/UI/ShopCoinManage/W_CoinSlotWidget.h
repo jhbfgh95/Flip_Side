@@ -21,9 +21,6 @@ private:
 	class UDataManagerSubsystem* DataSubsystem;
 private:
 	UPROPERTY(meta = (BindWidget))
-	class UImage* LockImage;
-
-	UPROPERTY(meta = (BindWidget))
 	class UButton* SlotButton;
 	
 	UPROPERTY(meta = (BindWidget))
@@ -66,8 +63,9 @@ private:
 public:
 	UFUNCTION()
 	void SetWeaponTexture(int32 WeaponID);
-	UFUNCTION()
-	void UnlockSlot();
+	
 	UFUNCTION()
 	void SetCountText(int32 SlotNum, int32 Count);
+
+	void InitSlot(int32 SlotNum);
 };

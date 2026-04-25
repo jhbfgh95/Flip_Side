@@ -10,6 +10,7 @@ void UW_WeaponGridContainer::NativeConstruct()
 {
     Super::NativeConstruct();
     CoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
+
     CoinSubsystem->OnCoinSlotChange.AddDynamic(this, &UW_WeaponGridContainer::SetUnlockImageSlotChange);
     CoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &UW_WeaponGridContainer::SetUnlockImage);
     
