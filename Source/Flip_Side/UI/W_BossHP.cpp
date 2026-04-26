@@ -4,9 +4,8 @@
 #include "UI/W_BossHP.h"
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
-#include "Components/UniformGridPanel.h"
-#include "UI/W_BossHpElement.h"
 #include "Components/TextBlock.h"
+
 void UW_BossHP::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -15,139 +14,76 @@ void UW_BossHP::NativeConstruct()
     {
         ClearImage->SetVisibility(ESlateVisibility::Hidden);
     }
-    
 
-    for(int i =0; i<HpGrid->GetChildrenCount(); i++)
-    {
-        HpElements.Add(Cast<UW_BossHpElement>(HpGrid->GetChildAt(i)));
-    }
-    
+    RefreshHpBar();
+    RefreshShieldBar();
+    SnapHpBarToTarget();
+    SnapShieldBarToTarget();
 }
 
 void UW_BossHP::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
     Super::NativeTick(MyGeometry, InDeltaTime);
 
+    UpdateProgressBars(InDeltaTime);
 }
 
 void UW_BossHP::InitBossHp(int32 SetMaxHp)
 {
-    MaxHp = SetMaxHp;
-    CurrentHp = SetMaxHp;
-    HpText->SetText(FText::AsNumber(CurrentHp));
+    MaxHp = FMath::Max(0, SetMaxHp);
+    CurrentHp = MaxHp;
 
-    int32 RemainderHp = MaxHp % 10;
-    int32 DividsHp = MaxHp / 10;
-    for(int i =0; i<HpElements.Num(); i++)
-    {
-        if(i<RemainderHp)
-        {
-            HpElements[i]->InitElementHp(DividsHp+1);
-        }
-        else
-            HpElements[i]->InitElementHp(DividsHp);
-    }
+    RefreshHpBar();
+    SnapHpBarToTarget();
 }
 
 void UW_BossHP::InitBossShield(int32 SetMaxShield)
 {
-    MaxShield = SetMaxShield;
-    CurrentShield = SetMaxShield;
+    MaxShield = FMath::Max(0, SetMaxShield);
+    CurrentShield = MaxShield;
 
-    int32 RemainderShield = MaxShield % 10;
-    int32 DividsShield = MaxShield / 10;
-    for(int i =0; i<HpElements.Num(); i++)
+    RefreshShieldBar();
+    SnapShieldBarToTarget();
+}
+
+void UW_BossHP::SetBossName(const FString& SetBossName)
+{
+    if(BossNameText)
     {
-        if(i<RemainderShield)
-        {
-            HpElements[i]->InitElementShield(DividsShield+1);
-        }
-        else
-            HpElements[i]->InitElementShield(DividsShield);
+        BossNameText->SetText(FText::FromString(SetBossName));
     }
-
-    ShieldText->SetText(FText::AsNumber(CurrentShield));
-
 }
 
 void UW_BossHP::ChangeMaxHp(int32 AddMaxHp)
 {
-    
-    if(MaxHp + AddMaxHp < CurrentHp)
-    {
-        ChangeCurrentHp(AddMaxHp);
-        return;
-    }
+    MaxHp = FMath::Max(0, MaxHp + AddMaxHp);
+    CurrentHp = FMath::Clamp(CurrentHp, 0, MaxHp);
 
-    MaxHp += AddMaxHp;
-    HpText->SetText(FText::AsNumber(CurrentHp));
+    RefreshHpBar();
 }
 
 void UW_BossHP::ChangeCurrentHp(int32 AddHpValue)
 {
+    CurrentHp = FMath::Clamp(CurrentHp + AddHpValue, 0, MaxHp);
 
-    //HpElements[GetCurrentHpElemetNum()]
-    if(0<=AddHpValue)
-    {
-        for(int i =0; i< AddHpValue; i++)
-        {
-            CurrentHp++;
-            HpElements[GetCurrentHpElemetNum()]->IncreaseHp();
-        }
-    }
-    else
-    {
-        int32 ChangeValue = FMath::Abs(AddHpValue);
-        for(int i =0; i< ChangeValue; i++)
-        {
-            HpElements[GetCurrentHpElemetNum()]->DecreaseHp();
-            CurrentHp--;
-        }
-    }
-    
-    HpText->SetText(FText::AsNumber(CurrentHp));
-
+    RefreshHpBar();
 }
 
 	
 void UW_BossHP::ChangeMaxShield(int32 AddMaxShield)
 {
-    if(MaxShield + AddMaxShield < CurrentShield)
-    {
-        ChangeCurrentShield(AddMaxShield);
-        return;
-    }
+    MaxShield = FMath::Max(0, MaxShield + AddMaxShield);
+    CurrentShield = FMath::Clamp(CurrentShield, 0, MaxShield);
 
-    MaxShield += AddMaxShield;
-
-    ShieldText->SetText(FText::AsNumber(CurrentShield));
+    RefreshShieldBar();
 }
 
 void UW_BossHP::ChangeCurrentShield(int32 AddShieldValue)
 {
-    UE_LOG(LogTemp, Warning, TEXT("보호막 변동값%d"), AddShieldValue);
-    if(0<=AddShieldValue)
-    {
-        for(int i =0; i< AddShieldValue; i++)
-        {
-            CurrentShield++;
-            HpElements[GetCurrentShieldElemetNum()]->IncreaseShield();
-        }
-    }
-    else
-    {
-        int32 ChangeValue = FMath::Abs(AddShieldValue);
-        for(int i =0; i< ChangeValue; i++)
-        {
-            
-            HpElements[GetCurrentShieldElemetNum()]->DecreaseShield();
-            CurrentShield--;
-        }
-    }
-    
-    ShieldText->SetText(FText::AsNumber(CurrentShield));
-}
+    CurrentShield = FMath::Clamp(CurrentShield + AddShieldValue, 0, MaxShield);
 
+    RefreshShieldBar();
+}
 
 
 void UW_BossHP::ShowClearImage()
@@ -158,21 +94,147 @@ void UW_BossHP::ShowClearImage()
         ClearImage->SetVisibility(ESlateVisibility::HitTestInvisible);
     }
 }
-	
-int UW_BossHP::GetCurrentHpElemetNum()
+
+void UW_BossHP::RefreshHpBar()
 {
-    int Num = (CurrentHp % HpElements.Num()) - 1;
-    if (Num <=-1)
-        return 9;
-    else 
-        return Num;
+    if(HpText)
+    {
+        HpText->SetText(FText::AsNumber(CurrentHp));
+    }
+
+    if(HpTotalText)
+    {
+        HpTotalText->SetText(FText::Format(
+            FText::FromString(TEXT("/ {0}")),
+            FText::AsNumber(MaxHp)
+        ));
+    }
+
+    if(HPProgressBar)
+    {
+        TargetHpPercent = GetHpPercent();
+        if(!bIsHpBarInitialized)
+        {
+            SnapHpBarToTarget();
+        }
+    }
 }
-	
-int UW_BossHP::GetCurrentShieldElemetNum()
+
+void UW_BossHP::RefreshShieldBar()
 {
-        int Num = (CurrentShield % HpElements.Num()) - 1;
-    if (Num <=-1)
-        return 9;
-    else 
-        return Num;
+    if(ShieldText)
+    {
+        ShieldText->SetText(FText::AsNumber(CurrentShield));
+    }
+
+    if(ShieldTotalText)
+    {
+        ShieldTotalText->SetText(FText::Format(
+            FText::FromString(TEXT("/ {0}")),
+            FText::AsNumber(MaxShield)
+        ));
+        ShieldTotalText->SetVisibility(CurrentShield > 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
+    }
+
+    if(ShieldProgressBar)
+    {
+        TargetShieldPercent = GetShieldPercent();
+        if(!bIsShieldBarInitialized)
+        {
+            SnapShieldBarToTarget();
+        }
+    }
+
+    UpdateShieldVisibility();
+}
+
+void UW_BossHP::UpdateProgressBars(float InDeltaTime)
+{
+    if(HPProgressBar)
+    {
+        DisplayHpPercent = FMath::FInterpTo(DisplayHpPercent, TargetHpPercent, InDeltaTime, ProgressBarInterpSpeed);
+
+        if(FMath::IsNearlyEqual(DisplayHpPercent, TargetHpPercent, 0.001f))
+        {
+            DisplayHpPercent = TargetHpPercent;
+        }
+
+        HPProgressBar->SetPercent(DisplayHpPercent);
+    }
+
+    if(ShieldProgressBar)
+    {
+        DisplayShieldPercent = FMath::FInterpTo(DisplayShieldPercent, TargetShieldPercent, InDeltaTime, ProgressBarInterpSpeed);
+
+        if(FMath::IsNearlyEqual(DisplayShieldPercent, TargetShieldPercent, 0.001f))
+        {
+            DisplayShieldPercent = TargetShieldPercent;
+        }
+
+        ShieldProgressBar->SetPercent(DisplayShieldPercent);
+    }
+
+    UpdateShieldVisibility();
+}
+
+void UW_BossHP::UpdateShieldVisibility()
+{
+    const bool bShouldShowShield = CurrentShield > 0 || DisplayShieldPercent > 0.f || TargetShieldPercent > 0.f;
+    const ESlateVisibility ShieldVisibility = bShouldShowShield ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden;
+
+    if(ShieldTotalText)
+    {
+        ShieldTotalText->SetVisibility(ShieldVisibility);
+    }
+
+    if(ShieldProgressBar)
+    {
+        ShieldProgressBar->SetVisibility(ShieldVisibility);
+    }
+}
+
+void UW_BossHP::SnapHpBarToTarget()
+{
+    TargetHpPercent = GetHpPercent();
+    DisplayHpPercent = TargetHpPercent;
+    bIsHpBarInitialized = true;
+
+    if(HPProgressBar)
+    {
+        HPProgressBar->SetPercent(DisplayHpPercent);
+    }
+}
+
+void UW_BossHP::SnapShieldBarToTarget()
+{
+    TargetShieldPercent = GetShieldPercent();
+    DisplayShieldPercent = TargetShieldPercent;
+    bIsShieldBarInitialized = true;
+
+    if(ShieldProgressBar)
+    {
+        ShieldProgressBar->SetPercent(DisplayShieldPercent);
+    }
+
+    UpdateShieldVisibility();
+}
+
+float UW_BossHP::GetHpPercent() const
+{
+    if(MaxHp <= 0)
+    {
+        return 0.f;
+    }
+
+    return static_cast<float>(CurrentHp) / static_cast<float>(MaxHp);
+}
+
+float UW_BossHP::GetShieldPercent() const
+{
+    if(MaxShield <= 0)
+    {
+        return 0.f;
+    }
+
+    return static_cast<float>(CurrentShield) / static_cast<float>(MaxShield);
 }

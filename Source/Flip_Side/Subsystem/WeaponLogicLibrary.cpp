@@ -111,15 +111,17 @@ void UWeaponLogicLibrary::BloodCanon_Logic(UWeapon_Action* WeaponContext)
 
     UComponent_Status* TargetStat = nullptr;
     int32 AP = WeaponContext->GetFinalAttackPoint();
-    int32 BP = WeaponContext->GetFinalBehaviorPoint();
 
     for(ACoinActor* Coin : RangedCoins)
     {
         if(Coin == WeaponContext->GetCasterCoin()) continue;
         TargetStat = Coin->StatComponent;
+        FActionTask NewTask;
 
         TargetStat->ApplyDamage(AP, WeaponContext->GetCasterCoin());
-        AP += BP;
+        NewTask = TargetStat->GetModifiedStats();
+        int32 FinalBP = NewTask.ModifiedBehaviorPoint + TargetStat->GetWeaponBP();
+        AP += FinalBP;
     }
 
     ApplyBossDamageWithAttackerBuff(WeaponContext, Boss, AP, AP);
