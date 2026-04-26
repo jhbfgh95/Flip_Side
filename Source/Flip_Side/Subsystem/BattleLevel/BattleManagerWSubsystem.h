@@ -52,6 +52,9 @@ protected:
 	UPROPERTY()
 	class UBossManagerSubsystem* BossManager;
 
+	UPROPERTY()
+	class UStageCardWSubsystem* StageCardManager;
+
 protected:
 	void TurnProgressing();
 

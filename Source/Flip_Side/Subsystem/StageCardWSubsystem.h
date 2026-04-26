@@ -4,7 +4,8 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "DataTypes/CardTypes.h"
-#include "FlipSide_Enum.h" // EFaceState, EWeaponClass µî
+#include "FlipSide_Enum.h"
+#include "Subsystem/CardLogicLibrary.h"
 #include "StageCardWSubsystem.generated.h"
 
 class UGridManagerSubsystem;
@@ -12,25 +13,13 @@ class UCrossingLevelGISubsystem;
 class UDataManagerSubsystem;
 class ACoinActor;
 
-struct FCoinOnGridInfo; // GridTypes ÂÊ¿¡ ÀÖÀ» °¡´É¼º ³ôÀ½
+struct FCoinOnGridInfo; // GridTypes ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 struct FFaceData;
 struct FGridPoint;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FStageHandCardSet, int32, HandIndex, FCardData, CardInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStageHandCardCleared, int32, HandIndex);
 
-// ÄÚÀÎº° ¡°ÀÌ¹ø ÅÏ¡± Ä«µå È¿°ú °á°ú(Modifier)
-USTRUCT(BlueprintType)
-struct FCoinCardModifiers
-{
-    GENERATED_BODY()
-
-    UPROPERTY(BlueprintReadOnly) int32 ExtraActions = 0;
-    UPROPERTY(BlueprintReadOnly) int32 AttackAdd = 0;
-    UPROPERTY(BlueprintReadOnly) int32 RangeAdd = 0;
-    UPROPERTY(BlueprintReadOnly) int32 BehaviorAdd = 0;
-    UPROPERTY(BlueprintReadOnly) bool bLifeSteal = false;
-};
 
 UCLASS()
 class FLIP_SIDE_API UStageCardWSubsystem : public UWorldSubsystem
@@ -52,7 +41,7 @@ public:
     FStageHandCardCleared OnHandCardCleared;
 
 public:
-    // ===== [±âÁ¸ ¼ÕÆĞ °ü¸® API À¯Áö] =====
+    // ===== [ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ API ï¿½ï¿½ï¿½ï¿½] =====
     UFUNCTION(BlueprintCallable)
     void RefreshHandFromGI();
 
@@ -65,9 +54,11 @@ public:
     
 
 public:
-    // ===== [Ãß°¡: Ä«µå È¿°ú ¿£Áø API] =====
-    // BattleManager/ÅÏ ½Ã½ºÅÛÀÌ Å¸ÀÌ¹Ö ¸ÂÃç È£ÃâÇÏ´Â ¹öÀü(±ÇÀå)
+    // ===== [ï¿½ß°ï¿½: Ä«ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ API] =====
+    // BattleManager/ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½)
     void ExecuteCardsEffect();
+
+    void ClearPromotionHighlight();
 
     UFUNCTION(BlueprintCallable)
     FCoinCardModifiers GetModifiersForCoin(ACoinActor* Coin) const;
@@ -78,7 +69,7 @@ public:
 private:
     static constexpr int32 HandCount = 3;
 
-    // ¼ÕÆĞ(½½·Ô) µ¥ÀÌÅÍ
+    // ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     UPROPERTY()
     TArray<FCardData> HandCards;
 
@@ -86,7 +77,7 @@ private:
     TArray<bool> bHasCard;
 
 private:
-    // ===== [±âÁ¸ UI »ı¼º À¯Áö] =====
+    // ===== [ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½] =====
     void EnsureStageHUD(UWorld& InWorld);
 
     // CardID -> FCardData
@@ -99,19 +90,22 @@ private:
     UPROPERTY() UCrossingLevelGISubsystem* CrossingGI = nullptr;
     UPROPERTY() UDataManagerSubsystem* DM = nullptr;
 
-    // ÄÚÀÎº° Ä«µå È¿°ú °á°ú Ä³½Ã(ÅÏ¸¶´Ù ÃÊ±âÈ­ ±ÇÀå)
+    // ï¿½ï¿½ï¿½Îºï¿½ Ä«ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½(ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½)
     UPROPERTY()
     TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers> CoinMods;
 
 private:
-    // ===== [Ãß°¡: Ä«µå È¿°ú ¿£Áø À¯Æ¿] =====
+    // ===== [ì¹´ë“œ íš¨ê³¼ ë‚´ë¶€ ë£¨í‹´] =====
     void CollectCoinsOnField(TArray<FCoinOnGridInfo>& OutCoins) const;
-    bool TryGetCoinFaceData(ACoinActor* Coin, FFaceData& OutFace) const;
-    int32 GetCoinRangeValue(const FFaceData& Face) const;
-    bool AreAllFieldCoinsFront(const TArray<FCoinOnGridInfo>& FieldCoins) const;
+
+    // ì¹´ë“œ ID -> ë¡œì§ í•¨ìˆ˜ í…Œì´ë¸” (Initialize ì‹œ 1íšŒ ë¹Œë“œ)
+    TMap<int32, FCardLogicFn> CardLogicTable;
+
+    // í”„ë¡œëª¨ì…˜ ì¹´ë“œ ë¹›ë‚˜ëŠ” ê·¸ë¦¬ë“œ (GridX==-1 ì´ë©´ ë¯¸ì„ íƒ)
+    FGridPoint PromotionHighlightedGrid;
 
 private:
-    // HUD À§Á¬ Å¬·¡½º(¿¡µğÅÍ/¼¼ÆÃ¿¡¼­ ÁöÁ¤)
+    // HUD ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
     UPROPERTY(EditDefaultsOnly, Category = "UI")
     TSubclassOf<class UUserWidget> StageHUDClass;
 

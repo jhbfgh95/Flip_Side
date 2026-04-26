@@ -80,7 +80,8 @@ void AGridActor::ClearOccupied()
 	ItemFlag = 0;
 
 	bIsCoinRangePreview = false;
-	
+	bIsPromotionHighlight = false;
+
 	InitColor();
 	CurrentOccupying = EGridOccupyingType::None;
 	if(ABase_OtherActor* OtherActor = Cast<ABase_OtherActor>(CurrentObject))
@@ -141,6 +142,12 @@ void AGridActor::InitColor()
 		MID->SetScalarParameterValue(TEXT("Fill_intensity"), CoinRangeSet.Intensity);
 		MID->SetScalarParameterValue(TEXT("Door_Open"), CoinRangeSet.DoorOpen);
 	}
+	else if (bIsPromotionHighlight)
+	{
+		MID->SetVectorParameterValue(TEXT("Outline_Color"), PromotionColorSet.Color);
+		MID->SetScalarParameterValue(TEXT("Fill_intensity"), PromotionColorSet.Intensity);
+		MID->SetScalarParameterValue(TEXT("Door_Open"), PromotionColorSet.DoorOpen);
+	}
 	else if (bIsBossAttack)
 	{
 		MID->SetVectorParameterValue(TEXT("Outline_Color"), BossColorset.Color);
@@ -152,6 +159,18 @@ void AGridActor::InitColor()
 		MID->SetVectorParameterValue(TEXT("Outline_Color"), FLinearColor(1.f, 1.f, 1.f, 1.f));
 		MID->SetScalarParameterValue(TEXT("Fill_intensity"), 0.03f);
 	}
+}
+
+void AGridActor::SetPromotionHighlight(bool bOn)
+{
+	bIsPromotionHighlight = bOn;
+	if (bOn)
+	{
+		PromotionColorSet.Color     = FLinearColor(1.f, 0.84f, 0.f, 1.f);
+		PromotionColorSet.Intensity = 0.8f;
+		PromotionColorSet.DoorOpen  = 0.f;
+	}
+	InitColor();
 }
 
 void AGridActor::OnClicked_Implementation()

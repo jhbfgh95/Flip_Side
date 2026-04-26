@@ -29,6 +29,7 @@ void ABossActor::BeginPlay()
 		{
 			BossHpWidget->AddToViewport();
 			BossHpWidget->SetVisibility(ESlateVisibility::Visible);
+			BossHpWidget->SetBossName(BossName);
 			BossHpWidget->InitBossHp(MaxHP);
 			if(MaxShield > 0)
 			{
@@ -55,6 +56,20 @@ void ABossActor::InitializeFromBossData(const FBossData& InData)
 	AttackPoint = InData.AttackPoint;
 	MaxHP = InData.BossHP;
 	CurrentHP = MaxHP;
+
+	if(BossHpWidget)
+	{
+		BossHpWidget->SetBossName(BossName);
+		BossHpWidget->InitBossHp(MaxHP);
+		if(MaxShield > 0)
+		{
+			if(CurrentShield <= 0)
+			{
+				CurrentShield = MaxShield;
+			}
+			BossHpWidget->InitBossShield(MaxShield);
+		}
+	}
 }
 
 void ABossActor::ApplyDamage(int32 Damage, AActor* DamageCauser)

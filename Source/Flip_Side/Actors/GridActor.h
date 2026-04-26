@@ -121,8 +121,13 @@ public:
     bool bIsCoinRangePreview = false;
 	FCachedColorSet CoinRangeSet;
 
+	bool bIsPromotionHighlight = false;
+	FCachedColorSet PromotionColorSet;
+
 	UFUNCTION(BlueprintCallable)
 	void ApplyCellMaterialParams(const FLinearColor& OutlineColor, float FillIntensity, float DoorOpen);
+
+	void SetPromotionHighlight(bool bOn);
 
 protected:
 	virtual void BeginPlay() override;

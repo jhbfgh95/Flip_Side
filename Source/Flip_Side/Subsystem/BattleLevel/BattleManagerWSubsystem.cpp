@@ -16,6 +16,7 @@
 #include "GridManagerSubsystem.h"
 #include "BattleLevelActingWSubsystem.h"
 #include "CoinActionManagementWSubsystem.h"
+#include "Subsystem/StageCardWSubsystem.h"
 #include "TemplateFunction_Utils.h"
 
 #define BATTLE_COIN_MAX 10
@@ -59,6 +60,8 @@ bool UBattleManagerWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
     Super::OnWorldBeginPlay(InWorld);
+
+    StageCardManager = InWorld.GetSubsystem<UStageCardWSubsystem>();
 
     if (BossManager)
     {
@@ -204,6 +207,12 @@ void UBattleManagerWSubsystem::DoCoinSelectTurn()
     3.0f, 
     false);
     MatchCoinsToRandomState();
+
+    if (StageCardManager)
+    {
+        StageCardManager->ExecuteCardsEffect();
+    }
+
     CoinActionManager->SetTurn(true);
     ItemManager->SetTurn(true);
     ItemManager->CoinBindsToItemMan();
@@ -220,6 +229,11 @@ void UBattleManagerWSubsystem::DoBossTurn()
 
 void UBattleManagerWSubsystem::DoSettingTurn()
 {
+    if (StageCardManager)
+    {
+        StageCardManager->ClearPromotionHighlight();
+    }
+
     GenerateRandomStates();
     ActingManager->DoSettingAct();
     GridManager->InitGrids();
