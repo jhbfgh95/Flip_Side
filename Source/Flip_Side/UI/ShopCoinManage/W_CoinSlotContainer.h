@@ -34,6 +34,9 @@ class FLIP_SIDE_API UW_CoinSlotContainer : public UUserWidget
 	UPROPERTY(meta= (BindWidget))
 	class UButton* SlotAddButton;
 
+	UPROPERTY(meta = (BindWidget))
+	class UContentWidget* SlotBuyDescrip;
+
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	TSubclassOf<class UUserWidget> CoinSlotWidget;

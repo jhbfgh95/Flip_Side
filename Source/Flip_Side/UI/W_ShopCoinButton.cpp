@@ -58,13 +58,11 @@ void UW_ShopCoinButton::ResetCoin()
 
 void UW_ShopCoinButton::ChangeSlotUp()
 {
-    ShopCoinSubsystem->ChangeCoinSlotRight();
 
 }
 
 void UW_ShopCoinButton::ChangeSlotDown()
 {
-    ShopCoinSubsystem->ChangeCoinSlotLeft();
 }
 	
 void UW_ShopCoinButton::UnlockCoinSlot()

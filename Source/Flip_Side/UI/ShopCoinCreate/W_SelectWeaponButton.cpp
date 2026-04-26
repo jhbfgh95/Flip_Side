@@ -28,11 +28,12 @@ void UW_SelectWeaponButton::NativeConstruct()
             WeaponButton->OnUnhovered.AddDynamic(this, &UW_SelectWeaponButton::UnHoverWeapon);
         }
     }
+    ButtonSelectImage->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UW_SelectWeaponButton::SelectWeapon()
 {
-    CoinWSubsystem->SetWeaponToCoinSide(WeaponData.WeaponID);
+    CoinWSubsystem->SetWeaponToCoinSide(WeaponData.WeaponID,WeaponData.WeaponType );
 }
 
 void UW_SelectWeaponButton::InitButton(int32 ID)
@@ -42,13 +43,16 @@ void UW_SelectWeaponButton::InitButton(int32 ID)
 
     if(IsGetWeaponData && WeaponButton)
     {
+        /*
         FButtonStyle ButtonStyle = WeaponButton->GetStyle();
 
         ButtonStyle.Normal.SetResourceObject(WeaponData.WeaponIcon);
         ButtonStyle.Hovered.SetResourceObject(WeaponData.WeaponIcon);
         ButtonStyle.Pressed.SetResourceObject(WeaponData.WeaponIcon);
-        WeaponButton->SetStyle(ButtonStyle);
-        
+        WeaponButton->SetStyle(ButtonStyle);*/
+
+        WeaponImage->SetBrushFromTexture(WeaponData.WeaponIcon);
+
         WeaponNameBlock->SetText(FText::FromString(WeaponName));
 
         SetVisibility(ESlateVisibility::Visible);
@@ -62,11 +66,13 @@ void UW_SelectWeaponButton::InitButton(int32 ID)
 void UW_SelectWeaponButton::HoverWeapon()
 {
     CoinWSubsystem->HoverWeapon(WeaponData.WeaponID);
+    ButtonSelectImage->SetVisibility(ESlateVisibility::Visible);
 }
 	
 void UW_SelectWeaponButton::UnHoverWeapon()
 {
     CoinWSubsystem->UnHoverWeapon();
+    ButtonSelectImage->SetVisibility(ESlateVisibility::Collapsed);
 }
 	
 UButton* UW_SelectWeaponButton::GetWeaponButton()

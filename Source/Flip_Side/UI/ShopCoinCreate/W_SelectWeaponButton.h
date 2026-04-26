@@ -39,8 +39,15 @@ protected:
     UPROPERTY(meta = (BindWidget))
     class UTextBlock* WeaponNameBlock;
 
+    UPROPERTY(meta = (BindWidget))
+    class UImage* WeaponImage;
+
+    UPROPERTY(meta = (BindWidget))
+    class UImage* ButtonSelectImage;
+
 	UPROPERTY(EditAnywhere, Category="Button")
 	class UTexture2D* WeaponTexture;
+
 public:
 	//코인 면 설정
 	UFUNCTION()

@@ -26,10 +26,14 @@ private:
 
 
 private:
-	TArray<class UW_ShopInvenItemButton*> ItemButtons;
+	TArray<class UW_ShopInvenItemButton*> ItemIvens;
 
 	UPROPERTY(meta = (BindWidget))
-	class UUniformGridPanel* ButtonGrid;
+	class UW_ShopInvenItemButton* InvenItem1;
+	UPROPERTY(meta = (BindWidget))
+	class UW_ShopInvenItemButton* InvenItem2;
+	UPROPERTY(meta = (BindWidget))
+	class UW_ShopInvenItemButton* InvenItem3;
 
 private:
 	/*

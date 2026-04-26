@@ -15,22 +15,10 @@ void UW_ShopItemInven::NativeConstruct()
     
     DataManagerSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
     ShopItemSubsystem->OnItemBuy.AddDynamic(this, &UW_ShopItemInven::SetItem);
-    int ButtonCount = ButtonGrid->GetChildrenCount();
-    
 
-
-
-    for (int32 i = 0; i < ButtonCount; i++)
-    {
-        UW_ShopInvenItemButton* Child = Cast<UW_ShopInvenItemButton>(ButtonGrid->GetChildAt(i));
-
-        if (Child)
-        {
-            Child->SetCountText(ShopItemSubsystem->GetPlayerItem(i).SameItemNum);
-
-            ItemButtons.Add(Child);
-        }
-    }
+    ItemIvens.Add(InvenItem1);
+    ItemIvens.Add(InvenItem2);
+    ItemIvens.Add(InvenItem3);
 }
 
 
@@ -53,9 +41,10 @@ void UW_ShopItemInven::ActiveInvenHandle()
 	
 void UW_ShopItemInven::SetItem(int32 Index)
 {
-
-    ItemButtons[Index]->SetCountText(ShopItemSubsystem->GetPlayerItem(Index).SameItemNum);
+    if(ItemIvens.Num() <Index)
+        return;
+    ItemIvens[Index]->SetCountText(ShopItemSubsystem->GetPlayerItem(Index).SameItemNum);
     FItemData ItemData;
     DataManagerSubsystem->TryGetItem(ShopItemSubsystem->GetPlayerItem(Index).ItemID, ItemData);
-    ItemButtons[Index]->SetItemData(ItemData);
+    ItemIvens[Index]->SetItemData(ItemData);
 }

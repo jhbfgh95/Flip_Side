@@ -5,18 +5,15 @@
 
 #include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
 #include "Subsystem/UnlockGISubsystem.h"
-#include "Subsystem/ShopLevel/ShopUnlockCardWSubsystem.h"
 #include "Components/Image.h"
 #include "Components/CanvasPanel.h"
-
+/*
 void UW_UnlockCardWidget::NativeConstruct()
 {
     Super::NativeConstruct();
     UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
 
     ShopUnlockCardSubsystem = GetWorld()->GetSubsystem<UShopUnlockCardWSubsystem>();
-    ShopUnlockCardSubsystem->OnSelectUnlockCard.AddDynamic(this, &UW_UnlockCardWidget::SetCardSelect);
-    ShopUnlockCardSubsystem->OnUnlockSelectCard.AddDynamic(this, &UW_UnlockCardWidget::SetUnlockCard);
 
     
 }
@@ -25,8 +22,6 @@ void UW_UnlockCardWidget::NativeDestruct()
 {
     ShopUnlockCardSubsystem->OnSelectUnlockCard.RemoveAll(this);
     ShopUnlockCardSubsystem->OnUnlockSelectCard.RemoveAll(this);
-    ShopUnlockCardSubsystem->OnChangelockCardsLeft.RemoveAll(this);
-    ShopUnlockCardSubsystem->OnChangelockCardsRight.RemoveAll(this);
     Super::NativeDestruct();
 }
 
@@ -92,4 +87,4 @@ void UW_UnlockCardWidget::SetUnlockCard(int32 UnlockCardID)
 void UW_UnlockCardWidget::HideLockIamge()
 {
     LockImage->SetVisibility(ESlateVisibility::Hidden);
-}
+}*/

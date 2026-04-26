@@ -46,6 +46,8 @@ private:
 
 
 private:
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
+	class UTexture2D* DefaultsTexture;
 	UPROPERTY()
 	class UMaterialInstanceDynamic* FrontDynamicMaterial;
 	UPROPERTY()

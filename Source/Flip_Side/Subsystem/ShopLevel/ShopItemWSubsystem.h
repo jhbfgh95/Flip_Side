@@ -48,14 +48,19 @@ private:
 	TArray<FItemData> ShopItemArray;
 	//플레이어 아이템 목록
 	TArray<FSelectItem> PlayerItemArray;
-	//해당 아이디를 가진 아이템이 플레이어의 인벤토리에 있는지
-	int32 GetPlayerInvenIndexByItemID(int32 ItemID);
+	
 
 private:
 
 	//기본 아이템 데이터
 	FSelectItem DefaultSelecttemData;
 	FItemData DefaultItemData;
+
+private:
+
+	int32 GetEmptyInvenIndex(int32 ItemID);
+	//해당 아이디를 가진 아이템이 플레이어의 인벤토리에 있는지
+	int32 GetSameItemInvenIndex(int32 ItemID);
 public:
 	//상점 아이템에 마우스를 올려놧을 때
 	void HoverItem(FItemData ItemNum);
@@ -65,8 +70,6 @@ public:
 	FItemData GetItemDataByShopIndex(int32 ShopIndex);
 	
 	FSelectItem GetItemDataByItemID(int32 ItemID);
-
-	void BuyItemByIndex(int32 Index);
 
 	void BuyItem(FItemData ItemData);
 	

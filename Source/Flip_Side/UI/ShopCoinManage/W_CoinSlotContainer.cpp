@@ -42,6 +42,9 @@ void UW_CoinSlotContainer::AddCoinSlot()
     if(MAX_SLOT_NUM<= CoinSlot.Num())
         return;
     
+    if(SlotBuyDescrip->GetVisibility() == ESlateVisibility::Visible)
+        SlotBuyDescrip->SetVisibility(ESlateVisibility::Collapsed);
+        
     UUserWidget* CoinSlotUserWidget = CreateWidget<UUserWidget>(GetWorld(), CoinSlotWidget);
     
     if(Slot)

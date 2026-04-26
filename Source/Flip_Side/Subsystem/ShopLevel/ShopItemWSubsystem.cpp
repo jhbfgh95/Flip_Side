@@ -38,6 +38,10 @@ void UShopItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         DM->TryGetAllItems(ShopItemArray);
     }
 
+
+    PlayerItemArray.Reset();
+    for(int i =0; i <3 ;i++)
+        PlayerItemArray.Add(DefaultSelecttemData);
 }
 
 void UShopItemWSubsystem::HoverItem(FItemData ItemData)
@@ -49,50 +53,47 @@ void UShopItemWSubsystem::UnHoverItem()
     OnItemUnHovered.Broadcast();
 }
 
-void UShopItemWSubsystem::BuyItemByIndex(int32 Index)
-{
-    if(ShopItemArray.Num()<=Index) 
-        return;
-
-    int32 InvenIndex = GetPlayerInvenIndexByItemID(ShopItemArray[Index].ItemID);
-    
-    if(InvenIndex == -1)
-    {
-        FSelectItem AddItemData;
-        AddItemData.ItemID = ShopItemArray[Index].ItemID;
-        PlayerItemArray.Add(AddItemData);
-    }
-    else
-    {
-        PlayerItemArray[InvenIndex].SameItemNum++;
-    }
-    OnItemBuy.Broadcast(InvenIndex);
-}
 
 void UShopItemWSubsystem::BuyItem(FItemData ItemData)
 {
-    int32 InvenIndex = GetPlayerInvenIndexByItemID(ItemData.ItemID);
-    
+    int32 InvenIndex = GetSameItemInvenIndex(ItemData.ItemID);
+
     if(InvenIndex == -1)
     {
-        FSelectItem AddItemData;
-        AddItemData.ItemID = ItemData.ItemID;
-        PlayerItemArray.Add(AddItemData);
+        int32 EmptyIvenNum = GetEmptyInvenIndex(ItemData.ItemID);
+        if(EmptyIvenNum != -1)
+        {
+            FSelectItem SelectItemData;
+            SelectItemData.ItemID = ItemData.ItemID;
+            SelectItemData.SameItemNum = 1;
 
-        PlayerItemArray[PlayerItemArray.Num()-1].SameItemNum++;
-
-        OnItemBuy.Broadcast(PlayerItemArray.Num()-1);
+            PlayerItemArray[EmptyIvenNum] = SelectItemData;
+            
+            OnItemBuy.Broadcast(EmptyIvenNum);
+        }
+        
     }
     else
     {
         PlayerItemArray[InvenIndex].SameItemNum++;
         OnItemBuy.Broadcast(InvenIndex);
     }
-    
-    
 }
 
-int32 UShopItemWSubsystem::GetPlayerInvenIndexByItemID(int32 FindItemID)
+int32 UShopItemWSubsystem::GetEmptyInvenIndex(int32 ItemID)
+{
+    for(int i =0; i<PlayerItemArray.Num() ; i++)
+    {
+        if(PlayerItemArray[i].ItemID == -1)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+int32 UShopItemWSubsystem::GetSameItemInvenIndex(int32 FindItemID)
 {
     if(FindItemID ==-1)
         return -1;

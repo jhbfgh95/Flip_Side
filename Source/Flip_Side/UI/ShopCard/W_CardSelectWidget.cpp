@@ -14,8 +14,6 @@ void UW_CardSelectWidget::NativeConstruct()
     ShopCardSubSystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
     UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
 
-    RightCardButton->OnClicked.AddDynamic(this, &UW_CardSelectWidget::ClickRightCardButton);
-    LeftCardButton->OnClicked.AddDynamic(this, &UW_CardSelectWidget::ClickLeftCardButton);
     SelectCardButton->OnClicked.AddDynamic(this, &UW_CardSelectWidget::ClickSelectCardButton);
     ShopCardSubSystem->OnCardChanged.AddDynamic(this, &UW_CardSelectWidget::InitCard);
 
@@ -30,20 +28,9 @@ void UW_CardSelectWidget::NativeDestruct()
 }
 
 
-void UW_CardSelectWidget::ClickLeftCardButton()
-{
-    ShopCardSubSystem->SetPreviousCard();
-}
-
-void UW_CardSelectWidget::ClickRightCardButton()
-{
-    ShopCardSubSystem->SetNextCard();
-}
-
 
 void UW_CardSelectWidget::ClickSelectCardButton()
 {
-    ShopCardSubSystem->SelectCard();
 }
 
 
@@ -54,6 +41,7 @@ void UW_CardSelectWidget::InitCard(FCardData CardData)
 
 void UW_CardSelectWidget::SetShowCard(int32 UnlockCardID)
 {
+    /*
     if(ShopCardSubSystem->GetCurrentCard().CardID == -1)
     {
         CurrentCardWidget->SetVisibility(ESlateVisibility::Hidden);
@@ -62,5 +50,5 @@ void UW_CardSelectWidget::SetShowCard(int32 UnlockCardID)
     {
         CurrentCardWidget->SetVisibility(ESlateVisibility::Visible);
         CurrentCardWidget->InitCard(ShopCardSubSystem->GetCurrentCard());
-    }
+    }*/
 }
