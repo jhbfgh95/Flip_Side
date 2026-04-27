@@ -15,10 +15,6 @@ void UW_ShopCardWidget::NativeConstruct()
 
     ShopCardSubsystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
     ShopCardSubsystem->OnUnlockCard.AddDynamic(this, &UW_ShopCardWidget::UnlockCard);
-
-    /*
-    SetAnimationCurrentTime(UnSelectAnim, UnSelectAnim->GetEndTime());*/
-    PlayAnimation(UnSelectAnim, UnSelectAnim->GetEndTime(), 1, EUMGSequencePlayMode::Forward);
 }
 
 void UW_ShopCardWidget::NativeDestruct()
@@ -44,20 +40,6 @@ FReply UW_ShopCardWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,co
 
 void UW_ShopCardWidget::InitShopCard(FCardData CardDataValue, bool IsUnlock)
 {
-    UE_LOG(LogTemp, Warning, TEXT("sssss"));
-    if(CardData.CardID == -1)
-    {
-        if(CardDataValue.CardID != -1)
-            PlayAnimation(SelectAnim);
-    }
-    else
-    {
-        if(CardDataValue.CardID == -1)
-            PlayAnimation(UnSelectAnim);
-        else if(CardDataValue.CardID != CardData.CardID)
-            PlayAnimation(ChangeCardAnim);
-    }
-    
 
     CardData = CardDataValue;
 

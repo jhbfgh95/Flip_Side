@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "DataTypes/CardTypes.h"
 #include "W_UnlockCardModeWidget.generated.h"
 
 /**
@@ -35,6 +36,9 @@ private:
 	class UButton* SelectPlayerCardButton;
 
 	UPROPERTY(meta = (BindWidget))
+	class UButton* UnSelectPlayerCardButton;
+
+	UPROPERTY(meta = (BindWidget))
 	class UUserWidget* CancelImage;
 
 private:
@@ -52,6 +56,8 @@ private:
 	int32 ColumnCount = 4;
 
 private:
+	FCardData CurrentCardData;
+private:
 
 	UFUNCTION()
 	void UnlockCard();
@@ -66,5 +72,11 @@ private:
 	void SelectPlayerCard();
 
 	UFUNCTION()
+	void UnSelectPlayerCard();
+
+	UFUNCTION()
 	void ExcuteUnlock(int32 unlockCardId);
+
+	UFUNCTION()
+	void UnlockCardAdaptor(int32 ID);
 };

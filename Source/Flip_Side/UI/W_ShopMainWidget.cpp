@@ -8,12 +8,9 @@ void UW_ShopMainWidget::NativeConstruct()
 {
     Super::NativeConstruct();
     shopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
-
-    CoinCreateButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickCoinCreateButton);
     ShopItemButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickShopItemButton);
     CardSelectButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickCardSelectButton);
     UnlockWeaponButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickUnlockWeaponButton);
-    UnlockCardButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickUnlockCardButton);
 
     GameStartButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickBattleStartButton);
 
@@ -21,7 +18,7 @@ void UW_ShopMainWidget::NativeConstruct()
 }
 
 
-void UW_ShopMainWidget::ClickCoinCreateButton()
+void UW_ShopMainWidget::ClickCoinManageButton()
 {
     if(shopGameMode)
     {
@@ -61,13 +58,5 @@ void UW_ShopMainWidget::ClickBattleStartButton()
     if(shopGameMode)
     {
         shopGameMode->ChangeBattleLevel();
-    }
-}
-
-void UW_ShopMainWidget::ClickUnlockCardButton()
-{
-    if(shopGameMode)
-    {
-        shopGameMode->SetUnlockCardMode();
     }
 }

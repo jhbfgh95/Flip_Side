@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "DataTypes/ItemDataTypes.h"
 #include "W_ShopSellItemGrid.generated.h"
 
 /**
@@ -26,6 +27,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UUniformGridPanel* SellItemGrid;
 
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* ItemBuyDescrip;
+
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	TSubclassOf<UUserWidget> SellItemButton;
 
@@ -33,4 +37,11 @@ private:
 	
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	int32 ColumnCount = 3;
+
+
+	UFUNCTION()
+	void ShowDescrip(FItemData ItemInfo);
+	
+	UFUNCTION()
+	void HideDescrip();
 };

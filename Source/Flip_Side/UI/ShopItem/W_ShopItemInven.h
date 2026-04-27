@@ -34,6 +34,8 @@ private:
 	class UW_ShopInvenItemButton* InvenItem2;
 	UPROPERTY(meta = (BindWidget))
 	class UW_ShopInvenItemButton* InvenItem3;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* ItemSellDes;
 
 private:
 	/*
@@ -51,6 +53,12 @@ private:
 	UFUNCTION()
 	void SetItem(int32 Index);
 
+	UFUNCTION()
+	void ShowSellDes(FItemData Itemdata);
+	
+	UFUNCTION()
+	void HideSellDes();
+	
 private:
 
 	UFUNCTION()

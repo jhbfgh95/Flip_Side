@@ -35,6 +35,9 @@ private:
 	FRotator StartRotator;
 	FRotator ArriveRotator;
 
+	
+    UMaterialInstanceDynamic* MID;
+
 private:
 
 	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
@@ -55,4 +58,7 @@ private:
 
 	UFUNCTION()
 	void BuyItem(int32 Index);
+
+	UFUNCTION()
+	void RemoveMaterial();
 };

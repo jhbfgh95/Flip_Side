@@ -3,7 +3,7 @@
 
 #include "UI/ShopCard/W_ShopPlayerCards.h"
 #include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
-#include "UI/ShopCard/W_ShopCardWidget.h"
+#include "UI/ShopCard/W_ShopPlayerCard.h"
 #include "Components/CanvasPanel.h"
 void UW_ShopPlayerCards::NativeConstruct()
 {
@@ -15,9 +15,10 @@ void UW_ShopPlayerCards::NativeConstruct()
 
     for (int32 i = 0; i < ChildCount; ++i)
     {
-        UW_ShopCardWidget* PlayerCardData = Cast<UW_ShopCardWidget>(MainCanvas->GetChildAt(i));
+        UW_ShopPlayerCard* PlayerCardData = Cast<UW_ShopPlayerCard>(MainCanvas->GetChildAt(i));
         PlayerCardWidget.Add(PlayerCardData);
     }
+    SetPlayerCard();
 
 }
 void UW_ShopPlayerCards::NativeDestruct()

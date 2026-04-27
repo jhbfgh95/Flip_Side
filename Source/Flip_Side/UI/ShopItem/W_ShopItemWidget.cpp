@@ -10,16 +10,39 @@ void UW_ShopItemWidget::NativeConstruct()
     Super::NativeConstruct();
     ShopItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
     ShopItemSubsystem->OnItemHovered.AddDynamic(this, &UW_ShopItemWidget::SetDesText);
+    ShopItemSubsystem->OnItemUnHovered.AddDynamic(this, &UW_ShopItemWidget::HideDescrip);
+
+    ShopItemSubsystem->OnPlayerItemHovered.AddDynamic(this, &UW_ShopItemWidget::SetDesText);
+    ShopItemSubsystem->OnPlayerItemUnHovered.AddDynamic(this, &UW_ShopItemWidget::HideDescrip);
+
+    HideDescrip();
 
 }
 	
 void UW_ShopItemWidget::NativeDestruct()
 {
     
+    ShopItemSubsystem->OnItemHovered.RemoveAll(this);
+    ShopItemSubsystem->OnItemUnHovered.RemoveAll(this);
+
+    ShopItemSubsystem->OnPlayerItemHovered.RemoveAll(this);
+    ShopItemSubsystem->OnPlayerItemUnHovered.RemoveAll(this);
+
     Super::NativeDestruct();
 }    
 	
 void UW_ShopItemWidget::SetDesText(FItemData ItemData)
 {
-    ItemDes->SetItemInfo(ItemData.ItemIcon, ItemData.ItemName ,ItemData.Item_DES);
+    ShowDescrip();
+    ItemDes->SetItemInfo(ItemData.ItemName ,ItemData.Item_DES);
+}
+	
+void UW_ShopItemWidget::ShowDescrip()
+{
+    ItemDes->SetVisibility(ESlateVisibility::Visible);
+}
+	
+void UW_ShopItemWidget::HideDescrip()
+{
+    ItemDes->SetVisibility(ESlateVisibility::Hidden);
 }

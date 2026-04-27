@@ -24,7 +24,7 @@ private:
 
 private:
 
-	TArray<class UW_ShopCardWidget*> PlayerCardWidget;
+	TArray<class UW_ShopPlayerCard*> PlayerCardWidget;
 	UPROPERTY(meta = (BindWidget))
 	class UCanvasPanel* MainCanvas;
 private:

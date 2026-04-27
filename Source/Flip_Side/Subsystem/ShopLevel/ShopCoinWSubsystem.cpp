@@ -261,7 +261,7 @@ void UShopCoinWSubsystem::ResetCoin(int32 SlotNum)
     {
         DecreaseSlotCoinCount(SlotNum);
     }
-
+    OnCoinCountUpdate.Broadcast(SlotNum, 0);
     OnSetWeapon.Broadcast(-1);
 }
 	
@@ -275,7 +275,12 @@ void UShopCoinWSubsystem::ResetCoinSide(int32 SlotNum, bool IsFront)
     {
         ShopCoinSlotArray[SlotNum].CoinData.BackWeaponID = -1;
     }
-    
+
+    for(int i = ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum;  0< i; i--)
+    {
+        DecreaseSlotCoinCount(SlotNum);
+    }
+    OnCoinCountUpdate.Broadcast(SlotNum, 0);
     OnSetWeapon.Broadcast(-1);
 }
 

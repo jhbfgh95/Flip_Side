@@ -17,7 +17,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemHover, FItemData, ItemInfo);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemBuy, int32, InvenIndex);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FItemUnHovere);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FItemUnHovered);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerItemHovered, FItemData, ItemInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerItemUnHovered);
 
 UCLASS()
 class FLIP_SIDE_API UShopItemWSubsystem : public UWorldSubsystem
@@ -38,7 +41,11 @@ public:
 	//아이템을 올려둘 시
 	FItemHover OnItemHovered;
 	//아이템에서 마우스를 땔때
-	FItemUnHovere OnItemUnHovered;
+	FItemUnHovered OnItemUnHovered;
+
+	FPlayerItemHovered OnPlayerItemHovered;
+	//아이템에서 마우스를 땔때
+	FPlayerItemUnHovered OnPlayerItemUnHovered;
 
 	FItemBuy OnItemBuy;
 
@@ -79,4 +86,8 @@ public:
 
 	TArray<FItemData> GetShopItemList();
 
+	void HoverPlayerItem(FItemData ItemNum);
+	//상점 아이템에서 마우스를 땠을떄
+	void UnHoverPlayerItem();
+	
 };

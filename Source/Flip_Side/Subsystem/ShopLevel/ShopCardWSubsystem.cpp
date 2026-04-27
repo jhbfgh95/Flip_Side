@@ -154,13 +154,14 @@ void UShopCardWSubsystem::AddCardListToUnlockCard(int32 UnlockCardID)
 }
 	
 	
-void UShopCardWSubsystem::SelectPlayerCard()
+void UShopCardWSubsystem::SelectPlayerCard(FCardData CardData)
 {
     if(CanSelectCard())
     {   
         int SelectIndex = CanSelectPlayerIndex();
         PlayerCardList[SelectIndex] = (CurrentSelectCard);
         OnChangePlayerCard.Broadcast();
+        OnSelectPlayerCard.Broadcast(CardData);
     }
 }
 	
@@ -186,4 +187,14 @@ TArray<FCardData> UShopCardWSubsystem::GetCardListArray()
 TArray<FCardData> UShopCardWSubsystem::GetPlayerCardList()
 {
     return PlayerCardList;
+}
+	
+bool UShopCardWSubsystem::CheckPlayerHaveCard(int32 CardID)
+{
+    for(int i =0; i< PlayerCardList.Num();i++)
+    {
+        if(PlayerCardList[i].CardID == CardID)
+            return true;
+    }
+    return false;
 }

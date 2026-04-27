@@ -18,19 +18,17 @@ class FLIP_SIDE_API UW_ShopItemDescription : public UUserWidget
 	virtual void NativeConstruct() override;
 private:
 	UPROPERTY(meta= (BindWidget))
-	class URichTextBlock* ItemNameText;
+	class UTextBlock* ItemNameText;
 
 	UPROPERTY(meta= (BindWidget))
-	class URichTextBlock* ItemDesText;
+	class UTextBlock* ItemDesText;
 
-	UPROPERTY(meta = (BindWidget))
-	class UImage* ItemImage;
 
 	UMaterialInstanceDynamic* MID;
 
 public:
 
-	void SetItemInfo(class UTexture2D* Icon,const FString& ItemName, const FString& Description);
+	void SetItemInfo(FString ItemName, FString Description);
 
 	void ResetItemWidget();
 };

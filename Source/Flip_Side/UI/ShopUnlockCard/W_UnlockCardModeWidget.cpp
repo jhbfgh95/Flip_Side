@@ -23,9 +23,11 @@ void UW_UnlockCardModeWidget::NativeConstruct()
     UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
     ShopCardSubsystem->OnSelectCard.AddDynamic(this, &UW_UnlockCardModeWidget::SelectCard);
     ShopCardSubsystem->OnUnSelectCard.AddDynamic(this, &UW_UnlockCardModeWidget::UnSelectCard);
-    SelectPlayerCardButton->OnClicked.AddDynamic(this, &UW_UnlockCardModeWidget::SelectPlayerCard);
-    //ShopCardSubsystem->OnUnlockSelectCard.AddDynamic(this, &UW_UnlockCardModeWidget::ExcuteUnlock);
 
+    ShopCardSubsystem->OnUnlockCard.AddDynamic(this, &UW_UnlockCardModeWidget::UnlockCardAdaptor);
+
+    SelectPlayerCardButton->OnClicked.AddDynamic(this, &UW_UnlockCardModeWidget::SelectPlayerCard);
+    UnSelectPlayerCardButton->OnClicked.AddDynamic(this,&UW_UnlockCardModeWidget::UnSelectPlayerCard);
     
     UnlockButton->OnClicked.AddDynamic(this ,&UW_UnlockCardModeWidget::UnlockCard);
 
@@ -57,10 +59,17 @@ void UW_UnlockCardModeWidget::NativeDestruct()
 }
 void UW_UnlockCardModeWidget::SelectCard(FCardData SelectCardData)
 {
+    CurrentCardData = SelectCardData;
     SelectCardWidget->InitCard(SelectCardData);
     SelectCardWidget->SetVisibility(ESlateVisibility::Visible);
     UnlockButton->SetVisibility(ESlateVisibility::Visible);
     CancelImage->SetVisibility(ESlateVisibility::Visible);
+    
+    if(UnlockSubsystem->IsCardUnlockByID(CurrentCardData.CardID))
+        SelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
+
+    if(ShopCardSubsystem->CheckPlayerHaveCard(CurrentCardData.CardID))
+         SelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
 }
 
 void UW_UnlockCardModeWidget::UnSelectCard()
@@ -68,6 +77,8 @@ void UW_UnlockCardModeWidget::UnSelectCard()
     SelectCardWidget->SetVisibility(ESlateVisibility::Hidden);
     UnlockButton->SetVisibility(ESlateVisibility::Hidden);
     CancelImage->SetVisibility(ESlateVisibility::Hidden);
+    UnSelectPlayerCardButton->SetVisibility(ESlateVisibility::Hidden);
+    SelectPlayerCardButton->SetVisibility(ESlateVisibility::Hidden);
 }
     
 void UW_UnlockCardModeWidget::UnlockCard()
@@ -82,5 +93,21 @@ void UW_UnlockCardModeWidget::ExcuteUnlock(int32 unlockCardId)
 	
 void UW_UnlockCardModeWidget::SelectPlayerCard()
 {
-    ShopCardSubsystem->SelectPlayerCard();
+    ShopCardSubsystem->SelectPlayerCard(CurrentCardData);
+
+    SelectCardWidget->InitCard(CurrentCardData);
+    SelectCardWidget->SetVisibility(ESlateVisibility::Visible);
+    CancelImage->SetVisibility(ESlateVisibility::Visible);
+    SelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
+    UnSelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
+}
+	
+void UW_UnlockCardModeWidget::UnSelectPlayerCard()
+{
+    ShopCardSubsystem->UnSelectPlayerCard(CurrentCardData);
+}
+	
+void UW_UnlockCardModeWidget::UnlockCardAdaptor(int32 ID)
+{
+    SelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
 }

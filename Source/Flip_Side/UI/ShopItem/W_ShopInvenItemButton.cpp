@@ -12,6 +12,7 @@ void UW_ShopInvenItemButton::NativeConstruct()
     Super::NativeConstruct();
     ItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
     ItemButton->OnHovered.AddDynamic(this, &UW_ShopInvenItemButton::HoverItem);
+    ItemButton->OnUnhovered.AddDynamic(this, &UW_ShopInvenItemButton::UnhoverItem);
     SetItemImage(nullptr);
 }
 
@@ -23,7 +24,12 @@ void UW_ShopInvenItemButton::NativeDestruct()
 	
 void UW_ShopInvenItemButton::HoverItem()
 {
-    ItemSubsystem->HoverItem(CurrentItemData);
+    if(CurrentItemData.ItemID != -1)
+        ItemSubsystem->HoverPlayerItem(CurrentItemData);
+}
+void UW_ShopInvenItemButton::UnhoverItem()
+{
+    ItemSubsystem->UnHoverPlayerItem();
 }
 
 void UW_ShopInvenItemButton::SetItemData(FItemData ItemData)

@@ -18,10 +18,6 @@ void UW_ShopModeChangeWidget::NativeConstruct()
 	CheckBossModeButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickCheckBossMode);
     ShopMainModeButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickShopMainModeButton);
     UnlockWeaponButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickUnlockWeaponMode);
-    UnlockCardButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickUnlockCardMode);
-
-    
-
 }
 
 void UW_ShopModeChangeWidget::NativeDestruct()
@@ -109,13 +105,3 @@ void UW_ShopModeChangeWidget::ClickUnlockWeaponMode()
         SetButtonTexture(T_UnlockWeaponMode);
     }
 }
-
-void UW_ShopModeChangeWidget::ClickUnlockCardMode()
-{
-    OpenWidget();
-    if(ShopGameMode)
-    {
-        ShopGameMode->SetUnlockCardMode();
-        SetButtonTexture(T_UnlockCardMode);
-    }
-}  

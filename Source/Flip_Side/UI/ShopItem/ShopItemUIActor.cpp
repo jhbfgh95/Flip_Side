@@ -23,9 +23,16 @@ void AShopItemUIActor::BeginPlay()
 {
     Super::BeginPlay();
 
+    MID = UseableItemMesh->CreateDynamicMaterialInstance(0);
+
     ShopItemSubSystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
 	ShopItemSubSystem->OnItemHovered.AddDynamic(this, &AShopItemUIActor::SetItemData);
 	ShopItemSubSystem->OnItemBuy.AddDynamic(this, &AShopItemUIActor::BuyItem);
+
+	ShopItemSubSystem->OnPlayerItemHovered.AddDynamic(this, &AShopItemUIActor::SetItemData);
+	ShopItemSubSystem->OnItemUnHovered.AddDynamic(this, &AShopItemUIActor::RemoveMaterial);
+	ShopItemSubSystem->OnPlayerItemUnHovered.AddDynamic(this, &AShopItemUIActor::RemoveMaterial);
+
     FOnTimelineFloat ItemBuyCallBack;
 	ItemBuyCallBack.BindUFunction(this, FName("ItemBuyMovement"));
 	ItemBuyTimeline->AddInterpFloat(ItemBuyCurve, ItemBuyCallBack);	
@@ -40,6 +47,9 @@ void AShopItemUIActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	
 	ShopItemSubSystem->OnItemHovered.RemoveAll(this);
 	ShopItemSubSystem->OnItemBuy.RemoveAll(this);
+	ShopItemSubSystem->OnPlayerItemHovered.RemoveAll(this);
+	ShopItemSubSystem->OnItemUnHovered.RemoveAll(this);
+	ShopItemSubSystem->OnPlayerItemUnHovered.RemoveAll(this);
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -52,7 +62,6 @@ void AShopItemUIActor::ItemBuyMovement(float Value)
 
 void AShopItemUIActor::SetItemMaterial()
 {
-    UMaterialInstanceDynamic* MID = UseableItemMesh->CreateDynamicMaterialInstance(0);
 	
 	if(MID && ShopItemData.ItemIcon)
 	{	
@@ -61,8 +70,7 @@ void AShopItemUIActor::SetItemMaterial()
 	}
 	else
 	{
-		MID->SetTextureParameterValue(FName("UseItem_Icon"), nullptr);
-		MID->SetVectorParameterValue(FName("Front_Color"), FLinearColor(0,0,0));
+		RemoveMaterial();
 	}
 }
 
@@ -75,4 +83,11 @@ void AShopItemUIActor::SetItemData(FItemData SelectItemData)
 void AShopItemUIActor::BuyItem(int32 Index)
 {
 	ItemBuyTimeline->PlayFromStart();
+}
+
+
+void AShopItemUIActor::RemoveMaterial()
+{
+	MID->SetTextureParameterValue(FName("UseItem_Icon"), nullptr);
+	MID->SetVectorParameterValue(FName("Front_Color"), FLinearColor(0,0,0));
 }

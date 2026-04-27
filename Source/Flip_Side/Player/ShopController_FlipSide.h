@@ -35,11 +35,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> BossWidgetClass;
-
-	//코인제작 UI
-	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> CoinCreateWidgetClass;
-
 	//상점 메인 UI
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> ShopMainWigetClass;
@@ -59,17 +54,12 @@ protected:
 	TSubclassOf<UUserWidget> UnlockWeaponWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> UnlockCardWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> BlockWidgetClass;
 
 //UI 스크립트
 private:
 	UPROPERTY()
 	UUserWidget* HudShopWidget;
-	UPROPERTY()
-	UUserWidget* CoinCreateWidget;
 	UPROPERTY()
 	UUserWidget* ShopMainWiget;
 	UPROPERTY()
@@ -80,8 +70,6 @@ private:
 	UUserWidget* SelectCardWidget;
 	UPROPERTY()
 	UUserWidget* UnlockWeaponWidget;
-	UPROPERTY()
-	UUserWidget* UnlockCardWidget;
 	UPROPERTY()
 	UUserWidget* BossWidget;
 	UPROPERTY()
@@ -109,8 +97,6 @@ public:
 	void AddOpenWidgetList(UUserWidget* AddWidget);
 //모드 변경 될 때 함수들
 public:
-	UFUNCTION()
-	void SetCoinCreateWidget();
 	
 	UFUNCTION()
 	void SetCoinManageModeWidget();
@@ -126,9 +112,6 @@ public:
 
 	UFUNCTION()
 	void SetUnlockWeaponModeWidget();
-
-	UFUNCTION()
-	void SetUnlockCardModeWidget();
 
 	UFUNCTION()
 	void SetBossStateModeWidget();

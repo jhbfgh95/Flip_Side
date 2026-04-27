@@ -55,8 +55,6 @@ private:
 	void SetCameraPerspective();
 
 private:
-	UFUNCTION()
-	void MoveCoinCreateMode();
 	
 	UFUNCTION()
 	void MoveCoinManageMode();
@@ -72,7 +70,4 @@ private:
 	
 	UFUNCTION()
 	void MoveShopMainMode();
-
-	UFUNCTION()
-	void MoveUnlockCardMode();
 };

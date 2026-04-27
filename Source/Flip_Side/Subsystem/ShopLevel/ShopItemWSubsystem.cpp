@@ -52,7 +52,16 @@ void UShopItemWSubsystem::UnHoverItem()
 {
     OnItemUnHovered.Broadcast();
 }
+	
+void UShopItemWSubsystem::HoverPlayerItem(FItemData ItemData)
+{
+    OnPlayerItemHovered.Broadcast(ItemData);
+}
 
+void UShopItemWSubsystem::UnHoverPlayerItem()
+{
+    OnPlayerItemUnHovered.Broadcast();
+}
 
 void UShopItemWSubsystem::BuyItem(FItemData ItemData)
 {

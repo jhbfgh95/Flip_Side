@@ -16,6 +16,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCardChanged, FCardData, CardInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectCard, FCardData, CardInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangePlayerCard);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectPlayerCard, FCardData, CardInfo);
+
 UCLASS()
 class FLIP_SIDE_API UShopCardWSubsystem : public UWorldSubsystem
 {
@@ -61,7 +63,7 @@ private:
 
 
 public:
-
+	FSelectPlayerCard OnSelectPlayerCard;
 	FCardChanged OnCardChanged;
 	FSelectCard OnSelectCard;
 	FUnSelectCard OnUnSelectCard;
@@ -82,9 +84,11 @@ public:
 
 	void UnlockCard();
 
-	void SelectPlayerCard();
+	void SelectPlayerCard(FCardData CardData);
 
 	void UnSelectPlayerCard(FCardData CardData);
 
 	TArray<FCardData> GetPlayerCardList();
+
+	bool CheckPlayerHaveCard(int32 CardID);
 };

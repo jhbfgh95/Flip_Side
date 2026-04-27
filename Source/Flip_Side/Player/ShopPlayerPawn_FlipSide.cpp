@@ -25,8 +25,6 @@ void AShopPlayerPawn_FlipSide::BeginPlay()
 	ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
 	if(ShopGameMode)
 	{
-		ShopGameMode->OnCoinCreateMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveCoinCreateMode);
-
 		ShopGameMode->OnCoinManageMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveCoinManageMode);
 		
 		ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveSelectCardMode);
@@ -37,8 +35,6 @@ void AShopPlayerPawn_FlipSide::BeginPlay()
 		ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveShopMainMode);
 
 		ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveUnlockWeaponMode);
-		
-		ShopGameMode->OnUnlockCardMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveUnlockCardMode);
 	}
 	
 	SetActorLocation(ShopMainLocation);
@@ -60,15 +56,6 @@ void AShopPlayerPawn_FlipSide::SetCameraPerspective()
 		return;
 	Camera->ProjectionMode = ECameraProjectionMode::Perspective;
 }
-
-
-void AShopPlayerPawn_FlipSide::MoveCoinCreateMode()
-{
-	SetActorRotation(FRotator::ZeroRotator);
-	SetActorLocation(CoinCreateLocation);
-	SetCameraPerspective();
-}
-
 
 void AShopPlayerPawn_FlipSide::MoveCoinManageMode()
 {
@@ -105,11 +92,4 @@ void AShopPlayerPawn_FlipSide::MoveUnlockWeaponMode()
 	SetActorRotation(FRotator::ZeroRotator);
 	SetActorLocation(UnlockWeaponLocation);
 	SetCameraPerspective();
-}
-
-void AShopPlayerPawn_FlipSide::MoveUnlockCardMode()
-{
-	SetActorRotation(FRotator::ZeroRotator);
-	SetActorLocation(UnlockCardLocation);
-	SetCameraOrthographic();
 }

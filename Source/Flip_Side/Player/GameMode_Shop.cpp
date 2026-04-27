@@ -60,10 +60,6 @@ void AGameMode_Shop::ChangeBattleLevel()
 }
 
 
-void AGameMode_Shop::SetCoinCreateMode()
-{
-    OnCoinCreateMode.Broadcast();
-}
 
 void AGameMode_Shop::SetShopMainMode()
 {
@@ -92,11 +88,7 @@ void AGameMode_Shop::SetUnlockWeaponMode()
     OnUnlockWeaponMode.Broadcast();
 }
 
-void AGameMode_Shop::SetUnlockCardMode()
-{   
-    OnUnlockCardMode.Broadcast();
-}
-	
+
 void AGameMode_Shop::SetCheckBossMode()
 {
     OnCheckBossMode.Broadcast();

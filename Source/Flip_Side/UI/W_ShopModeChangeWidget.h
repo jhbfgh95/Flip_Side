@@ -36,8 +36,6 @@ private:
 	UTexture2D* T_ShopMaineMode;
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
 	UTexture2D* T_UnlockWeaponMode;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_UnlockCardMode;
 
 
 protected:
@@ -56,8 +54,6 @@ protected:
 	UButton* ShopMainModeButton;
 	UPROPERTY(meta = (BindWidget))
 	UButton* UnlockWeaponButton;
-	UPROPERTY(meta = (BindWidget))
-	UButton* UnlockCardButton;
 
 	class AGameMode_Shop* ShopGameMode;
 
@@ -83,8 +79,6 @@ protected:
 	void ClickShopMainModeButton();
 	UFUNCTION()
 	void ClickUnlockWeaponMode();
-	UFUNCTION()
-	void ClickUnlockCardMode();
 
 	void SetButtonTexture(UTexture2D* SetButtonTexture);
 };
