@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "BossDataTypes.h"
+#include "BossPatternBase.h"
 #include "BossSetupGISubsystem.generated.h"
 
 USTRUCT(BlueprintType)
@@ -69,6 +70,9 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Boss")
     bool GetPreparedBossData(FBossData& OutBossData) const;
+
+    UFUNCTION(BlueprintCallable, Category = "Boss")
+    bool GetPreparedBossInfo(FBossData& OutBossData, TArray<FPatternData>& OutPatternDataList) const;
 
     UFUNCTION(BlueprintCallable, Category = "Boss")
     const FPreparedBossContext& GetPreparedBossContext() const { return PreparedContext; }

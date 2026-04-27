@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/Texture2D.h"
 #include "BossDataTypes.generated.h"
 
 class ABossActor;
@@ -21,6 +22,12 @@ struct FBossData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString BossName;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<UTexture2D> BossImage = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FText BossAbilityDescription;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 AttackPoint = 0;

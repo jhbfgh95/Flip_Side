@@ -19,6 +19,15 @@ struct FPatternData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
 	FString PatternName = TEXT("Default Pattern");
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern | UI")
+	FText PatternDescription;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern | UI")
+	TObjectPtr<class UTexture2D> PatternIcon = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern | UI")
+	TObjectPtr<class UTexture2D> PatternRangeImage = nullptr;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
 	FAttackAreaSpec PatternSpec;
 

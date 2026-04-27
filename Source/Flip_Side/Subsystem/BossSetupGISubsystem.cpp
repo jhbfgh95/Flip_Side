@@ -1,4 +1,5 @@
 #include "BossSetupGISubsystem.h"
+#include "BossActor.h"
 #include "FlipSideDevloperSettings.h"
 
 void UBossSetupGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -135,6 +136,36 @@ bool UBossSetupGISubsystem::GetPreparedBossData(FBossData& OutBossData) const
     }
 
     OutBossData = PreparedBossData;
+    return true;
+}
+
+bool UBossSetupGISubsystem::GetPreparedBossInfo(FBossData& OutBossData, TArray<FPatternData>& OutPatternDataList) const
+{
+    OutPatternDataList.Reset();
+
+    if (!GetPreparedBossData(OutBossData))
+    {
+        return false;
+    }
+
+    if (OutBossData.BossClass.IsNull())
+    {
+        return true;
+    }
+
+    TSubclassOf<ABossActor> BossClass = OutBossData.BossClass.LoadSynchronous();
+    if (!BossClass)
+    {
+        return true;
+    }
+
+    ABossActor* BossCDO = BossClass->GetDefaultObject<ABossActor>();
+    if (!BossCDO)
+    {
+        return true;
+    }
+
+    BossCDO->GetPatternDataList(OutPatternDataList);
     return true;
 }
 

@@ -2,9 +2,11 @@
 
 
 #include "UI/W_BossHP.h"
+#include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Components/Widget.h"
 
 void UW_BossHP::NativeConstruct()
 {
@@ -15,6 +17,13 @@ void UW_BossHP::NativeConstruct()
         ClearImage->SetVisibility(ESlateVisibility::Hidden);
     }
 
+    if(PatternHoverButton)
+    {
+        PatternHoverButton->OnHovered.AddDynamic(this, &UW_BossHP::ShowPatternPopup);
+        PatternHoverButton->OnUnhovered.AddDynamic(this, &UW_BossHP::HidePatternPopup);
+    }
+
+    HidePatternPopup();
     RefreshHpBar();
     RefreshShieldBar();
     SnapHpBarToTarget();
@@ -51,6 +60,42 @@ void UW_BossHP::SetBossName(const FString& SetBossName)
     if(BossNameText)
     {
         BossNameText->SetText(FText::FromString(SetBossName));
+    }
+}
+
+void UW_BossHP::SetPatternInfo(int32 PatternDisplayIndex, const FString& PatternName, const FText& PatternDescription, int32 FinalDamage, UTexture2D* PatternIcon)
+{
+    if(PatternIndexText)
+    {
+        PatternIndexText->SetText(FText::AsNumber(PatternDisplayIndex));
+    }
+
+    if(PatternNameText)
+    {
+        PatternNameText->SetText(FText::FromString(PatternName));
+    }
+
+    if(PatternDescriptionText)
+    {
+        PatternDescriptionText->SetText(PatternDescription);
+    }
+
+    if(PatternDamageText)
+    {
+        PatternDamageText->SetText(FText::AsNumber(FinalDamage));
+    }
+
+    if(PatternIconImage)
+    {
+        if(PatternIcon)
+        {
+            PatternIconImage->SetBrushFromTexture(PatternIcon);
+            PatternIconImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+        }
+        else
+        {
+            PatternIconImage->SetVisibility(ESlateVisibility::Hidden);
+        }
     }
 }
 
@@ -92,6 +137,22 @@ void UW_BossHP::ShowClearImage()
     {
         // 이미지를 화면에 보여줍니다 (클릭 이벤트를 무시하려면 HitTestInvisible 추천)
         ClearImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+    }
+}
+
+void UW_BossHP::ShowPatternPopup()
+{
+    if(PatternPopupPanel)
+    {
+        PatternPopupPanel->SetVisibility(ESlateVisibility::HitTestInvisible);
+    }
+}
+
+void UW_BossHP::HidePatternPopup()
+{
+    if(PatternPopupPanel)
+    {
+        PatternPopupPanel->SetVisibility(ESlateVisibility::Hidden);
     }
 }
 
@@ -145,7 +206,6 @@ void UW_BossHP::RefreshShieldBar()
         }
     }
 
-    UpdateShieldVisibility();
 }
 
 void UW_BossHP::UpdateProgressBars(float InDeltaTime)
@@ -174,23 +234,6 @@ void UW_BossHP::UpdateProgressBars(float InDeltaTime)
         ShieldProgressBar->SetPercent(DisplayShieldPercent);
     }
 
-    UpdateShieldVisibility();
-}
-
-void UW_BossHP::UpdateShieldVisibility()
-{
-    const bool bShouldShowShield = CurrentShield > 0 || DisplayShieldPercent > 0.f || TargetShieldPercent > 0.f;
-    const ESlateVisibility ShieldVisibility = bShouldShowShield ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden;
-
-    if(ShieldTotalText)
-    {
-        ShieldTotalText->SetVisibility(ShieldVisibility);
-    }
-
-    if(ShieldProgressBar)
-    {
-        ShieldProgressBar->SetVisibility(ShieldVisibility);
-    }
 }
 
 void UW_BossHP::SnapHpBarToTarget()
@@ -216,7 +259,6 @@ void UW_BossHP::SnapShieldBarToTarget()
         ShieldProgressBar->SetPercent(DisplayShieldPercent);
     }
 
-    UpdateShieldVisibility();
 }
 
 float UW_BossHP::GetHpPercent() const
