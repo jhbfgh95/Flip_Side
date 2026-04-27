@@ -31,10 +31,11 @@ void AShopPlayerPawn_FlipSide::BeginPlay()
 		
 		ShopGameMode->OnShopItemMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveShopItemMode);
 
-		
 		ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveShopMainMode);
 
 		ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveUnlockWeaponMode);
+		
+		ShopGameMode->OnCheckBossMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveCheckBossInfoMode);
 	}
 	
 	SetActorLocation(ShopMainLocation);
@@ -91,5 +92,13 @@ void AShopPlayerPawn_FlipSide::MoveUnlockWeaponMode()
 	
 	SetActorRotation(FRotator::ZeroRotator);
 	SetActorLocation(UnlockWeaponLocation);
-	SetCameraPerspective();
+	SetCameraOrthographic();
+}
+
+	
+void AShopPlayerPawn_FlipSide::MoveCheckBossInfoMode()
+{
+	SetActorRotation(FRotator::ZeroRotator);
+	SetActorLocation(CheckBossInfoLocation);
+	SetCameraOrthographic();
 }

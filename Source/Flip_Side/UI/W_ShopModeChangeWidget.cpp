@@ -42,7 +42,6 @@ void UW_ShopModeChangeWidget::ClickCoinCreateMode()
     if(ShopGameMode)
     {
         ShopGameMode->SetCoinManageMode();
-        SetButtonTexture(T_CoinManageMode);
     }
 }
 
@@ -52,7 +51,6 @@ void UW_ShopModeChangeWidget::ClickCardSelecrMode()
     if(ShopGameMode)
     {
         ShopGameMode->SetCardSelectMode();
-        SetButtonTexture(T_CardSeletMode);
     }
 }
 void UW_ShopModeChangeWidget::ClickShopItemMode()
@@ -61,7 +59,6 @@ void UW_ShopModeChangeWidget::ClickShopItemMode()
     if(ShopGameMode)
     {
         ShopGameMode->SetShopItemMode();
-        SetButtonTexture(T_ShopItemMode);
     }
 }
 void UW_ShopModeChangeWidget::ClickCheckBossMode()
@@ -69,7 +66,7 @@ void UW_ShopModeChangeWidget::ClickCheckBossMode()
     OpenWidget();
     if(ShopGameMode)
     {
-        //ShopGameMode->SetCheckBossMode();
+        ShopGameMode->SetCheckBossMode();
     }
 }
 void UW_ShopModeChangeWidget::OpenWidget()
@@ -102,6 +99,5 @@ void UW_ShopModeChangeWidget::ClickUnlockWeaponMode()
     if(ShopGameMode)
     {
         ShopGameMode->SetUnlockWeaponMode();
-        SetButtonTexture(T_UnlockWeaponMode);
     }
 }

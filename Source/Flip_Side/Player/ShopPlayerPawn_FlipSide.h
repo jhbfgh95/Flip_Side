@@ -46,6 +46,9 @@ private:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	FVector UnlockCardLocation;
 
+	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
+	FVector CheckBossInfoLocation;
+
 private:
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
 	FRotator MainRotation;
@@ -70,4 +73,7 @@ private:
 	
 	UFUNCTION()
 	void MoveShopMainMode();
+
+	UFUNCTION()
+	void MoveCheckBossInfoMode();
 };

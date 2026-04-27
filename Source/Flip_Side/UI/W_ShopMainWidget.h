@@ -48,6 +48,9 @@ public:
 
 	UFUNCTION()
 	void ClickUnlockWeaponButton();
+
+	UFUNCTION()
+	void ClickCheckBossInfoButton();
 	
 	UFUNCTION()
 	virtual void ClickBattleStartButton();

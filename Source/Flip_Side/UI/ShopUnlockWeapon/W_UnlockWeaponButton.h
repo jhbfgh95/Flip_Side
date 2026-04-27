@@ -30,6 +30,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	class UImage* LockImage;
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* WeaponImage;
 	
 	UPROPERTY(meta = (BindWidget))
 	class UButton* WeaponButton;
@@ -44,12 +47,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Button")
 	class UTexture2D* WeaponTexture;
-
-    UPROPERTY(EditAnywhere, Category = "UI")
-    class UMaterialInterface* MaskMaterialBase; 
-
-    UPROPERTY()
-    class UMaterialInstanceDynamic* DynamicMaskMaterial;
 
 	
 private:

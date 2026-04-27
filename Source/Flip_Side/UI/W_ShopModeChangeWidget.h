@@ -22,22 +22,6 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
-
-private:
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_CoinManageMode;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_CardSeletMode;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_ShopItemMode;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_CheckBossMode;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_ShopMaineMode;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_UnlockWeaponMode;
-
-
 protected:
 	UPROPERTY(meta = (BindWidget))
 	UButton* WidgetOpenButton;

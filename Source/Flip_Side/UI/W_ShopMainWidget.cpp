@@ -11,10 +11,9 @@ void UW_ShopMainWidget::NativeConstruct()
     ShopItemButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickShopItemButton);
     CardSelectButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickCardSelectButton);
     UnlockWeaponButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickUnlockWeaponButton);
-
+    CheckBossButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickCheckBossInfoButton);
     GameStartButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickBattleStartButton);
 
-    
 }
 
 
@@ -58,5 +57,13 @@ void UW_ShopMainWidget::ClickBattleStartButton()
     if(shopGameMode)
     {
         shopGameMode->ChangeBattleLevel();
+    }
+}
+	
+void UW_ShopMainWidget::ClickCheckBossInfoButton()
+{
+    if(shopGameMode)
+    {
+        shopGameMode->SetCheckBossMode();
     }
 }
