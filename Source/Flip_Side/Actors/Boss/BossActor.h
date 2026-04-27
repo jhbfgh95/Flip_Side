@@ -79,11 +79,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
 	class USceneComponent* BossRoot;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Shield")
+	class UNiagaraComponent* ShieldEffectComponent;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Boss", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class UUserWidget> BossHPWidgetClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss")
 	class UW_BossHP* BossHpWidget = nullptr;
+
+	bool bHasCachedPatternInfo = false;
+	int32 CachedPatternIndex = INDEX_NONE;
+	FPatternData CachedPatternData;
 
 /* Animations */
 protected:
@@ -100,6 +107,9 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	void BossMontageEnded(class UAnimMontage* TargetMontage, bool bInterrupted);
+
+	void UpdateShieldEffect();
+	void ApplyCachedPatternInfoToWidget();
 
 /* Can Custom */
 public:
@@ -156,7 +166,16 @@ public:
 	UBossPatternBase* GetPattern() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
+	bool GetPatternDataList(TArray<FPatternData>& OutPatternDataList) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
+	bool GetPatternData(int32 PatternIndex, FPatternData& OutPatternData) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	void SetPatternAnim(class UAnimMontage* TargetMontage);
+
+	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
+	void SetCurrentPatternInfo(int32 PatternIndex, const FPatternData& PatternData);
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	void PlayTelegraph();

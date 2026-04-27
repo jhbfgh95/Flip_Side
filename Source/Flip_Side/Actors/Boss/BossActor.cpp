@@ -1,6 +1,7 @@
 #include "BossActor.h"
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "NiagaraComponent.h"
 #include "W_BossHP.h"
 
 ABossActor::ABossActor()
@@ -12,6 +13,11 @@ ABossActor::ABossActor()
 
 	BossMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
 	BossMesh->SetupAttachment(RootComponent);
+
+	ShieldEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ShieldEffect"));
+	ShieldEffectComponent->SetupAttachment(BossMesh);
+	ShieldEffectComponent->SetAutoActivate(false);
+	ShieldEffectComponent->SetVisibility(true);
 
 	BossSelfEffectLoc = CreateDefaultSubobject<USceneComponent>(TEXT("SelfEffectLocation"));
 	BossSelfEffectLoc->SetupAttachment(RootComponent);
@@ -39,8 +45,10 @@ void ABossActor::BeginPlay()
 				}
 				BossHpWidget->InitBossShield(MaxShield);
 			}
+			ApplyCachedPatternInfoToWidget();
 		}
 	}
+	UpdateShieldEffect();
 
 	if (AnimInstance)
     {
@@ -69,7 +77,9 @@ void ABossActor::InitializeFromBossData(const FBossData& InData)
 			}
 			BossHpWidget->InitBossShield(MaxShield);
 		}
+		ApplyCachedPatternInfoToWidget();
 	}
+	UpdateShieldEffect();
 }
 
 void ABossActor::ApplyDamage(int32 Damage, AActor* DamageCauser)
@@ -98,6 +108,7 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 		if(ActualDamageToHP <= 0)
 		{
 			if(BossHitAnim && AnimInstance) AnimInstance->Montage_Play(BossHitAnim);
+			UpdateShieldEffect();
 			return 0;
 		}
 	}
@@ -127,6 +138,7 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 	{
 		if(BossHitAnim && AnimInstance) AnimInstance->Montage_Play(BossHitAnim);
 	}
+	UpdateShieldEffect();
 
 	return ActualDamageToHP;
 }
@@ -146,6 +158,7 @@ int32 ABossActor::ApplyShieldOnlyDamage(int32 Damage, AActor* DamageCauser)
 	}
 
 	if(BossHitAnim && AnimInstance) AnimInstance->Montage_Play(BossHitAnim);
+	UpdateShieldEffect();
 
 	return ShieldDamage;
 }
@@ -162,6 +175,7 @@ void ABossActor::ApplyShieldHeal(int32 Heal, AActor* HealCauser)
 	{
 		BossHpWidget->ChangeCurrentShield(ActualHealedAmount);
 	}
+	UpdateShieldEffect();
 }
 
 void ABossActor::ApplyCC(const FCCStructure& CC)
@@ -216,6 +230,11 @@ bool ABossActor::ConsumeCCForBossTurn()
 
 int32 ABossActor::GetPatternCount() const
 {
+	if(!Pattern)
+	{
+		return 0;
+	}
+
 	return Pattern->PatternData.Num();
 }
 
@@ -227,6 +246,30 @@ UBossPatternBase* ABossActor::GetPattern() const
 	}
 
 	return Pattern;
+}
+
+bool ABossActor::GetPatternDataList(TArray<FPatternData>& OutPatternDataList) const
+{
+	OutPatternDataList.Reset();
+
+	if(!Pattern)
+	{
+		return false;
+	}
+
+	OutPatternDataList = Pattern->PatternData;
+	return OutPatternDataList.Num() > 0;
+}
+
+bool ABossActor::GetPatternData(int32 PatternIndex, FPatternData& OutPatternData) const
+{
+	if(!Pattern || !Pattern->PatternData.IsValidIndex(PatternIndex))
+	{
+		return false;
+	}
+
+	OutPatternData = Pattern->PatternData[PatternIndex];
+	return true;
 }
 
 FVector ABossActor::GetSelfEffectLocation() const
@@ -281,10 +324,59 @@ void ABossActor::BossMontageEnded(UAnimMontage * TargetMontage, bool bInterrupte
 	}
 }
 
+void ABossActor::UpdateShieldEffect()
+{
+	if(!ShieldEffectComponent) return;
+
+	if(CurrentShield > 0)
+	{
+		ShieldEffectComponent->SetVisibility(true);
+		ShieldEffectComponent->Activate();
+	}
+	else
+	{
+		ShieldEffectComponent->Deactivate();
+		ShieldEffectComponent->SetVisibility(false);
+	}
+}
+
 void ABossActor::SetPatternAnim(UAnimMontage * TargetMontage)
 {
 	if(TargetMontage)
 	{
 		SelectedPatternAnim = TargetMontage;
 	}
+}
+
+void ABossActor::SetCurrentPatternInfo(int32 PatternIndex, const FPatternData& PatternData)
+{
+	bHasCachedPatternInfo = true;
+	CachedPatternIndex = PatternIndex;
+	CachedPatternData = PatternData;
+
+	ApplyCachedPatternInfoToWidget();
+}
+
+void ABossActor::ApplyCachedPatternInfoToWidget()
+{
+	if(!BossHpWidget)
+	{
+		return;
+	}
+
+	if(!bHasCachedPatternInfo)
+	{
+		return;
+	}
+
+	const int32 PatternDisplayIndex = CachedPatternIndex + 1;
+	const int32 FinalDamage = AttackPoint + CachedPatternData.Damage;
+
+	BossHpWidget->SetPatternInfo(
+		PatternDisplayIndex,
+		CachedPatternData.PatternName,
+		CachedPatternData.PatternDescription,
+		FinalDamage,
+		CachedPatternData.PatternIcon
+	);
 }
