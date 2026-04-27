@@ -170,7 +170,9 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
     
     if (PickedPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
     {
-        CurrentBoss->SetPatternAnim(PickedPattern->PatternData[TurnContext.CurrentPatternIndex].PatternMontage);
+        const FPatternData& CurrentPatternData = PickedPattern->PatternData[TurnContext.CurrentPatternIndex];
+        CurrentBoss->SetPatternAnim(CurrentPatternData.PatternMontage);
+        CurrentBoss->SetCurrentPatternInfo(TurnContext.CurrentPatternIndex, CurrentPatternData);
     }
 
     ShowTelegraphPreview(TurnContext.LockedCells, FLinearColor(1.f, 0.f, 0.f, 1.f));

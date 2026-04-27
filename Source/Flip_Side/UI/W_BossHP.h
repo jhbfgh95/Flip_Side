@@ -65,11 +65,33 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UProgressBar* ShieldProgressBar;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UButton* PatternHoverButton;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UWidget* PatternPopupPanel;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternIndexText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternNameText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternDescriptionText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternDamageText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UImage* PatternIconImage;
+
 public:
 
 	void InitBossHp(int32 SetMaxHp);
 	void InitBossShield(int32 SetMaxShield);
 	void SetBossName(const FString& SetBossName);
+	void SetPatternInfo(int32 PatternDisplayIndex, const FString& PatternName, const FText& PatternDescription, int32 FinalDamage, class UTexture2D* PatternIcon);
 
 	void ChangeMaxHp(int32 AddMaxHp);
 	void ChangeCurrentHp(int32 AddHpValue);
@@ -81,10 +103,15 @@ public:
 	void ShowClearImage();
 
 private:
+	UFUNCTION()
+	void ShowPatternPopup();
+
+	UFUNCTION()
+	void HidePatternPopup();
+
 	void RefreshHpBar();
 	void RefreshShieldBar();
 	void UpdateProgressBars(float InDeltaTime);
-	void UpdateShieldVisibility();
 	void SnapHpBarToTarget();
 	void SnapShieldBarToTarget();
 	float GetHpPercent() const;
