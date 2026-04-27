@@ -22,24 +22,6 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
-
-private:
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_CoinManageMode;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_CardSeletMode;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_ShopItemMode;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_CheckBossMode;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_ShopMaineMode;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_UnlockWeaponMode;
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category= "ButtonTexture")
-	UTexture2D* T_UnlockCardMode;
-
-
 protected:
 	UPROPERTY(meta = (BindWidget))
 	UButton* WidgetOpenButton;
@@ -56,8 +38,6 @@ protected:
 	UButton* ShopMainModeButton;
 	UPROPERTY(meta = (BindWidget))
 	UButton* UnlockWeaponButton;
-	UPROPERTY(meta = (BindWidget))
-	UButton* UnlockCardButton;
 
 	class AGameMode_Shop* ShopGameMode;
 
@@ -83,8 +63,6 @@ protected:
 	void ClickShopMainModeButton();
 	UFUNCTION()
 	void ClickUnlockWeaponMode();
-	UFUNCTION()
-	void ClickUnlockCardMode();
 
 	void SetButtonTexture(UTexture2D* SetButtonTexture);
 };

@@ -11,6 +11,7 @@
 #include "Subsystem/DataManagerSubsystem.h"
 #include "WeaponDataTypes.h"
 #include "Components/Border.h"
+#include "UI/ShopCoinManage/W_CoinCountButton.h"
 void UW_CoinSlotWidget::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -26,15 +27,14 @@ void UW_CoinSlotWidget::NativeConstruct()
     }
 
     CoinSubsystem->OnSetWeapon.AddDynamic(this, &UW_CoinSlotWidget::SetWeaponTexture);
-    CoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &UW_CoinSlotWidget::UnlockSlot);
+    
     CoinSubsystem->OnCoinCountUpdate.AddDynamic(this, &UW_CoinSlotWidget::SetCountText);
     CoinSubsystem->OnCoinSlotChange.AddDynamic(this, &UW_CoinSlotWidget::SetBackGround);
-
     SlotButton->OnClicked.AddDynamic(this, &UW_CoinSlotWidget::PressSlotButton);
 
-    SlotIndexText->SetText(FText::AsNumber(SlotIndex+1));
-    
+
     BackGroundBorder->SetRenderOpacity(0.7f);
+    
 }
 	
 void UW_CoinSlotWidget::NativeDestruct()
@@ -50,32 +50,33 @@ void UW_CoinSlotWidget::SetWeaponTexture(int32 WeaponID)
     
     if(SlotIndex!=CoinSubsystem->GetCurrentSlotNum())
         return;
-    FFaceData WeaponData;
-    bool IsGetWeaponData = DataSubsystem->TryGetWeapon(WeaponID,WeaponData);
+    FFaceData FrontWeaponData;
+    FFaceData BackWeaponData;
 
-    if(CoinSubsystem->GetIsCreateCoinFront())
+    FCoinTypeStructure CoinInfo = CoinSubsystem->GetCurrentSlotCoin();
+
+
+    if(DataSubsystem->TryGetWeapon(CoinInfo.FrontWeaponID,FrontWeaponData))
     {
-        if (FrontDynamicMaterial && FrontDynamicMaterial)
-        {
-            FrontDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), WeaponData.WeaponIcon);
-            FrontDynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), WeaponData.TypeColor);
-        }
+        FrontDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), FrontWeaponData.WeaponIcon);
+        FrontDynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), FrontWeaponData.TypeColor);
     }
     else
     {
-        if (BackWeaponImage && BackDynamicMaterial)
-        {
-            BackDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), WeaponData.WeaponIcon);
-            BackDynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), WeaponData.TypeColor);
-        }
+        FrontDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
+    }
+
+    if(DataSubsystem->TryGetWeapon(CoinInfo.BackWeaponID,BackWeaponData))
+    {
+        BackDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), BackWeaponData.WeaponIcon);
+        BackDynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), BackWeaponData.TypeColor);
+    }
+    else
+    {
+        BackDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
     }
 }
-	
-void UW_CoinSlotWidget::UnlockSlot()
-{
-    if(SlotIndex==CoinSubsystem->GetCurrentSlotNum())
-        LockImage->SetVisibility(ESlateVisibility::Collapsed);
-}
+
 
 void UW_CoinSlotWidget::PressSlotButton()
 {
@@ -97,4 +98,16 @@ void UW_CoinSlotWidget::SetBackGround()
         BackGroundBorder->SetRenderOpacity(1.2f);
     else
         BackGroundBorder->SetRenderOpacity(0.7f);
+}
+	
+void UW_CoinSlotWidget::InitSlot(int32 SlotNum)
+{
+    SlotIndex = SlotNum;
+    IncreaseButton->InitButton(SlotIndex);
+    DecreaseButton->InitButton(SlotIndex);
+    SlotIndexText->SetText(FText::AsNumber(SlotNum+1));
+
+    FrontDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
+    BackDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
+
 }

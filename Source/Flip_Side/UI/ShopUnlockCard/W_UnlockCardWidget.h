@@ -15,6 +15,7 @@ UCLASS()
 class FLIP_SIDE_API UW_UnlockCardWidget : public UW_CardWidget
 {
 	GENERATED_BODY()
+	/*
 
 protected:
 	virtual void NativeConstruct() override;
@@ -66,5 +67,5 @@ public:
 	UFUNCTION()
 	void InitUnlockCard(FCardData SetCardData);
 
-	void InitCardShowIndex(int32 index);
+	void InitCardShowIndex(int32 index);*/
 };

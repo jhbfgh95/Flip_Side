@@ -13,8 +13,6 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FShopMainMode);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCoinCreateMode);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCoinManageMode);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FShopItemMode);
@@ -22,8 +20,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FShopItemMode);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSelectCardMode);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockWeaponMode);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockCardMode);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCheckBossMode);
 
@@ -44,27 +40,20 @@ public:
 	
 	FCoinManageMode OnCoinManageMode;
 
-	FCoinCreateMode OnCoinCreateMode;
-
 	FShopItemMode OnShopItemMode;
 	
 	FSelectCardMode OnSelectCardMode;
 	
 	FUnlockWeaponMode OnUnlockWeaponMode;
-	
-	FUnlockCardMode OnUnlockCardMode;
 
 	FCheckBossMode OnCheckBossMode;
 public:
 	void SetShopMainMode();
 	void SetCheckBossMode();
 	void SetCoinManageMode();
-	void SetCoinCreateMode();
 	void SetShopItemMode();
 	void SetCardSelectMode();
 	void SetUnlockWeaponMode();
-	void SetUnlockCardMode();
-
 public:
 	virtual void ChangeBattleLevel();
 	void InsertDataInSubysytem();

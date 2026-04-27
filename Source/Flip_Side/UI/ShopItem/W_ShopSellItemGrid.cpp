@@ -6,7 +6,7 @@
 #include "Components/UniformGridPanel.h"
 #include "UI/ShopItem/W_SellItemButton.h"
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
-
+#include "Components/TextBlock.h"
 
 
 void UW_ShopSellItemGrid::NativeConstruct()
@@ -14,6 +14,11 @@ void UW_ShopSellItemGrid::NativeConstruct()
     Super::NativeConstruct();
 
     ShopItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
+
+    ShopItemSubsystem->OnItemHovered.AddDynamic(this, &UW_ShopSellItemGrid::ShowDescrip);
+    ShopItemSubsystem->OnItemUnHovered.AddDynamic(this, &UW_ShopSellItemGrid::HideDescrip);
+
+
     TArray<FItemData> SellItemData = ShopItemSubsystem->GetShopItemList();
 
     int32 SellItemCount = SellItemData.Num();
@@ -40,5 +45,17 @@ void UW_ShopSellItemGrid::NativeConstruct()
 
 void UW_ShopSellItemGrid::NativeDestruct()
 {
+    ShopItemSubsystem->OnItemHovered.RemoveAll(this);
+    ShopItemSubsystem->OnItemUnHovered.RemoveAll(this);
     Super::NativeDestruct();
+}
+
+void UW_ShopSellItemGrid::ShowDescrip(FItemData ItemInfo)
+{
+    ItemBuyDescrip->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UW_ShopSellItemGrid::HideDescrip()
+{
+    ItemBuyDescrip->SetVisibility(ESlateVisibility::Hidden);
 }

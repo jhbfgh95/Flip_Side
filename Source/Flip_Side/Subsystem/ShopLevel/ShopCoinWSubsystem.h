@@ -51,6 +51,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCoinCreated, int32, CreatedCoinInd
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSetWeapon, int32, WeaponID);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeCoinClass, EWeaponClass, ChangeClass);
+
 // WarningNum == 0 같은 무기 앞뒤 / == 1 같은 코인이 슬롯에 존재 / == 2 슬롯 잠김 / ==3 양면에 무기 없음 / == 4 전체 개수 꽉참 / == 5 슬롯 개수 꽉참
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWarningCreate, int32, WarningNum);
 
@@ -83,25 +85,23 @@ public:
 	FWarningCreate OnWarningCreate;
 	FHoverWeapon OnHoverWeapon;
 	FUnHoverWeapon OnUnHoverWeapon;
+	FChangeCoinClass OnChangeCoinClass;
 private:
 	//코인 개수를 증가 시킬수 있는가?
 	bool CanIncreaseCoin(int32 SlotNum);
 	//코인 개수를 감소 시킬수 있는가?
 	bool CanDecreaseCoin(int32 SlotNum);
 
-	int32 GetSameWeaponInCoinSlot(int32 SlotNum);
+	int32 GetSameWeaponInCoinSlot(int32 SlotNum, int32 WeaponID);
 
 	bool IsTrySetSameWeapon(bool IsFront, int32 WeaponID);
 public:
-	//코인슬롯을 증가시키는 방향으로 변경
-	void ChangeCoinSlotRight();
-	//코인슬롯을 감소 시키는 방향으로 변경
-	void ChangeCoinSlotLeft();
 	//특정 번호의 코인 슬롯으로 변경
 	void ChangeCoinSlotByIndex(int32 SlotNum);
 	//현재 코인슬롯을 개방
 
 	void UnlockCurrentCoinSlot();
+	void UnlockCoinSlot(int32 SlotNum);
 	//현재 코인슬롯이 해금되었는지 반환
 	bool GetCurrentCoinUnlock();
 	bool GetCoinUnlockByIndex(int32 index);
@@ -124,6 +124,7 @@ public:
 
 	//슬롯 번호에 해당하는 코인 초기화
 	void ResetCoin(int32 SlotNum);
+	void ResetCoinSide(int32 SlotNum, bool IsFront);
 
 	//현재 코인슬롯의 코인 정보를 가져옴
 	FCoinTypeStructure GetCurrentSlotCoin();
@@ -149,14 +150,13 @@ private:
 public:	
 
 	//코인에 무기 장착
-	void SetWeaponToCoinSide(int32 WeaponID);
+	void SetWeaponToCoinSide(int32 WeaponID, EWeaponClass WeaponClass);
 	//코인의 앞뒤를 변경
 	void ChangeCoinSide();
 	/*현재 제작중인 코인이 앞면인지*/
 	bool GetIsCreateCoinFront();
 public:
 	int32 GetCurrentCoinWeaponID(bool IsFront);
-	
 	void ExecuteWarning(int32 WarningCode);
 
 public:

@@ -11,7 +11,7 @@ void UW_ShopHandCardWidget::NativeConstruct()
     Super::NativeConstruct();
 
     ShopCardSubSystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
-    ShopCardSubSystem->OnCardSelected.AddDynamic(this, &UW_ShopHandCardWidget::SelectedCard);
+    //ShopCardSubSystem->OnCardSelected.AddDynamic(this, &UW_ShopHandCardWidget::SelectedCard);
     this->SetVisibility(ESlateVisibility::Collapsed);
 
     if (RemoveCardAnim)
@@ -79,7 +79,7 @@ void UW_ShopHandCardWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent
 void UW_ShopHandCardWidget::OnUnSelectCardAnimFinished()
 {
     RemoveCard();
-    ShopCardSubSystem->RemoveHandCard(HandIndex);
+    //ShopCardSubSystem->RemoveHandCard(HandIndex);
 }
 
 void UW_ShopHandCardWidget::PlayCardAnim(UWidgetAnimation* Anim)

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "DataTypes/CardTypes.h"
 #include "W_UnlockCardModeWidget.generated.h"
 
 /**
@@ -20,8 +21,9 @@ private:
 	virtual void NativeDestruct() override;
 
 private:
-	class UShopUnlockCardWSubsystem* ShopUnlockCardSubsystem;
+	class UShopCardWSubsystem* ShopCardSubsystem;
 	class UDataManagerSubsystem* DataSubsystem;
+	class UUnlockGISubsystem* UnlockSubsystem;
 private:
 	
 	UPROPERTY(meta =(BindWidget))
@@ -30,41 +32,51 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* UnlockButton;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* SelectPlayerCardButton;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* UnSelectPlayerCardButton;
+
+	UPROPERTY(meta = (BindWidget))
+	class UUserWidget* CancelImage;
 
 private:
 	
 	UPROPERTY(meta = (BindWidget))
-	class UW_CardWidget* SelectUnlockCardWidget;
+	class UW_CardWidget* SelectCardWidget;
 
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
-	TSubclassOf<UUserWidget> UnlockCardWidget;
+	TSubclassOf<UUserWidget> ShopCardWidget;
 
-	TArray<class UW_UnlockCardWidget> UnlockCards;
+	TArray<class UW_ShopCardWidget*> ShopCards;
 
 private:
 	int32 ColumnCount = 4;
 
-
 private:
-	class UUnlockGISubsystem* UnlockSubsystem;
-
+	FCardData CurrentCardData;
+private:
 
 	UFUNCTION()
 	void UnlockCard();
 
 	UFUNCTION()
-	void ChangeCardsLeft();
-
-	UFUNCTION()
-	void ChangeCardsRight();
-
-	UFUNCTION()
-	void SelectCard(int32 SelectCardDataID);
+	void SelectCard(FCardData SelectCardData);
 
 	UFUNCTION()
 	void UnSelectCard();
 
 	UFUNCTION()
+	void SelectPlayerCard();
+
+	UFUNCTION()
+	void UnSelectPlayerCard();
+
+	UFUNCTION()
 	void ExcuteUnlock(int32 unlockCardId);
+
+	UFUNCTION()
+	void UnlockCardAdaptor(int32 ID);
 };

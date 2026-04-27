@@ -17,7 +17,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemHover, FItemData, ItemInfo);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemBuy, int32, InvenIndex);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FItemUnHovere);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FItemUnHovered);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerItemHovered, FItemData, ItemInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerItemUnHovered);
 
 UCLASS()
 class FLIP_SIDE_API UShopItemWSubsystem : public UWorldSubsystem
@@ -38,7 +41,11 @@ public:
 	//아이템을 올려둘 시
 	FItemHover OnItemHovered;
 	//아이템에서 마우스를 땔때
-	FItemUnHovere OnItemUnHovered;
+	FItemUnHovered OnItemUnHovered;
+
+	FPlayerItemHovered OnPlayerItemHovered;
+	//아이템에서 마우스를 땔때
+	FPlayerItemUnHovered OnPlayerItemUnHovered;
 
 	FItemBuy OnItemBuy;
 
@@ -48,14 +55,19 @@ private:
 	TArray<FItemData> ShopItemArray;
 	//플레이어 아이템 목록
 	TArray<FSelectItem> PlayerItemArray;
-	//해당 아이디를 가진 아이템이 플레이어의 인벤토리에 있는지
-	int32 GetPlayerInvenIndexByItemID(int32 ItemID);
+	
 
 private:
 
 	//기본 아이템 데이터
 	FSelectItem DefaultSelecttemData;
 	FItemData DefaultItemData;
+
+private:
+
+	int32 GetEmptyInvenIndex(int32 ItemID);
+	//해당 아이디를 가진 아이템이 플레이어의 인벤토리에 있는지
+	int32 GetSameItemInvenIndex(int32 ItemID);
 public:
 	//상점 아이템에 마우스를 올려놧을 때
 	void HoverItem(FItemData ItemNum);
@@ -66,8 +78,6 @@ public:
 	
 	FSelectItem GetItemDataByItemID(int32 ItemID);
 
-	void BuyItemByIndex(int32 Index);
-
 	void BuyItem(FItemData ItemData);
 	
 	int32 GetPlayerItemNum();
@@ -76,4 +86,8 @@ public:
 
 	TArray<FItemData> GetShopItemList();
 
+	void HoverPlayerItem(FItemData ItemNum);
+	//상점 아이템에서 마우스를 땠을떄
+	void UnHoverPlayerItem();
+	
 };

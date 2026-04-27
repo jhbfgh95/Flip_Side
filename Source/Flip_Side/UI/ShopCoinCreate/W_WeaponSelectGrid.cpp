@@ -9,6 +9,8 @@
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
+
 
 void UW_WeaponSelectGrid::NativeConstruct()
 {
@@ -26,6 +28,7 @@ void UW_WeaponSelectGrid::NativeConstruct()
 
     //그리고 무기 해금 상황에 접근해 버튼을 셋팅한다.
     InitWeaponGrid();
+    HideDescripText();
 }
 
 void UW_WeaponSelectGrid::NativeDestruct()
@@ -77,6 +80,8 @@ void UW_WeaponSelectGrid::AddButton(int32 ID)
     {
         ButtonGrid->AddChildToUniformGrid(WeaponButton, Row, Col);
         WeaponButton->InitButton(ID);
+        WeaponButton->GetWeaponButton()->OnHovered.AddDynamic(this, &UW_WeaponSelectGrid::ShowDescripText);
+        WeaponButton->GetWeaponButton()->OnUnhovered.AddDynamic(this,&UW_WeaponSelectGrid::HideDescripText);
         SelectWeaponButtons.Add(WeaponButton);
     }
 }
@@ -89,4 +94,15 @@ void UW_WeaponSelectGrid::OnWeaponUnlockAdaptor(EWeaponClass WeaponClass,int32 I
 
     int32 LastWeaponID = UnlockSubSystem->GetUnlockWeaponID(GridWeaponClass,UnlockSubSystem->GetUnlockWeaponArrrayNum(GridWeaponClass) -1);
     AddButton(LastWeaponID);
+}
+
+
+void UW_WeaponSelectGrid::ShowDescripText()
+{
+    DescripText->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UW_WeaponSelectGrid::HideDescripText()
+{
+    DescripText->SetVisibility(ESlateVisibility::Hidden);
 }

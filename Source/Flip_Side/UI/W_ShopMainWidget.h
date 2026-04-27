@@ -25,9 +25,6 @@ protected:
 	class UButton* GameStartButton;
 
 	UPROPERTY(meta = (BindWidget))
-	class UButton* CoinCreateButton;
-
-	UPROPERTY(meta = (BindWidget))
 	class UButton* CardSelectButton;
 
 	UPROPERTY(meta = (BindWidget))
@@ -39,13 +36,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* UnlockWeaponButton;
 
-	UPROPERTY(meta = (BindWidget))
-	class UButton* UnlockCardButton;
-
 public:
 	UFUNCTION()
-	void ClickCoinCreateButton();
-
+	void ClickCoinManageButton();
 	
 	UFUNCTION()
 	void ClickShopItemButton();
@@ -55,11 +48,11 @@ public:
 
 	UFUNCTION()
 	void ClickUnlockWeaponButton();
+
+	UFUNCTION()
+	void ClickCheckBossInfoButton();
 	
 	UFUNCTION()
 	virtual void ClickBattleStartButton();
-	
-	UFUNCTION()
-	void ClickUnlockCardButton();
 
 };

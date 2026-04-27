@@ -57,27 +57,12 @@ void UW_UnlockWeaponButton::InitButton(int32 ID)
 
     if(IsGetWeaponData && WeaponButton)
     {
-        FButtonStyle ButtonStyle = WeaponButton->GetStyle();
+        
+        WeaponImage->SetBrushFromTexture(WeaponData.WeaponIcon);
 
-        if (MaskMaterialBase)
-        {
-            DynamicMaskMaterial = UMaterialInstanceDynamic::Create(MaskMaterialBase, this);
+        WeaponNameBlock->SetText(FText::FromString(WeaponName));
 
-            if (DynamicMaskMaterial)
-            {
-                DynamicMaskMaterial->SetTextureParameterValue(FName("IconTexture"), WeaponData.WeaponIcon);
-
-                ButtonStyle.Normal.SetResourceObject(DynamicMaskMaterial);
-                ButtonStyle.Hovered.SetResourceObject(DynamicMaskMaterial);
-                ButtonStyle.Pressed.SetResourceObject(DynamicMaskMaterial);
-            }
-        }
-        else
-        {
-            ButtonStyle.Normal.SetResourceObject(WeaponData.WeaponIcon);
-        }
-
-        WeaponButton->SetStyle(ButtonStyle);
+        SetVisibility(ESlateVisibility::Visible);
         
         WeaponNameBlock->SetText(FText::FromString(WeaponName));
 

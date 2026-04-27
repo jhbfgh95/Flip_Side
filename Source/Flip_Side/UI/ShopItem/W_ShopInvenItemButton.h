@@ -43,6 +43,8 @@ private:
 private:
 	UFUNCTION()
 	void HoverItem();
+	UFUNCTION()
+	void UnhoverItem();
 
 public:
 	void SetItemData(FItemData ItemData);

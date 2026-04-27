@@ -28,6 +28,14 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UW_WeaponDescription* WeaponDes;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* CoinClearButton;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* CoinSideClearButton;
+
+	
+
 private:
 	UFUNCTION()
 	void SetDesText(FFaceData FaceData);
@@ -42,10 +50,18 @@ private:
 
 	UFUNCTION()
 	void SetDes(int32 WeaponID);
-
 	
 	UFUNCTION()
 	void ShowDesPanel(int32 WeaponID);
 	UFUNCTION()
 	void HideDesPanel();
+
+	UFUNCTION()
+	void ClearCoin();
+
+	UFUNCTION()
+	void ClearCoinSide();
+
+
+
 };

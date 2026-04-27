@@ -5,6 +5,7 @@
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "UI/W_WeaponDescription.h"
+#include "Components/Button.h"
 void UW_ShopCoinManage::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -18,6 +19,9 @@ void UW_ShopCoinManage::NativeConstruct()
 	CoinSubsystem->OnSetWeapon.AddDynamic(this, &UW_ShopCoinManage::SetWeaponAdaptor);
 	CoinSubsystem->OnHoverWeapon.AddDynamic(this, &UW_ShopCoinManage::ShowDesPanel);
 	CoinSubsystem->OnUnHoverWeapon.AddDynamic(this, &UW_ShopCoinManage::HideDesPanel);
+
+	CoinClearButton->OnClicked.AddDynamic(this, &UW_ShopCoinManage::ClearCoin);
+	CoinSideClearButton->OnClicked.AddDynamic(this, &UW_ShopCoinManage::ClearCoinSide);
 
 	WeaponDes->SetVisibility(ESlateVisibility::Hidden);
 }
@@ -83,4 +87,14 @@ void UW_ShopCoinManage::ShowDesPanel(int32 WeaponID)
 void UW_ShopCoinManage::HideDesPanel()
 {
 	WeaponDes->SetVisibility(ESlateVisibility::Hidden);
+}
+	
+void UW_ShopCoinManage::ClearCoin()
+{
+	CoinSubsystem->ResetCoin(CoinSubsystem->GetCurrentSlotNum());
+}
+	
+void UW_ShopCoinManage::ClearCoinSide()
+{
+	CoinSubsystem->ResetCoinSide(CoinSubsystem->GetCurrentSlotNum(), CoinSubsystem->GetIsCreateCoinFront());
 }

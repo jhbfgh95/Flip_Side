@@ -24,13 +24,11 @@ void AShopController_FlipSide::BeginPlay()
     this->bEnableMouseOverEvents = true;
     if(ShopGameMode)
     {
-        ShopGameMode->OnCoinCreateMode.AddDynamic(this, &AShopController_FlipSide::SetCoinCreateWidget);
         ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopController_FlipSide::SetShopMainModeWidget);
         ShopGameMode->OnCoinManageMode.AddDynamic(this, &AShopController_FlipSide::SetCoinManageModeWidget);
         ShopGameMode->OnShopItemMode.AddDynamic(this, &AShopController_FlipSide::SetShopItemModeWidget);
         ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopController_FlipSide::SetSelectCardModeWidget);
         ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopController_FlipSide::SetUnlockWeaponModeWidget);
-        ShopGameMode->OnUnlockCardMode.AddDynamic(this, &AShopController_FlipSide::SetUnlockCardModeWidget);
         ShopGameMode->OnCheckBossMode.AddDynamic(this, &AShopController_FlipSide::SetBossStateModeWidget);
     }
 
@@ -43,14 +41,10 @@ void AShopController_FlipSide::BeginPlay()
     InitWidget(CoinManageWidgetClass, CoinManageWidget,0);
     //카드 위젯
     InitWidget(SelectCardWidgetClass, SelectCardWidget,0);
-    //코인제작위젯
-    InitWidget(CoinCreateWidgetClass, CoinCreateWidget,0);
     //상점 UI 클래스
     InitWidget(ShopItemWidgetClass, ShopItemWidget,0);
     //무기 해금 위젯
     InitWidget(UnlockWeaponWidgetClass, UnlockWeaponWidget,0);
-
-    InitWidget(UnlockCardWidgetClass, UnlockCardWidget,0);
 
     InitWidget(BossWidgetClass, BossWidget,0);
 
@@ -138,17 +132,6 @@ void AShopController_FlipSide::AddOpenWidgetList(UUserWidget* AddWidget)
 }
 
 
-//코인 제작 UI
-void AShopController_FlipSide::SetCoinCreateWidget()
-{
-    if(CoinCreateWidget)
-    {
-        HideWidgetList();
-        AddOpenWidgetList(CoinCreateWidget);
-        ViewWidgetList();
-    }
-}
-
 //메인모드 UI
 void AShopController_FlipSide::SetShopMainModeWidget()
 {
@@ -200,15 +183,6 @@ void AShopController_FlipSide::SetUnlockWeaponModeWidget()
     }
 }
 
-void AShopController_FlipSide::SetUnlockCardModeWidget()
-{
-    if(UnlockCardWidget)
-    {
-        HideWidgetList();
-        AddOpenWidgetList(UnlockCardWidget);
-        ViewWidgetList();
-    }
-}
 
 // 좌클릭: 선택, 카메라 이동
 void AShopController_FlipSide::OnLeftClick()

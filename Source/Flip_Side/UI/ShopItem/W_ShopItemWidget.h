@@ -29,4 +29,11 @@ private:
 	UFUNCTION()
 	void SetDesText(FItemData ItemData);
 
+
+	UFUNCTION()
+	void ShowDescrip();
+	
+	UFUNCTION()
+	void HideDescrip();
+
 };

@@ -33,11 +33,6 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UW_CardWidget* CurrentCardWidget;
 public:
-	UFUNCTION()
-	void ClickLeftCardButton();
-	
-	UFUNCTION()
-	void ClickRightCardButton();
 
 	UFUNCTION()
 	void ClickSelectCardButton();

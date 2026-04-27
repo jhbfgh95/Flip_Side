@@ -10,10 +10,14 @@
  * 
  */
 
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnSelectCard);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnlockSelectCard, int32, CardId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCardChanged, FCardData, CardInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectCard, FCardData, CardInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangePlayerCard);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCardSelected, int32, SelectCardIndex, FCardData, CardInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectPlayerCard, FCardData, CardInfo);
+
 UCLASS()
 class FLIP_SIDE_API UShopCardWSubsystem : public UWorldSubsystem
 {
@@ -26,39 +30,65 @@ protected:
 	virtual void Deinitialize() override;
 private:
 	class UDataManagerSubsystem* DM;
-	
 	class UUnlockGISubsystem* UnlockSubsystem;
+
 private:
+
 	TArray<FCardData> UnlockCardList;
+
+	TArray<FCardData> TotalCardList;
+
+	TArray<FCardData> ShopCardList;
 
 	TArray<FCardData> PlayerCardList;
 
 	int32 CurrentCardListNum;
+
 	FCardData DefaultCard;
+
+	FCardData CurrentSelectCard;
+
 
 private:
 	bool CanSelectCard();
+
+	int32 CanSelectPlayerIndex();
 
 	UFUNCTION()
 	void SetUnlockCard();
 	
 	UFUNCTION()
 	void AddCardListToUnlockCard(int32 UnlockCardID);
+
+
+
 public:
+	FSelectPlayerCard OnSelectPlayerCard;
 	FCardChanged OnCardChanged;
-	FCardSelected OnCardSelected;
-	
-	void SetNextCard();
-
-	void SetPreviousCard();
-
+	FSelectCard OnSelectCard;
+	FUnSelectCard OnUnSelectCard;
+	FUnlockSelectCard OnUnlockCard;
+	FChangePlayerCard OnChangePlayerCard;
+public:
 	int32 PlayerSelectCard;
 
-	void SelectCard();
-
-	FCardData GetCurrentCard();
-
-	void RemoveHandCard(int32 HandIndex);
-
 	int32 GetPlayerCardID(int32 index);
+
+public:
+	
+	TArray<FCardData> GetCardListArray();
+
+	void SelectCard(FCardData CardData);
+
+	void UnSelectCard();
+
+	void UnlockCard();
+
+	void SelectPlayerCard(FCardData CardData);
+
+	void UnSelectPlayerCard(FCardData CardData);
+
+	TArray<FCardData> GetPlayerCardList();
+
+	bool CheckPlayerHaveCard(int32 CardID);
 };

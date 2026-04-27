@@ -38,7 +38,6 @@ void AShopCreateCoin::BeginPlay()
 
 	if(CoinWSubSystem)
 	{
-		
 		//코인클래스 변경됬을때
 		CoinWSubSystem->OnSetWeapon.AddDynamic(this, &AShopCreateCoin::SetWeaponAdaptor);
 		//코인 상태 업데이트 됬을때
@@ -122,6 +121,8 @@ void AShopCreateCoin::SetCoinWeaponID()
 	{
 		BackFaceData.WeaponID = -1;
 	}
+	UE_LOG(LogTemp,Warning, TEXT("앞면 무기 아디%d"), FrontFaceData.WeaponID);
+	UE_LOG(LogTemp,Warning, TEXT("뒷면 무기 아디%d"), BackFaceData.WeaponID);
 }
 
 void AShopCreateCoin::SetCoinSideMatarial()

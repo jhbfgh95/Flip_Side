@@ -30,6 +30,8 @@ private:
     UPROPERTY(meta = (BindWidget))
     class UUniformGridPanel* ButtonGrid;
 
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* DescripText;
 private:
     
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
@@ -43,6 +45,10 @@ private:
     void AddButton(int32 ID);
     UFUNCTION()
     void OnWeaponUnlockAdaptor(EWeaponClass WeaponClass,int32 ID);
+    UFUNCTION()
+    void ShowDescripText();
+    UFUNCTION()
+    void HideDescripText();
 
 public:
     UFUNCTION()
