@@ -448,3 +448,16 @@ void UShopCoinWSubsystem::UnHoverWeapon()
 {
     OnUnHoverWeapon.Broadcast();
 }
+	
+int32 UShopCoinWSubsystem::GetCurrentSlotCount()
+{
+    int32 Count = 0;
+
+    for(int i =0; i< ShopCoinSlotArray.Num(); i++)
+    {
+        if(!ShopCoinSlotArray[i].IsUnlock)
+            Count++;
+    }
+    
+    return Count;
+}

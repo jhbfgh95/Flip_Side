@@ -17,6 +17,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemHover, FItemData, ItemInfo);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemBuy, int32, InvenIndex);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemSell, int32, InvenIndex);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FItemUnHovered);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerItemHovered, FItemData, ItemInfo);
@@ -49,6 +51,7 @@ public:
 
 	FItemBuy OnItemBuy;
 
+	FItemSell OnItemSell;
 private:
 
 	//상점 아이템 구매 목록
@@ -89,5 +92,7 @@ public:
 	void HoverPlayerItem(FItemData ItemNum);
 	//상점 아이템에서 마우스를 땠을떄
 	void UnHoverPlayerItem();
+
+	void SellItem(FItemData ItemData);
 	
 };

@@ -13,6 +13,7 @@ void UW_ShopInvenItemButton::NativeConstruct()
     ItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
     ItemButton->OnHovered.AddDynamic(this, &UW_ShopInvenItemButton::HoverItem);
     ItemButton->OnUnhovered.AddDynamic(this, &UW_ShopInvenItemButton::UnhoverItem);
+    ItemButton->OnClicked.AddDynamic(this, &UW_ShopInvenItemButton::SellItem);
     SetItemImage(nullptr);
 }
 
@@ -40,7 +41,10 @@ void UW_ShopInvenItemButton::SetItemData(FItemData ItemData)
 	
 void UW_ShopInvenItemButton::SetCountText(int32 Count)
 {
-    ItemCountText->SetText(FText::AsNumber(Count));
+    if(Count <=0)
+        ItemCountText->SetText(FText::FromString(""));
+    else
+        ItemCountText->SetText(FText::AsNumber(Count));
 }
 	
 void UW_ShopInvenItemButton::SetItemImage(UTexture2D* Texture)
@@ -55,4 +59,11 @@ void UW_ShopInvenItemButton::SetItemImage(UTexture2D* Texture)
         ItemImage->SetColorAndOpacity(FLinearColor(1,1,1,0));
     }
 
+}
+	
+void UW_ShopInvenItemButton::SellItem()
+{
+    if(CurrentItemData.ItemID == -1)
+        return;
+    ItemSubsystem->SellItem(CurrentItemData);
 }

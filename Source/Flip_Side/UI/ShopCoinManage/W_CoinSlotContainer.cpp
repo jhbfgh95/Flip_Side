@@ -17,6 +17,8 @@ void UW_CoinSlotContainer::NativeConstruct()
     Super::NativeConstruct();
     ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     ShopCoinSubsystem->OnCoinCountUpdate.AddDynamic(this , &UW_CoinSlotContainer::SetTotalCoinText);
+    ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this , &UW_CoinSlotContainer::UpdateSlotText);
+    
 
     SlotAddButton->OnClicked.AddDynamic(this, &UW_CoinSlotContainer::AddCoinSlot);
     SetTotalCoinText(0, 0);
@@ -24,14 +26,15 @@ void UW_CoinSlotContainer::NativeConstruct()
 
 void UW_CoinSlotContainer::NativeDestruct()
 {
-     ShopCoinSubsystem->OnCoinCountUpdate.RemoveAll(this);
+    ShopCoinSubsystem->OnCoinCountUpdate.RemoveAll(this);
+    ShopCoinSubsystem->OnUnlockCoinSlot.RemoveAll(this);
     Super::NativeDestruct();
 }
 
 void UW_CoinSlotContainer::SetTotalCoinText(int32 ChangedSlotIndex, int32 Count)
 {
 
-    FString TextString = FString::Printf(TEXT("%d / 30"), ShopCoinSubsystem->GetTotalCoinCount());
+    FString TextString = FString::Printf(TEXT("코인 개수 %d / 30"), ShopCoinSubsystem->GetTotalCoinCount());
     
     TotalCoinText->SetText(FText::FromString(TextString));
 }
@@ -55,4 +58,11 @@ void UW_CoinSlotContainer::AddCoinSlot()
         SlotClass->InitSlot(CoinSlot.Num()-1);
     }
     ShopCoinSubsystem->UnlockCoinSlot(CoinSlot.Num()-1);
+}
+	
+void UW_CoinSlotContainer::UpdateSlotText()
+{
+    int32 SlotCount = ShopCoinSubsystem->GetCurrentSlotCount();
+    FString SlotText = FString::Printf(TEXT("%d / 10"), SlotCount);
+    SlotInfoText->SetText(FText::FromString(SlotText));
 }

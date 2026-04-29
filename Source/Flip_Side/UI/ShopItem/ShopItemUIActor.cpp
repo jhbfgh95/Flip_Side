@@ -29,6 +29,8 @@ void AShopItemUIActor::BeginPlay()
 	ShopItemSubSystem->OnItemHovered.AddDynamic(this, &AShopItemUIActor::SetItemData);
 	ShopItemSubSystem->OnItemBuy.AddDynamic(this, &AShopItemUIActor::BuyItem);
 
+	ShopItemSubSystem->OnItemSell.AddDynamic(this, &AShopItemUIActor::BuyItem);
+
 	ShopItemSubSystem->OnPlayerItemHovered.AddDynamic(this, &AShopItemUIActor::SetItemData);
 	ShopItemSubSystem->OnItemUnHovered.AddDynamic(this, &AShopItemUIActor::RemoveMaterial);
 	ShopItemSubSystem->OnPlayerItemUnHovered.AddDynamic(this, &AShopItemUIActor::RemoveMaterial);

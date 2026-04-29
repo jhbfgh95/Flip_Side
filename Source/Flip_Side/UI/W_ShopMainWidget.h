@@ -36,6 +36,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* UnlockWeaponButton;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* CoinManageButton;
+
 public:
 	UFUNCTION()
 	void ClickCoinManageButton();

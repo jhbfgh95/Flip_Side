@@ -13,7 +13,7 @@ void UW_ShopMainWidget::NativeConstruct()
     UnlockWeaponButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickUnlockWeaponButton);
     CheckBossButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickCheckBossInfoButton);
     GameStartButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickBattleStartButton);
-
+    CoinManageButton->OnClicked.AddDynamic(this,&UW_ShopMainWidget::ClickCoinManageButton);
 }
 
 

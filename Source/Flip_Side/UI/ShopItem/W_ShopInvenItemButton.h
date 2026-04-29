@@ -52,6 +52,7 @@ public:
 	void SetCountText(int32 Count);
 	
 	void SetItemImage(UTexture2D* Texture);
-
-
+	
+	UFUNCTION()
+	void SellItem();
 };

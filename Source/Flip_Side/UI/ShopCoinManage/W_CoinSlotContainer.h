@@ -24,6 +24,9 @@ class FLIP_SIDE_API UW_CoinSlotContainer : public UUserWidget
 	UPROPERTY(meta  =(BindWidget))
 	class UTextBlock* TotalCoinText;
 
+	UPROPERTY(meta  =(BindWidget))
+	class UTextBlock* SlotInfoText;
+
 	UFUNCTION()
 	void SetTotalCoinText(int32 ChangedSlotIndex, int32 Count);
 
@@ -46,4 +49,8 @@ private:
 private:
 	UFUNCTION()
 	void AddCoinSlot();
+
+	
+	UFUNCTION()
+	void UpdateSlotText();
 };	

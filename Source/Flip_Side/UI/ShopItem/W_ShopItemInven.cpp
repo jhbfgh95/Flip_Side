@@ -18,6 +18,7 @@ void UW_ShopItemInven::NativeConstruct()
     ShopItemSubsystem->OnItemBuy.AddDynamic(this, &UW_ShopItemInven::SetItem);
     ShopItemSubsystem->OnPlayerItemHovered.AddDynamic(this, &UW_ShopItemInven::ShowSellDes);
     ShopItemSubsystem->OnPlayerItemUnHovered.AddDynamic(this, &UW_ShopItemInven::HideSellDes);
+    ShopItemSubsystem->OnItemSell.AddDynamic(this, &UW_ShopItemInven::SetItem);
 
     ItemIvens.Add(InvenItem1);
     ItemIvens.Add(InvenItem2);
@@ -57,6 +58,7 @@ void UW_ShopItemInven::SetItem(int32 Index)
         return;
     ItemIvens[Index]->SetCountText(ShopItemSubsystem->GetPlayerItem(Index).SameItemNum);
     FItemData ItemData;
+    ItemData.ItemID = -1;
     DataManagerSubsystem->TryGetItem(ShopItemSubsystem->GetPlayerItem(Index).ItemID, ItemData);
     ItemIvens[Index]->SetItemData(ItemData);
 }

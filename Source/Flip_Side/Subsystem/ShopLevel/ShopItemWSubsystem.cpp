@@ -145,3 +145,29 @@ TArray<FItemData> UShopItemWSubsystem::GetShopItemList()
 {
     return ShopItemArray;
 }
+
+
+void UShopItemWSubsystem::SellItem(FItemData ItemData)
+{  
+    for(int i = 0; i< PlayerItemArray.Num();i++)
+    {
+        if(PlayerItemArray[i].ItemID == ItemData.ItemID)
+        {
+            if(0<PlayerItemArray[i].SameItemNum)
+            {
+                PlayerItemArray[i].SameItemNum--;
+                
+            }
+
+            if(PlayerItemArray[i].SameItemNum <=0)
+            {
+                PlayerItemArray[i].ItemID = -1;
+                
+                PlayerItemArray[i].SameItemNum= 0;
+            }
+            OnItemSell.Broadcast(i);
+            return;
+        }
+        
+    }
+}

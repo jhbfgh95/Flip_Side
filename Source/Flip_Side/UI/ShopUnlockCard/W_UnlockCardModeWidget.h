@@ -79,4 +79,5 @@ private:
 
 	UFUNCTION()
 	void UnlockCardAdaptor(int32 ID);
+
 };
