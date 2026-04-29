@@ -31,7 +31,7 @@ void UW_UnlockCardModeWidget::NativeConstruct()
     
 
     UnlockButton->OnClicked.AddDynamic(this ,&UW_UnlockCardModeWidget::UnlockCard);
-
+    CancelButton->OnClicked.AddDynamic(this ,&UW_UnlockCardModeWidget::HandleCancelButton);
     ////
     TArray<FCardData> CardData = ShopCardSubsystem->GetCardListArray();
 
@@ -64,6 +64,7 @@ void UW_UnlockCardModeWidget::SelectCard(FCardData SelectCardData)
     SelectCardWidget->InitCard(SelectCardData);
     SelectCardWidget->SetVisibility(ESlateVisibility::Visible);
     CancelImage->SetVisibility(ESlateVisibility::Visible);
+    CancelButton->SetVisibility(ESlateVisibility::Visible);
     
     if(UnlockSubsystem->IsCardUnlockByID(CurrentCardData.CardID))
     {
@@ -86,6 +87,7 @@ void UW_UnlockCardModeWidget::UnSelectCard()
     CancelImage->SetVisibility(ESlateVisibility::Hidden);
     UnSelectPlayerCardButton->SetVisibility(ESlateVisibility::Hidden);
     SelectPlayerCardButton->SetVisibility(ESlateVisibility::Hidden);
+    CancelButton->SetVisibility(ESlateVisibility::Hidden);
 }
     
 void UW_UnlockCardModeWidget::UnlockCard()
@@ -107,6 +109,7 @@ void UW_UnlockCardModeWidget::SelectPlayerCard()
     CancelImage->SetVisibility(ESlateVisibility::Visible);
     SelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
     UnSelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
+    CancelButton->SetVisibility(ESlateVisibility::Visible);
 }
 	
 void UW_UnlockCardModeWidget::UnSelectPlayerCard()
@@ -123,3 +126,8 @@ void UW_UnlockCardModeWidget::UnlockCardAdaptor(int32 ID)
     }
 }
 	
+	
+void UW_UnlockCardModeWidget::HandleCancelButton()
+{
+    ShopCardSubsystem->UnSelectCard();
+}

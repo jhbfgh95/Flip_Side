@@ -48,6 +48,15 @@ void UW_ShopCoinWarning::ActiveWarning(int32 WarningCode)
         text = TEXT("양면에 무기가 장착되어 있지 않습니다.");
         WarningImage->SetVisibility(ESlateVisibility::Visible);
         break;
+    case 4:
+        text = TEXT("최대 30개의 코인만 보유할 수 있습니다.");
+        WarningImage->SetVisibility(ESlateVisibility::Visible);
+        break;
+    case 5:
+        text = TEXT("최대 10개의 코인슬롯만 보유할 수 있습니다.");
+        WarningImage->SetVisibility(ESlateVisibility::Visible);
+        break;
+    
     
     default:
         break;

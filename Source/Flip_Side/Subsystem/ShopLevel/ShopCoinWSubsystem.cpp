@@ -56,8 +56,8 @@ bool UShopCoinWSubsystem::CanIncreaseCoin(int32 SlotNum)
     }
 
     if(MAX_TOTAL_COIN<=ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum)
-     {
-        OnWarningCreate.Broadcast(3);
+    {
+        OnWarningCreate.Broadcast(4);
         return false;
     }
 
@@ -257,10 +257,9 @@ void UShopCoinWSubsystem::ResetCoin(int32 SlotNum)
     ShopCoinSlotArray[SlotNum].CoinData.BackWeaponID = -1;
     ShopCoinSlotArray[SlotNum].CoinClass = EWeaponClass::None;
 
-    for(int i = ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum;  0< i; i--)
-    {
-        DecreaseSlotCoinCount(SlotNum);
-    }
+    TotalCoinCount -= ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum;
+    ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum = 0;
+
     OnCoinCountUpdate.Broadcast(SlotNum, 0);
     OnSetWeapon.Broadcast(-1);
 }
@@ -276,10 +275,9 @@ void UShopCoinWSubsystem::ResetCoinSide(int32 SlotNum, bool IsFront)
         ShopCoinSlotArray[SlotNum].CoinData.BackWeaponID = -1;
     }
 
-    for(int i = ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum;  0< i; i--)
-    {
-        DecreaseSlotCoinCount(SlotNum);
-    }
+        TotalCoinCount -= ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum;
+    ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum = 0;
+
     OnCoinCountUpdate.Broadcast(SlotNum, 0);
     OnSetWeapon.Broadcast(-1);
 }

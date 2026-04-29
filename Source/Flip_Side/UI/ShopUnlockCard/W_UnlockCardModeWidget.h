@@ -39,6 +39,9 @@ private:
 	class UButton* UnSelectPlayerCardButton;
 
 	UPROPERTY(meta = (BindWidget))
+	class UButton* CancelButton;
+
+	UPROPERTY(meta = (BindWidget))
 	class UUserWidget* CancelImage;
 
 private:
@@ -80,4 +83,6 @@ private:
 	UFUNCTION()
 	void UnlockCardAdaptor(int32 ID);
 
+	UFUNCTION()
+	void HandleCancelButton();
 };
