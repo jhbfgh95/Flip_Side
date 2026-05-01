@@ -133,14 +133,15 @@ void ACoinActor::SetCoinIsReady(bool IsReady)
 
 void ACoinActor::SetCoinIsActed(const bool IsActed)
 { 
-	bIsActed = IsActed;
+	bIsActed = IsActed; 
+	if(!CoverColors.IsValidIndex(0)) return;
 	if(bIsActed)
 	{
-		CoinActedMesh->SetVisibility(true);
+		SetCover(CoverColors[0], true);
 	}
 	else
 	{
-		CoinActedMesh->SetVisibility(false);
+		SetCover(CoverColors[0], false);
 	}
 	
 }
@@ -429,4 +430,29 @@ void ACoinActor::ResetFlash()
             MID->SetScalarParameterValue(FName("Flash_Intensity"), 0.0f);
         }
     }
+}
+
+void ACoinActor::SetCover(FLinearColor CoverColor, bool bIsShow)
+{
+	if(CoinActedMesh)
+	{
+		UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(CoinActedMesh->GetMaterial(0));
+		if(MID)
+		{
+			MID->SetVectorParameterValue(FName("Coin_Cover_Color"), CoverColor);
+		}
+		CoinActedMesh->SetVisibility(bIsShow);
+	}
+}
+
+void ACoinActor::OnCCApplied()
+{
+	if(!CoverColors.IsValidIndex(1)) return;
+	SetCover(CoverColors[1], true);
+}
+
+void ACoinActor::OnCCRemoved()
+{
+	if(!CoverColors.IsValidIndex(0)) return;
+	SetCover(CoverColors[0], false);
 }

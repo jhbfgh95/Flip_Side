@@ -71,7 +71,7 @@ void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
             if (ABossActor* Boss = BossManager->GetCurrentBoss())
             {
                 Boss->OnBossAttackEnded.AddDynamic(this, &UBattleManagerWSubsystem::DoSettingTurn);
-                Boss->OnBossDead.AddDynamic(this, &UBattleManagerWSubsystem::Lets_GO_ShopLevel);
+                Boss->OnBossDead.AddDynamic(this, &UBattleManagerWSubsystem::StageEnded);
             }
         }
     }
@@ -104,6 +104,8 @@ bool UBattleManagerWSubsystem::StartBattleFromLever() {
 
 void UBattleManagerWSubsystem::TurnProgressing()
 {
+    if(bIsStageEnded) return;
+
     //세팅 턴 -> 코인 레디턴 -> 코인 설렉트턴 -> 보스 턴 
     TurnManageMentStack.Pop();
     CurrentTurn = TurnManageMentStack.Top();
@@ -262,24 +264,7 @@ void UBattleManagerWSubsystem::DoSettingTurn()
     TurnProgressing();
 }
 
-void UBattleManagerWSubsystem::Lets_GO_ShopLevel()
+void UBattleManagerWSubsystem::StageEnded()
 {
-    UGameInstance* GameInstance = GetWorld()->GetGameInstance();
-    if(GameInstance)
-    {
-        ULevelGISubsystem* LevelMan = GameInstance->GetSubsystem<ULevelGISubsystem>();
-
-        if(LevelMan)
-        {
-            //튜토리얼 클리어시, 시작화면으로 아니면 바로 상점레벨로
-            if(LevelMan->GetBattleLevelIndex() == 0)
-            {
-                LevelMan->MoveStartLevel();
-            }
-            else
-            {
-                LevelMan->MoveShopLevel();
-            }
-        }
-    }
+    bIsStageEnded = true;
 }

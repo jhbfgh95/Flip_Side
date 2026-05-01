@@ -92,6 +92,10 @@ protected:
     UPROPERTY(VisibleAnywhere, Category = "Coin | Location")
     FVector OriginSlotLocation;
 
+	//1이 Acted, 2가 CCOn
+	UPROPERTY(EditAnywhere, Category = "Coin | Covercolor")
+	TArray<FLinearColor> CoverColors;
+
 public:	
 	ACoinActor();
 
@@ -253,7 +257,15 @@ protected:
 	UFUNCTION()
     void OnCoinHpChanged(int32 DeltaHP);
 
+	UFUNCTION()
+	void OnCCApplied();
+
+	UFUNCTION()
+	void OnCCRemoved();
+
     void ResetFlash();
+
+	void SetCover(FLinearColor CoverColor, bool bIsShow);
 
 	FTimerHandle FlashTimerHandle;
 };

@@ -24,6 +24,8 @@ class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
 	TArray<FRandomState> RandomStateArray;
 
 	ETurnState CurrentTurn;
+	
+	bool bIsStageEnded = false;
 
 /* 레버 잠금 */
 protected:
@@ -84,6 +86,9 @@ protected:
 
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 
+	UFUNCTION()
+	void StageEnded();
+
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnTurnChanged OnTurnChanged;
@@ -92,7 +97,4 @@ public:
 
 	bool StartBattleFromLever();
 
-protected:
-	UFUNCTION()
-	void Lets_GO_ShopLevel();
 };

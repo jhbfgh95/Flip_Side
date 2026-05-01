@@ -1,6 +1,8 @@
 #include "BossActor.h"
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
 #include "W_BossHP.h"
 
@@ -13,6 +15,32 @@ ABossActor::ABossActor()
 
 	BossMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
 	BossMesh->SetupAttachment(RootComponent);
+
+	FrontBackground = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FrontBackground"));
+	FrontBackground->SetupAttachment(RootComponent);
+	BottomBackground = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BottomBackground"));
+	BottomBackground->SetupAttachment(RootComponent);
+	LeftBackground = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftBackground"));
+	LeftBackground->SetupAttachment(RootComponent);
+	RightBackground = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightBackground"));
+	RightBackground->SetupAttachment(RootComponent);
+
+	FrontBackground->SetRelativeLocation(FVector(-60.f, -8890.f, 2440.f));
+	FrontBackground->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
+	FrontBackground->SetRelativeScale3D(FVector(10.f, 10.f, 10.f));
+
+	BottomBackground->SetRelativeLocation(FVector(-60.f, 110.f, -4260.f));
+	BottomBackground->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
+	BottomBackground->SetRelativeScale3D(FVector(10.f, 10.f, 10.f));
+
+	LeftBackground->SetRelativeLocation(FVector(-16070.f, 110.f, 2440.f));
+	LeftBackground->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	LeftBackground->SetRelativeScale3D(FVector(10.f, 10.f, 10.f));
+
+	RightBackground->SetRelativeLocation(FVector(15930.f, 110.f, 2440.f));
+	RightBackground->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
+	RightBackground->SetRelativeScale3D(FVector(10.f, 10.f, 10.f));
+
 
 	ShieldEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ShieldEffect"));
 	ShieldEffectComponent->SetupAttachment(BossMesh);
@@ -130,13 +158,9 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 
 	if(CurrentHP <= 0)
 	{
-		if(BossHpWidget)
-		{
-			BossHpWidget->ShowClearImage();
-		}
-
 		if(AnimInstance && BossClearAnim)
 		{
+			if(OnBossDead.IsBound()) OnBossDead.Broadcast();
 			AnimInstance->Montage_Play(BossClearAnim);
 		}
 	}
@@ -341,7 +365,8 @@ void ABossActor::BossMontageEnded(UAnimMontage * TargetMontage, bool bInterrupte
     }
 	else if(TargetMontage == BossClearAnim)
 	{
-		if(OnBossDead.IsBound()) OnBossDead.Broadcast();
+		BossDeadEffect();
+		BossHpWidget->ShowClearPanel();
 	}
 }
 
@@ -400,4 +425,26 @@ void ABossActor::ApplyCachedPatternInfoToWidget()
 		FinalDamage,
 		CachedPatternData.PatternIcon
 	);
+}
+
+void ABossActor::SetTextureOfBackgrounds(UTexture2D* Front,
+		UTexture2D* Bottom,
+		UTexture2D* Left,
+		UTexture2D* Right)
+{
+	if(FrontBackground && BottomBackground && LeftBackground && RightBackground)
+	{
+		if(Front && Bottom && Left && Right)
+		{
+			UMaterialInstanceDynamic* MID1 = FrontBackground->CreateDynamicMaterialInstance(0);
+			UMaterialInstanceDynamic* MID2 = BottomBackground->CreateDynamicMaterialInstance(0);
+			UMaterialInstanceDynamic* MID3 = LeftBackground->CreateDynamicMaterialInstance(0);
+			UMaterialInstanceDynamic* MID4 = RightBackground->CreateDynamicMaterialInstance(0);
+
+			if(MID1) MID1->SetTextureParameterValue(TEXT("BackgroundTexture"), Front);
+			if(MID2) MID2->SetTextureParameterValue(TEXT("BackgroundTexture"), Bottom);
+			if(MID3) MID3->SetTextureParameterValue(TEXT("BackgroundTexture"), Left);
+			if(MID4) MID4->SetTextureParameterValue(TEXT("BackgroundTexture"), Right);
+		}
+	}
 }

@@ -28,6 +28,8 @@ private:
 	UPROPERTY(VisibleAnywhere,  Category = "Shield")
 	int32 CurrentShield = 0;
 
+	int32 CurrentStage = -1;
+
 	UPROPERTY(EditAnywhere, Category = "BossHP|Animation", meta = (AllowPrivateAccess))
 	float ProgressBarInterpSpeed = 5.f;
 
@@ -42,7 +44,10 @@ private:
 private:
 
 	UPROPERTY(meta = (BindWidget))
-    class UImage* ClearImage;
+    class UWidget* ClearPanel;
+
+	UPROPERTY(meta = (BindWidget))
+    class UButton* GotoShopButton;
 
 	UPROPERTY(meta = (BindWidget))
     class UTextBlock* HpText;
@@ -88,6 +93,7 @@ private:
 
 public:
 
+	void SetCurrnetStage(const int32 StageNum) { CurrentStage = StageNum;}
 	void InitBossHp(int32 SetMaxHp);
 	void InitBossShield(int32 SetMaxShield);
 	void SetBossName(const FString& SetBossName);
@@ -100,7 +106,7 @@ public:
 	void ChangeCurrentShield(int32 AddShieldValue);
 
 	UFUNCTION()
-	void ShowClearImage();
+	void ShowClearPanel();
 
 private:
 	UFUNCTION()
@@ -108,6 +114,9 @@ private:
 
 	UFUNCTION()
 	void HidePatternPopup();
+
+	UFUNCTION()
+	void StageCleardClicked();
 
 	void RefreshHpBar();
 	void RefreshShieldBar();

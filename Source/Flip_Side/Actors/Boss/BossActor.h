@@ -102,6 +102,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss")
 	class UW_BossHP* BossHpWidget = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
+	class UStaticMeshComponent* FrontBackground;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
+	class UStaticMeshComponent* BottomBackground;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
+	class UStaticMeshComponent* LeftBackground;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
+	class UStaticMeshComponent* RightBackground;
+
 	bool bHasCachedPatternInfo = false;
 	int32 CachedPatternIndex = INDEX_NONE;
 	FBossPatternBattleData CachedPatternData;
@@ -117,7 +129,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
 	TObjectPtr<class UAnimMontage> BossHitAnim = nullptr;
-
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	void BossMontageEnded(class UAnimMontage* TargetMontage, bool bInterrupted);
@@ -196,6 +207,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|CC")
 	bool IsStunned() const { return bIsOnCC && AppliedCC.CCType == ECCTypes::Stun; }
+
+	UFUNCTION()
+	void SetTextureOfBackgrounds(
+		UTexture2D* Front,
+		UTexture2D* Bottom,
+		UTexture2D* Left,
+		UTexture2D* Right
+	);
 	
 /* Getters */
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
@@ -245,4 +264,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Boss")
 	FOnBossDead OnBossDead;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Boss")
+	void BossDeadEffect();
 };

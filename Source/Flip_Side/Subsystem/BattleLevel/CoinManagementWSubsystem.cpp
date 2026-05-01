@@ -117,6 +117,7 @@ void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
             BattleReadyCoins[i]->CoinMesh->SetVisibility(false);
             BattleReadyCoins[i]->CoinHPUI->SetVisibility(false);
             BattleReadyCoins[i]->StatComponent->ClearTurnBasedBuffs();
+            BattleReadyCoins[i]->StatComponent->DecreaseCCDuration(1);
         }
     }
 

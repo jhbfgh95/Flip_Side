@@ -2,6 +2,7 @@
 
 
 #include "UI/W_BossHP.h"
+#include "LevelGISubsystem.h"
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
@@ -12,15 +13,20 @@ void UW_BossHP::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    if(ClearImage) 
+    if(ClearPanel) 
     {
-        ClearImage->SetVisibility(ESlateVisibility::Hidden);
+        ClearPanel->SetVisibility(ESlateVisibility::Hidden);
     }
 
     if(PatternHoverButton)
     {
         PatternHoverButton->OnHovered.AddDynamic(this, &UW_BossHP::ShowPatternPopup);
         PatternHoverButton->OnUnhovered.AddDynamic(this, &UW_BossHP::HidePatternPopup);
+    }
+
+    if(GotoShopButton)
+    {
+        GotoShopButton->OnClicked.AddDynamic(this, &UW_BossHP::StageCleardClicked);
     }
 
     HidePatternPopup();
@@ -131,12 +137,11 @@ void UW_BossHP::ChangeCurrentShield(int32 AddShieldValue)
 }
 
 
-void UW_BossHP::ShowClearImage()
+void UW_BossHP::ShowClearPanel()
 {
-    if (ClearImage)
+    if (ClearPanel)
     {
-        // 이미지를 화면에 보여줍니다 (클릭 이벤트를 무시하려면 HitTestInvisible 추천)
-        ClearImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+        ClearPanel->SetVisibility(ESlateVisibility::Visible);
     }
 }
 
@@ -279,4 +284,26 @@ float UW_BossHP::GetShieldPercent() const
     }
 
     return static_cast<float>(CurrentShield) / static_cast<float>(MaxShield);
+}
+
+void UW_BossHP::StageCleardClicked()
+{
+    UGameInstance* GameInstance = GetWorld()->GetGameInstance();
+    if(GameInstance)
+    {
+        ULevelGISubsystem* LevelMan = GameInstance->GetSubsystem<ULevelGISubsystem>();
+
+        if(LevelMan)
+        {
+            //튜토리얼 클리어시, 시작화면으로 아니면 바로 상점레벨로
+            if(LevelMan->GetBattleLevelIndex() == 0)
+            {
+                LevelMan->MoveStartLevel();
+            }
+            else
+            {
+                LevelMan->MoveShopLevel();
+            }
+        }
+    }
 }

@@ -236,6 +236,7 @@ void UComponent_Status::ApplyCC(FCCStructure CC)
 	bIsOnCC = true;
 
 	CCDuration = AppliedCC.CCDuration;
+    OnCCActived.ExecuteIfBound();
 }
 
 void UComponent_Status::RemoveCC()
@@ -244,4 +245,14 @@ void UComponent_Status::RemoveCC()
 
 	CCDuration = 0;
 	bIsOnCC = false;
+}
+
+void UComponent_Status::DecreaseCCDuration(const int32 WantToDecreaseCCDuration)
+{
+    CCDuration = FMath::Clamp(CCDuration - WantToDecreaseCCDuration, 0, MAX_CCDURATION);
+
+    if(CCDuration <= 0)
+    {
+        RemoveCC();
+    }
 }

@@ -241,6 +241,13 @@ void UCoinActionManagementWSubsystem::SetCasterCoin(ACoinActor* CasterCoin)
 //코인은 나 선택됬다고 신호만 보내면 됨
 void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedCoin)
 {
+    ACoinActor* CasterCoin = SelectedAction ? SelectedAction->GetCasterCoin() : nullptr;
+    if(CasterCoin && CasterCoin->StatComponent && CasterCoin->StatComponent->GetOnIsOnCC())
+    {
+        CancelSelectWeapon();
+        return;
+    }
+
     if(CurrentInputState == EActionInputState::None)
     {
         if(AreaSpec.Pattern == EAttackAreaPattern::SingleCell)

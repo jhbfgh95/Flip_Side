@@ -17,8 +17,10 @@
 */
 
 #define MAX_SHIELD 15
+#define MAX_CCDURATION 999
 
 DECLARE_DELEGATE(FOnCCRemoved);
+DECLARE_DELEGATE(FOnCCActived); //나중에 OneParam 같은거로 CC종류따라 바꾸기
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHPChanged, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnShieldChanged, int32);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDead);
@@ -82,6 +84,8 @@ class FLIP_SIDE_API UComponent_Status : public UActorComponent
 	//걍 군중제어기는 가장 마지막에 들어오는게 적용되는 식으로.
 	FCCStructure AppliedCC;
 
+	int32 CCDuration = 0;
+
 	bool bIsOnCC = false;
 public:
 	FOnHPChanged OnHpChanged;
@@ -101,8 +105,7 @@ public:
 
 	FOnDead OnDead;
 
-	//개귀찮으니까 걍 배틀매니저에서 한 플로우 지나갈 때마다 -1할꺼임
-	int32 CCDuration = 0;
+	FOnCCActived OnCCActived;
 
 	//UI용
     UPROPERTY(BlueprintReadOnly, Category = "Status|Buff")
@@ -152,6 +155,7 @@ public:
 	//이건 선택 못하게 하는거
 	bool GetOnIsOnCC() const { return bIsOnCC; }
 
+	void DecreaseCCDuration(const int32 WantToDecreaseCCDuration);
 protected:
 	virtual void BeginPlay() override;
 
