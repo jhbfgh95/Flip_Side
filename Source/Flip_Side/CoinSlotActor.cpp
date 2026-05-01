@@ -20,11 +20,23 @@ void ACoinSlotActor::BeginPlay()
 void ACoinSlotActor::OnHover_Implementation()
 {
     OnCoinSlotHovered.Broadcast(this);
+    SlotHoverOutline();
+    
+    for (ACoinActor* Coin : AllowcatedCoins)
+    {
+        if (Coin) Coin->CoinHoverOutline();
+    }
 }
 
 void ACoinSlotActor::OnUnhover_Implementation()
 {
     OnCoinSlotUnHovered.Broadcast();
+    SlotUnHoverOutline();
+
+    for (ACoinActor* Coin : AllowcatedCoins)
+    {
+        if (Coin) Coin->CoinUnHoverOutline();
+    }
 }
 
 void ACoinSlotActor::OnClicked_Implementation()

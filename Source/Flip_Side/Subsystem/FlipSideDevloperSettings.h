@@ -55,4 +55,26 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Stage UI",
 		meta = (AllowedClasses = "/Script/UMG.UserWidget"))
 	TSoftClassPtr<UUserWidget> StageHUDWidgetClass;
+
+	// 사운드
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | BGM")
+	TSoftObjectPtr<USoundBase> BattleBGM;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> LeverPullSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> DrawerOpenSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	float DrawerOpenSFXDelay = 0.0f;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> DrawerCloseSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	float DrawerCloseSFXDelay = 0.0f;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> CoinSlotClickSFX;
 };

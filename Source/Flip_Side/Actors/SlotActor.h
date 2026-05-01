@@ -14,7 +14,7 @@ class ASlotActor : public AActor
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* SlotRootComponent;
 
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* SlotMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))

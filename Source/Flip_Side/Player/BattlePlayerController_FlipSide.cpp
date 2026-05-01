@@ -47,8 +47,8 @@ void ABattlePlayerController_FlipSide::BeginPlay()
     if (ControlledPawn)
     {
         // 디폴트 카메라 시점
-        DefaultCameraLocation = FVector(-1820.0f, -990.0f, 2220.0f);
-        DefaultCameraRotation = FRotator(-35.0f, 0.0f, 0.0f);
+        DefaultCameraLocation = FVector(-3086.0f, -990.0f, 2438.0f);
+        DefaultCameraRotation = FRotator(-21.6f, 0.0f, 0.0f);
         DefaultCameraArmLength = 0.0f;
     }
 
@@ -58,7 +58,7 @@ void ABattlePlayerController_FlipSide::BeginPlay()
     }
 }
 
-void ABattlePlayerController_FlipSide::ReturnToDefaultCamera()
+void ABattlePlayerController_FlipSide::ReturnToDefaultCamera() // 일단 당장은 필요 X
 {
     if (ControlledPawn)
     {
@@ -96,9 +96,6 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
             return;
         }
     }
-
-    // 3. 허공 클릭 시 기본 시점 복귀
-    ReturnToDefaultCamera();
 }
 
 void ABattlePlayerController_FlipSide::CheckMouseHover()
@@ -163,8 +160,6 @@ void ABattlePlayerController_FlipSide::OnRightClick()
         BattleSub->HandleGridCanceled();
         */
     }
-
-    ReturnToDefaultCamera();
 }
 
 void ABattlePlayerController_FlipSide::OnPossess(APawn *InPawn)

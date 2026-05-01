@@ -66,8 +66,7 @@ void ALeverActor::PlayLeverAnimation()
         LatentInfo
     );
 
-    // 레버 다시 원래대로
-    float ReturnDelay = 2.0f; 
+    // 레버 다시 원래대로 
     FTimerHandle TimerHandle;
     GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
     {

@@ -46,6 +46,12 @@ public:
 
 	virtual void OnClicked_Implementation() override;
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Slot | Outline")
+	void SlotHoverOutline();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Slot | Outline")
+	void SlotUnHoverOutline();
+
 	void SetFrontFaceInfo(
 		class UTexture2D* Icon,
 		const FText& WeaponName,

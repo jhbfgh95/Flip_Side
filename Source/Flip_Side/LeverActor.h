@@ -31,6 +31,9 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Lever | Animation")
     float AnimationSpeed = 0.5f;
 
+	UPROPERTY(EditAnywhere, Category = "Lever | Animation")
+	float ReturnDelay = 2.0f;
+
 public:	
 	// 레버 고정부
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")

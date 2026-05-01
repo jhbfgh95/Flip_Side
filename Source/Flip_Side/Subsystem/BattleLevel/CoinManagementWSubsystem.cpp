@@ -10,6 +10,7 @@
 #include "AttackAreaTypes.h"
 #include "FlipSide_Enum.h"
 #include "CoinActionManagementWSubsystem.h"
+#include "BattleManagerWSubsystem.h"
 #include "CrossingLevelGISubsystem.h"
 #include "DataManagerSubsystem.h"
 #include "FlipSideDevloperSettings.h"
@@ -168,6 +169,7 @@ void UCoinManagementWSubsystem::AddBattleReadyCoins(ACoinActor* SelectCoinActor,
     if (TargetIdx == INDEX_NONE) return; 
 
     BattleReadyCoins[TargetIdx] = SelectCoinActor;
+    OnCoinAddedToReady.Broadcast();
     SelectCoinActor->SetCoinIsReady(true);
 
     int32 RowIndex = TargetIdx / 5; 
@@ -178,6 +180,18 @@ void UCoinManagementWSubsystem::AddBattleReadyCoins(ACoinActor* SelectCoinActor,
 
     FVector TargetLocation = (RowIndex == 0) ? Row1_Start : Row2_Start;
     TargetLocation.Y += (ColIndex * ColumnOffset);
+
+    FLatentActionInfo StopInfo;
+    StopInfo.CallbackTarget = this;
+    StopInfo.UUID = SelectCoinActor->GetUniqueID();
+    StopInfo.Linkage = 0;
+    StopInfo.ExecutionFunction = FName("OnArrangeSlotMoveComplete");
+    UKismetSystemLibrary::MoveComponentTo(
+        SelectCoinActor->GetRootComponent(),
+        FVector::ZeroVector, FRotator::ZeroRotator,
+        false, false, 0.f, false,
+        EMoveComponentAction::Stop, StopInfo
+);
 
     SelectCoinActor->SetActorEnableCollision(false);
     SelectCoinActor->SetActorScale3D(FVector(1.5f, 1.5f, 1.5f));
@@ -494,6 +508,9 @@ void UCoinManagementWSubsystem::HandleCoinUnHovered()
 
 void UCoinManagementWSubsystem::HandleReadyCoinClicked(ACoinActor* ClickedCoin)
 {
+    UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
+    if (!BattleManager || BattleManager->GetCurrentTurn() != ETurnState::CoinReadyTurn) return;
+
     RemoveBattleReadyCoins(ClickedCoin);
 }
 
@@ -524,6 +541,10 @@ void UCoinManagementWSubsystem::HandleCoinSlotHovered(ACoinSlotActor* TargetCoin
 void UCoinManagementWSubsystem::HandleCoinSlotClicked(ACoinActor* ReadyTargetCoin)
 {
     if(!ReadyTargetCoin) return;
+
+    UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
+    if (!BattleManager || BattleManager->GetCurrentTurn() != ETurnState::CoinReadyTurn) return;
+
     AddBattleReadyCoins(ReadyTargetCoin);
 }
 

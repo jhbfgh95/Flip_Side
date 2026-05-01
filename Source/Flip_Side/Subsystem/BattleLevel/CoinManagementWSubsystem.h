@@ -11,6 +11,7 @@
 #include "CoinManagementWSubsystem.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRangeWanted);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCoinAddedToReady);
 
 class ACoinActor;
 
@@ -103,4 +104,7 @@ public:
 	//외부 사거리 카메라에 바인딩할 델리게이트
 	UPROPERTY(BlueprintAssignable, Category = "Events|Hover")
 	FOnRangeWanted OnRangeWanted;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events|Sound")
+	FOnCoinAddedToReady OnCoinAddedToReady;
 };
