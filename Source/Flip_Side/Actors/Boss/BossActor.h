@@ -2,9 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "BossPatternBase.h"
 #include "BossDataTypes.h"
 #include "CoinDataTypes.h"
+#include "BossPatternBase.h"
+#include "BossGimmickBase.h"
 #include "BossActor.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBossAttackEndedDelegate);
@@ -15,6 +16,7 @@ UCLASS()
 class FLIP_SIDE_API ABossActor : public AActor
 {
 	GENERATED_BODY()
+
 
 protected:
 /* Default Status */
@@ -52,8 +54,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
 	int32 BossID = 0;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss | Stat")
+	float StageMultiplierStat = 1.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss | Stat")
+	float StageMultiplierGimmick = 1.0f;
+
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, Category = "Boss|Pattern")
 	TObjectPtr<UBossPatternBase> Pattern;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Gimmick")
+	TArray<TObjectPtr<UBossGimmickBase>> GimmickList;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Gimmick")
+	TObjectPtr<UBossGimmickBase> ActiveGimmick;
 
 
 /* Stat Functions */
@@ -90,7 +104,7 @@ protected:
 
 	bool bHasCachedPatternInfo = false;
 	int32 CachedPatternIndex = INDEX_NONE;
-	FPatternData CachedPatternData;
+	FBossPatternBattleData CachedPatternData;
 
 /* Animations */
 protected:
@@ -122,7 +136,7 @@ public:
 /*Functions*/
 public:
 	UFUNCTION(BlueprintCallable, Category = "Boss")
-	void InitializeFromBossData(const FBossData& InData);
+	void InitializeFromBossData(const FBossBattleData& InData);
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	int32 GetThemeID() const { return ThemeID; }
@@ -138,6 +152,12 @@ public:
 	int32 GetAttackPoint() const { return AttackPoint; }
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
+	float GetStageMultiplierStat() const { return StageMultiplierStat; }
+
+	UFUNCTION(BlueprintCallable, Category = "Boss")
+	float GetStageMultiplierGimmick() const { return StageMultiplierGimmick; }
+
+	UFUNCTION(BlueprintCallable, Category = "Boss")
 	int32 GetCurrentShield() const { return CurrentShield; }
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
@@ -145,6 +165,28 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	bool HasShield() const { return CurrentShield > 0; }
+
+	UFUNCTION(BlueprintCallable, Category = "Boss")
+	int32 GetCurrentHP() const { return CurrentHP; }
+
+	UFUNCTION(BlueprintCallable, Category = "Boss")
+	int32 GetMaxHP() const { return MaxHP; }
+
+	void SetCurrentHP(int32 NewHP) { CurrentHP = NewHP; }
+	void SetCurrentShield(int32 NewShield) { CurrentShield = NewShield; }
+	void SetPattern(UBossPatternBase* InPattern) { Pattern = InPattern; }
+	void AddGimmick(UBossGimmickBase* InGimmick);
+	void SetActiveGimmick(UBossGimmickBase* InGimmick) { ActiveGimmick = InGimmick; }
+
+	void InitShield(int32 ShieldValue);
+
+	UFUNCTION(BlueprintCallable, Category = "Boss|Gimmick")
+	UBossGimmickBase* GetActiveGimmick() const { return ActiveGimmick; }
+
+	const TArray<TObjectPtr<UBossGimmickBase>>& GetGimmickList() const { return GimmickList; }
+
+	UFUNCTION(BlueprintCallable, Category = "Boss|Gimmick")
+	int32 GetGimmickCount() const { return GimmickList.Num(); }
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|CC")
 	bool GetOnIsOnCC() const { return bIsOnCC; }
@@ -166,16 +208,16 @@ public:
 	UBossPatternBase* GetPattern() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
-	bool GetPatternDataList(TArray<FPatternData>& OutPatternDataList) const;
+	bool GetPatternDataList(TArray<FBossPatternBattleData>& OutPatternDataList) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
-	bool GetPatternData(int32 PatternIndex, FPatternData& OutPatternData) const;
+	bool GetPatternData(int32 PatternIndex, FBossPatternBattleData& OutPatternData) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	void SetPatternAnim(class UAnimMontage* TargetMontage);
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
-	void SetCurrentPatternInfo(int32 PatternIndex, const FPatternData& PatternData);
+	void SetCurrentPatternInfo(int32 PatternIndex, const FBossPatternBattleData& PatternData);
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	void PlayTelegraph();

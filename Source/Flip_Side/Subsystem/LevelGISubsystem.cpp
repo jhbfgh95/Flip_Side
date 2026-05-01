@@ -41,6 +41,15 @@ void ULevelGISubsystem::MovingTutorialLevel(int32 tutorialflag)
     }
     else if(tutorialflag == 1)
     {
+        UGameInstance* GI = Cast<UGameInstance>(GetOuter());
+        if (GI)
+        {
+            UBossSetupGISubsystem* BossSetupGI = GI->GetSubsystem<UBossSetupGISubsystem>();
+            if (BossSetupGI)
+            {
+                BossSetupGI->PrepareBossForID(1);
+            }
+        }
         UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_Stage_Battle_Tutorial")));
     }
 }

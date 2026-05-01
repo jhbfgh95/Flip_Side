@@ -11,6 +11,7 @@
 #include "LevelGISubsystem.h"
 #include "CoinManagementWSubsystem.h"
 #include "BossManagerSubsystem.h"
+#include "BossActor.h"
 #include "CrossingLevelGISubsystem.h"
 #include "UseableItemWSubsystem.h"
 #include "GridManagerSubsystem.h"
@@ -203,8 +204,8 @@ void UBattleManagerWSubsystem::DoCoinSelectTurn()
     GetWorld()->GetTimerManager().SetTimer(LockLeverWhenCanInteractTimer, [this]()
     {
         this->bCanProgressTurn = true;
-    }, 
-    3.0f, 
+    },
+    3.0f,
     false);
     MatchCoinsToRandomState();
 
@@ -216,10 +217,22 @@ void UBattleManagerWSubsystem::DoCoinSelectTurn()
     CoinActionManager->SetTurn(true);
     ItemManager->SetTurn(true);
     ItemManager->CoinBindsToItemMan();
+
+    if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
+    {
+        if (Boss->GetActiveGimmick())
+            Boss->GetActiveGimmick()->OnPlayerTurnStart(Boss);
+    }
 }
 
 void UBattleManagerWSubsystem::DoBossTurn()
 {
+    if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
+    {
+        if (Boss->GetActiveGimmick())
+            Boss->GetActiveGimmick()->OnPlayerTurnEnd(Boss);
+    }
+
     CoinActionManager->SetTurn(false);
     ItemManager->SetTurn(false);
     ActingManager->PlayBossPatternAct();

@@ -38,6 +38,12 @@ protected:
 	class UTextBlock* BossAbilityText;
 
 	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* BossAbilityTitleText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UVerticalBox* GimmickListBox;
+
+	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* PatternTitleText;
 
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -86,22 +92,22 @@ protected:
 	class UButton* PatternButton_10;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Boss")
-	FBossData CurrentBossData;
+	FBossDisplayData CurrentBossData;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Boss")
 	int32 CurrentPatternIndex = 0;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Boss")
-	TArray<FPatternData> CurrentPatternDataList;
+	TArray<FBossPatternDisplayData> CurrentPatternDataList;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	void RefreshPreparedBossInfo();
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
-	void SetBossInfo(const FBossData& BossData);
+	void SetBossInfo(const FBossDisplayData& BossData);
 
-	void SetBossInfo(const FBossData& BossData, const TArray<FPatternData>& PatternDataList);
+	void SetBossInfo(const FBossDisplayData& BossData, const TArray<FBossPatternDisplayData>& PatternDataList);
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	void SelectPattern(int32 PatternIndex);

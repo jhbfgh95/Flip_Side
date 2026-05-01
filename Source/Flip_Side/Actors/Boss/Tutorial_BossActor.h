@@ -9,8 +9,6 @@
   - 앞으로 이거 보고 보스들 짜시면 됩니다.
  */
 
-#define MAX_TUTO_BOSS_SHIELD 50
-
 UCLASS()
 class FLIP_SIDE_API ATutorial_BossActor : public ABossActor
 {

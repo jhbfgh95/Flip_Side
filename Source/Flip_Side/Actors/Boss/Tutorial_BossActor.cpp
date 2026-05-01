@@ -5,8 +5,6 @@
 
 ATutorial_BossActor::ATutorial_BossActor()
 {
-    MaxShield = MAX_TUTO_BOSS_SHIELD;
-    CurrentShield = MAX_TUTO_BOSS_SHIELD;
 }
 
 void ATutorial_BossActor::BeginPlay()

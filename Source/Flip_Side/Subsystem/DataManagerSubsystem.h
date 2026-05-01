@@ -22,7 +22,7 @@ class FLIP_SIDE_API UDataManagerSubsystem : public UGameInstanceSubsystem
     GENERATED_BODY()
 
 public:
-    // ===== Ä³½Ã =====
+    // ===== Ä³ï¿½ï¿½ =====
     UPROPERTY(BlueprintReadOnly)
     TMap<int32, FFaceData> WeaponByID;
 
@@ -34,10 +34,12 @@ public:
     TMap<EWeaponClass, FWeaponIDArray> WeaponIDsByClass;
 
     UPROPERTY(BlueprintReadOnly)
-    TMap<int32, FBossData> BossByID;
+    TMap<int32, FBossDisplayData> BossByID;
 
     UPROPERTY(BlueprintReadOnly)
-    TMap<int32, int32> BossIDByStage; // stage -> boss_id
+    TMap<int32, int32> BossIDByStage;
+
+    TMap<int32, TArray<FBossPatternDisplayData>> BossPatternDisplayByBossID;
 
     UPROPERTY(BlueprintReadOnly)
     TMap<int32, FItemData> ItemByID;
@@ -61,7 +63,7 @@ public:
     UFUNCTION(BlueprintCallable)
     bool ReloadCache();
 
-    // Á¶È¸ (¼±ÅÃ)
+    // ï¿½ï¿½È¸ (ï¿½ï¿½ï¿½ï¿½)
     UFUNCTION(BlueprintCallable)
     bool TryGetWeapon(int32 WeaponID, FFaceData& Out) const;
 
@@ -70,7 +72,12 @@ public:
     void BuildWeaponTypeMap(const TArray<FFaceData>& AllWeapons);
 
     UFUNCTION(BlueprintCallable)
-    bool TryGetBossByStage(int32 Stage, FBossData& Out) const;
+    bool TryGetBossByStage(int32 Stage, FBossDisplayData& Out) const;
+
+    UFUNCTION(BlueprintCallable)
+    bool TryGetBossPatternDisplay(int32 BossID, TArray<FBossPatternDisplayData>& Out) const;
+
+    bool LoadBossBattleData(int32 BossID, FBossBattleData& Out);
 
     UFUNCTION(BlueprintCallable)
     bool TryGetItem(int32 ItemID, FItemData& Out) const;
@@ -85,17 +92,22 @@ private:
 
     void ClearCache();
 
-    // DB ÆÄÀÏ °æ·Î: Content/Database/DB.sqlite ¸¦ Saved·Î º¹»çÇØ¼­ ¿©´Â ¹æ½Ä
+    // DB ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½: Content/Database/DB.sqlite ï¿½ï¿½ Savedï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
     bool OpenDbReadWrite();
     void CloseDb();
 
     bool LoadWeapons();
     bool LoadWeaponTypes();
-    bool LoadBosses();
+    bool LoadBossDisplayData();
+    bool LoadBossPatternDisplay();
     bool LoadItems();
     bool LoadCards();
 
-    // ===== PrepareStatement ½Ã±×´ÏÃ³ Â÷ÀÌ ÀÚµ¿ ´ëÀÀ ·¡ÆÛ =====
+    static EAttackAreaPattern AttackAreaPatternFromInt(int32 Val);
+    static EAreaAnchor AreaAnchorFromInt(int32 Val);
+    static EAreaSide AreaSideFromInt(int32 Val);
+
+    // ===== PrepareStatement ï¿½Ã±×´ï¿½Ã³ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ =====
     template<typename TDb>
     static auto PrepareStmtImpl(TDb& InDb, const TCHAR* Sql, FSQLitePreparedStatement& OutStmt, int)
         -> decltype(InDb.PrepareStatement(Sql, OutStmt), bool())
@@ -106,7 +118,7 @@ private:
     template<typename TDb>
     static bool PrepareStmtImpl(TDb& InDb, const TCHAR* Sql, FSQLitePreparedStatement& OutStmt, long)
     {
-        // PrepareStatement°¡ "¸®ÅÏ"ÇÏ´Â ¿£Áø ¹öÀü ´ëÀÀ
+        // PrepareStatementï¿½ï¿½ "ï¿½ï¿½ï¿½ï¿½"ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         OutStmt = InDb.PrepareStatement(Sql);
         return OutStmt.IsValid();
     }
@@ -116,7 +128,7 @@ private:
         return PrepareStmtImpl(InDb, Sql, OutStmt, 0);
     }
 
-    // ¹®ÀÚ¿­(EWeaponClass) º¯È¯
+    // ï¿½ï¿½ï¿½Ú¿ï¿½(EWeaponClass) ï¿½ï¿½È¯
     static EWeaponClass WeaponClassFromString(const FString& S);
 };
 

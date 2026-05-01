@@ -88,6 +88,8 @@ protected:
     UPROPERTY()
     TObjectPtr<ABossActor> CurrentBoss = nullptr;
 
+    FBossBattleData CurrentBossBattleData;
+
     UPROPERTY()
     FBossTurnContext TurnContext;
 
@@ -121,8 +123,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Boss")
     void ClearCurrentTurn();
 
+
 private:
-    bool Internal_SpawnBoss(const FBossData& InBossData);
+    bool Internal_SpawnBoss(const FBossBattleData& InBossData);
 
     UFUNCTION()
     void ApplyCurrentPattern();
