@@ -1,4 +1,4 @@
-#include "DataManagerSubsystem.h"
+﻿#include "DataManagerSubsystem.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "HAL/FileManager.h"
@@ -70,7 +70,8 @@ bool UDataManagerSubsystem::ReloadCache()
 
     bool bOk = true;
     bOk &= LoadWeapons();
-    bOk &= LoadBosses();
+    bOk &= LoadBossDisplayData();
+    bOk &= LoadBossPatternDisplay();
     bOk &= LoadItems();
     bOk &= LoadWeaponTypes();
     bOk &= LoadCards();
@@ -117,12 +118,12 @@ void UDataManagerSubsystem::BuildWeaponTypeMap(const TArray<FFaceData>& AllWeapo
 }
 
 
-bool UDataManagerSubsystem::TryGetBossByStage(int32 Stage, FBossData& Out) const
+bool UDataManagerSubsystem::TryGetBossByStage(int32 Stage, FBossDisplayData& Out) const
 {
     const int32* BossIDPtr = BossIDByStage.Find(Stage);
     if (!BossIDPtr) return false;
 
-    if (const FBossData* Found = BossByID.Find(*BossIDPtr))
+    if (const FBossDisplayData* Found = BossByID.Find(*BossIDPtr))
     {
         Out = *Found;
         return true;
@@ -168,6 +169,7 @@ void UDataManagerSubsystem::ClearCache()
     WeaponIDsByClass.Reset();
     BossByID.Reset();
     BossIDByStage.Reset();
+    BossPatternDisplayByBossID.Reset();
     ItemByID.Reset();
     WeaponTypes.Reset();
 }
@@ -376,32 +378,281 @@ bool UDataManagerSubsystem::LoadWeaponTypes()
     return true;
 }
 
-bool UDataManagerSubsystem::LoadBosses()
+EAttackAreaPattern UDataManagerSubsystem::AttackAreaPatternFromInt(int32 Val)
 {
-    const TCHAR* Sql =
-        TEXT("SELECT boss_id, boss_stage, attack_point, boss_hp "
-            "FROM boss_def;");
+    return static_cast<EAttackAreaPattern>(FMath::Clamp(Val, 0, (int32)EAttackAreaPattern::RectFromCell));
+}
+
+EAreaAnchor UDataManagerSubsystem::AreaAnchorFromInt(int32 Val)
+{
+    return static_cast<EAreaAnchor>(FMath::Clamp(Val, 0, 1));
+}
+
+EAreaSide UDataManagerSubsystem::AreaSideFromInt(int32 Val)
+{
+    return static_cast<EAreaSide>(FMath::Clamp(Val, 0, 3));
+}
+
+bool UDataManagerSubsystem::LoadBossDisplayData()
+{
+    {
+        const TCHAR* Sql = TEXT(
+            "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, attack_point, ability_description "
+            "FROM boss_def;"
+        );
+
+        FSQLitePreparedStatement Stmt;
+        if (!PrepareStmt(Db, Sql, Stmt))
+        {
+            UE_LOG(LogTemp, Error, TEXT("[DB] LoadBossDisplayData: PrepareStatement failed"));
+            return false;
+        }
+
+        while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
+        {
+            FBossDisplayData Boss;
+            Boss.BossID    = GetColInt(Stmt, 0);
+            Boss.BossStage = GetColInt(Stmt, 1);
+            Boss.ThemeID   = GetColInt(Stmt, 2);
+            Boss.BossName  = GetColTextUTF8(Stmt, 3);
+
+            const FString ImagePath = GetColText(Stmt, 4);
+            if (!ImagePath.IsEmpty())
+                Boss.BossImage = LoadObject<UTexture2D>(nullptr, *ImagePath);
+
+            Boss.AttackPoint = GetColInt(Stmt, 5);
+            Boss.BossAbilityDescription = FText::FromString(GetColTextUTF8(Stmt, 6));
+
+            BossByID.Add(Boss.BossID, Boss);
+            BossIDByStage.Add(Boss.BossStage, Boss.BossID);
+        }
+        Stmt.Destroy();
+    }
+
+    {
+        const TCHAR* Sql = TEXT(
+            "SELECT boss_id, gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description "
+            "FROM boss_gimmick;"
+        );
+
+        FSQLitePreparedStatement Stmt;
+        if (!PrepareStmt(Db, Sql, Stmt)) return false;
+
+        while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
+        {
+            const int32 BossID = GetColInt(Stmt, 0);
+            FBossDisplayData* Found = BossByID.Find(BossID);
+            if (!Found) continue;
+
+            FBossGimmickData G;
+            G.GimmickType        = static_cast<EBossGimmickType>(GetColInt(Stmt, 1));
+            G.ParamIntA          = GetColInt(Stmt, 2);
+            G.ParamIntB          = GetColInt(Stmt, 3);
+            G.ParamFloatA        = (float)GetColDouble(Stmt, 4);
+            G.ParamFloatB        = (float)GetColDouble(Stmt, 5);
+            G.ParamStrA          = GetColText(Stmt, 6);
+            G.GimmickName        = GetColTextUTF8(Stmt, 7);
+            G.GimmickDescription = GetColTextUTF8(Stmt, 8);
+            Found->GimmickList.Add(G);
+        }
+        Stmt.Destroy();
+    }
+
+    return true;
+}
+
+bool UDataManagerSubsystem::LoadBossPatternDisplay()
+{
+    const TCHAR* Sql = TEXT(
+        "SELECT boss_id, pattern_order, pattern_name, pattern_description, "
+        "damage_ratio, "
+        "area_pattern, anchor_dx, anchor_dy, anchor_mode, param_a, param_b, side, "
+        "pattern_icon_path, pattern_range_image_path "
+        "FROM boss_pattern_def "
+        "ORDER BY boss_id, pattern_order;"
+    );
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
     {
-        UE_LOG(LogTemp, Error, TEXT("[DB] LoadBosses: PrepareStatement failed"));
+        UE_LOG(LogTemp, Error, TEXT("[DB] LoadBossPatternDisplay: PrepareStatement failed"));
         return false;
     }
 
     while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
     {
-        FBossData Boss;
-        Boss.BossID = GetColInt(Stmt, 0);
-        Boss.BossStage = GetColInt(Stmt, 1);
-        Boss.AttackPoint = GetColInt(Stmt, 2);
-        Boss.BossHP = GetColInt(Stmt, 3);
+        FBossPatternDisplayData Pattern;
+        const int32 BossID         = GetColInt(Stmt, 0);
+        Pattern.PatternName        = GetColTextUTF8(Stmt, 2);
+        Pattern.PatternDescription = FText::FromString(GetColTextUTF8(Stmt, 3));
+        Pattern.DamageRatio        = (float)GetColDouble(Stmt, 4);
 
-        BossByID.Add(Boss.BossID, Boss);
-        BossIDByStage.Add(Boss.BossStage, Boss.BossID);
+        Pattern.PatternSpec.Pattern    = AttackAreaPatternFromInt(GetColInt(Stmt, 5));
+        Pattern.PatternSpec.AnchorCell = FGridPoint(GetColInt(Stmt, 6), GetColInt(Stmt, 7));
+        Pattern.PatternSpec.AnchorMode = AreaAnchorFromInt(GetColInt(Stmt, 8));
+        Pattern.PatternSpec.ParamA     = GetColInt(Stmt, 9);
+        Pattern.PatternSpec.ParamB     = GetColInt(Stmt, 10);
+        Pattern.PatternSpec.Side       = AreaSideFromInt(GetColInt(Stmt, 11));
+
+        const FString IconPath = GetColText(Stmt, 12);
+        if (!IconPath.IsEmpty())
+            Pattern.PatternIcon = LoadObject<UTexture2D>(nullptr, *IconPath);
+
+        const FString RangeImagePath = GetColText(Stmt, 13);
+        if (!RangeImagePath.IsEmpty())
+            Pattern.PatternRangeImage = LoadObject<UTexture2D>(nullptr, *RangeImagePath);
+
+        BossPatternDisplayByBossID.FindOrAdd(BossID).Add(Pattern);
     }
 
     Stmt.Destroy();
+    return true;
+}
+
+bool UDataManagerSubsystem::TryGetBossPatternDisplay(int32 BossID, TArray<FBossPatternDisplayData>& Out) const
+{
+    if (const TArray<FBossPatternDisplayData>* Found = BossPatternDisplayByBossID.Find(BossID))
+    {
+        Out = *Found;
+        return true;
+    }
+    return false;
+}
+
+bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Out)
+{
+    if (!Db.IsValid())
+    {
+        if (!OpenDbReadWrite()) return false;
+    }
+
+    // boss_def
+    {
+        const TCHAR* Sql = TEXT(
+            "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, "
+            "attack_point, boss_hp, spawn_loc_x, spawn_loc_y, spawn_loc_z, spawn_rot_yaw, "
+            "boss_class_path, pattern_class_path, stage_multiplier_stat, stage_multiplier_gimmick "
+            "FROM boss_def WHERE boss_id = ?;"
+        );
+
+        FSQLitePreparedStatement Stmt;
+        if (!PrepareStmt(Db, Sql, Stmt)) return false;
+        Stmt.SetBindingValueByIndex(1, BossID);
+
+        if (Stmt.Step() != ESQLitePreparedStatementStepResult::Row)
+        {
+            Stmt.Destroy();
+            return false;
+        }
+
+        Out.BossID    = GetColInt(Stmt, 0);
+        Out.BossStage = GetColInt(Stmt, 1);
+        Out.ThemeID   = GetColInt(Stmt, 2);
+        Out.BossName  = GetColTextUTF8(Stmt, 3);
+
+        const FString ImagePath = GetColText(Stmt, 4);
+        if (!ImagePath.IsEmpty())
+            Out.BossImage = LoadObject<UTexture2D>(nullptr, *ImagePath);
+
+        Out.AttackPoint = GetColInt(Stmt, 5);
+        Out.BossHP      = GetColInt(Stmt, 6);
+        Out.SpawnLoc    = FVector(GetColDouble(Stmt, 7), GetColDouble(Stmt, 8), GetColDouble(Stmt, 9));
+        Out.SpawnRot    = FRotator(0.0, GetColDouble(Stmt, 10), 0.0);
+
+        const FString BossClassPath = GetColText(Stmt, 11);
+        if (!BossClassPath.IsEmpty())
+            Out.BossClass = TSoftClassPtr<ABossActor>(FSoftObjectPath(BossClassPath));
+
+        const FString PatternClassPath = GetColText(Stmt, 12);
+        if (!PatternClassPath.IsEmpty())
+        {
+            UClass* Loaded = Cast<UClass>(FSoftObjectPath(PatternClassPath).TryLoad());
+            if (Loaded) Out.PatternClass = Loaded;
+        }
+
+        Out.StageMultiplierStat    = (float)GetColDouble(Stmt, 13);
+        Out.StageMultiplierGimmick = (float)GetColDouble(Stmt, 14);
+
+        Stmt.Destroy();
+    }
+
+    // boss_pattern_def
+    {
+        const TCHAR* Sql = TEXT(
+            "SELECT pattern_name, pattern_description, damage_ratio, apply_delay, "
+            "area_pattern, anchor_dx, anchor_dy, anchor_mode, param_a, param_b, side, "
+            "montage_path, effect_path, effect_scale_x, effect_scale_y, effect_scale_z, "
+            "visual_actor_path, pattern_icon_path, pattern_range_image_path "
+            "FROM boss_pattern_def WHERE boss_id = ? ORDER BY pattern_order;"
+        );
+
+        FSQLitePreparedStatement Stmt;
+        if (!PrepareStmt(Db, Sql, Stmt)) return false;
+        Stmt.SetBindingValueByIndex(1, BossID);
+
+        while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
+        {
+            FBossPatternBattleData P;
+            P.PatternName        = GetColTextUTF8(Stmt, 0);
+            P.PatternDescription = FText::FromString(GetColTextUTF8(Stmt, 1));
+            P.DamageRatio        = (float)GetColDouble(Stmt, 2);
+            P.ApplyDelay         = (float)GetColDouble(Stmt, 3);
+
+            P.PatternSpec.Pattern    = AttackAreaPatternFromInt(GetColInt(Stmt, 4));
+            P.PatternSpec.AnchorCell = FGridPoint(GetColInt(Stmt, 5), GetColInt(Stmt, 6));
+            P.PatternSpec.AnchorMode = AreaAnchorFromInt(GetColInt(Stmt, 7));
+            P.PatternSpec.ParamA     = GetColInt(Stmt, 8);
+            P.PatternSpec.ParamB     = GetColInt(Stmt, 9);
+            P.PatternSpec.Side       = AreaSideFromInt(GetColInt(Stmt, 10));
+
+            const FString MontagePath = GetColText(Stmt, 11);
+            if (!MontagePath.IsEmpty())
+                P.PatternMontage = LoadObject<UAnimMontage>(nullptr, *MontagePath);
+
+            P.PatternEffect = TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(GetColText(Stmt, 12)));
+            P.PatternScale  = FVector(GetColDouble(Stmt, 13), GetColDouble(Stmt, 14), GetColDouble(Stmt, 15));
+            P.VisualActorClass = TSoftClassPtr<ABase_PatternVisualActor>(FSoftObjectPath(GetColText(Stmt, 16)));
+
+            const FString IconPath = GetColText(Stmt, 17);
+            if (!IconPath.IsEmpty())
+                P.PatternIcon = LoadObject<UTexture2D>(nullptr, *IconPath);
+
+            const FString RangeImagePath = GetColText(Stmt, 18);
+            if (!RangeImagePath.IsEmpty())
+                P.PatternRangeImage = LoadObject<UTexture2D>(nullptr, *RangeImagePath);
+
+            Out.PatternList.Add(P);
+        }
+        Stmt.Destroy();
+    }
+
+    // boss_gimmick
+    {
+        const TCHAR* Sql = TEXT(
+            "SELECT gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description "
+            "FROM boss_gimmick WHERE boss_id = ?;"
+        );
+
+        FSQLitePreparedStatement Stmt;
+        if (!PrepareStmt(Db, Sql, Stmt)) return false;
+        Stmt.SetBindingValueByIndex(1, BossID);
+
+        while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
+        {
+            FBossGimmickData G;
+            G.GimmickType        = static_cast<EBossGimmickType>(GetColInt(Stmt, 0));
+            G.ParamIntA          = GetColInt(Stmt, 1);
+            G.ParamIntB          = GetColInt(Stmt, 2);
+            G.ParamFloatA        = (float)GetColDouble(Stmt, 3);
+            G.ParamFloatB        = (float)GetColDouble(Stmt, 4);
+            G.ParamStrA          = GetColText(Stmt, 5);
+            G.GimmickName        = GetColTextUTF8(Stmt, 6);
+            G.GimmickDescription = GetColTextUTF8(Stmt, 7);
+            Out.GimmickList.Add(G);
+        }
+        Stmt.Destroy();
+    }
+
     return true;
 }
 

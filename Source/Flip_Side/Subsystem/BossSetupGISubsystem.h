@@ -43,13 +43,10 @@ class FLIP_SIDE_API UBossSetupGISubsystem : public UGameInstanceSubsystem
 
 protected:
     UPROPERTY()
-    TArray<FBossData> AllBossData;
+    TArray<FBossDisplayData> AllBossData;
 
     UPROPERTY()
-    FBossData TutorialBossData;
-
-    UPROPERTY()
-    FBossData PreparedBossData;
+    FBossDisplayData PreparedBossData;
 
     UPROPERTY()
     FPreparedBossContext PreparedContext;
@@ -57,22 +54,25 @@ protected:
 protected:
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-    bool PickRandomThemeFromStageBosses(const TArray<FBossData>& StageBosses, int32& OutThemeID) const;
-    bool PickRandomBossFromTheme(const TArray<FBossData>& StageBosses, int32 ThemeID, FBossData& OutBossData) const;
-    bool PickRandomBossDataForStage(int32 StageIndex, FBossData& OutBossData) const;
+    bool PickRandomThemeFromStageBosses(const TArray<FBossDisplayData>& StageBosses, int32& OutThemeID) const;
+    bool PickRandomBossFromTheme(const TArray<FBossDisplayData>& StageBosses, int32 ThemeID, FBossDisplayData& OutBossData) const;
+    bool PickRandomBossDataForStage(int32 StageIndex, FBossDisplayData& OutBossData) const;
 
 public:
     UFUNCTION(BlueprintCallable, Category = "Boss")
     bool PrepareBossForStage(int32 StageIndex);
 
     UFUNCTION(BlueprintCallable, Category = "Boss")
+    bool PrepareBossForID(int32 BossID);
+
+    UFUNCTION(BlueprintCallable, Category = "Boss")
     bool HasPreparedBoss() const;
 
     UFUNCTION(BlueprintCallable, Category = "Boss")
-    bool GetPreparedBossData(FBossData& OutBossData) const;
+    bool GetPreparedBossData(FBossDisplayData& OutBossData) const;
 
     UFUNCTION(BlueprintCallable, Category = "Boss")
-    bool GetPreparedBossInfo(FBossData& OutBossData, TArray<FPatternData>& OutPatternDataList) const;
+    bool GetPreparedBossInfo(FBossDisplayData& OutBossData) const;
 
     UFUNCTION(BlueprintCallable, Category = "Boss")
     const FPreparedBossContext& GetPreparedBossContext() const { return PreparedContext; }

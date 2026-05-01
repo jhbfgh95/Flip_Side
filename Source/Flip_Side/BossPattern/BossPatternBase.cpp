@@ -1,4 +1,5 @@
 #include "BossPatternBase.h"
+#include "BossGimmickBase.h"
 #include "GridManagerSubsystem.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Component_Status.h"
@@ -39,6 +40,17 @@ void UBossPatternBase::ExecutePattern(
 	const TArray<ABase_OtherActor*>& InLockedOthers,
 	int32 PatternNum)
 {
+	if (!Boss) return;
+
+	int32 FinalDamage = Boss->GetAttackPoint();
+
+	if (Boss->GetActiveGimmick())
+		Boss->GetActiveGimmick()->OnDamageCalculate(Boss, FinalDamage);
+
+	ExecuteDamage(InLockedTargets, InLockedOthers, Boss, FinalDamage);
+
+	if (Boss->GetActiveGimmick())
+		Boss->GetActiveGimmick()->OnPatternExecute(Boss, InLockedCells, InLockedTargets, InLockedOthers);
 }
 
 void UBossPatternBase::ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, const TArray<ABase_OtherActor*>& LockedOthers, ABossActor* Boss, int32 Damage)

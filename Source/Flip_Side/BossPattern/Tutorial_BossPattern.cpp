@@ -36,7 +36,7 @@ void UTutorial_BossPattern::ExecutePattern(
 		FVector2D AnchorGrid2D = GridMgr->GetGridActor(PatternData[PatternNum].PatternSpec.AnchorCell)->GetGridWorldXY();
 		FVector SpawnLocation = FVector(AnchorGrid2D.X, AnchorGrid2D.Y, -80.f);
 
-		const int32 FinalDamage = Boss->GetAttackPoint() + PatternData[PatternNum].Damage;
+		const int32 FinalDamage = static_cast<int32>(Boss->GetAttackPoint() * Boss->GetStageMultiplierStat());
 		
 		PlayPatternEffect(PatternNum, SpawnLocation);
 

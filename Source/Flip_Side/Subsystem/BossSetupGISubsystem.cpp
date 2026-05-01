@@ -1,31 +1,34 @@
 #include "BossSetupGISubsystem.h"
-#include "BossActor.h"
-#include "FlipSideDevloperSettings.h"
+#include "DataManagerSubsystem.h"
+#include "Engine/GameInstance.h"
 
 void UBossSetupGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
+    Collection.InitializeDependency<UDataManagerSubsystem>();
     Super::Initialize(Collection);
 
-    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
-    if (Settings)
+    if (UGameInstance* GI = GetGameInstance())
     {
-        TutorialBossData = Settings->TutorialBossData;
-        AllBossData = Settings->AllBossData;
+        if (UDataManagerSubsystem* DataMgr = GI->GetSubsystem<UDataManagerSubsystem>())
+        {
+            for (const TTuple<int32, FBossDisplayData>& Pair : DataMgr->BossByID)
+            {
+                AllBossData.Add(Pair.Value);
+            }
+        }
     }
 
     ClearPreparedBoss();
-
-    //테스트용
-    PrepareBossForStage(0);
 }
 
+
 bool UBossSetupGISubsystem::PickRandomThemeFromStageBosses(
-    const TArray<FBossData>& StageBosses,
+    const TArray<FBossDisplayData>& StageBosses,
     int32& OutThemeID) const
 {
     TArray<int32> ThemeIDs;
 
-    for (const FBossData& Data : StageBosses)
+    for (const FBossDisplayData& Data : StageBosses)
     {
         if (!ThemeIDs.Contains(Data.ThemeID))
         {
@@ -44,13 +47,13 @@ bool UBossSetupGISubsystem::PickRandomThemeFromStageBosses(
 }
 
 bool UBossSetupGISubsystem::PickRandomBossFromTheme(
-    const TArray<FBossData>& StageBosses,
+    const TArray<FBossDisplayData>& StageBosses,
     int32 ThemeID,
-    FBossData& OutBossData) const
+    FBossDisplayData& OutBossData) const
 {
-    TArray<FBossData> Candidates;
+    TArray<FBossDisplayData> Candidates;
 
-    for (const FBossData& Data : StageBosses)
+    for (const FBossDisplayData& Data : StageBosses)
     {
         if (Data.ThemeID == ThemeID)
         {
@@ -68,11 +71,11 @@ bool UBossSetupGISubsystem::PickRandomBossFromTheme(
     return true;
 }
 
-bool UBossSetupGISubsystem::PickRandomBossDataForStage(int32 StageIndex, FBossData& OutBossData) const
+bool UBossSetupGISubsystem::PickRandomBossDataForStage(int32 StageIndex, FBossDisplayData& OutBossData) const
 {
-    TArray<FBossData> StageBosses;
+    TArray<FBossDisplayData> StageBosses;
 
-    for (const FBossData& Data : AllBossData)
+    for (const FBossDisplayData& Data : AllBossData)
     {
         if (Data.BossStage == StageIndex)
         {
@@ -98,19 +101,12 @@ bool UBossSetupGISubsystem::PrepareBossForStage(int32 StageIndex)
 {
     ClearPreparedBoss();
 
-    FBossData PickedBossData;
+    FBossDisplayData PickedBossData;
 
-    if (StageIndex == 0)
+    if (!PickRandomBossDataForStage(StageIndex, PickedBossData))
     {
-        PickedBossData = TutorialBossData;
-    }
-    else
-    {
-        if (!PickRandomBossDataForStage(StageIndex, PickedBossData))
-        {
-            UE_LOG(LogTemp, Warning, TEXT("[BossSetupGI] PrepareBossForStage failed: no boss for stage %d"), StageIndex);
-            return false;
-        }
+        UE_LOG(LogTemp, Warning, TEXT("[BossSetupGI] PrepareBossForStage failed: no boss for stage %d"), StageIndex);
+        return false;
     }
 
     PreparedBossData = PickedBossData;
@@ -123,12 +119,33 @@ bool UBossSetupGISubsystem::PrepareBossForStage(int32 StageIndex)
     return true;
 }
 
+bool UBossSetupGISubsystem::PrepareBossForID(int32 BossID)
+{
+    ClearPreparedBoss();
+
+    const FBossDisplayData* Found = AllBossData.FindByPredicate([BossID](const FBossDisplayData& D) { return D.BossID == BossID; });
+    if (!Found)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[BossSetupGI] PrepareBossForID failed: BossID %d not found"), BossID);
+        return false;
+    }
+
+    PreparedBossData = *Found;
+    PreparedContext.StageIndex = Found->BossStage;
+    PreparedContext.PickedThemeID = Found->ThemeID;
+    PreparedContext.PickedBossID = Found->BossID;
+    PreparedContext.PickedBossName = Found->BossName;
+    PreparedContext.bPrepared = true;
+
+    return true;
+}
+
 bool UBossSetupGISubsystem::HasPreparedBoss() const
 {
     return PreparedContext.bPrepared;
 }
 
-bool UBossSetupGISubsystem::GetPreparedBossData(FBossData& OutBossData) const
+bool UBossSetupGISubsystem::GetPreparedBossData(FBossDisplayData& OutBossData) const
 {
     if (!PreparedContext.bPrepared)
     {
@@ -139,38 +156,13 @@ bool UBossSetupGISubsystem::GetPreparedBossData(FBossData& OutBossData) const
     return true;
 }
 
-bool UBossSetupGISubsystem::GetPreparedBossInfo(FBossData& OutBossData, TArray<FPatternData>& OutPatternDataList) const
+bool UBossSetupGISubsystem::GetPreparedBossInfo(FBossDisplayData& OutBossData) const
 {
-    OutPatternDataList.Reset();
-
-    if (!GetPreparedBossData(OutBossData))
-    {
-        return false;
-    }
-
-    if (OutBossData.BossClass.IsNull())
-    {
-        return true;
-    }
-
-    TSubclassOf<ABossActor> BossClass = OutBossData.BossClass.LoadSynchronous();
-    if (!BossClass)
-    {
-        return true;
-    }
-
-    ABossActor* BossCDO = BossClass->GetDefaultObject<ABossActor>();
-    if (!BossCDO)
-    {
-        return true;
-    }
-
-    BossCDO->GetPatternDataList(OutPatternDataList);
-    return true;
+    return GetPreparedBossData(OutBossData);
 }
 
 void UBossSetupGISubsystem::ClearPreparedBoss()
 {
-    PreparedBossData = FBossData{};
+    PreparedBossData = FBossDisplayData{};
     PreparedContext.Reset();
 }

@@ -57,9 +57,11 @@ enum class EGridOccupyingType : uint8
 UENUM(BlueprintType)
 enum class ECCTypes : uint8
 {
-    None UMETA(DisplayName = "None"),
-    Stun UMETA(DisplayName = "Stun"),
-    Sleep UMETA(DisplayName = "Sleep")
+    None  UMETA(DisplayName = "None"),
+    Stun  UMETA(DisplayName = "Stun"),
+    Sleep UMETA(DisplayName = "Sleep"),
+    Blind  UMETA(DisplayName = "Blind"),
+    Poison UMETA(DisplayName = "Poison")
 };
 
 //코인 액션 기준

@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/ShopCoinManage/W_CoinManagePanelWidget.h"
 #include "UI/ShopCoinManage/W_CoinSlotNum.h"
+#include "UI/ShopCoinManage/W_CoinManagePanelWidget.h"
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 #include "Components/TextBlock.h"
 void UW_CoinSlotNum::NativeConstruct()

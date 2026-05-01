@@ -56,7 +56,7 @@ void ABossActor::BeginPlay()
     }
 }
 
-void ABossActor::InitializeFromBossData(const FBossData& InData)
+void ABossActor::InitializeFromBossData(const FBossBattleData& InData)
 {
 	ThemeID = InData.ThemeID;
 	BossID = InData.BossID;
@@ -64,6 +64,8 @@ void ABossActor::InitializeFromBossData(const FBossData& InData)
 	AttackPoint = InData.AttackPoint;
 	MaxHP = InData.BossHP;
 	CurrentHP = MaxHP;
+	StageMultiplierStat = InData.StageMultiplierStat;
+	StageMultiplierGimmick = InData.StageMultiplierGimmick;
 
 	if(BossHpWidget)
 	{
@@ -92,6 +94,10 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 	if(!DamageCauser) return 0;
 
 	int32 FinalDamage = FMath::Max(0, Damage);
+
+	if (ActiveGimmick)
+		ActiveGimmick->OnDamageCalculate(this, FinalDamage);
+
 	int32 ActualDamageToHP = FinalDamage;
 
 	if(CurrentShield > 0)
@@ -161,6 +167,21 @@ int32 ABossActor::ApplyShieldOnlyDamage(int32 Damage, AActor* DamageCauser)
 	UpdateShieldEffect();
 
 	return ShieldDamage;
+}
+
+void ABossActor::AddGimmick(UBossGimmickBase* InGimmick)
+{
+	if (InGimmick)
+	{
+		GimmickList.Add(InGimmick);
+	}
+}
+
+void ABossActor::InitShield(int32 ShieldValue)
+{
+	MaxShield = ShieldValue;
+	CurrentShield = ShieldValue;
+	UpdateShieldEffect();
 }
 
 void ABossActor::ApplyShieldHeal(int32 Heal, AActor* HealCauser)
@@ -248,7 +269,7 @@ UBossPatternBase* ABossActor::GetPattern() const
 	return Pattern;
 }
 
-bool ABossActor::GetPatternDataList(TArray<FPatternData>& OutPatternDataList) const
+bool ABossActor::GetPatternDataList(TArray<FBossPatternBattleData>& OutPatternDataList) const
 {
 	OutPatternDataList.Reset();
 
@@ -261,7 +282,7 @@ bool ABossActor::GetPatternDataList(TArray<FPatternData>& OutPatternDataList) co
 	return OutPatternDataList.Num() > 0;
 }
 
-bool ABossActor::GetPatternData(int32 PatternIndex, FPatternData& OutPatternData) const
+bool ABossActor::GetPatternData(int32 PatternIndex, FBossPatternBattleData& OutPatternData) const
 {
 	if(!Pattern || !Pattern->PatternData.IsValidIndex(PatternIndex))
 	{
@@ -348,7 +369,7 @@ void ABossActor::SetPatternAnim(UAnimMontage * TargetMontage)
 	}
 }
 
-void ABossActor::SetCurrentPatternInfo(int32 PatternIndex, const FPatternData& PatternData)
+void ABossActor::SetCurrentPatternInfo(int32 PatternIndex, const FBossPatternBattleData& PatternData)
 {
 	bHasCachedPatternInfo = true;
 	CachedPatternIndex = PatternIndex;
@@ -370,7 +391,7 @@ void ABossActor::ApplyCachedPatternInfoToWidget()
 	}
 
 	const int32 PatternDisplayIndex = CachedPatternIndex + 1;
-	const int32 FinalDamage = AttackPoint + CachedPatternData.Damage;
+	const int32 FinalDamage = AttackPoint;
 
 	BossHpWidget->SetPatternInfo(
 		PatternDisplayIndex,

@@ -1,12 +1,18 @@
 #include "BossManagerSubsystem.h"
 
 #include "BossActor.h"
+#include "W_BossHP.h"
 #include "BossPatternBase.h"
+#include "BossGimmickBase.h"
+#include "BossGimmick_Shield.h"
+#include "BossGimmick_Blind.h"
+#include "BossGimmick_Poison.h"
 #include "GridManagerSubsystem.h"
 #include "CoinActor.h"
 #include "GridActor.h"
 #include "Base_PatternVisualActor.h"
 #include "BossSetupGISubsystem.h"
+#include "DataManagerSubsystem.h"
 #include "Actors/Others/Base_OtherActor.h"
 
 #include "Engine/World.h"
@@ -15,6 +21,17 @@
 void UBossManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
+
+    UGameInstance* GI = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
+    if (GI)
+    {
+        UBossSetupGISubsystem* BossSetupGI = GI->GetSubsystem<UBossSetupGISubsystem>();
+        if (BossSetupGI && !BossSetupGI->HasPreparedBoss())
+        {
+            BossSetupGI->PrepareBossForID(1);
+            UE_LOG(LogTemp, Warning, TEXT("[BossManager] No prepared boss, defaulting to BossID 1"));
+        }
+    }
 }
 
 bool UBossManagerSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -66,17 +83,31 @@ bool UBossManagerSubsystem::SpawnPreparedBoss()
         return false;
     }
 
-    FBossData PreparedBossData;
+    FBossDisplayData PreparedBossData;
     if (!BossSetupGI->GetPreparedBossData(PreparedBossData))
     {
         UE_LOG(LogTemp, Warning, TEXT("[BossManager] SpawnPreparedBoss failed: no prepared boss data"));
         return false;
     }
 
-    return Internal_SpawnBoss(PreparedBossData);
+    UDataManagerSubsystem* DataMgr = GI->GetSubsystem<UDataManagerSubsystem>();
+    if (!DataMgr)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[BossManager] SpawnPreparedBoss failed: DataMgr null"));
+        return false;
+    }
+
+    CurrentBossBattleData = FBossBattleData{};
+    if (!DataMgr->LoadBossBattleData(PreparedBossData.BossID, CurrentBossBattleData))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[BossManager] SpawnPreparedBoss failed: LoadBossBattleData failed"));
+        return false;
+    }
+
+    return Internal_SpawnBoss(CurrentBossBattleData);
 }
 
-bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossData& InBossData)
+bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossBattleData& InBossData)
 {
     UWorld* World = GetWorld();
     if (!World || InBossData.BossClass.IsNull())
@@ -107,6 +138,38 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossData& InBossData)
 
     CurrentBoss = SpawnedBoss;
     CurrentBoss->InitializeFromBossData(InBossData);
+
+    if (InBossData.PatternClass)
+    {
+        UBossPatternBase* NewPattern = NewObject<UBossPatternBase>(CurrentBoss, InBossData.PatternClass);
+        if (NewPattern)
+        {
+            NewPattern->PatternData = InBossData.PatternList;
+            CurrentBoss->SetPattern(NewPattern);
+        }
+    }
+
+    for (const FBossGimmickData& GimmickData : InBossData.GimmickList)
+    {
+        TSubclassOf<UBossGimmickBase> GimmickClass = nullptr;
+        switch (GimmickData.GimmickType)
+        {
+            case EBossGimmickType::Shield:  GimmickClass = UBossGimmick_Shield::StaticClass();  break;
+            case EBossGimmickType::Blind:   GimmickClass = UBossGimmick_Blind::StaticClass();   break;
+            case EBossGimmickType::Poison:  GimmickClass = UBossGimmick_Poison::StaticClass();  break;
+            default: break;
+        }
+        if (GimmickClass)
+        {
+            UBossGimmickBase* NewGimmick = NewObject<UBossGimmickBase>(CurrentBoss, GimmickClass.Get());
+            if (NewGimmick)
+            {
+                NewGimmick->GimmickData = GimmickData;
+                CurrentBoss->AddGimmick(NewGimmick);
+                NewGimmick->OnBattleStart(CurrentBoss);
+            }
+        }
+    }
 
     StageContext.PickedThemeID = InBossData.ThemeID;
     StageContext.PickedBossID = InBossData.BossID;
@@ -157,11 +220,24 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
     }
 
     const int32 PatternIndex = FMath::RandRange(0, PatternCount - 1);
+    UE_LOG(LogTemp, Warning, TEXT("[BossManager] PatternCount=%d, SelectedIndex=%d"), PatternCount, PatternIndex);
     UBossPatternBase* PickedPattern = CurrentBoss->GetPattern();
     if (!PickedPattern)
     {
         UE_LOG(LogTemp, Warning, TEXT("[BossManager] PrepareCurrentPattern failed: picked pattern null"));
         return false;
+    }
+
+    const int32 GimmickCount = CurrentBoss->GetGimmickCount();
+    if (GimmickCount > 0)
+    {
+        const int32 GimmickIndex = FMath::RandRange(0, GimmickCount - 1);
+        CurrentBoss->SetActiveGimmick(CurrentBoss->GetGimmickList()[GimmickIndex]);
+        UE_LOG(LogTemp, Warning, TEXT("[BossManager] GimmickCount=%d, SelectedGimmickIndex=%d"), GimmickCount, GimmickIndex);
+    }
+    else
+    {
+        CurrentBoss->SetActiveGimmick(nullptr);
     }
 
     TurnContext.CurrentPattern = PickedPattern;
@@ -170,7 +246,7 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
     
     if (PickedPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
     {
-        const FPatternData& CurrentPatternData = PickedPattern->PatternData[TurnContext.CurrentPatternIndex];
+        const FBossPatternBattleData& CurrentPatternData = PickedPattern->PatternData[TurnContext.CurrentPatternIndex];
         CurrentBoss->SetPatternAnim(CurrentPatternData.PatternMontage);
         CurrentBoss->SetCurrentPatternInfo(TurnContext.CurrentPatternIndex, CurrentPatternData);
     }
@@ -227,7 +303,7 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
     float ApplyDelay = 1.0f;
     if (TurnContext.CurrentPattern && TurnContext.CurrentPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
     {
-        ApplyDelay = TurnContext.CurrentPattern->PatternData[TurnContext.CurrentPatternIndex].AttackApplyDelay;
+        ApplyDelay = TurnContext.CurrentPattern->PatternData[TurnContext.CurrentPatternIndex].ApplyDelay;
     }
 
     World->GetTimerManager().SetTimer(
@@ -271,6 +347,7 @@ void UBossManagerSubsystem::ApplyCurrentPattern()
     ClearCurrentTurn();
 }
 
+
 void UBossManagerSubsystem::ClearCurrentTurn()
 {
     if (UWorld* World = GetWorld())
@@ -282,6 +359,11 @@ void UBossManagerSubsystem::ClearCurrentTurn()
     if (TurnContext.LockedCells.Num() > 0)
     {
         ClearTelegraphPreview(TurnContext.LockedCells);
+    }
+
+    if (IsValid(CurrentBoss) && CurrentBoss->GetActiveGimmick())
+    {
+        CurrentBoss->GetActiveGimmick()->OnTurnEnd(CurrentBoss);
     }
 
     TurnContext.Reset();
