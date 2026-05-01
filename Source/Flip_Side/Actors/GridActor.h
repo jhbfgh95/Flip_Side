@@ -124,10 +124,15 @@ public:
 	bool bIsPromotionHighlight = false;
 	FCachedColorSet PromotionColorSet;
 
+	bool bIsItemTargetHighlight = false;
+	FCachedColorSet ItemTargetColorSet;
+
 	UFUNCTION(BlueprintCallable)
 	void ApplyCellMaterialParams(const FLinearColor& OutlineColor, float FillIntensity, float DoorOpen);
 
 	void SetPromotionHighlight(bool bOn);
+
+	void SetItemTargetHighlight(bool bOn);
 
 protected:
 	virtual void BeginPlay() override;

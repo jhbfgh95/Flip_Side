@@ -80,6 +80,8 @@ void ACoinActor::BeginPlay()
 	{
 		StatComponent->OnDead.AddDynamic(this, &ACoinActor::CoinDead);
 		StatComponent->OnHpChanged.AddUObject(this, &ACoinActor::OnCoinHpChanged);
+		StatComponent->OnCCActived.AddDynamic(this, &ACoinActor::OnCCApplied);
+		StatComponent->OnCCRemove.AddDynamic(this, &ACoinActor::OnCCRemoved);
 	}
 }
 

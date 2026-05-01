@@ -726,6 +726,7 @@ void UGridManagerSubsystem::SetGridClickFlag(EGridClickFlag clickFlag, bool bUpd
             AGridActor* Grid = Pair.Value.Get();
             if (!IsValid(Grid)) continue;
 
+            Grid->SetItemTargetHighlight(false);
             if(Grid->GetIsOccupied()) continue;
             Grid->HoverFlag = 1;
 
@@ -739,6 +740,7 @@ void UGridManagerSubsystem::SetGridClickFlag(EGridClickFlag clickFlag, bool bUpd
             AGridActor* Grid = Pair.Value.Get();
             if (!IsValid(Grid)) continue;
 
+            Grid->SetItemTargetHighlight(false);
             if(Grid->GetIsOccupied()) continue;
             Grid->HoverFlag = 2;
             Grid->SetItemFlag(1);
@@ -752,6 +754,7 @@ void UGridManagerSubsystem::SetGridClickFlag(EGridClickFlag clickFlag, bool bUpd
             AGridActor* Grid = Pair.Value.Get();
             if (!IsValid(Grid)) continue;
 
+            Grid->SetItemTargetHighlight(false);
             if(Grid->GetIsOccupied()) continue;
             Grid->HoverFlag = 0;
             Grid->SetItemFlag(0);
@@ -767,6 +770,7 @@ void UGridManagerSubsystem::SetGridItemFlags(int32 InItemFlag)
         AGridActor* Grid = Pair.Value.Get();
         if (!IsValid(Grid)) continue;
 
+        Grid->SetItemTargetHighlight(false);
         if (Grid->GetIsOccupied())
         {
             Grid->SetItemFlag(0);
@@ -775,5 +779,30 @@ void UGridManagerSubsystem::SetGridItemFlags(int32 InItemFlag)
 
         Grid->SetItemFlag(InItemFlag);
         Grid->HoverFlag = InItemFlag > 0 ? 2 : 0;
+    }
+}
+
+void UGridManagerSubsystem::SetGridItemTargetGrids(const TArray<FGridPoint>& TargetGrids)
+{
+    ClickFlag = EGridClickFlag::ItemAction;
+
+    for (const auto& Pair : GridActors)
+    {
+        AGridActor* Grid = Pair.Value.Get();
+        if (!IsValid(Grid)) continue;
+
+        Grid->SetItemTargetHighlight(false);
+
+        if (Grid->GetIsOccupied())
+        {
+            Grid->SetItemFlag(0);
+            Grid->HoverFlag = 0;
+            continue;
+        }
+
+        const bool bIsValidTarget = TargetGrids.Contains(Pair.Key);
+        Grid->SetItemFlag(bIsValidTarget ? 1 : 0);
+        Grid->HoverFlag = bIsValidTarget ? 2 : 0;
+        Grid->SetItemTargetHighlight(bIsValidTarget);
     }
 }

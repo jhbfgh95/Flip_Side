@@ -425,6 +425,8 @@ void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
 
 void UCoinActionManagementWSubsystem::HandleCoinUnHovered()
 {
+    if(!bIsCorrectTurn) return;
+
     if (CurrentInputState == EActionInputState::None)
     {
         if(SelectedAction)

@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "DataManagerSubsystem.h"
 #include "GridManagerSubsystem.h"
+#include "CoinActionManagementWSubsystem.h"
 #include "CoinManagementWSubsystem.h"
 #include "UseableItemActor.h"
 #include "FlipSide_Enum.h"
@@ -18,6 +19,11 @@
 #include "Item_Action.h"
 #include "W_ItemInfo.h"
 
+namespace
+{
+    constexpr int32 EverywherePotionItemID = 6;
+}
+
 void UUseableItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
@@ -26,6 +32,7 @@ void UUseableItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
     SelectedItemAction = NewObject<UItem_Action>(this);
 
+    CoinActionManager = Collection.InitializeDependency<UCoinActionManagementWSubsystem>();
     CoinManager = Collection.InitializeDependency<UCoinManagementWSubsystem>();
     GridManager = Collection.InitializeDependency<UGridManagerSubsystem>();
 
@@ -220,6 +227,8 @@ void UUseableItemWSubsystem::InitSelectedItem()
     SelectedItemAction->SetInRangeBoss(nullptr);
     CurrentTargetMode = EUseableItemTargetMode::None;
     SelectedItemActor = nullptr;
+    SelectedTargetCoin = nullptr;
+    ValidTargetGrids.Empty();
     if(CoinManager)
     {
         CoinManager->SetBattleCoinItemFlags(false);
@@ -280,8 +289,35 @@ void UUseableItemWSubsystem::ApplyRangedThings()
 void UUseableItemWSubsystem::CancelWantUseItem()
 {
     InitSelectedItem();
+    if(CoinActionManager)
+    {
+        CoinActionManager->SetTurn(bIsCoinSelectTurn);
+    }
 }
 
+void UUseableItemWSubsystem::BuildEverywhereValidTargetGrids(ACoinActor* TargetCoin)
+{
+    ValidTargetGrids.Empty();
+
+    if(!TargetCoin || !GridManager) return;
+
+    const FGridPoint CoinGrid = TargetCoin->GetDecidedGrid();
+    const TArray<FGridPoint> CandidateGrids = {
+        FGridPoint{CoinGrid.GridX, CoinGrid.GridY + 1},
+        FGridPoint{CoinGrid.GridX, CoinGrid.GridY - 1},
+        FGridPoint{CoinGrid.GridX - 1, CoinGrid.GridY},
+        FGridPoint{CoinGrid.GridX + 1, CoinGrid.GridY}
+    };
+
+    for(const FGridPoint& Candidate : CandidateGrids)
+    {
+        AGridActor* Grid = GridManager->GetGridActor(Candidate);
+        if(!Grid) continue;
+        if(Grid->GetIsOccupied()) continue;
+
+        ValidTargetGrids.Add(Candidate);
+    }
+}
 
 void UUseableItemWSubsystem::ExecuteItemForGrid(AGridActor* TargetGrid)
 {
@@ -292,6 +328,12 @@ void UUseableItemWSubsystem::ExecuteItemForGrid(AGridActor* TargetGrid)
     }
 
     if(!TargetGrid || TargetGrid->GetIsOccupied() || TargetGrid->GetItemFlag() == 0)
+    {
+        CancelWantUseItem();
+        return;
+    }
+
+    if(SelectedTargetCoin && !ValidTargetGrids.Contains(TargetGrid->GetGridPoint()))
     {
         CancelWantUseItem();
         return;
@@ -308,6 +350,40 @@ void UUseableItemWSubsystem::ExecuteItemForGrid(AGridActor* TargetGrid)
 
 void UUseableItemWSubsystem::ExecuteItemForCoin(ACoinActor* TargetCoin)
 {
+    if(CurrentTargetMode == EUseableItemTargetMode::CoinThenGrid)
+    {
+        if(!TargetCoin || !SelectedItemAction || !SelectedItemActor) 
+        {
+            CancelWantUseItem();
+            return;
+        }
+
+        SelectedTargetCoin = TargetCoin;
+        SelectedItemAction->SetInRangeCoins(TargetCoin);
+        if(GridManager)
+        {
+            SelectedItemAction->SetTargetGrid(GridManager->GetGridActor(TargetCoin->GetDecidedGrid()));
+        }
+
+        BuildEverywhereValidTargetGrids(TargetCoin);
+        if(ValidTargetGrids.IsEmpty())
+        {
+            CancelWantUseItem();
+            return;
+        }
+
+        CurrentTargetMode = EUseableItemTargetMode::Grid;
+        if(CoinManager)
+        {
+            CoinManager->SetBattleCoinItemFlags(false);
+        }
+        if(GridManager)
+        {
+            GridManager->SetGridItemTargetGrids(ValidTargetGrids);
+        }
+        return;
+    }
+
     if(CurrentTargetMode != EUseableItemTargetMode::Coin)
     {
         CancelWantUseItem();
@@ -369,7 +445,15 @@ void UUseableItemWSubsystem::SelectWantUseGridItem(AUseableItemActor* TargetItem
 {
     if(!bIsCoinSelectTurn || !TargetItem) return;
 
+    if(CoinActionManager)
+    {
+        CoinActionManager->CancelSelectWeapon();
+    }
     CancelWantUseItem();
+    if(CoinActionManager)
+    {
+        CoinActionManager->SetTurn(false);
+    }
     SetItemInfo(TargetItem);
     CurrentTargetMode = EUseableItemTargetMode::Grid;
     SelectedItemActor = TargetItem;
@@ -390,9 +474,19 @@ void UUseableItemWSubsystem::SelectWantUseCoinItem(AUseableItemActor* TargetItem
 {
     if(!bIsCoinSelectTurn || !TargetItem) return;
 
+    if(CoinActionManager)
+    {
+        CoinActionManager->CancelSelectWeapon();
+    }
     CancelWantUseItem();
+    if(CoinActionManager)
+    {
+        CoinActionManager->SetTurn(false);
+    }
     SetItemInfo(TargetItem);
-    CurrentTargetMode = EUseableItemTargetMode::Coin;
+    CurrentTargetMode = TargetItem->GetItemID() == EverywherePotionItemID
+        ? EUseableItemTargetMode::CoinThenGrid
+        : EUseableItemTargetMode::Coin;
     SelectedItemActor = TargetItem;
 
     if(CoinManager)
@@ -402,7 +496,7 @@ void UUseableItemWSubsystem::SelectWantUseCoinItem(AUseableItemActor* TargetItem
 
     if(GridManager)
     {
-        GridManager->SetGridClickFlag(EGridClickFlag::ItemAction, false);
+        GridManager->SetGridClickFlag(EGridClickFlag::None);
     }
 
 }

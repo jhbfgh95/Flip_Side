@@ -12,8 +12,6 @@ UComponent_Status::UComponent_Status()
 void UComponent_Status::BeginPlay()
 {
 	Super::BeginPlay();
-
-	OnCCRemove.BindUObject(this, &UComponent_Status::RemoveCC);
 }
 
 void UComponent_Status::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -236,7 +234,7 @@ void UComponent_Status::ApplyCC(FCCStructure CC)
 	bIsOnCC = true;
 
 	CCDuration = AppliedCC.CCDuration;
-    OnCCActived.ExecuteIfBound();
+    OnCCActived.Broadcast();
 }
 
 void UComponent_Status::RemoveCC()
@@ -245,6 +243,8 @@ void UComponent_Status::RemoveCC()
 
 	CCDuration = 0;
 	bIsOnCC = false;
+
+    OnCCRemove.Broadcast();
 }
 
 void UComponent_Status::DecreaseCCDuration(const int32 WantToDecreaseCCDuration)

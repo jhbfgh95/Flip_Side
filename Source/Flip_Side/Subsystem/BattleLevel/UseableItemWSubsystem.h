@@ -13,6 +13,7 @@ enum class EUseableItemTargetMode : uint8
 {
 	None,
 	Coin,
+	CoinThenGrid,
 	Grid
 };
 
@@ -40,8 +41,17 @@ class FLIP_SIDE_API UUseableItemWSubsystem : public UWorldSubsystem
 	UPROPERTY()
 	AUseableItemActor* SelectedItemActor = nullptr;
 
+	UPROPERTY()
+	class ACoinActor* SelectedTargetCoin = nullptr;
+
+	UPROPERTY()
+	TArray<FGridPoint> ValidTargetGrids;
+
 /* Dependency post - managers */
 protected:
+	UPROPERTY()
+	class UCoinActionManagementWSubsystem* CoinActionManager;
+
 	UPROPERTY()
 	class UCoinManagementWSubsystem* CoinManager;
 
@@ -99,6 +109,8 @@ public:
 	void SetItemInfo(AUseableItemActor* TargetItem);
 
 	void CancelWantUseItem();
+
+	void BuildEverywhereValidTargetGrids(class ACoinActor* TargetCoin);
 
 	//BattleManager call when CoinSelectTurn
 	void CoinBindsToItemMan();

@@ -153,13 +153,13 @@ void UActionLogicRegistryGISubsystem::RegisterItemLogic()
 
     ItemMap.Add(5, [](UActionBase* Context) {
         if (UItem_Action* ItemAction = Cast<UItem_Action>(Context)) {
-            UItemLogicLibrary::EverwherePotion_Logic(ItemAction);
+            UItemLogicLibrary::WallPotion_Logic(ItemAction);
         }
     });
 
     ItemMap.Add(6, [](UActionBase* Context) {
         if (UItem_Action* ItemAction = Cast<UItem_Action>(Context)) {
-            UItemLogicLibrary::WallPotion_Logic(ItemAction);
+            UItemLogicLibrary::EverwherePotion_Logic(ItemAction);
         }
     });
 }

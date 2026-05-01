@@ -164,7 +164,7 @@ void UCrossingLevelGISubsystem::GenerateTestCoin()
         SetSlotCoin(i, Coin);
     }
 
-    SetBattleUseItemID(1,0,3);
+    SetBattleUseItemID(5,0,3);
     SetBattleUseItemID(6,1,3);
     SetBattleUseItemID(4,2,3);
 }

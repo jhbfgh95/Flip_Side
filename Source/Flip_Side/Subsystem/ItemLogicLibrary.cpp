@@ -10,6 +10,7 @@
 #include "FlipSide_Enum.h"
 #include "Components/StaticMeshComponent.h"
 #include "OthersWSubsystem.h"
+#include "GridManagerSubsystem.h"
 
 namespace
 {
@@ -76,7 +77,7 @@ void UItemLogicLibrary::CleanserPotion_Logic(UItem_Action* ItemContext)
     if(!TargetCoin || !TargetCoin->StatComponent) return;
 
     TargetCoin->StatComponent->ClearDebuffs();
-    TargetCoin->StatComponent->OnCCRemove.ExecuteIfBound();
+    TargetCoin->StatComponent->DecreaseCCDuration(TNumericLimits<int32>::Max());
 
     UE_LOG(LogTemp, Warning, TEXT("Cleanser"));
 }
@@ -115,6 +116,33 @@ void UItemLogicLibrary::PhaseChangePotion_Logic(UItem_Action* ItemContext)
 //사방팔방 물약↓
 void UItemLogicLibrary::EverwherePotion_Logic(UItem_Action* ItemContext)
 {
+    ACoinActor* TargetCoin = GetFirstTargetCoin(ItemContext);
+    if(!ItemContext || !TargetCoin) return;
+
+    AGridActor* TargetGrid = ItemContext->GetTargetGrid();
+    if(!TargetGrid || TargetGrid->GetIsOccupied()) return;
+
+    UWorld* World = TargetCoin->GetWorld();
+    if(!World) return;
+
+    UGridManagerSubsystem* GridManager = World->GetSubsystem<UGridManagerSubsystem>();
+    if(!GridManager) return;
+
+    AGridActor* PrevGrid = GridManager->GetGridActor(TargetCoin->GetDecidedGrid());
+    if(!PrevGrid) return;
+
+    PrevGrid->ClearOccupied();
+
+    const FVector TargetLocation = FVector(
+        TargetGrid->GetGridWorldXY().X,
+        TargetGrid->GetGridWorldXY().Y,
+        TargetCoin->GetActorLocation().Z
+    );
+
+    TargetCoin->SetGridPoint(TargetGrid->GetGridPoint());
+    TargetCoin->SetActorLocation(TargetLocation);
+    TargetGrid->SetOccupied(true, EGridOccupyingType::Coin, TargetCoin);
+
     UE_LOG(LogTemp, Warning, TEXT("Everywhere"));
 }
 //융기 물약↓
