@@ -136,16 +136,7 @@ void ACoinActor::SetCoinIsReady(bool IsReady)
 void ACoinActor::SetCoinIsActed(const bool IsActed)
 { 
 	bIsActed = IsActed; 
-	if(!CoverColors.IsValidIndex(0)) return;
-	if(bIsActed)
-	{
-		SetCover(CoverColors[0], true);
-	}
-	else
-	{
-		SetCover(CoverColors[0], false);
-	}
-	
+	RefreshCover();
 }
 
 bool ACoinActor::GetCoinIsActed() const
@@ -447,14 +438,42 @@ void ACoinActor::SetCover(FLinearColor CoverColor, bool bIsShow)
 	}
 }
 
+void ACoinActor::RefreshCover()
+{
+	if(StatComponent && StatComponent->GetOnIsOnCC())
+	{
+		if(CoverColors.IsValidIndex(1))
+		{
+			SetCover(CoverColors[1], true);
+		}
+		return;
+	}
+
+	if(bIsActed)
+	{
+		if(CoverColors.IsValidIndex(0))
+		{
+			SetCover(CoverColors[0], true);
+		}
+		return;
+	}
+
+	if(CoverColors.IsValidIndex(0))
+	{
+		SetCover(CoverColors[0], false);
+	}
+	else if(CoinActedMesh)
+	{
+		CoinActedMesh->SetVisibility(false);
+	}
+}
+
 void ACoinActor::OnCCApplied()
 {
-	if(!CoverColors.IsValidIndex(1)) return;
-	SetCover(CoverColors[1], true);
+	RefreshCover();
 }
 
 void ACoinActor::OnCCRemoved()
 {
-	if(!CoverColors.IsValidIndex(0)) return;
-	SetCover(CoverColors[0], false);
+	RefreshCover();
 }
