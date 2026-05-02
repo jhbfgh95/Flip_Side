@@ -111,7 +111,7 @@ void UStageCardWSubsystem::EnsureStageHUD(UWorld& InWorld)
         return;
     }
 
-    StageHUDInstance->AddToViewport();
+    StageHUDInstance->AddToViewport(5);
 }
 
 void UStageCardWSubsystem::RefreshHandFromGI()

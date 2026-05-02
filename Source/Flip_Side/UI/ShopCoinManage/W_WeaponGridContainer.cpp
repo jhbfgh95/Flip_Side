@@ -40,30 +40,53 @@ void UW_WeaponGridContainer::SetUnlockImage()
     }
     else
     {
-        UE_LOG(LogTemp,Warning, TEXT("ssssss"));
         LockImage->SetVisibility(ESlateVisibility::Visible);
     }
 }   
 
 void UW_WeaponGridContainer::SetDealGrid()
 {
-    
-    DealGrid->SetVisibility(ESlateVisibility::Visible);
-    TankGrid->SetVisibility(ESlateVisibility::Collapsed);
-    UtilGrid->SetVisibility(ESlateVisibility::Collapsed);
+    SetWeaponGrid(EWeaponClass::Deal);
 }
 
 void UW_WeaponGridContainer::SetTankGrid()
 {
-    DealGrid->SetVisibility(ESlateVisibility::Collapsed);
-    TankGrid->SetVisibility(ESlateVisibility::Visible);
-    UtilGrid->SetVisibility(ESlateVisibility::Collapsed);
+    SetWeaponGrid(EWeaponClass::Tank);
 }
 
 void UW_WeaponGridContainer::SetUtilGrid()
 {
+    SetWeaponGrid(EWeaponClass::Heal);
+}
+
+void UW_WeaponGridContainer::SetWeaponGrid(EWeaponClass weaponClass)
+{
+    
     DealGrid->SetVisibility(ESlateVisibility::Collapsed);
     TankGrid->SetVisibility(ESlateVisibility::Collapsed);
-    UtilGrid->SetVisibility(ESlateVisibility::Visible);
+    UtilGrid->SetVisibility(ESlateVisibility::Collapsed);
 
+    DealGridButton->SetBackgroundColor(DefaultColor);
+    TankGridButton->SetBackgroundColor(DefaultColor);
+    UtilGridButton->SetBackgroundColor(DefaultColor);
+
+    switch (weaponClass)
+    {
+        case EWeaponClass::Deal:
+            DealGridButton->SetBackgroundColor(DealColor);
+            DealGrid->SetVisibility(ESlateVisibility::Visible);
+            break;
+        
+        case EWeaponClass::Tank:
+            TankGridButton->SetBackgroundColor(TankColor);
+            TankGrid->SetVisibility(ESlateVisibility::Visible);
+            break;
+        
+        case EWeaponClass::Heal:
+            UtilGridButton->SetBackgroundColor(UtilColor);
+            UtilGrid->SetVisibility(ESlateVisibility::Visible);
+            break;
+        default:
+            break;
+    }
 }
