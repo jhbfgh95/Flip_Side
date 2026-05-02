@@ -266,6 +266,7 @@ protected:
     void ResetFlash();
 
 	void SetCover(FLinearColor CoverColor, bool bIsShow);
+	void RefreshCover();
 
 	FTimerHandle FlashTimerHandle;
 };

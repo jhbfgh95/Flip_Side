@@ -249,6 +249,8 @@ void UComponent_Status::RemoveCC()
 
 void UComponent_Status::DecreaseCCDuration(const int32 WantToDecreaseCCDuration)
 {
+    if(!bIsOnCC) return;
+
     CCDuration = FMath::Clamp(CCDuration - WantToDecreaseCCDuration, 0, MAX_CCDURATION);
 
     if(CCDuration <= 0)
