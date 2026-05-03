@@ -9,7 +9,9 @@ void UW_ShopPlayerCards::NativeConstruct()
 {
     Super::NativeConstruct();
     ShopCardSubsystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
-    ShopCardSubsystem->OnChangePlayerCard.AddDynamic(this, &UW_ShopPlayerCards::SetPlayerCard);
+
+    ShopCardSubsystem->OnUnSelectPlayerCard.AddDynamic(this, &UW_ShopPlayerCards::SetUnSelectPlayerCard);
+    ShopCardSubsystem->OnSelectPlayerCard.AddDynamic(this, &UW_ShopPlayerCards::SetSelectPlayerCard);
 
     int32 ChildCount = MainCanvas->GetChildrenCount();
 
@@ -18,7 +20,11 @@ void UW_ShopPlayerCards::NativeConstruct()
         UW_ShopPlayerCard* PlayerCardData = Cast<UW_ShopPlayerCard>(MainCanvas->GetChildAt(i));
         PlayerCardWidget.Add(PlayerCardData);
     }
-    SetPlayerCard();
+    FCardData CardData;
+    CardData.CardID = -1;
+    SetUnSelectPlayerCard(CardData,0);
+    SetUnSelectPlayerCard(CardData,1);
+    SetUnSelectPlayerCard(CardData,2);
 
 }
 void UW_ShopPlayerCards::NativeDestruct()
@@ -27,13 +33,21 @@ void UW_ShopPlayerCards::NativeDestruct()
     Super::NativeDestruct();
 }
 	
-void UW_ShopPlayerCards::SetPlayerCard()
+void UW_ShopPlayerCards::SetUnSelectPlayerCard(FCardData UnSelectCardData, int32 UnSelectCardIndex)
 {
-    TArray<FCardData> PlayerCardData = ShopCardSubsystem->GetPlayerCardList();
-    
-    for(int i =0; i < PlayerCardData.Num(); i++)
+    if(UnSelectCardIndex == -1)
+        return;
+
+    if(UnSelectCardIndex < PlayerCardWidget.Num())
     {
-        if(i<PlayerCardWidget.Num())
-            PlayerCardWidget[i]->InitShopCard(PlayerCardData[i],true);
+        PlayerCardWidget[UnSelectCardIndex]->InitPlayerCard(ShopCardSubsystem->GetPlayerCard(UnSelectCardIndex));
     }
+        
+}
+	
+void UW_ShopPlayerCards::SetSelectPlayerCard(FCardData CardData)
+{
+    int Index= ShopCardSubsystem->GetPlayerCardIndexByID(CardData.CardID);
+    if(Index != -1 && PlayerCardWidget.IsValidIndex(Index))
+        PlayerCardWidget[Index]->InitPlayerCard(CardData);
 }

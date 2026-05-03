@@ -29,6 +29,9 @@ private:
 	class UCanvasPanel* MainCanvas;
 private:
 	UFUNCTION()
-	void SetPlayerCard();
+	void SetUnSelectPlayerCard(FCardData UnSelectCardData,int32 UnSelectCardIndex);
+
+	UFUNCTION()
+	void SetSelectPlayerCard(FCardData CardData);
 
 };

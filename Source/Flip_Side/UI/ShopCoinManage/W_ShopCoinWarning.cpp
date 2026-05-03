@@ -3,13 +3,11 @@
 
 #include "UI/ShopCoinManage/W_ShopCoinWarning.h"
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
-#include "Components/TextBlock.h"
-#include "Components/Image.h"
 void UW_ShopCoinWarning::NativeConstruct()
 {
     Super::NativeConstruct();
     CoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
-    CoinSubsystem->OnWarningCreate.AddDynamic(this,&UW_ShopCoinWarning::ActiveWarning);
+    CoinSubsystem->OnWarningCreate.AddDynamic(this,&UW_ShopCoinWarning::SetWarning);
     
 }
 
@@ -20,48 +18,37 @@ void UW_ShopCoinWarning::NativeDestruct()
 }
 	
 
-void UW_ShopCoinWarning::ActiveWarning(int32 WarningCode)
+void UW_ShopCoinWarning::SetWarning(int32 WarningCode)
 {
     FString text;
-    LockWarningImage->SetVisibility(ESlateVisibility::Collapsed);
-
-    WarningImage->SetVisibility(ESlateVisibility::Collapsed);
 
     switch (WarningCode)
     {
      case 0:
         text = TEXT("양면에 같은 무기를 장착할 수 없습니다.");
-        WarningImage->SetVisibility(ESlateVisibility::Visible);
         break;
 
     case 1:
         text = TEXT("이미 같은 동전이 존재합니다.");
-        WarningImage->SetVisibility(ESlateVisibility::Visible);
         break;
 
     case 2:
         text = "슬롯이 잠겨있습니다.";
-        LockWarningImage->SetVisibility(ESlateVisibility::Visible);
         break;
         
     case 3:
         text = TEXT("양면에 무기가 장착되어 있지 않습니다.");
-        WarningImage->SetVisibility(ESlateVisibility::Visible);
         break;
     case 4:
         text = TEXT("최대 30개의 코인만 보유할 수 있습니다.");
-        WarningImage->SetVisibility(ESlateVisibility::Visible);
         break;
     case 5:
         text = TEXT("최대 10개의 코인슬롯만 보유할 수 있습니다.");
-        WarningImage->SetVisibility(ESlateVisibility::Visible);
         break;
     
     
     default:
         break;
     }
-    
-    WarningText->SetText(FText::FromString(text));
-    PlayAnimation(WarningTextAnim);
+    ActiveWarning(text);
 }

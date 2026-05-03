@@ -31,49 +31,28 @@ public:
 /* UI */
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> ShopWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> BossWidgetClass;
 	//상점 메인 UI
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> ShopMainWigetClass;
-	
-	//코인 관리 UI
-	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> CoinManageWidgetClass;
-
-	//코인 관리 UI
-	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> ShopItemWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> SelectCardWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> UnlockWeaponWidgetClass;
+	TSubclassOf<UUserWidget> ShopMainWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> BlockWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> ShopModeWidgetClass;
+
 //UI 스크립트
 private:
+
 	UPROPERTY()
-	UUserWidget* HudShopWidget;
-	UPROPERTY()
-	UUserWidget* ShopMainWiget;
-	UPROPERTY()
-	UUserWidget* CoinManageWidget;
-	UPROPERTY()
-	UUserWidget* ShopItemWidget;
-	UPROPERTY()
-	UUserWidget* SelectCardWidget;
-	UPROPERTY()
-	UUserWidget* UnlockWeaponWidget;
+	UUserWidget* ShopMainWidget;
 	UPROPERTY()
 	UUserWidget* BossWidget;
 	UPROPERTY()
 	UUserWidget* BlockWidget;
+	UPROPERTY()
+	UUserWidget* ShopModeWidget;
 private:
 	void InitWidget(TSubclassOf<UUserWidget> WidgetClass, UUserWidget*& widget,int32 ZOrder);
 
@@ -97,28 +76,15 @@ public:
 	void AddOpenWidgetList(UUserWidget* AddWidget);
 //모드 변경 될 때 함수들
 public:
-	
+	//상점 위젯 컨테이너
 	UFUNCTION()
-	void SetCoinManageModeWidget();
-
+	void SetShopWidget();
+	//상점 메인
 	UFUNCTION()
 	void SetShopMainModeWidget();
-	
-	UFUNCTION()
-	void SetShopItemModeWidget();
-
-	UFUNCTION()
-	void SetSelectCardModeWidget();
-
-	UFUNCTION()
-	void SetUnlockWeaponModeWidget();
 
 	UFUNCTION()
 	void SetBossStateModeWidget();
-
-	void HideModeChangeWidget();
-
-	void ShowModeChangeWidget();
 
 	void SetLockMouse(bool IsMouseLock);
 	

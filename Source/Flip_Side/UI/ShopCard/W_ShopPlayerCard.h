@@ -32,6 +32,11 @@ private:
 
 	FCardData CardData;
 
+	UPROPERTY(meta = (BindWidget), Transient)
+	class UBorder* DashedLineBorder;
+
+
+
 private:
 	bool IsInitState = false;
 
@@ -51,5 +56,5 @@ private:
 
 public:
 
-	void InitShopCard(FCardData CardDataValue, bool IsUnlock);
+	void InitPlayerCard(FCardData CardDataValue);
 };

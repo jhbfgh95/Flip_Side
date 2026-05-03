@@ -17,6 +17,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectCard, FCardData, CardInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangePlayerCard);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectPlayerCard, FCardData, CardInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FUnSelectPlayerCard, FCardData, CardInfo, int32, CardIndex);
+//0.이미 장착한 카드 //1. 장착 안되있음 //2.카드가 꽉차있음
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FShopCardWarning, int32, WarningNum);
 
 UCLASS()
 class FLIP_SIDE_API UShopCardWSubsystem : public UWorldSubsystem
@@ -69,6 +72,10 @@ public:
 	FUnSelectCard OnUnSelectCard;
 	FUnlockSelectCard OnUnlockCard;
 	FChangePlayerCard OnChangePlayerCard;
+	FUnSelectPlayerCard OnUnSelectPlayerCard;
+
+	FShopCardWarning OnShopCardWarning;
+
 public:
 	int32 PlayerSelectCard;
 
@@ -90,5 +97,11 @@ public:
 
 	TArray<FCardData> GetPlayerCardList();
 
+	FCardData GetPlayerCard(int32 Index);
+
 	bool CheckPlayerHaveCard(int32 CardID);
+
+	int32 GetPlayerCardIndexByID(int32 CardID);
+
+	void WarningShopCard(int32 WarningNum);
 };
