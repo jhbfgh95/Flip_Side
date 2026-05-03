@@ -38,12 +38,6 @@ protected:
 	class UTextBlock* BossAbilityText;
 
 	UPROPERTY(meta = (BindWidgetOptional))
-	class UTextBlock* BossAbilityTitleText;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UVerticalBox* GimmickListBox;
-
-	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* PatternTitleText;
 
 	UPROPERTY(meta = (BindWidgetOptional))

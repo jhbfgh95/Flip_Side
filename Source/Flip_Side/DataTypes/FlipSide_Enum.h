@@ -103,3 +103,19 @@ enum class ESingleCellWeaponType : uint8
     Grid UMETA(DisplayName = "Grid"),   // 1
     Other UMETA(DisplayName = "Other")
 };
+
+/**
+ * 무기 VFX가 적용될 대상 (coin_weapon_def.vfx_target 값으로 저장됨)
+ */
+UENUM(BlueprintType)
+enum class EWeaponVFXTarget : uint8
+{
+    None          UMETA(DisplayName = "None"),           // 0
+    Caster        UMETA(DisplayName = "Caster"),         // 1
+    TargetGrid    UMETA(DisplayName = "TargetGrid"),     // 2
+    TargetCoin    UMETA(DisplayName = "TargetCoin"),     // 3
+    TargetOther   UMETA(DisplayName = "TargetOther"),    // 4
+    Boss          UMETA(DisplayName = "Boss"),           // 5
+    RangeCells    UMETA(DisplayName = "RangeCells"),     // 6
+    AffectedCoins UMETA(DisplayName = "AffectedCoins")  // 7
+};

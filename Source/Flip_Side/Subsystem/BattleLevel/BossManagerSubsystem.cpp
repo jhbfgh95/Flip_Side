@@ -7,6 +7,9 @@
 #include "BossGimmick_Shield.h"
 #include "BossGimmick_Blind.h"
 #include "BossGimmick_Poison.h"
+#include "BossGimmick_Swamp.h"
+#include "BossGimmick_Proxy.h"
+#include "BossGimmick_Groggy.h"
 #include "GridManagerSubsystem.h"
 #include "CoinActor.h"
 #include "GridActor.h"
@@ -17,6 +20,7 @@
 
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "FlipSideDevloperSettings.h"
 
 void UBossManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -28,8 +32,11 @@ void UBossManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         UBossSetupGISubsystem* BossSetupGI = GI->GetSubsystem<UBossSetupGISubsystem>();
         if (BossSetupGI && !BossSetupGI->HasPreparedBoss())
         {
-            BossSetupGI->PrepareBossForID(1);
-            UE_LOG(LogTemp, Warning, TEXT("[BossManager] No prepared boss, defaulting to BossID 1"));
+            const UFlipSideDevloperSettings* DevSettings = GetDefault<UFlipSideDevloperSettings>();
+            const int32 FallbackID = (DevSettings && DevSettings->DebugForceBossID > 0)
+                ? DevSettings->DebugForceBossID : 1;
+            BossSetupGI->PrepareBossForID(FallbackID);
+            UE_LOG(LogTemp, Warning, TEXT("[BossManager] No prepared boss, defaulting to BossID %d"), FallbackID);
         }
     }
 }
@@ -104,6 +111,17 @@ bool UBossManagerSubsystem::SpawnPreparedBoss()
         return false;
     }
 
+    const int32 StageIndex = BossSetupGI->GetPreparedBossContext().StageIndex;
+    if (StageIndex > 0)
+    {
+        float StatMult = 1.0f, GimmickMult = 1.0f;
+        if (DataMgr->TryGetStageMultiplier(PreparedBossData.BossID, StageIndex, StatMult, GimmickMult))
+        {
+            CurrentBossBattleData.StageMultiplierStat    = StatMult;
+            CurrentBossBattleData.StageMultiplierGimmick = GimmickMult;
+        }
+    }
+
     return Internal_SpawnBoss(CurrentBossBattleData);
 }
 
@@ -139,6 +157,11 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossBattleData& InBossData
     CurrentBoss = SpawnedBoss;
     CurrentBoss->InitializeFromBossData(InBossData);
 
+    if (InBossData.ShieldValue > 0)
+    {
+        CurrentBoss->InitShield(InBossData.ShieldValue);
+    }
+
     if (InBossData.PatternClass)
     {
         UBossPatternBase* NewPattern = NewObject<UBossPatternBase>(CurrentBoss, InBossData.PatternClass);
@@ -154,9 +177,11 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossBattleData& InBossData
         TSubclassOf<UBossGimmickBase> GimmickClass = nullptr;
         switch (GimmickData.GimmickType)
         {
-            case EBossGimmickType::Shield:  GimmickClass = UBossGimmick_Shield::StaticClass();  break;
-            case EBossGimmickType::Blind:   GimmickClass = UBossGimmick_Blind::StaticClass();   break;
-            case EBossGimmickType::Poison:  GimmickClass = UBossGimmick_Poison::StaticClass();  break;
+            case EBossGimmickType::Shield:    GimmickClass = UBossGimmick_Shield::StaticClass();  break;
+            case EBossGimmickType::Blind:     GimmickClass = UBossGimmick_Blind::StaticClass();   break;
+            case EBossGimmickType::Poison:    GimmickClass = UBossGimmick_Poison::StaticClass();  break;
+            case EBossGimmickType::GridDebuff: GimmickClass = UBossGimmick_Swamp::StaticClass();  break;
+            case EBossGimmickType::Groggy:    GimmickClass = UBossGimmick_Groggy::StaticClass(); break;
             default: break;
         }
         if (GimmickClass)
@@ -171,7 +196,6 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossBattleData& InBossData
         }
     }
 
-    StageContext.PickedThemeID = InBossData.ThemeID;
     StageContext.PickedBossID = InBossData.BossID;
     StageContext.PickedBossName = InBossData.BossName;
 
@@ -228,30 +252,50 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
         return false;
     }
 
-    const int32 GimmickCount = CurrentBoss->GetGimmickCount();
-    if (GimmickCount > 0)
-    {
-        const int32 GimmickIndex = FMath::RandRange(0, GimmickCount - 1);
-        CurrentBoss->SetActiveGimmick(CurrentBoss->GetGimmickList()[GimmickIndex]);
-        UE_LOG(LogTemp, Warning, TEXT("[BossManager] GimmickCount=%d, SelectedGimmickIndex=%d"), GimmickCount, GimmickIndex);
-    }
-    else
-    {
-        CurrentBoss->SetActiveGimmick(nullptr);
-    }
-
     TurnContext.CurrentPattern = PickedPattern;
     TurnContext.CurrentPatternIndex = PatternIndex;
     TurnContext.CurrentPattern->BuildTargetCells(CurrentBoss, TurnContext.LockedCells, TurnContext.CurrentPatternIndex);
-    
+
     if (PickedPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
     {
-        const FBossPatternBattleData& CurrentPatternData = PickedPattern->PatternData[TurnContext.CurrentPatternIndex];
+        FBossPatternBattleData CurrentPatternData = PickedPattern->PatternData[TurnContext.CurrentPatternIndex];
         CurrentBoss->SetPatternAnim(CurrentPatternData.PatternMontage);
+
+        // 패턴의 GimmickType으로 GimmickList에서 해당 기믹 찾아 ActiveGimmick 세팅
+        UBossGimmickBase* MatchedGimmick = nullptr;
+        if (CurrentPatternData.GimmickType != EBossGimmickType::None)
+        {
+            for (UBossGimmickBase* G : CurrentBoss->GetGimmickList())
+            {
+                if (IsValid(G) && G->GimmickData.GimmickType == CurrentPatternData.GimmickType)
+                {
+                    MatchedGimmick = G;
+                    break;
+                }
+            }
+        }
+        // Proxy를 통해 ActiveGimmick 세팅:
+        // OnPlayerTurnStart/End → GimmickList 전체 브로드캐스트
+        // OnPatternExecute/OnDamageCalculate/OnTurnEnd → MatchedGimmick에만 전달
+        UBossGimmick_Proxy* Proxy = NewObject<UBossGimmick_Proxy>(CurrentBoss);
+        Proxy->SelectedGimmick = MatchedGimmick;
+        Proxy->GimmickData = MatchedGimmick ? MatchedGimmick->GimmickData : FBossGimmickData{};
+        CurrentBoss->SetActiveGimmick(Proxy);
+
+        UE_LOG(LogTemp, Warning, TEXT("[BossManager] Pattern=%d, GimmickType=%d, ActiveGimmick=%s"),
+            PatternIndex, (int32)CurrentPatternData.GimmickType,
+            MatchedGimmick ? *MatchedGimmick->GetClass()->GetName() : TEXT("None"));
+
         CurrentBoss->SetCurrentPatternInfo(TurnContext.CurrentPatternIndex, CurrentPatternData);
     }
 
-    ShowTelegraphPreview(TurnContext.LockedCells, FLinearColor(1.f, 0.f, 0.f, 1.f));
+    // 늪 설치 패턴(bNoDamage)이면 보라색, 일반 공격이면 빨간색으로 예고
+    const bool bIsInstallPattern = PickedPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex)
+        && PickedPattern->PatternData[TurnContext.CurrentPatternIndex].bNoDamage;
+    const FLinearColor TelegraphColor = bIsInstallPattern
+        ? FLinearColor(0.5f, 0.1f, 0.9f, 1.f)
+        : FLinearColor(1.f, 0.f, 0.f, 1.f);
+    ShowTelegraphPreview(TurnContext.LockedCells, TelegraphColor);
 
     TurnContext.bPrepared = true;
     return true;
@@ -273,6 +317,8 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
     if (!TurnContext.bPrepared)
     {
         UE_LOG(LogTemp, Warning, TEXT("[BossManager] ExecuteCurrentPattern skipped: not prepared"));
+        if (IsValid(CurrentBoss))
+            CurrentBoss->FinishBossAttack();
         return;
     }
 
@@ -319,30 +365,77 @@ void UBossManagerSubsystem::ApplyCurrentPattern()
 {
     if (!TurnContext.bPrepared) return;
 
-        TArray<ACoinActor*> ValidLockedTargets;
-        TArray<ABase_OtherActor*> ValidLockedOthers;
-        for (const FLockedBossTarget& LockedTarget : TurnContext.LockedTargets)
+    TArray<ACoinActor*> ValidLockedTargets;
+    TArray<ABase_OtherActor*> ValidLockedOthers;
+    for (const FLockedBossTarget& LockedTarget : TurnContext.LockedTargets)
+    {
+        if (IsValid(LockedTarget.CoinActor) && IsStillOnLockedCell(LockedTarget))
         {
-            if (IsValid(LockedTarget.CoinActor) && IsStillOnLockedCell(LockedTarget))
-            {
-                ValidLockedTargets.Add(LockedTarget.CoinActor);
-            }
-            else if (IsValid(LockedTarget.OtherActor))
-            {
-                ValidLockedOthers.Add(LockedTarget.OtherActor);
-            }
+            ValidLockedTargets.Add(LockedTarget.CoinActor);
         }
+        else if (IsValid(LockedTarget.OtherActor))
+        {
+            ValidLockedOthers.Add(LockedTarget.OtherActor);
+        }
+    }
 
-        if (TurnContext.CurrentPattern)
+    // 늪 기믹 강화 데미지: 일반 공격 패턴이 늪 셀과 겹치면 보너스 데미지 적용
+    if (IsValid(CurrentBoss) && TurnContext.CurrentPattern)
+    {
+        const bool bNoDamage = TurnContext.CurrentPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex)
+            && TurnContext.CurrentPattern->PatternData[TurnContext.CurrentPatternIndex].bNoDamage;
+
+        if (!bNoDamage)
         {
-            TurnContext.CurrentPattern->ExecutePattern(
-                CurrentBoss,
-                TurnContext.LockedCells,
-                ValidLockedTargets,
-                ValidLockedOthers,
-                TurnContext.CurrentPatternIndex
-            );
+            UBossGimmick_Swamp* SwampGimmick = nullptr;
+            for (UBossGimmickBase* G : CurrentBoss->GetGimmickList())
+            {
+                SwampGimmick = Cast<UBossGimmick_Swamp>(G);
+                if (SwampGimmick) break;
+            }
+
+            if (SwampGimmick)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("[Swamp] ActiveSwamps=%d, LockedCells=%d"),
+                    SwampGimmick->GetActiveSwamps().Num(), TurnContext.LockedCells.Num());
+
+                bool bOverlapsSwamp = false;
+                for (const FGridPoint& Cell : TurnContext.LockedCells)
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("[Swamp] Checking cell (%d,%d)"), Cell.GridX, Cell.GridY);
+                    if (SwampGimmick->IsSwampCell(Cell))
+                    {
+                        bOverlapsSwamp = true;
+                        break;
+                    }
+                }
+
+                if (bOverlapsSwamp)
+                {
+                    // ParamFloatB = 강화 데미지 배율 (예: 1.5 → 50% 추가)
+                    const float Multiplier = SwampGimmick->GimmickData.ParamFloatB > 0.f
+                        ? SwampGimmick->GimmickData.ParamFloatB : 1.5f;
+                    const int32 BaseDamage = CurrentBoss->GetAttackPoint();
+                    const int32 BonusDamage = FMath::RoundToInt(BaseDamage * (Multiplier - 1.f));
+
+                    UE_LOG(LogTemp, Log, TEXT("[Swamp] Overlap detected — BonusDamage=%d (x%.2f)"), BonusDamage, Multiplier);
+                    TurnContext.CurrentPattern->BonusDamage = BonusDamage;
+                }
+            }
         }
+    }
+
+    if (TurnContext.CurrentPattern)
+    {
+        TurnContext.CurrentPattern->ExecutePattern(
+            CurrentBoss,
+            TurnContext.LockedCells,
+            ValidLockedTargets,
+            ValidLockedOthers,
+            TurnContext.CurrentPatternIndex
+        );
+        TurnContext.CurrentPattern->BonusDamage = 0;
+    }
 
     ClearCurrentTurn();
 }
@@ -399,6 +492,7 @@ void UBossManagerSubsystem::ClearTelegraphPreview(const TArray<FGridPoint>& Cell
     {
         if (AGridActor* Grid = GridMgr->GetGridActor(Cell))
         {
+            Grid->ClearBossAttackFlag();
             Grid->InitColor();
         }
     }

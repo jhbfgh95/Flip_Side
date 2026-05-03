@@ -36,6 +36,9 @@ protected:
     void PlayCardAnim(UWidgetAnimation* Anim);
 
 private:
+    UPROPERTY(meta = (BindWidget))
+    class UBorder* ActiveWidget;    
+private:
     UFUNCTION()
     void OnRemoveAnimFinished();
 
@@ -51,4 +54,10 @@ private:
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 HandIndex = 0;
+
+    UFUNCTION()
+    void ActiveCard();
+
+    UFUNCTION()
+    void DeactiveCard();
 };

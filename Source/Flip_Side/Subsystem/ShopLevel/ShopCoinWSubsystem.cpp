@@ -118,9 +118,9 @@ int32 UShopCoinWSubsystem::GetSameWeaponInCoinSlot(int32 SlotNum, int32 WeaponID
         {
             if(ShopCoinSlotArray[i].CoinData.FrontWeaponID != -1 && ShopCoinSlotArray[i].CoinData.BackWeaponID != -1)
             {
-                if(ShopCoinSlotArray[i].CoinData.FrontWeaponID == CheckCoinData.FrontWeaponID || ShopCoinSlotArray[i].CoinData.BackWeaponID == CheckCoinData.FrontWeaponID)
+                if(ShopCoinSlotArray[i].CoinData.FrontWeaponID == CheckCoinData.FrontWeaponID)
                 {
-                    if(ShopCoinSlotArray[i].CoinData.FrontWeaponID == CheckCoinData.BackWeaponID || ShopCoinSlotArray[i].CoinData.BackWeaponID == CheckCoinData.BackWeaponID)
+                    if(ShopCoinSlotArray[i].CoinData.BackWeaponID == CheckCoinData.BackWeaponID)
                     {
                         ExecuteWarning(1);
                         return i;

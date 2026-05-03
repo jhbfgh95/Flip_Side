@@ -178,22 +178,10 @@ bool UDataManagerSubsystem::OpenDbReadWrite()
 {
     const FString ContentDbPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("DB.db"));
 
-    const FString SavedDbPath = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("DB.db"));
-
-    if (!FPaths::FileExists(SavedDbPath))
+    if (!FPaths::FileExists(ContentDbPath))
     {
-        if (!FPaths::FileExists(ContentDbPath))
-        {
-            UE_LOG(LogTemp, Error, TEXT("[DB] DB file not found: %s"), *ContentDbPath);
-            return false;
-        }
-
-        const int32 CopyResult = IFileManager::Get().Copy(*SavedDbPath, *ContentDbPath);
-        if (CopyResult != COPY_OK)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("[DB] Copy to Saved failed. Try open Content read-only."));
-            return Db.Open(*ContentDbPath, ESQLiteDatabaseOpenMode::ReadOnly);
-        }
+        UE_LOG(LogTemp, Error, TEXT("[DB] DB file not found: %s"), *ContentDbPath);
+        return false;
     }
 
     return Db.Open(*ContentDbPath, ESQLiteDatabaseOpenMode::ReadWrite);
@@ -228,6 +216,7 @@ bool UDataManagerSubsystem::LoadWeapons()
             c.icon_path,
             c.behavior,
             c.vfx_path,
+            IFNULL(c.vfx_target, 0) AS vfx_target,
             c.type_id,
             w.HP,
             c.weapon_point,
@@ -289,6 +278,8 @@ bool UDataManagerSubsystem::LoadWeapons()
         {
             Data.WeaponVFX = LoadObject<UNiagaraSystem>(nullptr, *VfxPath);
         }
+
+        Data.WeaponVFXTarget = (EWeaponVFXTarget)GetColInt(Stmt, Col++);
 
         Data.TypeID = GetColInt(Stmt, Col++);
         Data.HP = GetColInt(Stmt, Col++);
@@ -431,7 +422,7 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
 
     {
         const TCHAR* Sql = TEXT(
-            "SELECT boss_id, gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description "
+            "SELECT boss_id, gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description, shield_value "
             "FROM boss_gimmick;"
         );
 
@@ -453,6 +444,7 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
             G.ParamStrA          = GetColText(Stmt, 6);
             G.GimmickName        = GetColTextUTF8(Stmt, 7);
             G.GimmickDescription = GetColTextUTF8(Stmt, 8);
+            G.ShieldValue        = GetColInt(Stmt, 9);
             Found->GimmickList.Add(G);
         }
         Stmt.Destroy();
@@ -531,7 +523,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
         const TCHAR* Sql = TEXT(
             "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, "
             "attack_point, boss_hp, spawn_loc_x, spawn_loc_y, spawn_loc_z, spawn_rot_yaw, "
-            "boss_class_path, pattern_class_path, stage_multiplier_stat, stage_multiplier_gimmick "
+            "boss_class_path, pattern_class_path, stage_multiplier_stat, stage_multiplier_gimmick, shield_value "
             "FROM boss_def WHERE boss_id = ?;"
         );
 
@@ -554,8 +546,9 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
         if (!ImagePath.IsEmpty())
             Out.BossImage = LoadObject<UTexture2D>(nullptr, *ImagePath);
 
-        Out.AttackPoint = GetColInt(Stmt, 5);
-        Out.BossHP      = GetColInt(Stmt, 6);
+        Out.AttackPoint  = GetColInt(Stmt, 5);
+        Out.BossHP       = GetColInt(Stmt, 6);
+        Out.ShieldValue  = GetColInt(Stmt, 15);
         Out.SpawnLoc    = FVector(GetColDouble(Stmt, 7), GetColDouble(Stmt, 8), GetColDouble(Stmt, 9));
         Out.SpawnRot    = FRotator(0.0, GetColDouble(Stmt, 10), 0.0);
 
@@ -582,7 +575,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             "SELECT pattern_name, pattern_description, damage_ratio, apply_delay, "
             "area_pattern, anchor_dx, anchor_dy, anchor_mode, param_a, param_b, side, "
             "montage_path, effect_path, effect_scale_x, effect_scale_y, effect_scale_z, "
-            "visual_actor_path, pattern_icon_path, pattern_range_image_path "
+            "visual_actor_path, pattern_icon_path, pattern_range_image_path, no_damage, gimmick_type, shield_heal "
             "FROM boss_pattern_def WHERE boss_id = ? ORDER BY pattern_order;"
         );
 
@@ -600,6 +593,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
 
             P.PatternSpec.Pattern    = AttackAreaPatternFromInt(GetColInt(Stmt, 4));
             P.PatternSpec.AnchorCell = FGridPoint(GetColInt(Stmt, 5), GetColInt(Stmt, 6));
+            P.PatternSpec.Index      = GetColInt(Stmt, 5); // anchor_dx → Index (UseIndex 모드용)
             P.PatternSpec.AnchorMode = AreaAnchorFromInt(GetColInt(Stmt, 7));
             P.PatternSpec.ParamA     = GetColInt(Stmt, 8);
             P.PatternSpec.ParamB     = GetColInt(Stmt, 9);
@@ -621,6 +615,10 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             if (!RangeImagePath.IsEmpty())
                 P.PatternRangeImage = LoadObject<UTexture2D>(nullptr, *RangeImagePath);
 
+            P.bNoDamage   = GetColInt(Stmt, 19) != 0;
+            P.GimmickType = static_cast<EBossGimmickType>(GetColInt(Stmt, 20));
+            P.ShieldHeal  = GetColInt(Stmt, 21);
+
             Out.PatternList.Add(P);
         }
         Stmt.Destroy();
@@ -629,7 +627,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
     // boss_gimmick
     {
         const TCHAR* Sql = TEXT(
-            "SELECT gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description "
+            "SELECT gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description, shield_value "
             "FROM boss_gimmick WHERE boss_id = ?;"
         );
 
@@ -648,6 +646,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             G.ParamStrA          = GetColText(Stmt, 5);
             G.GimmickName        = GetColTextUTF8(Stmt, 6);
             G.GimmickDescription = GetColTextUTF8(Stmt, 7);
+            G.ShieldValue        = GetColInt(Stmt, 8);
             Out.GimmickList.Add(G);
         }
         Stmt.Destroy();
@@ -699,6 +698,37 @@ bool UDataManagerSubsystem::LoadItems()
     return true;
 }
 
+bool UDataManagerSubsystem::TryGetStageMultiplier(int32 BossID, int32 Stage, float& OutStatMultiplier, float& OutGimmickMultiplier)
+{
+    if (!Db.IsValid())
+    {
+        if (!OpenDbReadWrite()) return false;
+    }
+
+    const TCHAR* Sql = TEXT(
+        "SELECT stat_multiplier, gimmick_multiplier FROM boss_stage_multiplier WHERE boss_id = ? AND stage = ?;"
+    );
+
+    FSQLitePreparedStatement Stmt;
+    if (!PrepareStmt(Db, Sql, Stmt)) return false;
+
+    Stmt.SetBindingValueByIndex(1, BossID);
+    Stmt.SetBindingValueByIndex(2, Stage);
+
+    if (Stmt.Step() != ESQLitePreparedStatementStepResult::Row)
+    {
+        Stmt.Destroy();
+        OutStatMultiplier = 1.0f;
+        OutGimmickMultiplier = 1.0f;
+        return false;
+    }
+
+    OutStatMultiplier    = (float)GetColDouble(Stmt, 0);
+    OutGimmickMultiplier = (float)GetColDouble(Stmt, 1);
+    Stmt.Destroy();
+    return true;
+}
+
 bool UDataManagerSubsystem::LoadCards()
 {
     const TCHAR* Sql =
@@ -740,6 +770,7 @@ bool UDataManagerSubsystem::LoadCards()
     Stmt.Destroy();
     return true;
 }
+
 
 static bool TryParseHexColor_RRGGBBAA(const FString& InHex, FLinearColor& Out)
 {

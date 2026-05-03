@@ -83,6 +83,7 @@ void AGridActor::ClearOccupied()
 	bIsPromotionHighlight = false;
 	bIsItemTargetHighlight = false;
 
+	// 늪 상태는 턴 기반으로 별도 관리되므로 여기서 초기화하지 않음
 	InitColor();
 	CurrentOccupying = EGridOccupyingType::None;
 	if(ABase_OtherActor* OtherActor = Cast<ABase_OtherActor>(CurrentObject))
@@ -90,6 +91,28 @@ void AGridActor::ClearOccupied()
 		OtherActor->SetOccupiedGrid(nullptr);
 	}
 	CurrentObject = nullptr;
+}
+
+void AGridActor::SetSwamp(int32 RemainingTurns, int32 DebuffAmount, EWeaponClass TargetClass, const FLinearColor& Color)
+{
+	bHasSwamp = true;
+	SwampRemainingTurns = RemainingTurns;
+	SwampDebuffAmount = DebuffAmount;
+	SwampTargetClass = TargetClass;
+	SwampColor = Color;
+	SwampColorSet.Color = Color;
+	SwampColorSet.Intensity = 0.5f;
+	SwampColorSet.DoorOpen = 0.f;
+	InitColor();
+}
+
+void AGridActor::ClearSwamp()
+{
+	bHasSwamp = false;
+	SwampRemainingTurns = 0;
+	SwampDebuffAmount = 0;
+	SwampTargetClass = EWeaponClass::None;
+	InitColor();
 }
 
 AActor* AGridActor::GetCurrentOccupied() const
@@ -160,6 +183,12 @@ void AGridActor::InitColor()
 		MID->SetVectorParameterValue(TEXT("Outline_Color"), BossColorset.Color);
 		MID->SetScalarParameterValue(TEXT("Fill_intensity"), BossColorset.Intensity);
 		MID->SetScalarParameterValue(TEXT("Door_Open"), BossColorset.DoorOpen);
+	}
+	else if (bHasSwamp)
+	{
+		MID->SetVectorParameterValue(TEXT("Outline_Color"), SwampColorSet.Color);
+		MID->SetScalarParameterValue(TEXT("Fill_intensity"), SwampColorSet.Intensity);
+		MID->SetScalarParameterValue(TEXT("Door_Open"), SwampColorSet.DoorOpen);
 	}
 	else
 	{

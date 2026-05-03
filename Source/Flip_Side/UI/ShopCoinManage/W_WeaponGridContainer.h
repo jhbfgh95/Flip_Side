@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "DataTypes/FlipSide_Enum.h"
 #include "W_WeaponGridContainer.generated.h"
 
 /**
@@ -43,13 +44,22 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UW_WeaponSelectGrid* UtilGrid;
 
+private:
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
+	FLinearColor DealColor;
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
+	FLinearColor TankColor;
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
+	FLinearColor UtilColor;
+
+	FLinearColor DefaultColor =FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
 
 private:
 	UFUNCTION()
 	void SetUnlockImageSlotChange();
 	UFUNCTION()
 	void SetUnlockImage();
-
 	UFUNCTION()
 	void SetDealGrid();
 	UFUNCTION()
@@ -57,5 +67,6 @@ private:
 	UFUNCTION()
 	void SetUtilGrid();
 
+	void SetWeaponGrid(EWeaponClass weaponClass);
 
 };

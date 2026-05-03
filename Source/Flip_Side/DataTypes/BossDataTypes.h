@@ -46,6 +46,9 @@ struct FBossGimmickData
     FString ParamStrA;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 ShieldValue = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString GimmickName;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -146,6 +149,15 @@ struct FBossPatternBattleData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TObjectPtr<UTexture2D> PatternRangeImage = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    bool bNoDamage = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EBossGimmickType GimmickType = EBossGimmickType::None;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 ShieldHeal = 0;
 };
 
 // 배틀용 보스 전체 데이터
@@ -174,6 +186,9 @@ struct FBossBattleData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 BossHP = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 ShieldValue = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FVector SpawnLoc = FVector::ZeroVector;

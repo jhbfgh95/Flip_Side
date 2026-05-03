@@ -224,6 +224,7 @@ void UBattleManagerWSubsystem::DoCoinSelectTurn()
     {
         if (Boss->GetActiveGimmick())
             Boss->GetActiveGimmick()->OnPlayerTurnStart(Boss);
+
     }
 }
 

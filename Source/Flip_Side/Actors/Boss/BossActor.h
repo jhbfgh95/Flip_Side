@@ -199,6 +199,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Boss|Gimmick")
 	int32 GetGimmickCount() const { return GimmickList.Num(); }
 
+
 	UFUNCTION(BlueprintCallable, Category = "Boss|CC")
 	bool GetOnIsOnCC() const { return bIsOnCC; }
 

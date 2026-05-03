@@ -56,6 +56,9 @@ struct FFaceData
     UNiagaraSystem* WeaponVFX = nullptr;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EWeaponVFXTarget WeaponVFXTarget = EWeaponVFXTarget::None;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FLinearColor TypeColor;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)

@@ -16,7 +16,7 @@ void UBossGimmick_Blind::OnPatternExecute(
 
 	FCCStructure BlindCC;
 	BlindCC.CCType = ECCTypes::Blind;
-	BlindCC.CCDuration = 1;
+	BlindCC.CCDuration = GimmickData.ParamIntA > 0 ? GimmickData.ParamIntA : 2;
 
 	for (ACoinActor* Coin : LockedTargets)
 	{

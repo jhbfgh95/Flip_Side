@@ -2,7 +2,7 @@
 #include "Subsystem/StageCardWSubsystem.h"
 #include "Input/Reply.h"
 #include "InputCoreTypes.h"
-
+#include "Components/Border.h"
 void UW_StageHandCardWidget::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -33,6 +33,7 @@ void UW_StageHandCardWidget::NativeConstruct()
             SetVisibility(ESlateVisibility::Visible);
         }
     }
+    DeactiveCard();
 }
 
 void UW_StageHandCardWidget::OnHandCardSet(int32 Index, FCardData CardData)
@@ -93,4 +94,12 @@ void UW_StageHandCardWidget::PlayCardAnim(UWidgetAnimation* Anim)
 {
     if (!CanControl) return;
     if (Anim) PlayAnimation(Anim);
+}
+void UW_StageHandCardWidget::ActiveCard()
+{
+    ActiveWidget->SetVisibility(ESlateVisibility::Visible);
+}
+void UW_StageHandCardWidget::DeactiveCard()
+{
+    ActiveWidget->SetVisibility(ESlateVisibility::Hidden);
 }
