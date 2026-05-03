@@ -99,10 +99,7 @@ void UCoinActionManagementWSubsystem::InitWeaponAction()
         GridManager->SetGridClickFlag(EGridClickFlag::None);
     }
 
-    if (BattleCoinInfoWidgetInstance)
-    {
-        BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
-    }
+    HideBattleCoinInfo();
 }
 
 bool UCoinActionManagementWSubsystem::ApplyRangedThings(const FGridPoint& TargetGridPoint)
@@ -423,9 +420,19 @@ void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
     }
 }
 
+void UCoinActionManagementWSubsystem::HideBattleCoinInfo()
+{
+    if (BattleCoinInfoWidgetInstance)
+    {
+        BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+    }
+}
+
 void UCoinActionManagementWSubsystem::HandleCoinUnHovered()
 {
     if(!bIsCorrectTurn) return;
+
+    HideBattleCoinInfo();
 
     if (CurrentInputState == EActionInputState::None)
     {

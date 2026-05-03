@@ -85,6 +85,8 @@ protected:
 		const TArray<struct FBuffInfo>& ActiveBuffs
 	);
 
+	void HideBattleCoinInfo();
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
