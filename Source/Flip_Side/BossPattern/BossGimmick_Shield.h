@@ -8,7 +8,4 @@ UCLASS()
 class FLIP_SIDE_API UBossGimmick_Shield : public UBossGimmickBase
 {
 	GENERATED_BODY()
-
-public:
-	virtual void OnBattleStart(ABossActor* Boss) override;
 };

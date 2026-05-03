@@ -16,7 +16,7 @@ class UW_ItemInfo;
 class UUserWidget;
 class AUseableItemActor;
 
-UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="My Manager Settings"))
+UCLASS(Config=Game, meta=(DisplayName="My Manager Settings"))
 class FLIP_SIDE_API UFlipSideDevloperSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
@@ -49,6 +49,10 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Stage UI",
 		meta = (AllowedClasses = "/Script/UMG.UserWidget"))
 	TSoftClassPtr<UUserWidget> StageHUDWidgetClass;
+
+	// 테스트용 — 0이면 기본 폴백(BossID=1), 1 이상이면 해당 ID로 강제 스폰
+	UPROPERTY(Config, EditAnywhere, Category = "Debug | Boss")
+	int32 DebugForceBossID = 0;
 
 	// 사운드
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | BGM")
