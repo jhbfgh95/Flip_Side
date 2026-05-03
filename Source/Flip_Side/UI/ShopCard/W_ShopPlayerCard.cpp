@@ -42,7 +42,6 @@ FReply UW_ShopPlayerCard::NativeOnMouseButtonDown(const FGeometry& InGeometry,co
 
 void UW_ShopPlayerCard::InitPlayerCard(FCardData CardDataValue)
 {
-
     CardData = CardDataValue;
 
     if(CardData.CardID == -1)

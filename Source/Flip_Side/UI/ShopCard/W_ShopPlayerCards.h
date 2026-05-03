@@ -27,6 +27,7 @@ private:
 	TArray<class UW_ShopPlayerCard*> PlayerCardWidget;
 	UPROPERTY(meta = (BindWidget))
 	class UCanvasPanel* MainCanvas;
+    FCardData DefaultCardData;
 private:
 	UFUNCTION()
 	void SetUnSelectPlayerCard(FCardData UnSelectCardData,int32 UnSelectCardIndex);

@@ -15,16 +15,16 @@ void UW_ShopPlayerCards::NativeConstruct()
 
     int32 ChildCount = MainCanvas->GetChildrenCount();
 
+    DefaultCardData.CardID = -1;
     for (int32 i = 0; i < ChildCount; ++i)
     {
         UW_ShopPlayerCard* PlayerCardData = Cast<UW_ShopPlayerCard>(MainCanvas->GetChildAt(i));
-        PlayerCardWidget.Add(PlayerCardData);
+        if(PlayerCardData != nullptr)
+            PlayerCardWidget.Add(PlayerCardData);
+
+        PlayerCardData->InitPlayerCard(DefaultCardData);
     }
-    FCardData CardData;
-    CardData.CardID = -1;
-    SetUnSelectPlayerCard(CardData,0);
-    SetUnSelectPlayerCard(CardData,1);
-    SetUnSelectPlayerCard(CardData,2);
+
 
 }
 void UW_ShopPlayerCards::NativeDestruct()
@@ -40,7 +40,7 @@ void UW_ShopPlayerCards::SetUnSelectPlayerCard(FCardData UnSelectCardData, int32
 
     if(UnSelectCardIndex < PlayerCardWidget.Num())
     {
-        PlayerCardWidget[UnSelectCardIndex]->InitPlayerCard(ShopCardSubsystem->GetPlayerCard(UnSelectCardIndex));
+        PlayerCardWidget[UnSelectCardIndex]->InitPlayerCard(DefaultCardData);
     }
         
 }
