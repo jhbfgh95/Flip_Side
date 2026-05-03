@@ -37,9 +37,6 @@ struct FBossStageContext
     GENERATED_BODY()
 
     UPROPERTY(BlueprintReadOnly)
-    int32 PickedThemeID = 0;
-
-    UPROPERTY(BlueprintReadOnly)
     int32 PickedBossID = 0;
 
     UPROPERTY(BlueprintReadOnly)
@@ -114,6 +111,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Boss")
     TSoftClassPtr<ABase_PatternVisualActor> GetCurrentPatternVisualClass() const;
 
+    UBossPatternBase* GetCurrentTurnPattern() const { return TurnContext.CurrentPattern; }
+    int32 GetCurrentTurnPatternIndex() const { return TurnContext.CurrentPatternIndex; }
+    const TArray<FGridPoint>& GetCurrentTurnLockedCells() const { return TurnContext.LockedCells; }
+
     UFUNCTION(BlueprintCallable, Category = "Boss")
     bool StartBossSetting();
 
@@ -122,7 +123,6 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Boss")
     void ClearCurrentTurn();
-
 
 private:
     bool Internal_SpawnBoss(const FBossBattleData& InBossData);

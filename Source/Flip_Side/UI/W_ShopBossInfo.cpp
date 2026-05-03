@@ -6,8 +6,6 @@
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
-#include "Components/VerticalBox.h"
-#include "Components/VerticalBoxSlot.h"
 #include "Engine/GameInstance.h"
 #include "Subsystem/BossSetupGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
@@ -220,32 +218,6 @@ void UW_ShopBossInfo::RefreshBossTexts()
 		BossAbilityText->SetText(CurrentBossData.BossAbilityDescription);
 	}
 
-	if(BossAbilityTitleText)
-	{
-		const bool bHasGimmick = CurrentBossData.GimmickList.Num() > 0;
-		BossAbilityTitleText->SetVisibility(bHasGimmick ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
-		if(bHasGimmick)
-		{
-			BossAbilityTitleText->SetText(FText::FromString(TEXT("보스 능력")));
-		}
-	}
-
-	if(GimmickListBox)
-	{
-		GimmickListBox->ClearChildren();
-
-		for(const FBossGimmickData& Gimmick : CurrentBossData.GimmickList)
-		{
-			if(Gimmick.GimmickName.IsEmpty() && Gimmick.GimmickDescription.IsEmpty()) continue;
-
-			UTextBlock* GimmickText = NewObject<UTextBlock>(GimmickListBox);
-			const FString Line = FString::Printf(TEXT("● %s — %s"), *Gimmick.GimmickName, *Gimmick.GimmickDescription);
-			GimmickText->SetText(FText::FromString(Line));
-			GimmickListBox->AddChildToVerticalBox(GimmickText);
-		}
-
-		GimmickListBox->SetVisibility(CurrentBossData.GimmickList.Num() > 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
-	}
 }
 
 void UW_ShopBossInfo::RefreshPatternTexts()
@@ -335,17 +307,6 @@ void UW_ShopBossInfo::ClearBossInfo()
 	if(BossAbilityText)
 	{
 		BossAbilityText->SetText(FText::GetEmpty());
-	}
-
-	if(BossAbilityTitleText)
-	{
-		BossAbilityTitleText->SetVisibility(ESlateVisibility::Collapsed);
-	}
-
-	if(GimmickListBox)
-	{
-		GimmickListBox->ClearChildren();
-		GimmickListBox->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
 	SetPatternButtonCount(0);

@@ -39,6 +39,8 @@ public:
     UPROPERTY(BlueprintReadOnly)
     TMap<int32, int32> BossIDByStage;
 
+    // stage_id → (boss_id, encounter)
+
     TMap<int32, TArray<FBossPatternDisplayData>> BossPatternDisplayByBossID;
 
     UPROPERTY(BlueprintReadOnly)
@@ -78,6 +80,9 @@ public:
     bool TryGetBossPatternDisplay(int32 BossID, TArray<FBossPatternDisplayData>& Out) const;
 
     bool LoadBossBattleData(int32 BossID, FBossBattleData& Out);
+
+    bool TryGetStageMultiplier(int32 BossID, int32 Stage, float& OutStatMultiplier, float& OutGimmickMultiplier);
+
 
     UFUNCTION(BlueprintCallable)
     bool TryGetItem(int32 ItemID, FItemData& Out) const;

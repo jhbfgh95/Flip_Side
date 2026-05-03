@@ -22,98 +22,64 @@ void UBossSetupGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 }
 
 
-bool UBossSetupGISubsystem::PickRandomThemeFromStageBosses(
-    const TArray<FBossDisplayData>& StageBosses,
-    int32& OutThemeID) const
+
+void UBossSetupGISubsystem::AssignBossesToStages()
 {
-    TArray<int32> ThemeIDs;
+    StageBossAssignment.Reset();
 
-    for (const FBossDisplayData& Data : StageBosses)
-    {
-        if (!ThemeIDs.Contains(Data.ThemeID))
-        {
-            ThemeIDs.Add(Data.ThemeID);
-        }
-    }
+    // 스테이지 1은 튜토리얼 보스 고정
+    StageBossAssignment.Add(1, 1);
 
-    if (ThemeIDs.Num() <= 0)
-    {
-        return false;
-    }
-
-    const int32 PickedIndex = FMath::RandRange(0, ThemeIDs.Num() - 1);
-    OutThemeID = ThemeIDs[PickedIndex];
-    return true;
-}
-
-bool UBossSetupGISubsystem::PickRandomBossFromTheme(
-    const TArray<FBossDisplayData>& StageBosses,
-    int32 ThemeID,
-    FBossDisplayData& OutBossData) const
-{
-    TArray<FBossDisplayData> Candidates;
-
-    for (const FBossDisplayData& Data : StageBosses)
-    {
-        if (Data.ThemeID == ThemeID)
-        {
-            Candidates.Add(Data);
-        }
-    }
-
-    if (Candidates.Num() <= 0)
-    {
-        return false;
-    }
-
-    const int32 PickedIndex = FMath::RandRange(0, Candidates.Num() - 1);
-    OutBossData = Candidates[PickedIndex];
-    return true;
-}
-
-bool UBossSetupGISubsystem::PickRandomBossDataForStage(int32 StageIndex, FBossDisplayData& OutBossData) const
-{
-    TArray<FBossDisplayData> StageBosses;
-
+    // 나머지 보스들(boss_id >= 2)을 스테이지 2부터 랜덤 배정
+    TArray<int32> BossIDs;
     for (const FBossDisplayData& Data : AllBossData)
     {
-        if (Data.BossStage == StageIndex)
-        {
-            StageBosses.Add(Data);
-        }
+        if (Data.BossID >= 2)
+            BossIDs.Add(Data.BossID);
     }
 
-    if (StageBosses.Num() <= 0)
+    // 셔플
+    for (int32 i = BossIDs.Num() - 1; i > 0; --i)
     {
-        return false;
+        int32 j = FMath::RandRange(0, i);
+        BossIDs.Swap(i, j);
     }
 
-    int32 PickedThemeID = 0;
-    if (!PickRandomThemeFromStageBosses(StageBosses, PickedThemeID))
+    for (int32 i = 0; i < BossIDs.Num(); ++i)
     {
-        return false;
+        StageBossAssignment.Add(i + 2, BossIDs[i]);
     }
 
-    return PickRandomBossFromTheme(StageBosses, PickedThemeID, OutBossData);
+    UE_LOG(LogTemp, Warning, TEXT("[BossSetupGI] Stage assignment:"));
+    for (const TTuple<int32, int32>& Pair : StageBossAssignment)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("  Stage %d → BossID %d"), Pair.Key, Pair.Value);
+    }
 }
 
 bool UBossSetupGISubsystem::PrepareBossForStage(int32 StageIndex)
 {
     ClearPreparedBoss();
 
-    FBossDisplayData PickedBossData;
-
-    if (!PickRandomBossDataForStage(StageIndex, PickedBossData))
+    const int32* BossIDPtr = StageBossAssignment.Find(StageIndex);
+    if (!BossIDPtr)
     {
-        UE_LOG(LogTemp, Warning, TEXT("[BossSetupGI] PrepareBossForStage failed: no boss for stage %d"), StageIndex);
+        UE_LOG(LogTemp, Warning, TEXT("[BossSetupGI] PrepareBossForStage failed: no boss assigned for stage %d"), StageIndex);
         return false;
     }
 
-    PreparedBossData = PickedBossData;
+    const int32 BossID = *BossIDPtr;
+    const FBossDisplayData* Found = AllBossData.FindByPredicate([BossID](const FBossDisplayData& D) { return D.BossID == BossID; });
+    if (!Found)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[BossSetupGI] PrepareBossForStage failed: BossID %d not found"), BossID);
+        return false;
+    }
+
+    PreparedBossData = *Found;
     PreparedContext.StageIndex = StageIndex;
-    PreparedContext.PickedThemeID = PickedBossData.ThemeID;
-    PreparedContext.PickedBossID = PickedBossData.BossID;
-    PreparedContext.PickedBossName = PickedBossData.BossName;
+    PreparedContext.PickedBossID = Found->BossID;
+    PreparedContext.PickedBossName = Found->BossName;
     PreparedContext.bPrepared = true;
 
     return true;
@@ -131,8 +97,7 @@ bool UBossSetupGISubsystem::PrepareBossForID(int32 BossID)
     }
 
     PreparedBossData = *Found;
-    PreparedContext.StageIndex = Found->BossStage;
-    PreparedContext.PickedThemeID = Found->ThemeID;
+    PreparedContext.StageIndex = 1;
     PreparedContext.PickedBossID = Found->BossID;
     PreparedContext.PickedBossName = Found->BossName;
     PreparedContext.bPrepared = true;

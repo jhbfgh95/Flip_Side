@@ -10,7 +10,7 @@ class ABossActor;
 class ACoinActor;
 class ABase_OtherActor;
 
-UCLASS(Abstract, Blueprintable, EditInlineNew, DefaultToInstanced)
+UCLASS(Blueprintable, EditInlineNew, DefaultToInstanced)
 class FLIP_SIDE_API UBossPatternBase : public UObject
 {
 	GENERATED_BODY()
@@ -21,6 +21,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
 	TArray<FBossPatternBattleData> PatternData;
+
+	// 늪 강화 데미지 — BossManagerSubsystem이 ApplyCurrentPattern에서 세팅, ExecutePattern 후 초기화
+	int32 BonusDamage = 0;
 
 public:
 	virtual void BuildTargetCells(

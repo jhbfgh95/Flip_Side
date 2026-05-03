@@ -31,25 +31,22 @@ void UTutorial_BossPattern::ExecutePattern(
 
 	if(!PatternData.IsValidIndex(PatternNum)) return;
 
-	if(PatternNum == 0 || PatternNum == 1)
+	UBossPatternBase::ExecutePattern(Boss, InLockedCells, InLockedTargets, InLockedOthers, PatternNum);
+
+	// 이펙트 재생
+	if (PatternData.IsValidIndex(PatternNum))
 	{
-		FVector2D AnchorGrid2D = GridMgr->GetGridActor(PatternData[PatternNum].PatternSpec.AnchorCell)->GetGridWorldXY();
-		FVector SpawnLocation = FVector(AnchorGrid2D.X, AnchorGrid2D.Y, -80.f);
-
-		const int32 FinalDamage = static_cast<int32>(Boss->GetAttackPoint() * Boss->GetStageMultiplierStat());
-		
+		FVector SpawnLocation;
+		if (PatternData[PatternNum].bNoDamage)
+		{
+			ATutorial_BossActor* TutoBoss = Cast<ATutorial_BossActor>(Boss);
+			SpawnLocation = TutoBoss ? TutoBoss->GetSelfEffectLocation() : Boss->GetActorLocation();
+		}
+		else
+		{
+			FVector2D AnchorGrid2D = GridMgr->GetGridActor(PatternData[PatternNum].PatternSpec.AnchorCell)->GetGridWorldXY();
+			SpawnLocation = FVector(AnchorGrid2D.X, AnchorGrid2D.Y, -80.f);
+		}
 		PlayPatternEffect(PatternNum, SpawnLocation);
-
-		ExecuteDamage(InLockedTargets, InLockedOthers, Boss, FinalDamage);
 	}
-    else
-    {
-        ATutorial_BossActor* TutoBoss = Cast<ATutorial_BossActor>(Boss);
-        
-        if (TutoBoss)
-        {
-            TutoBoss->ApplyShieldHeal(TutoBoss->GetAttackPoint(), TutoBoss);
-			PlayPatternEffect(PatternNum, TutoBoss->GetSelfEffectLocation());
-        }
-    }
 }

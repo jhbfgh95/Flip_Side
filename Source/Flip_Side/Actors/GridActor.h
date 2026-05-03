@@ -127,6 +127,19 @@ public:
 	bool bIsItemTargetHighlight = false;
 	FCachedColorSet ItemTargetColorSet;
 
+	// 늪 상태
+	bool bHasSwamp = false;
+	int32 SwampRemainingTurns = 0;
+	int32 SwampDebuffAmount = 0;
+	EWeaponClass SwampTargetClass = EWeaponClass::None;
+	FLinearColor SwampColor = FLinearColor::Green;
+	FCachedColorSet SwampColorSet;
+
+	void SetSwamp(int32 RemainingTurns, int32 DebuffAmount, EWeaponClass TargetClass, const FLinearColor& Color);
+	void ClearSwamp();
+	bool HasSwamp() const { return bHasSwamp; }
+	void ClearBossAttackFlag() { bIsBossAttack = false; bBossColorFirstSetted = false; }
+
 	UFUNCTION(BlueprintCallable)
 	void ApplyCellMaterialParams(const FLinearColor& OutlineColor, float FillIntensity, float DoorOpen);
 

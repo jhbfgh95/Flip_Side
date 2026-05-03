@@ -15,9 +15,6 @@ struct FPreparedBossContext
     int32 StageIndex = -1;
 
     UPROPERTY(BlueprintReadOnly)
-    int32 PickedThemeID = 0;
-
-    UPROPERTY(BlueprintReadOnly)
     int32 PickedBossID = 0;
 
     UPROPERTY(BlueprintReadOnly)
@@ -29,7 +26,6 @@ struct FPreparedBossContext
     void Reset()
     {
         StageIndex = -1;
-        PickedThemeID = 0;
         PickedBossID = 0;
         PickedBossName.Reset();
         bPrepared = false;
@@ -51,12 +47,14 @@ protected:
     UPROPERTY()
     FPreparedBossContext PreparedContext;
 
+    // stage_id → boss_id 런타임 배정 결과
+    TMap<int32, int32> StageBossAssignment;
+
 protected:
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-    bool PickRandomThemeFromStageBosses(const TArray<FBossDisplayData>& StageBosses, int32& OutThemeID) const;
-    bool PickRandomBossFromTheme(const TArray<FBossDisplayData>& StageBosses, int32 ThemeID, FBossDisplayData& OutBossData) const;
-    bool PickRandomBossDataForStage(int32 StageIndex, FBossDisplayData& OutBossData) const;
+    void AssignBossesToStages();
+
 
 public:
     UFUNCTION(BlueprintCallable, Category = "Boss")
