@@ -136,6 +136,7 @@ public:
 	int32 GetCoinID() const;
 	int32 GetCoinFrontID() const { return FrontWeaponID; }
 	int32 GetCoinBackID() const { return BackWeaponID; }
+	EWeaponClass GetWeaponType() const { return WeaponType; }
 
 	void SetCoinIsReady(bool IsReady);
 	bool GetCoinIsReady() const;

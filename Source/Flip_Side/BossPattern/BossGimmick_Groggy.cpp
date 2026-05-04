@@ -1,5 +1,5 @@
 #include "BossGimmick_Groggy.h"
-#include "BossActor.h"
+#include "BossActor_Groggy.h"
 
 void UBossGimmick_Groggy::OnBattleStart(ABossActor* Boss)
 {
@@ -32,6 +32,11 @@ void UBossGimmick_Groggy::AddGroggyValue(int32 Amount, ABossActor* Boss)
 
     CurrentGroggy = FMath::Min(CurrentGroggy + Amount, MaxGroggy);
     UE_LOG(LogTemp, Warning, TEXT("[Groggy] GroggyValue=%d / %d"), CurrentGroggy, MaxGroggy);
+
+    if (ABossActor_Groggy* GroggyBoss = Cast<ABossActor_Groggy>(Boss))
+    {
+        GroggyBoss->UpdateGroggyBar(CurrentGroggy);
+    }
 
     if (CurrentGroggy >= MaxGroggy)
     {

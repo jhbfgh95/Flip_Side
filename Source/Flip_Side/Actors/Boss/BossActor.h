@@ -184,6 +184,8 @@ public:
 	int32 GetMaxHP() const { return MaxHP; }
 
 	void SetCurrentHP(int32 NewHP) { CurrentHP = NewHP; }
+	void SetMaxHP(int32 NewMaxHP);
+
 	void SetCurrentShield(int32 NewShield) { CurrentShield = NewShield; }
 	void SetPattern(UBossPatternBase* InPattern) { Pattern = InPattern; }
 	void AddGimmick(UBossGimmickBase* InGimmick);

@@ -1,6 +1,7 @@
 #include "BossPatternBase.h"
 #include "BossGimmickBase.h"
 #include "BossActor.h"
+#include "BossActor_RoleTarget.h"
 #include "GridManagerSubsystem.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Component_Status.h"
@@ -82,6 +83,28 @@ void UBossPatternBase::BuildTargetCells(
 
 		Spec.AnchorCell.GridX = FMath::RandRange(MinX, MaxX);
 		Spec.AnchorCell.GridY = FMath::RandRange(FMath::Max(0, MinY), FMath::Max(0, MaxY));
+	}
+
+	// RoleTarget 패턴: Role 미확정이면 빈 배열, 확정되면 역할군 코인 위치 수집
+	if (PatternData.IsValidIndex(PatternNum) && PatternData[PatternNum].GimmickType == EBossGimmickType::RoleTarget)
+	{
+		if (ABossActor_RoleTarget* RoleTargetBoss = Cast<ABossActor_RoleTarget>(Boss))
+		{
+			if (RoleTargetBoss->IsRoleLocked())
+			{
+				const EWeaponClass TargetRole = RoleTargetBoss->GetLockedRoleClass();
+				TArray<FCoinOnGridInfo> OccupiedCoins;
+				GridMgr->CollectOccupiedCoins(OccupiedCoins);
+				for (const FCoinOnGridInfo& Info : OccupiedCoins)
+				{
+					if (IsValid(Info.CoinActor) && Info.CoinActor->GetWeaponType() == TargetRole)
+					{
+						OutCells.Add(Info.GridXY);
+					}
+				}
+			}
+			return; // 미확정이면 빈 배열 반환
+		}
 	}
 
 	GridMgr->BuildBossAttackCells(Spec, OutCells);

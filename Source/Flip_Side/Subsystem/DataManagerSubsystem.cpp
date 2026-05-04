@@ -422,7 +422,7 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
 
     {
         const TCHAR* Sql = TEXT(
-            "SELECT boss_id, gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description, shield_value "
+            "SELECT boss_id, gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description, shield_value, param_float_c "
             "FROM boss_gimmick;"
         );
 
@@ -445,6 +445,7 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
             G.GimmickName        = GetColTextUTF8(Stmt, 7);
             G.GimmickDescription = GetColTextUTF8(Stmt, 8);
             G.ShieldValue        = GetColInt(Stmt, 9);
+            G.ParamFloatC        = (float)GetColDouble(Stmt, 10);
             Found->GimmickList.Add(G);
         }
         Stmt.Destroy();
@@ -650,6 +651,28 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             Out.GimmickList.Add(G);
         }
         Stmt.Destroy();
+    }
+
+    // boss_background
+    {
+        const TCHAR* Sql = TEXT(
+            "SELECT slot, texture_path FROM boss_background WHERE boss_id = ? ORDER BY slot;"
+        );
+
+        FSQLitePreparedStatement Stmt;
+        if (PrepareStmt(Db, Sql, Stmt))
+        {
+            Stmt.SetBindingValueByIndex(1, BossID);
+            Out.BackgroundTextures.SetNum(4);
+            while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
+            {
+                const int32 Slot = GetColInt(Stmt, 0);
+                const FString TexPath = GetColText(Stmt, 1);
+                if (Out.BackgroundTextures.IsValidIndex(Slot) && !TexPath.IsEmpty())
+                    Out.BackgroundTextures[Slot] = LoadObject<UTexture2D>(nullptr, *TexPath);
+            }
+            Stmt.Destroy();
+        }
     }
 
     return true;

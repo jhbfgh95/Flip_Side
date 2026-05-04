@@ -10,6 +10,8 @@
 #include "BossGimmick_Swamp.h"
 #include "BossGimmick_Proxy.h"
 #include "BossGimmick_Groggy.h"
+#include "BossGimmick_RoleTarget.h"
+#include "BossActor_RoleTarget.h"
 #include "GridManagerSubsystem.h"
 #include "CoinActor.h"
 #include "GridActor.h"
@@ -128,14 +130,21 @@ bool UBossManagerSubsystem::SpawnPreparedBoss()
 bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossBattleData& InBossData)
 {
     UWorld* World = GetWorld();
-    if (!World || InBossData.BossClass.IsNull())
+    if (!World)
     {
+        UE_LOG(LogTemp, Warning, TEXT("[BossManager] Internal_SpawnBoss: World null"));
+        return false;
+    }
+    if (InBossData.BossClass.IsNull())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[BossManager] Internal_SpawnBoss: BossClass is null (BossID=%d)"), InBossData.BossID);
         return false;
     }
 
     UClass* SelectedBossClass = InBossData.BossClass.LoadSynchronous();
     if (!SelectedBossClass)
     {
+        UE_LOG(LogTemp, Warning, TEXT("[BossManager] Internal_SpawnBoss: BossClass LoadSynchronous failed"));
         return false;
     }
 
@@ -151,11 +160,19 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossBattleData& InBossData
 
     if (!SpawnedBoss)
     {
+        UE_LOG(LogTemp, Warning, TEXT("[BossManager] Internal_SpawnBoss: SpawnActor failed (BossID=%d, Class=%s)"),
+            InBossData.BossID, *SelectedBossClass->GetName());
         return false;
     }
 
     CurrentBoss = SpawnedBoss;
     CurrentBoss->InitializeFromBossData(InBossData);
+
+    if (InBossData.StageMultiplierStat != 1.0f)
+    {
+        const int32 ScaledHP = FMath::RoundToInt(InBossData.BossHP * InBossData.StageMultiplierStat);
+        CurrentBoss->SetMaxHP(ScaledHP);
+    }
 
     if (InBossData.ShieldValue > 0)
     {
@@ -181,7 +198,8 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossBattleData& InBossData
             case EBossGimmickType::Blind:     GimmickClass = UBossGimmick_Blind::StaticClass();   break;
             case EBossGimmickType::Poison:    GimmickClass = UBossGimmick_Poison::StaticClass();  break;
             case EBossGimmickType::GridDebuff: GimmickClass = UBossGimmick_Swamp::StaticClass();  break;
-            case EBossGimmickType::Groggy:    GimmickClass = UBossGimmick_Groggy::StaticClass(); break;
+            case EBossGimmickType::Groggy:     GimmickClass = UBossGimmick_Groggy::StaticClass();     break;
+            case EBossGimmickType::RoleTarget: GimmickClass = UBossGimmick_RoleTarget::StaticClass(); break;
             default: break;
         }
         if (GimmickClass)
@@ -194,6 +212,16 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossBattleData& InBossData
                 NewGimmick->OnBattleStart(CurrentBoss);
             }
         }
+    }
+
+    if (InBossData.BackgroundTextures.Num() == 4)
+    {
+        CurrentBoss->SetTextureOfBackgrounds(
+            InBossData.BackgroundTextures[3],  // slot 3 = Front
+            InBossData.BackgroundTextures[1],  // slot 1 = Bottom
+            InBossData.BackgroundTextures[2],  // slot 2 = Left
+            InBossData.BackgroundTextures[0]   // slot 0 = Right
+        );
     }
 
     StageContext.PickedBossID = InBossData.BossID;
@@ -554,6 +582,42 @@ void UBossManagerSubsystem::BuildLockedTargetsFromCells(
         NewTarget.OtherActor = Other;
         OutLockedTargets.Add(NewTarget);
     }
+}
+
+void UBossManagerSubsystem::StartBossRoleRoulette()
+{
+    ABossActor_RoleTarget* RoleTargetBoss = Cast<ABossActor_RoleTarget>(CurrentBoss);
+    if (!RoleTargetBoss) return;
+
+    // 현재 패턴이 RoleTarget 기믹일 때만 룰렛 시작
+    if (TurnContext.CurrentPattern && TurnContext.CurrentPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
+    {
+        const EBossGimmickType GimmickType = TurnContext.CurrentPattern->PatternData[TurnContext.CurrentPatternIndex].GimmickType;
+        if (GimmickType != EBossGimmickType::RoleTarget) return;
+    }
+
+    RoleTargetBoss->StartRoleRoulette();
+}
+
+void UBossManagerSubsystem::StopBossRoleRoulette()
+{
+    ABossActor_RoleTarget* RoleTargetBoss = Cast<ABossActor_RoleTarget>(CurrentBoss);
+    if (!RoleTargetBoss) return;
+
+    // 현재 패턴이 RoleTarget일 때만
+    if (TurnContext.CurrentPattern && TurnContext.CurrentPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
+    {
+        const EBossGimmickType GimmickType = TurnContext.CurrentPattern->PatternData[TurnContext.CurrentPatternIndex].GimmickType;
+        if (GimmickType != EBossGimmickType::RoleTarget) return;
+    }
+
+    RoleTargetBoss->StopRoleRouletteAndLock();
+
+    // Role 확정 후 텔레그래프 다시 계산
+    ClearTelegraphPreview(TurnContext.LockedCells);
+    TurnContext.LockedCells.Reset();
+    TurnContext.CurrentPattern->BuildTargetCells(CurrentBoss, TurnContext.LockedCells, TurnContext.CurrentPatternIndex);
+    ShowTelegraphPreview(TurnContext.LockedCells, FLinearColor(1.f, 0.f, 0.f, 1.f));
 }
 
 bool UBossManagerSubsystem::IsStillOnLockedCell(const FLockedBossTarget& LockedTarget) const
