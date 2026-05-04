@@ -124,6 +124,12 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Boss")
     void ClearCurrentTurn();
 
+    UFUNCTION(BlueprintCallable, Category = "Boss")
+    void StartBossRoleRoulette();
+
+    UFUNCTION(BlueprintCallable, Category = "Boss")
+    void StopBossRoleRoulette();
+
 private:
     bool Internal_SpawnBoss(const FBossBattleData& InBossData);
 

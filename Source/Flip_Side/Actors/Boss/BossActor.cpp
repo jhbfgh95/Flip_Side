@@ -5,7 +5,6 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
 #include "W_BossHP.h"
-#include "BossGimmick_Groggy.h"
 
 ABossActor::ABossActor()
 {
@@ -74,6 +73,7 @@ void ABossActor::BeginPlay()
 				}
 				BossHpWidget->InitBossShield(MaxShield);
 			}
+
 			ApplyCachedPatternInfoToWidget();
 		}
 	}
@@ -229,23 +229,24 @@ void ABossActor::ApplyCC(const FCCStructure& CC)
 {
 	if(CC.CCType == ECCTypes::None || CC.CCDuration <= 0) return;
 
-	// Groggy 기믹이 있으면 CC 무시하고 그로기 수치 누적
-	for (UBossGimmickBase* G : GimmickList)
-	{
-		if (UBossGimmick_Groggy* GroggyGimmick = Cast<UBossGimmick_Groggy>(G))
-		{
-			GroggyGimmick->AddGroggyValue(CC.CCDuration, this);
-			UE_LOG(LogTemp, Warning, TEXT("[BossActor] CC absorbed by Groggy gimmick"));
-			return;
-		}
-	}
-
 	AppliedCC = CC;
 	bIsOnCC = true;
 	CCDuration = AppliedCC.CCDuration;
 
 	UE_LOG(LogTemp, Warning, TEXT("[BossActor] CC Applied Type=%d Duration=%d"), static_cast<int32>(AppliedCC.CCType), CCDuration);
 }
+
+void ABossActor::SetMaxHP(int32 NewMaxHP)
+{
+	MaxHP = NewMaxHP;
+	CurrentHP = NewMaxHP;
+
+	if (BossHpWidget)
+	{
+		BossHpWidget->InitBossHp(MaxHP);
+	}
+}
+
 
 void ABossActor::RemoveCC()
 {

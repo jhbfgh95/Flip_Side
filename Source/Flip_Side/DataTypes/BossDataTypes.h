@@ -43,6 +43,9 @@ struct FBossGimmickData
     float ParamFloatB = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    float ParamFloatC = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString ParamStrA;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -213,4 +216,8 @@ struct FBossBattleData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TArray<FBossGimmickData> GimmickList;
+
+    // slot 0=Right, 1=Bottom, 2=Left, 3=Front
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TArray<TObjectPtr<UTexture2D>> BackgroundTextures;
 };
