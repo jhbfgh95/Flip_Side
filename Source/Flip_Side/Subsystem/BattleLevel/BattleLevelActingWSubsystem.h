@@ -63,6 +63,8 @@ public:
 
 	FOnGear DoGearMove;
 
+	FOnGear OnCoinLanded;
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 

@@ -91,6 +91,8 @@ void UBattleLevelActingWSubsystem::DoCoinTeleportAct()
             TeleportReadyCoinsToDecidedGrid(Coin);
         }
     }
+
+    OnCoinLanded.ExecuteIfBound();
 }
 
 void UBattleLevelActingWSubsystem::TeleportReadyCoinsToDecidedGrid(ACoinActor* ReadyCoin)
