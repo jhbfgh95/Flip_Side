@@ -4,32 +4,17 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "GridTypes.h"
 #include "BossDataTypes.h"
+#include "BossTurnContext.h"
+
 #include "BossManagerSubsystem.generated.h"
 
 class ABossActor;
 class UBossPatternBase;
+class UBossGimmickBase;
 class ACoinActor;
 class AGridActor;
 class ABase_PatternVisualActor;
 class ABase_OtherActor;
-
-USTRUCT(BlueprintType)
-struct FLockedBossTarget
-{
-    GENERATED_BODY()
-
-    UPROPERTY(BlueprintReadOnly)
-    int32 CoinID = 0;
-
-    UPROPERTY(BlueprintReadOnly)
-    FGridPoint LockedGrid;
-
-    UPROPERTY(BlueprintReadOnly)
-    TObjectPtr<ACoinActor> CoinActor = nullptr;
-
-    UPROPERTY(BlueprintReadOnly)
-    TObjectPtr<ABase_OtherActor> OtherActor = nullptr;
-};
 
 USTRUCT(BlueprintType)
 struct FBossStageContext
@@ -41,36 +26,6 @@ struct FBossStageContext
 
     UPROPERTY(BlueprintReadOnly)
     FString PickedBossName;
-};
-
-USTRUCT(BlueprintType)
-struct FBossTurnContext
-{
-    GENERATED_BODY()
-
-    UPROPERTY(BlueprintReadOnly)
-    TObjectPtr<UBossPatternBase> CurrentPattern = nullptr;
-
-    UPROPERTY(BlueprintReadOnly)
-    int32 CurrentPatternIndex = -1;
-
-    UPROPERTY(BlueprintReadOnly)
-    TArray<FGridPoint> LockedCells;
-
-    UPROPERTY(BlueprintReadOnly)
-    TArray<FLockedBossTarget> LockedTargets;
-
-    UPROPERTY(BlueprintReadOnly)
-    bool bPrepared = false;
-
-    void Reset()
-    {
-        CurrentPattern = nullptr;
-        CurrentPatternIndex = -1;
-        LockedCells.Reset();
-        LockedTargets.Reset();
-        bPrepared = false;
-    }
 };
 
 UCLASS()
@@ -114,6 +69,9 @@ public:
     UBossPatternBase* GetCurrentTurnPattern() const { return TurnContext.CurrentPattern; }
     int32 GetCurrentTurnPatternIndex() const { return TurnContext.CurrentPatternIndex; }
     const TArray<FGridPoint>& GetCurrentTurnLockedCells() const { return TurnContext.LockedCells; }
+    const FBossTurnContext& GetTurnContext() const { return TurnContext; }
+
+    void RecalculateTelegraphForRoleTarget();
 
     UFUNCTION(BlueprintCallable, Category = "Boss")
     bool StartBossSetting();
@@ -124,11 +82,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Boss")
     void ClearCurrentTurn();
 
-    UFUNCTION(BlueprintCallable, Category = "Boss")
-    void StartBossRoleRoulette();
-
-    UFUNCTION(BlueprintCallable, Category = "Boss")
-    void StopBossRoleRoulette();
+    void BroadcastCoinLanded();
 
 private:
     bool Internal_SpawnBoss(const FBossBattleData& InBossData);

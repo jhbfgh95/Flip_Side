@@ -4,6 +4,7 @@
 #include "UObject/Object.h"
 #include "GridTypes.h"
 #include "BossDataTypes.h"
+#include "BossTurnContext.h"
 #include "BossPatternBase.generated.h"
 
 class ABossActor;
@@ -22,9 +23,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
 	TArray<FBossPatternBattleData> PatternData;
 
-	// 늪 강화 데미지 — BossManagerSubsystem이 ApplyCurrentPattern에서 세팅, ExecutePattern 후 초기화
-	int32 BonusDamage = 0;
-
 public:
 	virtual void BuildTargetCells(
 		ABossActor* Boss,
@@ -32,10 +30,9 @@ public:
 
 	virtual void ExecutePattern(
 		ABossActor* Boss,
-		const TArray<FGridPoint>& InLockedCells,
+		FBossTurnContext& Context,
 		const TArray<ACoinActor*>& InLockedTargets,
-		const TArray<ABase_OtherActor*>& InLockedOthers,
-		int32 PatternNum);
+		const TArray<ABase_OtherActor*>& InLockedOthers);
 
 	UFUNCTION(BlueprintCallable, Category = "Pattern")
 	virtual void ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, const TArray<ABase_OtherActor*>& LockedOthers, ABossActor* Boss, int32 Damage);

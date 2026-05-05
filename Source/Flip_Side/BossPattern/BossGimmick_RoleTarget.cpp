@@ -1,5 +1,48 @@
 #include "BossGimmick_RoleTarget.h"
 #include "BossActor_RoleTarget.h"
+#include "BossManagerSubsystem.h"
+
+void UBossGimmick_RoleTarget::OnPlayerTurnStart(ABossActor* Boss)
+{
+    if (!Boss) return;
+
+    if (GimmickData.GimmickType != EBossGimmickType::RoleTarget) return;
+
+    ABossActor_RoleTarget* RoleTargetBoss = Cast<ABossActor_RoleTarget>(Boss);
+    if (!RoleTargetBoss) return;
+
+    UWorld* World = Boss->GetWorld();
+    if (!World) return;
+
+    UBossManagerSubsystem* BossMgr = World->GetSubsystem<UBossManagerSubsystem>();
+    if (!BossMgr) return;
+
+    const FBossTurnContext& Ctx = BossMgr->GetTurnContext();
+    if (!Ctx.CurrentPattern || !Ctx.CurrentPattern->PatternData.IsValidIndex(Ctx.CurrentPatternIndex)) return;
+    if (Ctx.CurrentPattern->PatternData[Ctx.CurrentPatternIndex].GimmickType != EBossGimmickType::RoleTarget) return;
+
+    RoleTargetBoss->StartRoleRoulette();
+}
+
+void UBossGimmick_RoleTarget::OnCoinLanded(ABossActor* Boss, FBossTurnContext& Context)
+{
+    if (!Boss) return;
+
+    if (!Context.CurrentPattern || !Context.CurrentPattern->PatternData.IsValidIndex(Context.CurrentPatternIndex)) return;
+    if (Context.CurrentPattern->PatternData[Context.CurrentPatternIndex].GimmickType != EBossGimmickType::RoleTarget) return;
+
+    ABossActor_RoleTarget* RoleTargetBoss = Cast<ABossActor_RoleTarget>(Boss);
+    if (!RoleTargetBoss) return;
+
+    UWorld* World = Boss->GetWorld();
+    if (!World) return;
+
+    UBossManagerSubsystem* BossMgr = World->GetSubsystem<UBossManagerSubsystem>();
+    if (!BossMgr) return;
+
+    RoleTargetBoss->StopRoleRouletteAndLock();
+    BossMgr->RecalculateTelegraphForRoleTarget();
+}
 
 void UBossGimmick_RoleTarget::OnDamageCalculate(ABossActor* Boss, int32& InOutDamage)
 {

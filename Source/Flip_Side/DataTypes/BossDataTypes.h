@@ -56,6 +56,9 @@ struct FBossGimmickData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString GimmickDescription;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FString GimmickClassPath;
 };
 
 // 상점용 - 가벼운 보스 표시 데이터

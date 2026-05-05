@@ -7,33 +7,23 @@
 
 void UTutorial_BossPattern::ExecutePattern(
 	ABossActor* Boss,
-	const TArray<FGridPoint>& InLockedCells,
+	FBossTurnContext& Context,
 	const TArray<ACoinActor*>& InLockedTargets,
-	const TArray<ABase_OtherActor*>& InLockedOthers,
-	int32 PatternNum)
+	const TArray<ABase_OtherActor*>& InLockedOthers)
 {
-	if (!Boss)
-	{
-		return;
-	}
+	if (!Boss) return;
 
 	UWorld* World = Boss->GetWorld();
-	if (!World)
-	{
-		return;
-	}
+	if (!World) return;
 
 	UGridManagerSubsystem* GridMgr = World->GetSubsystem<UGridManagerSubsystem>();
-	if (!GridMgr)
-	{
-		return;
-	}
+	if (!GridMgr) return;
 
-	if(!PatternData.IsValidIndex(PatternNum)) return;
+	const int32 PatternNum = Context.CurrentPatternIndex;
+	if (!PatternData.IsValidIndex(PatternNum)) return;
 
-	UBossPatternBase::ExecutePattern(Boss, InLockedCells, InLockedTargets, InLockedOthers, PatternNum);
+	UBossPatternBase::ExecutePattern(Boss, Context, InLockedTargets, InLockedOthers);
 
-	// 이펙트 재생
 	if (PatternData.IsValidIndex(PatternNum))
 	{
 		FVector SpawnLocation;

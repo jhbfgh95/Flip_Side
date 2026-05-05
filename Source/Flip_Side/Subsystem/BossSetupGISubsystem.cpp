@@ -19,6 +19,7 @@ void UBossSetupGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
     }
 
     ClearPreparedBoss();
+    AssignBossesToStages();
 }
 
 
