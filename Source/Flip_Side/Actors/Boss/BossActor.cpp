@@ -356,7 +356,16 @@ void ABossActor::PlayAttack()
 
     if (!AnimInstance)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No AnimInstacne"));
+		UE_LOG(LogTemp, Warning, TEXT("No AnimInstance"));
+		FinishBossAttack();
+		return;
+	}
+
+	if (!SelectedPatternAnim)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No SelectedPatternAnim"));
+		FinishBossAttack();
+		return;
 	}
 
    	AnimInstance->Montage_Play(SelectedPatternAnim);
@@ -380,7 +389,8 @@ void ABossActor::BossMontageEnded(UAnimMontage * TargetMontage, bool bInterrupte
 	else if(TargetMontage == BossClearAnim)
 	{
 		BossDeadEffect();
-		BossHpWidget->ShowClearPanel();
+		if (BossHpWidget)
+			BossHpWidget->ShowClearPanel();
 	}
 }
 
