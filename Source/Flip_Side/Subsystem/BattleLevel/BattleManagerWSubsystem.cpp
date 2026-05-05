@@ -64,6 +64,15 @@ void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
     StageCardManager = InWorld.GetSubsystem<UStageCardWSubsystem>();
 
+    if (ActingManager)
+    {
+        ActingManager->OnCoinLanded.BindLambda([this]()
+        {
+            if (BossManager)
+                BossManager->StopBossRoleRoulette();
+        });
+    }
+
     if (BossManager)
     {
         if (BossManager->SpawnPreparedBoss())
@@ -210,6 +219,9 @@ void UBattleManagerWSubsystem::DoCoinSelectTurn()
     3.0f,
     false);
     MatchCoinsToRandomState();
+
+    if (BossManager)
+        BossManager->StartBossRoleRoulette();
 
     if (StageCardManager)
     {

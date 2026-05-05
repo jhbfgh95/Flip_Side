@@ -13,7 +13,12 @@ void UW_BossHP::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    if(ClearPanel) 
+    if(GroggyBarPanel)
+    {
+        GroggyBarPanel->SetVisibility(ESlateVisibility::Collapsed);
+    }
+
+    if(ClearPanel)
     {
         ClearPanel->SetVisibility(ESlateVisibility::Hidden);
     }
@@ -121,6 +126,80 @@ void UW_BossHP::ChangeCurrentHp(int32 AddHpValue)
 }
 
 	
+void UW_BossHP::InitGroggyBar(int32 SetMaxGroggy)
+{
+    MaxGroggy = FMath::Max(0, SetMaxGroggy);
+    CurrentGroggy = 0;
+    bIsGroggyBarInitialized = true;
+
+    if(GroggyBarPanel)
+    {
+        GroggyBarPanel->SetVisibility(ESlateVisibility::HitTestInvisible);
+    }
+
+    RefreshGroggyBar();
+}
+
+void UW_BossHP::UpdateGroggyBar(int32 NewCurrentGroggy)
+{
+    CurrentGroggy = FMath::Clamp(NewCurrentGroggy, 0, MaxGroggy);
+    RefreshGroggyBar();
+}
+
+void UW_BossHP::InitGroggyAsShield(int32 SetMaxGroggy)
+{
+    MaxShield = FMath::Max(0, SetMaxGroggy);
+    CurrentShield = 0;
+
+    if (ShieldText)
+        ShieldText->SetText(FText::AsNumber(0));
+    if (ShieldTotalText)
+    {
+        ShieldTotalText->SetText(FText::Format(FText::FromString(TEXT("/ {0}")), FText::AsNumber(MaxShield)));
+        ShieldTotalText->SetVisibility(ESlateVisibility::HitTestInvisible);
+    }
+    if (ShieldProgressBar)
+        ShieldProgressBar->SetFillColorAndOpacity(FLinearColor(1.f, 0.6f, 0.f, 1.f));
+
+    TargetShieldPercent = 0.f;
+    SnapShieldBarToTarget();
+}
+
+void UW_BossHP::UpdateGroggyAsShield(int32 NewCurrentGroggy)
+{
+    CurrentShield = FMath::Clamp(NewCurrentGroggy, 0, MaxShield);
+
+    if (ShieldText)
+        ShieldText->SetText(FText::AsNumber(CurrentShield));
+
+    if (ShieldProgressBar)
+    {
+        TargetShieldPercent = MaxShield > 0 ? static_cast<float>(CurrentShield) / static_cast<float>(MaxShield) : 0.f;
+    }
+}
+
+void UW_BossHP::RefreshGroggyBar()
+{
+    if(GroggyText)
+    {
+        GroggyText->SetText(FText::AsNumber(CurrentGroggy));
+    }
+
+    if(GroggyTotalText)
+    {
+        GroggyTotalText->SetText(FText::Format(
+            FText::FromString(TEXT("/ {0}")),
+            FText::AsNumber(MaxGroggy)
+        ));
+    }
+
+    if(GroggyProgressBar)
+    {
+        const float Percent = MaxGroggy > 0 ? static_cast<float>(CurrentGroggy) / static_cast<float>(MaxGroggy) : 0.f;
+        GroggyProgressBar->SetPercent(Percent);
+    }
+}
+
 void UW_BossHP::ChangeMaxShield(int32 AddMaxShield)
 {
     MaxShield = FMath::Max(0, MaxShield + AddMaxShield);

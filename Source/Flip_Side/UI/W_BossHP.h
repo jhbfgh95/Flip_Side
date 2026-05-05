@@ -28,6 +28,12 @@ private:
 	UPROPERTY(VisibleAnywhere,  Category = "Shield")
 	int32 CurrentShield = 0;
 
+	UPROPERTY(VisibleAnywhere, Category = "Groggy")
+	int32 MaxGroggy = 0;
+	UPROPERTY(VisibleAnywhere, Category = "Groggy")
+	int32 CurrentGroggy = 0;
+	bool bIsGroggyBarInitialized = false;
+
 	int32 CurrentStage = -1;
 
 	UPROPERTY(EditAnywhere, Category = "BossHP|Animation", meta = (AllowPrivateAccess))
@@ -71,6 +77,18 @@ private:
 	class UProgressBar* ShieldProgressBar;
 
 	UPROPERTY(meta = (BindWidgetOptional))
+	class UWidget* GroggyBarPanel;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UProgressBar* GroggyProgressBar;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* GroggyText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* GroggyTotalText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
 	class UButton* PatternHoverButton;
 
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -105,6 +123,13 @@ public:
 	void ChangeMaxShield(int32 AddMaxShield);
 	void ChangeCurrentShield(int32 AddShieldValue);
 
+	void InitGroggyBar(int32 SetMaxGroggy);
+	void UpdateGroggyBar(int32 NewCurrentGroggy);
+
+	void InitGroggyAsShield(int32 SetMaxGroggy);
+	void UpdateGroggyAsShield(int32 NewCurrentGroggy);
+	int32 GetCurrentShield() const { return CurrentShield; }
+
 	UFUNCTION()
 	void ShowClearPanel();
 
@@ -120,6 +145,7 @@ private:
 
 	void RefreshHpBar();
 	void RefreshShieldBar();
+	void RefreshGroggyBar();
 	void UpdateProgressBars(float InDeltaTime);
 	void SnapHpBarToTarget();
 	void SnapShieldBarToTarget();
