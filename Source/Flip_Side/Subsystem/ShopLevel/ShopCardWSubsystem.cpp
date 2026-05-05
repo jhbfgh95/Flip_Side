@@ -84,10 +84,12 @@ void UShopCardWSubsystem::UnlockCard()
 
 bool UShopCardWSubsystem::CanSelectCard()
 {
+
     for(int i =0; i<PlayerCardList.Num(); i++)
     {
         if(PlayerCardList[i].CardID == CurrentSelectCard.CardID)
         {
+            WarningShopCard(0);
             return false;
         }
     }
@@ -99,6 +101,8 @@ bool UShopCardWSubsystem::CanSelectCard()
             return true;
         }
     }
+    
+    WarningShopCard(2);
     return false;
 }
 
@@ -156,12 +160,15 @@ void UShopCardWSubsystem::AddCardListToUnlockCard(int32 UnlockCardID)
 	
 void UShopCardWSubsystem::SelectPlayerCard(FCardData CardData)
 {
-    if(CanSelectCard())
+    if(CardData.CardID != -1 && CanSelectCard())
     {   
         int SelectIndex = CanSelectPlayerIndex();
-        PlayerCardList[SelectIndex] = (CurrentSelectCard);
-        OnChangePlayerCard.Broadcast();
-        OnSelectPlayerCard.Broadcast(CardData);
+        if(PlayerCardList.IsValidIndex(SelectIndex))
+        {
+            PlayerCardList[SelectIndex] = (CurrentSelectCard);
+            OnSelectPlayerCard.Broadcast(CardData);
+        }
+        
     }
 }
 	
@@ -172,10 +179,13 @@ void UShopCardWSubsystem::UnSelectPlayerCard(FCardData CardData)
         if(CardData.CardID == PlayerCardList[i].CardID)
         {
             PlayerCardList[i] = DefaultCard;
-            OnChangePlayerCard.Broadcast();
+            OnUnSelectPlayerCard.Broadcast(CardData, i);
             return;
         }
     }
+    
+    WarningShopCard(1);
+    OnUnSelectPlayerCard.Broadcast(DefaultCard,-1);
 }
 
 TArray<FCardData> UShopCardWSubsystem::GetCardListArray()
@@ -197,4 +207,26 @@ bool UShopCardWSubsystem::CheckPlayerHaveCard(int32 CardID)
             return true;
     }
     return false;
+}
+	
+FCardData UShopCardWSubsystem::GetPlayerCard(int32 Index)
+{
+    if(PlayerCardList.IsValidIndex(Index))
+        return PlayerCardList[Index];
+    return DefaultCard;
+}
+	
+int32 UShopCardWSubsystem::GetPlayerCardIndexByID(int32 CardID)
+{
+    for(int i =0; i< PlayerCardList.Num();i++)
+    {
+        if(PlayerCardList[i].CardID == CardID)
+            return i;
+    }
+    return -1;
+}
+	
+void UShopCardWSubsystem::WarningShopCard(int32 WarningNum)
+{
+    OnShopCardWarning.Broadcast(WarningNum);
 }
