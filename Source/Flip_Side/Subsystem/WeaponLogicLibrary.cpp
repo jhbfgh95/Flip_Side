@@ -46,6 +46,96 @@ namespace
 
         return DealtHPDamage;
     }
+
+    bool HasValidCoinTarget(UWeapon_Action* WeaponContext)
+    {
+        if(!WeaponContext) return false;
+
+        for(ACoinActor* Coin : WeaponContext->GetInRangeCoins())
+        {
+            if(IsValid(Coin))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool HasValidOtherTarget(UWeapon_Action* WeaponContext)
+    {
+        if(!WeaponContext) return false;
+
+        if(IsValid(WeaponContext->GetTargetOther())) return true;
+
+        for(ABase_OtherActor* Other : WeaponContext->GetInRangeOthers())
+        {
+            if(IsValid(Other))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool CanCasterAct(UWeapon_Action* WeaponContext)
+    {
+        return WeaponContext
+            && IsValid(WeaponContext->GetCasterCoin())
+            && WeaponContext->GetCasterCoin()->StatComponent
+            && !WeaponContext->GetCasterCoin()->StatComponent->GetOnIsOnCC();
+    }
+}
+
+FWeaponActionResolveResult UWeaponLogicLibrary::ResolveBossDamage(UWeapon_Action* WeaponContext)
+{
+    FWeaponActionResolveResult Result;
+    ABossActor* Boss = nullptr;
+    Result.bCanExecute = CanCasterAct(WeaponContext) && WeaponContext->GetInRangeBoss(Boss) && IsValid(Boss);
+    Result.bDamagesBoss = Result.bCanExecute;
+    Result.Boss = Result.bCanExecute ? Boss : nullptr;
+    return Result;
+}
+
+FWeaponActionResolveResult UWeaponLogicLibrary::ResolveBossCC(UWeapon_Action* WeaponContext)
+{
+    FWeaponActionResolveResult Result;
+    ABossActor* Boss = nullptr;
+    Result.bCanExecute = CanCasterAct(WeaponContext) && WeaponContext->GetInRangeBoss(Boss) && IsValid(Boss);
+    Result.bAppliesBossCC = Result.bCanExecute;
+    Result.Boss = Result.bCanExecute ? Boss : nullptr;
+    return Result;
+}
+
+FWeaponActionResolveResult UWeaponLogicLibrary::ResolveBossDamageWithCoinTarget(UWeapon_Action* WeaponContext)
+{
+    FWeaponActionResolveResult Result = ResolveBossDamage(WeaponContext);
+    Result.bCanExecute = Result.bCanExecute && HasValidCoinTarget(WeaponContext);
+    Result.bDamagesBoss = Result.bCanExecute;
+    Result.Boss = Result.bCanExecute ? Result.Boss : nullptr;
+    return Result;
+}
+
+FWeaponActionResolveResult UWeaponLogicLibrary::ResolveGridTarget(UWeapon_Action* WeaponContext)
+{
+    FWeaponActionResolveResult Result;
+    Result.bCanExecute = CanCasterAct(WeaponContext) && IsValid(WeaponContext->GetTargetGrid());
+    return Result;
+}
+
+FWeaponActionResolveResult UWeaponLogicLibrary::ResolveCoinTarget(UWeapon_Action* WeaponContext)
+{
+    FWeaponActionResolveResult Result;
+    Result.bCanExecute = CanCasterAct(WeaponContext) && HasValidCoinTarget(WeaponContext);
+    return Result;
+}
+
+FWeaponActionResolveResult UWeaponLogicLibrary::ResolveOtherTarget(UWeapon_Action* WeaponContext)
+{
+    FWeaponActionResolveResult Result;
+    Result.bCanExecute = CanCasterAct(WeaponContext) && HasValidOtherTarget(WeaponContext);
+    return Result;
 }
 
 void UWeaponLogicLibrary::Test_Logic(UWeapon_Action* WeaponContext)

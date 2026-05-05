@@ -24,6 +24,46 @@ class FLIP_SIDE_API UBattleLevelActingWSubsystem : public UWorldSubsystem
 
 	FTimerHandle CoinTeleportTimer;
 
+	FTimerHandle CoinActionRaiseTimer;
+
+	FTimerHandle CoinActionShakeTimer;
+
+	FTimerHandle CoinActionLowerTimer;
+
+	TWeakObjectPtr<ACoinActor> CoinActionActor;
+
+	FSimpleDelegate CoinActionRaiseFinished;
+
+	FSimpleDelegate CoinActionShakeFinished;
+
+	FSimpleDelegate CoinActionLowerFinished;
+
+	FVector CoinActionStartLocation;
+
+	FVector CoinActionTargetLocation;
+
+	FRotator CoinActionStartRotation;
+
+	float CoinActionElapsedTime = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Coin Action")
+	float CoinActionRaiseZ = 800.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Coin Action")
+	float CoinActionLowerZ = -80.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Coin Action")
+	float CoinActionRaiseDuration = 0.25f;
+
+	UPROPERTY(EditAnywhere, Category = "Coin Action")
+	float CoinActionShakeDuration = 0.45f;
+
+	UPROPERTY(EditAnywhere, Category = "Coin Action")
+	float CoinActionLowerDuration = 0.25f;
+
+	UPROPERTY(EditAnywhere, Category = "Coin Action")
+	float CoinActionShakeRoll = 20.0f;
+
 	UPROPERTY()
 	class UCoinManagementWSubsystem* CoinManager;
 
@@ -47,6 +87,12 @@ protected:
 public:
 	void WaitTeleportUntilLeverDown();
 
+	void RaiseCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished);
+
+	void ShakeCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished);
+
+	void LowerCoinAfterAction(ACoinActor* Coin, FSimpleDelegate OnFinished);
+
 /* Setting Turn */
 public:
 	void DoSettingAct();
@@ -67,4 +113,10 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+
+	void UpdateCoinActionRaise();
+
+	void UpdateCoinActionShake();
+
+	void UpdateCoinActionLower();
 };

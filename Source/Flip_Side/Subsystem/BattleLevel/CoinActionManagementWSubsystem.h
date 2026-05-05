@@ -5,6 +5,7 @@
 #include "DataTypes/AttackAreaTypes.h"
 #include "FlipSide_Enum.h"
 #include "GridTypes.h"
+#include "Objects/Weapon_Action.h"
 #include "CoinActionManagementWSubsystem.generated.h"
 
 
@@ -33,6 +34,12 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 	//이거로 이펙트 타이머함
 	FTimerHandle AutoActionHandler;
 
+	FTimerHandle CommonVFXTimerHandle;
+
+	bool bActionSequenceActive = false;
+
+	bool bCurrentStepTargetValid = true;
+
 	UPROPERTY()
     class UGridManagerSubsystem* GridManager;
 
@@ -41,7 +48,7 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 
 public:
 	//이거로 코인 선택하는거 잠궜습니다.
-	void SetTurn(const bool bIsTurn) { bIsCorrectTurn = bIsTurn; }
+	void SetTurn(const bool bIsTurn);
 
 	UFUNCTION()
 	void SetSelectedWeapon(class ACoinActor* HoveredCoin);
@@ -86,6 +93,26 @@ protected:
 	);
 
 	void HideBattleCoinInfo();
+
+	void StartCoinActionSequence(ACoinActor* CasterCoin);
+
+	void RunCoinActionStep();
+
+	void ResolveCurrentActionStep();
+
+	void FinishCoinActionSequence();
+
+	void HandleCoinActionLowerFinished();
+
+	void PlayCoinSpecificVFX();
+
+	void PlayCommonVFX(const FWeaponActionResolveResult& Result);
+
+	void PlayFailedVFX();
+
+	void SpawnVFXAtLocation(class UNiagaraSystem* VFX, const FVector& Location) const;
+
+	class UBattleLevelActingWSubsystem* GetActingManager() const;
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

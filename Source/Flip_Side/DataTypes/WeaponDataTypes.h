@@ -11,6 +11,15 @@
 class UBehavior; // forward declaration
 #include "WeaponDataTypes.generated.h"
 
+struct FWeaponActionResolveResult
+{
+    bool bCanExecute = false;
+    bool bDamagesBoss = false;
+    bool bAppliesBossCC = false;
+
+    class ABossActor* Boss = nullptr;
+};
+
 USTRUCT(BlueprintType)
 struct FFaceData
 {
