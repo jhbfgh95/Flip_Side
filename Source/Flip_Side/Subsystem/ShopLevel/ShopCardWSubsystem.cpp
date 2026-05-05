@@ -160,11 +160,15 @@ void UShopCardWSubsystem::AddCardListToUnlockCard(int32 UnlockCardID)
 	
 void UShopCardWSubsystem::SelectPlayerCard(FCardData CardData)
 {
-    if(CardData.CardID != -1)
+    if(CardData.CardID != -1 && CanSelectCard())
     {   
         int SelectIndex = CanSelectPlayerIndex();
-        PlayerCardList[SelectIndex] = (CurrentSelectCard);
-        OnSelectPlayerCard.Broadcast(CardData);
+        if(PlayerCardList.IsValidIndex(SelectIndex))
+        {
+            PlayerCardList[SelectIndex] = (CurrentSelectCard);
+            OnSelectPlayerCard.Broadcast(CardData);
+        }
+        
     }
 }
 	
