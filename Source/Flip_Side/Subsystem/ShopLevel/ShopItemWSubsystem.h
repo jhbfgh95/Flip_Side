@@ -24,6 +24,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FItemUnHovered);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerItemHovered, FItemData, ItemInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerItemUnHovered);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FShopItemWarning, int32, WarningCode);
+
 UCLASS()
 class FLIP_SIDE_API UShopItemWSubsystem : public UWorldSubsystem
 {
@@ -52,6 +54,7 @@ public:
 	FItemBuy OnItemBuy;
 
 	FItemSell OnItemSell;
+	FShopItemWarning OnShopItemWarning;
 private:
 
 	//상점 아이템 구매 목록
@@ -94,5 +97,7 @@ public:
 	void UnHoverPlayerItem();
 
 	void SellItem(FItemData ItemData);
+
+	void ShopItemWarning(int32 WarningCode);
 	
 };

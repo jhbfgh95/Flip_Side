@@ -25,33 +25,20 @@ void AShopController_FlipSide::BeginPlay()
     if(ShopGameMode)
     {
         ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopController_FlipSide::SetShopMainModeWidget);
-        ShopGameMode->OnCoinManageMode.AddDynamic(this, &AShopController_FlipSide::SetCoinManageModeWidget);
-        ShopGameMode->OnShopItemMode.AddDynamic(this, &AShopController_FlipSide::SetShopItemModeWidget);
-        ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopController_FlipSide::SetSelectCardModeWidget);
-        ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopController_FlipSide::SetUnlockWeaponModeWidget);
-        ShopGameMode->OnCheckBossMode.AddDynamic(this, &AShopController_FlipSide::SetBossStateModeWidget);
+        ShopGameMode->OnCoinManageMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
+        ShopGameMode->OnShopItemMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
+        ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
+        ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
+        ShopGameMode->OnCheckBossMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
     }
 
+
+    InitWidget(BlockWidgetClass,BlockWidget,20);
+
+    InitWidget(ShopMainWidgetClass,ShopMainWidget,0);
+    InitWidget(ShopModeWidgetClass,ShopModeWidget,0);
     
-    
-    //코인 관리 UI 초기 설정
-
-    InitWidget(BlockWidgetClass, BlockWidget,100);
-    //코인 관리 UI 초기 설정
-    InitWidget(CoinManageWidgetClass, CoinManageWidget,0);
-    //카드 위젯
-    InitWidget(SelectCardWidgetClass, SelectCardWidget,0);
-    //상점 UI 클래스
-    InitWidget(ShopItemWidgetClass, ShopItemWidget,0);
-    //무기 해금 위젯
-    InitWidget(UnlockWeaponWidgetClass, UnlockWeaponWidget,0);
-
-    InitWidget(BossWidgetClass, BossWidget,0);
-
-    //상점 메인
-    InitWidget(ShopMainWigetClass, ShopMainWiget,1);
-
-    AddOpenWidgetList(ShopMainWiget);
+    AddOpenWidgetList(ShopMainWidget);
     ViewWidgetList();
 
     SetLockMouse(false);
@@ -107,7 +94,11 @@ void AShopController_FlipSide::ViewWidgetList()
     {
         for(int i =0; i<openWidgetList.Num();i++)
         {
-            openWidgetList[i]->SetVisibility(ESlateVisibility::Visible);
+            if(openWidgetList[i])
+            {
+                openWidgetList[i]->SetVisibility(ESlateVisibility::Visible);
+            }
+            
         }
     }
 }
@@ -136,55 +127,11 @@ void AShopController_FlipSide::AddOpenWidgetList(UUserWidget* AddWidget)
 void AShopController_FlipSide::SetShopMainModeWidget()
 {
     HideWidgetList();
-    AddOpenWidgetList(ShopMainWiget);
+    AddOpenWidgetList(ShopMainWidget);
     ViewWidgetList();
+    ShopModeWidget->SetVisibility(ESlateVisibility::Hidden);
 }
 
-
-void AShopController_FlipSide::SetCoinManageModeWidget()
-{
-    if(CoinManageWidget)
-    {
-        HideWidgetList();
-        AddOpenWidgetList(CoinManageWidget);
-        ViewWidgetList();
-    }
-}
-//카드 상점UI 띄움
-void AShopController_FlipSide::SetShopItemModeWidget()
-{
-    HideWidgetList();
-    if(ShopItemWidget)
-    {
-        
-        AddOpenWidgetList(ShopItemWidget);
-        ViewWidgetList();
-    }
-}
-
-//카드 선택UI 띄움
-void AShopController_FlipSide::SetSelectCardModeWidget()
-{
-    if(SelectCardWidget)
-    {
-        HideWidgetList();
-        AddOpenWidgetList(SelectCardWidget);
-        ViewWidgetList();
-    }
-}
-
-void AShopController_FlipSide::SetUnlockWeaponModeWidget()
-{
-    if(UnlockWeaponWidget)
-    {
-        HideWidgetList();
-        AddOpenWidgetList(UnlockWeaponWidget);
-        ViewWidgetList();
-    }
-}
-
-
-// 좌클릭: 선택, 카메라 이동
 void AShopController_FlipSide::OnLeftClick()
 {   
     if(CanClick)
@@ -203,7 +150,6 @@ void AShopController_FlipSide::OnLeftClick()
 	
 }
 
-// 우클릭: 디폴트 카메라 시점으로 복귀
 void AShopController_FlipSide::OnRightClick()
 {
     if(CanClick)
@@ -254,13 +200,14 @@ void AShopController_FlipSide::SetLockMouse(bool IsMouseLock)
         CanClick = true;
     }
 }
-	
-void AShopController_FlipSide::SetBossStateModeWidget()
+
+
+void AShopController_FlipSide::SetShopWidget()
 {
-    if(BossWidget)
+    if(ShopModeWidget)
     {
         HideWidgetList();
-        AddOpenWidgetList(BossWidget);
+        AddOpenWidgetList(ShopModeWidget);
         ViewWidgetList();
     }
 }

@@ -20,7 +20,7 @@ class FLIP_SIDE_API UW_CardWidget : public UUserWidget
 	protected:
 	virtual void NativeConstruct() override;
 
-	private:
+	protected:
 	UPROPERTY(meta = (BindWidget))
 	class UBorder* CardImage;
 	

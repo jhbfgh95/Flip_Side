@@ -129,3 +129,8 @@ int32 UShopUnlockWeaponWSubsystem::GetWeaponIDByIndex(EWeaponClass WeaponType,in
 
     return -1;
 }
+	
+void UShopUnlockWeaponWSubsystem::UnlockWeaponWarning(int32 WarningCode)
+{
+    OnUnlockWeaponWarning.Broadcast(WarningCode);
+}

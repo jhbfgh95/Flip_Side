@@ -453,7 +453,7 @@ int32 UShopCoinWSubsystem::GetCurrentSlotCount()
 
     for(int i =0; i< ShopCoinSlotArray.Num(); i++)
     {
-        if(!ShopCoinSlotArray[i].IsUnlock)
+        if(ShopCoinSlotArray[i].IsUnlock)
             Count++;
     }
     
