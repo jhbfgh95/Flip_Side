@@ -15,6 +15,7 @@ void UW_ShopWidgetContainer::NativeConstruct()
     ShopGameMode->OnShopItemMode.AddDynamic(this, &UW_ShopWidgetContainer::SetShopItemWidget);
     ShopGameMode->OnSelectCardMode.AddDynamic(this, &UW_ShopWidgetContainer::SetShopCardWidget);
     ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &UW_ShopWidgetContainer::SetShopUnlockWeaponWidget);
+    ShopGameMode->OnCheckBossMode.AddDynamic(this, & UW_ShopWidgetContainer::SetShopBossWidget);
 
     HideAllWidget();
 }
@@ -41,6 +42,11 @@ void UW_ShopWidgetContainer::SetShopCardWidget()
 {
     SetWidget(ShopCardWidget);
 }
+
+void UW_ShopWidgetContainer::SetShopBossWidget()
+{
+    SetWidget(ShopBossWidget);
+}	
 	
 void UW_ShopWidgetContainer::HideAllWidget()
 {
@@ -48,10 +54,13 @@ void UW_ShopWidgetContainer::HideAllWidget()
     ShopUnlockWeaponWidget->SetVisibility(ESlateVisibility::Collapsed);
     ShopCoinWidget->SetVisibility(ESlateVisibility::Collapsed);
     ShopCardWidget->SetVisibility(ESlateVisibility::Collapsed);
+    ShopBossWidget->SetVisibility(ESlateVisibility::Collapsed);
 }
-	
+
+
 void UW_ShopWidgetContainer::SetWidget(UUserWidget* HideWidget)
 {
     HideAllWidget();
     HideWidget->SetVisibility(ESlateVisibility::Visible);
 }
+	

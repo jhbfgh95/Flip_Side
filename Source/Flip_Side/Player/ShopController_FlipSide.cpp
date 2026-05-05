@@ -29,7 +29,7 @@ void AShopController_FlipSide::BeginPlay()
         ShopGameMode->OnShopItemMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
         ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
         ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
-        ShopGameMode->OnCheckBossMode.AddDynamic(this, &AShopController_FlipSide::SetBossStateModeWidget);
+        ShopGameMode->OnCheckBossMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
     }
 
 
@@ -199,17 +199,6 @@ void AShopController_FlipSide::SetLockMouse(bool IsMouseLock)
         BlockWidget->SetVisibility(ESlateVisibility::Hidden);
         CanClick = true;
     }
-}
-	
-void AShopController_FlipSide::SetBossStateModeWidget()
-{
-    if(BossWidget)
-    {
-        HideWidgetList();
-        AddOpenWidgetList(BossWidget);
-        ViewWidgetList();
-    }
-    
 }
 
 

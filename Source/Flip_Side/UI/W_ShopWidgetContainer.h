@@ -35,6 +35,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UUserWidget* ShopCardWidget;
 
+	UPROPERTY(meta = (BindWidget))
+	UUserWidget* ShopBossWidget;
+
 private:
 	UFUNCTION()
 	void SetShopItemWidget();
@@ -44,6 +47,8 @@ private:
 	void SetShopCoinWidget();
 	UFUNCTION()
 	void SetShopCardWidget();
+	UFUNCTION()
+	void SetShopBossWidget();
 	
 private:
 	void HideAllWidget();

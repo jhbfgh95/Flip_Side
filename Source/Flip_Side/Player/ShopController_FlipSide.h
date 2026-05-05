@@ -30,8 +30,6 @@ public:
 	virtual void PlayerTick(float DeltaTime) override; // 매 프레임 마우스 호버 감지용
 /* UI */
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> BossWidgetClass;
 	//상점 메인 UI
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> ShopMainWidgetClass;
@@ -47,8 +45,6 @@ private:
 
 	UPROPERTY()
 	UUserWidget* ShopMainWidget;
-	UPROPERTY()
-	UUserWidget* BossWidget;
 	UPROPERTY()
 	UUserWidget* BlockWidget;
 	UPROPERTY()
@@ -82,9 +78,6 @@ public:
 	//상점 메인
 	UFUNCTION()
 	void SetShopMainModeWidget();
-
-	UFUNCTION()
-	void SetBossStateModeWidget();
 
 	void SetLockMouse(bool IsMouseLock);
 	
