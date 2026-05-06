@@ -13,25 +13,53 @@ void UW_UnlockWeaponGridContainer::NativeConstruct()
     TankClassButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponGridContainer::SetTankWUnlockGrid);
 
     UtilClassButton->OnClicked.AddDynamic(this, &UW_UnlockWeaponGridContainer::SetUtilWUnlockGrid);
+
+    SetDealWUnlockGrid();
 }
 
 void UW_UnlockWeaponGridContainer::SetDealWUnlockGrid()
 {
-    DealWUnlockGrid->SetVisibility(ESlateVisibility::Visible);
-    TankWUnlockGrid->SetVisibility(ESlateVisibility::Collapsed);
-    UtilWUnlockGrid->SetVisibility(ESlateVisibility::Collapsed);
+    SetWeaponGrid(EWeaponClass::Deal);
 }
     
 void UW_UnlockWeaponGridContainer::SetTankWUnlockGrid()
 {
-    TankWUnlockGrid->SetVisibility(ESlateVisibility::Visible);
-    DealWUnlockGrid->SetVisibility(ESlateVisibility::Collapsed);
-    UtilWUnlockGrid->SetVisibility(ESlateVisibility::Collapsed);
+    SetWeaponGrid(EWeaponClass::Tank);
 }
     
 void UW_UnlockWeaponGridContainer::SetUtilWUnlockGrid()
 {
-    UtilWUnlockGrid->SetVisibility(ESlateVisibility::Visible);
+    SetWeaponGrid(EWeaponClass::Heal);
+}
+
+void UW_UnlockWeaponGridContainer::SetWeaponGrid(EWeaponClass weaponClass)
+{
+    
     DealWUnlockGrid->SetVisibility(ESlateVisibility::Collapsed);
     TankWUnlockGrid->SetVisibility(ESlateVisibility::Collapsed);
+    UtilWUnlockGrid->SetVisibility(ESlateVisibility::Collapsed);
+
+    DealClassButton->SetBackgroundColor(DefaultColor);
+    TankClassButton->SetBackgroundColor(DefaultColor);
+    UtilClassButton->SetBackgroundColor(DefaultColor);
+
+    switch (weaponClass)
+    {
+        case EWeaponClass::Deal:
+            DealClassButton->SetBackgroundColor(DealColor);
+            DealWUnlockGrid->SetVisibility(ESlateVisibility::Visible);
+            break;
+        
+        case EWeaponClass::Tank:
+            TankClassButton->SetBackgroundColor(TankColor);
+            TankWUnlockGrid->SetVisibility(ESlateVisibility::Visible);
+            break;
+        
+        case EWeaponClass::Heal:
+            UtilClassButton->SetBackgroundColor(UtilColor);
+            UtilWUnlockGrid->SetVisibility(ESlateVisibility::Visible);
+            break;
+        default:
+            break;
+    }
 }

@@ -17,6 +17,8 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FSelectUnlockWeapon, EWeaponClass, WeaponClass,int32, WeaponID, bool, IsItemUnlock);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeWeaponClass, EWeaponClass, WeaponClass);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnlockWeaponFWarning, int32, WarningCode);
+
 UCLASS()
 class FLIP_SIDE_API UShopUnlockWeaponWSubsystem : public UWorldSubsystem
 {
@@ -44,7 +46,7 @@ private:
 public:
 	FSelectUnlockWeapon OnSelectUnlockWeapon;
 	FChangeWeaponClass OnChangeUnlockWaeponClass;
-
+	FUnlockWeaponFWarning OnUnlockWeaponWarning;
 public:
 	//무기 선택
 	void SelectUnlockWeapon(EWeaponClass WeaponClass, int32 WeaponID, bool IsWeaponUnlock);
@@ -60,4 +62,6 @@ public:
 public:
 	int32 GetWeaponArrayNum(EWeaponClass WeaponType);
 	int32 GetWeaponIDByIndex(EWeaponClass WeaponType,int32 index);
+
+	void UnlockWeaponWarning(int32 WarningCode);
 };

@@ -63,22 +63,33 @@ private:
 private:
 
 	UFUNCTION()
+	void SetSelectShopCardPopup(FCardData SelectCardData);
+
+	UFUNCTION()
+	void SetSelectPlayerCardPopup(FCardData SelectCardData);
+
+	UFUNCTION()
+	void SetUnSelectPlayerCardPopup(FCardData UnSelectCardData, int32 PlayerCardIndex);
+
+
+	UFUNCTION()
 	void UnlockCard();
 
 	UFUNCTION()
 	void SelectCard(FCardData SelectCardData);
 
 	UFUNCTION()
-	void UnSelectCard();
+	void CloseSelectCardPopup();
 
 	UFUNCTION()
 	void SelectPlayerCard();
+	
+	UFUNCTION()
+	void SetPlayerCard();
+
 
 	UFUNCTION()
 	void UnSelectPlayerCard();
-
-	UFUNCTION()
-	void ExcuteUnlock(int32 unlockCardId);
 
 	UFUNCTION()
 	void UnlockCardAdaptor(int32 ID);

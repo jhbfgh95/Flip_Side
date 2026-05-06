@@ -628,7 +628,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
     // boss_gimmick
     {
         const TCHAR* Sql = TEXT(
-            "SELECT gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description, shield_value "
+            "SELECT gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description, shield_value, gimmick_class_path "
             "FROM boss_gimmick WHERE boss_id = ?;"
         );
 
@@ -648,6 +648,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             G.GimmickName        = GetColTextUTF8(Stmt, 6);
             G.GimmickDescription = GetColTextUTF8(Stmt, 7);
             G.ShieldValue        = GetColInt(Stmt, 8);
+            G.GimmickClassPath   = GetColText(Stmt, 9);
             Out.GimmickList.Add(G);
         }
         Stmt.Destroy();

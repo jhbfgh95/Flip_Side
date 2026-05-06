@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/W_WarningWidget.h"
 #include "W_ShopCoinWarning.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class FLIP_SIDE_API UW_ShopCoinWarning : public UUserWidget
+class FLIP_SIDE_API UW_ShopCoinWarning : public UW_WarningWidget
 {
 	GENERATED_BODY()
 	
@@ -22,21 +23,7 @@ private:
 	class UShopCoinWSubsystem* CoinSubsystem;
 
 	UFUNCTION()
-	void ActiveWarning(int32 WarningCode);
+	void SetWarning(int32 WarningCode);
 
-
-	
-	UPROPERTY(meta = (BindWidget))
-	class UImage* LockWarningImage;
-
-	UPROPERTY(meta = (BindWidget))
-	class UImage* WarningImage;
-	
-	
-	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* WarningText;
-
-	UPROPERTY(meta = (BindWidgetAnim), Transient)
-	class UWidgetAnimation* WarningTextAnim;
 	
 };

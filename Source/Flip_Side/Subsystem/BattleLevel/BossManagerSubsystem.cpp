@@ -4,14 +4,7 @@
 #include "W_BossHP.h"
 #include "BossPatternBase.h"
 #include "BossGimmickBase.h"
-#include "BossGimmick_Shield.h"
-#include "BossGimmick_Blind.h"
-#include "BossGimmick_Poison.h"
-#include "BossGimmick_Swamp.h"
 #include "BossGimmick_Proxy.h"
-#include "BossGimmick_Groggy.h"
-#include "BossGimmick_RoleTarget.h"
-#include "BossActor_RoleTarget.h"
 #include "GridManagerSubsystem.h"
 #include "CoinActor.h"
 #include "GridActor.h"
@@ -192,16 +185,15 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossBattleData& InBossData
     for (const FBossGimmickData& GimmickData : InBossData.GimmickList)
     {
         TSubclassOf<UBossGimmickBase> GimmickClass = nullptr;
-        switch (GimmickData.GimmickType)
+        if (!GimmickData.GimmickClassPath.IsEmpty())
         {
-            case EBossGimmickType::Shield:    GimmickClass = UBossGimmick_Shield::StaticClass();  break;
-            case EBossGimmickType::Blind:     GimmickClass = UBossGimmick_Blind::StaticClass();   break;
-            case EBossGimmickType::Poison:    GimmickClass = UBossGimmick_Poison::StaticClass();  break;
-            case EBossGimmickType::GridDebuff: GimmickClass = UBossGimmick_Swamp::StaticClass();  break;
-            case EBossGimmickType::Groggy:     GimmickClass = UBossGimmick_Groggy::StaticClass();     break;
-            case EBossGimmickType::RoleTarget: GimmickClass = UBossGimmick_RoleTarget::StaticClass(); break;
-            default: break;
+            UClass* Loaded = Cast<UClass>(FSoftObjectPath(GimmickData.GimmickClassPath).TryLoad());
+            if (Loaded && Loaded->IsChildOf(UBossGimmickBase::StaticClass()))
+                GimmickClass = Loaded;
+            else
+                UE_LOG(LogTemp, Warning, TEXT("[BossManager] GimmickClassPath load failed: %s"), *GimmickData.GimmickClassPath);
         }
+
         if (GimmickClass)
         {
             UBossGimmickBase* NewGimmick = NewObject<UBossGimmickBase>(CurrentBoss, GimmickClass.Get());
@@ -407,49 +399,19 @@ void UBossManagerSubsystem::ApplyCurrentPattern()
         }
     }
 
-    // 늪 기믹 강화 데미지: 일반 공격 패턴이 늪 셀과 겹치면 보너스 데미지 적용
+    if (IsValid(CurrentBoss))
+    {
+        TurnContext.BaseDamage = CurrentBoss->GetAttackPoint();
+        TurnContext.BonusDamage = 0;
+        TurnContext.DamageMultiplier = 1.f;
+        TurnContext.bSkipAttack = false;
+    }
+
     if (IsValid(CurrentBoss) && TurnContext.CurrentPattern)
     {
-        const bool bNoDamage = TurnContext.CurrentPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex)
-            && TurnContext.CurrentPattern->PatternData[TurnContext.CurrentPatternIndex].bNoDamage;
-
-        if (!bNoDamage)
+        for (UBossGimmickBase* G : CurrentBoss->GetGimmickList())
         {
-            UBossGimmick_Swamp* SwampGimmick = nullptr;
-            for (UBossGimmickBase* G : CurrentBoss->GetGimmickList())
-            {
-                SwampGimmick = Cast<UBossGimmick_Swamp>(G);
-                if (SwampGimmick) break;
-            }
-
-            if (SwampGimmick)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("[Swamp] ActiveSwamps=%d, LockedCells=%d"),
-                    SwampGimmick->GetActiveSwamps().Num(), TurnContext.LockedCells.Num());
-
-                bool bOverlapsSwamp = false;
-                for (const FGridPoint& Cell : TurnContext.LockedCells)
-                {
-                    UE_LOG(LogTemp, Warning, TEXT("[Swamp] Checking cell (%d,%d)"), Cell.GridX, Cell.GridY);
-                    if (SwampGimmick->IsSwampCell(Cell))
-                    {
-                        bOverlapsSwamp = true;
-                        break;
-                    }
-                }
-
-                if (bOverlapsSwamp)
-                {
-                    // ParamFloatB = 강화 데미지 배율 (예: 1.5 → 50% 추가)
-                    const float Multiplier = SwampGimmick->GimmickData.ParamFloatB > 0.f
-                        ? SwampGimmick->GimmickData.ParamFloatB : 1.5f;
-                    const int32 BaseDamage = CurrentBoss->GetAttackPoint();
-                    const int32 BonusDamage = FMath::RoundToInt(BaseDamage * (Multiplier - 1.f));
-
-                    UE_LOG(LogTemp, Log, TEXT("[Swamp] Overlap detected — BonusDamage=%d (x%.2f)"), BonusDamage, Multiplier);
-                    TurnContext.CurrentPattern->BonusDamage = BonusDamage;
-                }
-            }
+            G->OnBeforePatternExecute(CurrentBoss, TurnContext);
         }
     }
 
@@ -457,12 +419,10 @@ void UBossManagerSubsystem::ApplyCurrentPattern()
     {
         TurnContext.CurrentPattern->ExecutePattern(
             CurrentBoss,
-            TurnContext.LockedCells,
+            TurnContext,
             ValidLockedTargets,
-            ValidLockedOthers,
-            TurnContext.CurrentPatternIndex
+            ValidLockedOthers
         );
-        TurnContext.CurrentPattern->BonusDamage = 0;
     }
 
     ClearCurrentTurn();
@@ -584,36 +544,19 @@ void UBossManagerSubsystem::BuildLockedTargetsFromCells(
     }
 }
 
-void UBossManagerSubsystem::StartBossRoleRoulette()
+void UBossManagerSubsystem::BroadcastCoinLanded()
 {
-    ABossActor_RoleTarget* RoleTargetBoss = Cast<ABossActor_RoleTarget>(CurrentBoss);
-    if (!RoleTargetBoss) return;
-
-    // 현재 패턴이 RoleTarget 기믹일 때만 룰렛 시작
-    if (TurnContext.CurrentPattern && TurnContext.CurrentPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
+    if (!IsValid(CurrentBoss)) return;
+    for (UBossGimmickBase* G : CurrentBoss->GetGimmickList())
     {
-        const EBossGimmickType GimmickType = TurnContext.CurrentPattern->PatternData[TurnContext.CurrentPatternIndex].GimmickType;
-        if (GimmickType != EBossGimmickType::RoleTarget) return;
+        if (IsValid(G))
+            G->OnCoinLanded(CurrentBoss, TurnContext);
     }
-
-    RoleTargetBoss->StartRoleRoulette();
 }
 
-void UBossManagerSubsystem::StopBossRoleRoulette()
+void UBossManagerSubsystem::RecalculateTelegraphForRoleTarget()
 {
-    ABossActor_RoleTarget* RoleTargetBoss = Cast<ABossActor_RoleTarget>(CurrentBoss);
-    if (!RoleTargetBoss) return;
-
-    // 현재 패턴이 RoleTarget일 때만
-    if (TurnContext.CurrentPattern && TurnContext.CurrentPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
-    {
-        const EBossGimmickType GimmickType = TurnContext.CurrentPattern->PatternData[TurnContext.CurrentPatternIndex].GimmickType;
-        if (GimmickType != EBossGimmickType::RoleTarget) return;
-    }
-
-    RoleTargetBoss->StopRoleRouletteAndLock();
-
-    // Role 확정 후 텔레그래프 다시 계산
+    if (!TurnContext.CurrentPattern) return;
     ClearTelegraphPreview(TurnContext.LockedCells);
     TurnContext.LockedCells.Reset();
     TurnContext.CurrentPattern->BuildTargetCells(CurrentBoss, TurnContext.LockedCells, TurnContext.CurrentPatternIndex);

@@ -171,3 +171,8 @@ void UShopItemWSubsystem::SellItem(FItemData ItemData)
         
     }
 }
+	
+void UShopItemWSubsystem::ShopItemWarning(int32 WarningCode)
+{
+    OnShopItemWarning.Broadcast(WarningCode);
+}

@@ -2,6 +2,7 @@
 #include "BossGimmickBase.h"
 #include "BossActor.h"
 #include "BossActor_RoleTarget.h"
+#include "BossManagerSubsystem.h"
 #include "GridManagerSubsystem.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Component_Status.h"
@@ -112,13 +113,13 @@ void UBossPatternBase::BuildTargetCells(
 
 void UBossPatternBase::ExecutePattern(
 	ABossActor* Boss,
-	const TArray<FGridPoint>& InLockedCells,
+	FBossTurnContext& Context,
 	const TArray<ACoinActor*>& InLockedTargets,
-	const TArray<ABase_OtherActor*>& InLockedOthers,
-	int32 PatternNum)
+	const TArray<ABase_OtherActor*>& InLockedOthers)
 {
 	if (!Boss) return;
 
+	const int32 PatternNum = Context.CurrentPatternIndex;
 	const bool bNoDamage = PatternData.IsValidIndex(PatternNum) && PatternData[PatternNum].bNoDamage;
 
 	UBossGimmickBase* Gimmick = Boss->GetActiveGimmick();
@@ -126,24 +127,24 @@ void UBossPatternBase::ExecutePattern(
 		PatternNum, bNoDamage, InLockedTargets.Num(),
 		Gimmick ? *Gimmick->GetClass()->GetName() : TEXT("None"));
 
-	if (!bNoDamage)
+	if (!bNoDamage && !Context.bSkipAttack)
 	{
-		int32 FinalDamage = Boss->GetAttackPoint() + BonusDamage;
+		int32 FinalDamage = FMath::RoundToInt((Context.BaseDamage + Context.BonusDamage) * Context.DamageMultiplier);
 
 		if (Gimmick)
 			Gimmick->OnDamageCalculate(Boss, FinalDamage);
 
 		ExecuteDamage(InLockedTargets, InLockedOthers, Boss, FinalDamage);
 	}
-	else if (PatternData[PatternNum].GimmickType == EBossGimmickType::Shield && PatternData[PatternNum].ShieldHeal > 0)
+	else if (bNoDamage && PatternData.IsValidIndex(PatternNum) && PatternData[PatternNum].GimmickType == EBossGimmickType::Shield && PatternData[PatternNum].ShieldHeal > 0)
 	{
 		const int32 HealAmount = FMath::RoundToInt(PatternData[PatternNum].ShieldHeal * Boss->GetStageMultiplierStat());
 		Boss->ApplyShieldHeal(HealAmount, Boss);
-		UE_LOG(LogTemp, Warning, TEXT("[BossPattern] 방어막 회복 %d (원본 %d)"), HealAmount, PatternData[PatternNum].ShieldHeal);
+		UE_LOG(LogTemp, Warning, TEXT("[BossPattern] shield heal %d (base %d)"), HealAmount, PatternData[PatternNum].ShieldHeal);
 	}
 
 	if (Gimmick)
-		Gimmick->OnPatternExecute(Boss, InLockedCells, InLockedTargets, InLockedOthers);
+		Gimmick->OnPatternExecute(Boss, Context.LockedCells, InLockedTargets, InLockedOthers);
 }
 
 void UBossPatternBase::ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, const TArray<ABase_OtherActor*>& LockedOthers, ABossActor* Boss, int32 Damage)

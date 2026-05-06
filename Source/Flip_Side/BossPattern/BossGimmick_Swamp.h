@@ -22,6 +22,7 @@ class FLIP_SIDE_API UBossGimmick_Swamp : public UBossGimmickBase
 	GENERATED_BODY()
 
 public:
+	virtual void OnBeforePatternExecute(ABossActor* Boss, FBossTurnContext& Context) override;
 	virtual void OnPatternExecute(ABossActor* Boss, const TArray<FGridPoint>& LockedCells, const TArray<ACoinActor*>& LockedTargets, const TArray<ABase_OtherActor*>& LockedOthers) override;
 	virtual void OnTurnEnd(ABossActor* Boss) override;
 
