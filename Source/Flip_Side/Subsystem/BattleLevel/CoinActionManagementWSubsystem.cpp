@@ -114,6 +114,7 @@ void UCoinActionManagementWSubsystem::InitWeaponAction()
     SelectedAction->SetGridForAction(nullptr);
     SelectedAction->SetOtherForAction(nullptr);
     RepeatActionCnt = 1;
+    bPendingFailedVFX = false;
     CurrentInputState = EActionInputState::None;
     ValidTargetGrids.Empty();
     if (GridManager)
@@ -144,6 +145,10 @@ bool UCoinActionManagementWSubsystem::ApplyRangedThings(const FGridPoint& Target
     }
 
     FObjectOnGridInfo GridInfos;
+
+    SelectedAction->SetInRangeCoins(nullptr);
+    SelectedAction->SetInRangeOthers(nullptr);
+    SelectedAction->SetInRangeBoss(nullptr);
 
     const FGridPoint RangeForQuery = (AreaSpec.AnchorMode == EAreaAnchor::UseAnchorCell)
         ? FGridPoint{0, 0}
@@ -179,6 +184,7 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
 {
     if(!bIsCorrectTurn) return;
     if(!IsValid(HoveredCoin)) return;
+    if(HoveredCoin->GetCoinIsActed()) return;
     if(bActionSequenceActive) return;
 
     FActionTask ActionTask = HoveredCoin->StatComponent->GetModifiedStats();
@@ -271,6 +277,12 @@ void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedC
 
     if(CurrentInputState == EActionInputState::None)
     {
+        ABossActor* Boss = nullptr;
+        if(SelectedAction && SelectedAction->GetInRangeBoss(Boss) && IsValid(Boss))
+        {
+            Boss->UnDisPlayOutline();
+        }
+
         StartCoinActionSequence(CasterCoin);
     }
     else if(CurrentInputState == EActionInputState::WaitingForCoinClick)
@@ -462,7 +474,7 @@ void UCoinActionManagementWSubsystem::ResolveCurrentActionStep()
     FWeaponActionResolveResult Result = SelectedAction->ResolveAction();
     if(!bCurrentStepTargetValid || !Result.bCanExecute)
     {
-        PlayFailedVFX();
+        bPendingFailedVFX = true;
         RepeatActionCnt = 0;
         FinishCoinActionSequence();
         return;
@@ -513,6 +525,12 @@ void UCoinActionManagementWSubsystem::FinishCoinActionSequence()
 
 void UCoinActionManagementWSubsystem::HandleCoinActionLowerFinished()
 {
+    if(bPendingFailedVFX)
+    {
+        PlayFailedVFX();
+        bPendingFailedVFX = false;
+    }
+
     bActionSequenceActive = false;
     bCurrentStepTargetValid = true;
     InitWeaponAction();

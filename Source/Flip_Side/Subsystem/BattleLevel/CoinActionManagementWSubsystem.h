@@ -40,6 +40,8 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 
 	bool bCurrentStepTargetValid = true;
 
+	bool bPendingFailedVFX = false;
+
 	UPROPERTY()
     class UGridManagerSubsystem* GridManager;
 
