@@ -148,3 +148,135 @@ void UBattleLevelActingWSubsystem::PlayBossPatternAct()
         CurrentVisualActor->PlayBossPatternAct();
     }
 }
+
+void UBattleLevelActingWSubsystem::RaiseCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished)
+{
+    UWorld* World = GetWorld();
+    if(!World || !IsValid(Coin))
+    {
+        OnFinished.ExecuteIfBound();
+        return;
+    }
+
+    World->GetTimerManager().ClearTimer(CoinActionRaiseTimer);
+    World->GetTimerManager().ClearTimer(CoinActionShakeTimer);
+    World->GetTimerManager().ClearTimer(CoinActionLowerTimer);
+
+    CoinActionActor = Coin;
+    CoinActionRaiseFinished = OnFinished;
+    CoinActionElapsedTime = 0.0f;
+    CoinActionStartLocation = Coin->GetActorLocation();
+    CoinActionTargetLocation = CoinActionStartLocation;
+    CoinActionTargetLocation.Z = CoinActionRaiseZ;
+
+    World->GetTimerManager().SetTimer(CoinActionRaiseTimer, this, &UBattleLevelActingWSubsystem::UpdateCoinActionRaise, 0.01f, true);
+}
+
+void UBattleLevelActingWSubsystem::UpdateCoinActionRaise()
+{
+    UWorld* World = GetWorld();
+    ACoinActor* Coin = CoinActionActor.Get();
+    if(!World || !IsValid(Coin))
+    {
+        if(World) World->GetTimerManager().ClearTimer(CoinActionRaiseTimer);
+        CoinActionRaiseFinished.ExecuteIfBound();
+        return;
+    }
+
+    CoinActionElapsedTime += 0.01f;
+    const float Alpha = FMath::Clamp(CoinActionElapsedTime / FMath::Max(CoinActionRaiseDuration, KINDA_SMALL_NUMBER), 0.0f, 1.0f);
+    Coin->SetActorLocation(FMath::Lerp(CoinActionStartLocation, CoinActionTargetLocation, Alpha));
+
+    if(Alpha >= 1.0f)
+    {
+        World->GetTimerManager().ClearTimer(CoinActionRaiseTimer);
+        CoinActionRaiseFinished.ExecuteIfBound();
+    }
+}
+
+void UBattleLevelActingWSubsystem::ShakeCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished)
+{
+    UWorld* World = GetWorld();
+    if(!World || !IsValid(Coin))
+    {
+        OnFinished.ExecuteIfBound();
+        return;
+    }
+
+    World->GetTimerManager().ClearTimer(CoinActionShakeTimer);
+
+    CoinActionActor = Coin;
+    CoinActionShakeFinished = OnFinished;
+    CoinActionElapsedTime = 0.0f;
+    CoinActionStartRotation = Coin->GetActorRotation();
+
+    World->GetTimerManager().SetTimer(CoinActionShakeTimer, this, &UBattleLevelActingWSubsystem::UpdateCoinActionShake, 0.01f, true);
+}
+
+void UBattleLevelActingWSubsystem::UpdateCoinActionShake()
+{
+    UWorld* World = GetWorld();
+    ACoinActor* Coin = CoinActionActor.Get();
+    if(!World || !IsValid(Coin))
+    {
+        if(World) World->GetTimerManager().ClearTimer(CoinActionShakeTimer);
+        CoinActionShakeFinished.ExecuteIfBound();
+        return;
+    }
+
+    CoinActionElapsedTime += 0.01f;
+    const float Alpha = FMath::Clamp(CoinActionElapsedTime / FMath::Max(CoinActionShakeDuration, KINDA_SMALL_NUMBER), 0.0f, 1.0f);
+    FRotator NewRotation = CoinActionStartRotation;
+    NewRotation.Roll += FMath::Sin(Alpha * 4.0f * PI) * CoinActionShakeRoll;
+    Coin->SetActorRotation(NewRotation);
+
+    if(Alpha >= 1.0f)
+    {
+        Coin->SetActorRotation(CoinActionStartRotation);
+        World->GetTimerManager().ClearTimer(CoinActionShakeTimer);
+        CoinActionShakeFinished.ExecuteIfBound();
+    }
+}
+
+void UBattleLevelActingWSubsystem::LowerCoinAfterAction(ACoinActor* Coin, FSimpleDelegate OnFinished)
+{
+    UWorld* World = GetWorld();
+    if(!World || !IsValid(Coin))
+    {
+        OnFinished.ExecuteIfBound();
+        return;
+    }
+
+    World->GetTimerManager().ClearTimer(CoinActionLowerTimer);
+
+    CoinActionActor = Coin;
+    CoinActionLowerFinished = OnFinished;
+    CoinActionElapsedTime = 0.0f;
+    CoinActionStartLocation = Coin->GetActorLocation();
+    CoinActionTargetLocation = CoinActionStartLocation;
+    CoinActionTargetLocation.Z = CoinActionLowerZ;
+
+    World->GetTimerManager().SetTimer(CoinActionLowerTimer, this, &UBattleLevelActingWSubsystem::UpdateCoinActionLower, 0.01f, true);
+}
+
+void UBattleLevelActingWSubsystem::UpdateCoinActionLower()
+{
+    UWorld* World = GetWorld();
+    ACoinActor* Coin = CoinActionActor.Get();
+    if(!World || !IsValid(Coin))
+    {
+        if(World) World->GetTimerManager().ClearTimer(CoinActionLowerTimer);
+        CoinActionLowerFinished.ExecuteIfBound();
+        return;
+    }
+
+    CoinActionElapsedTime += 0.01f;
+    const float Alpha = FMath::Clamp(CoinActionElapsedTime / FMath::Max(CoinActionLowerDuration, KINDA_SMALL_NUMBER), 0.0f, 1.0f);
+    Coin->SetActorLocation(FMath::Lerp(CoinActionStartLocation, CoinActionTargetLocation, Alpha));
+
+    if(Alpha >= 1.0f)
+    {
+        World->GetTimerManager().ClearTimer(CoinActionLowerTimer);
+        CoinActionLowerFinished.ExecuteIfBound();
+    }
+}

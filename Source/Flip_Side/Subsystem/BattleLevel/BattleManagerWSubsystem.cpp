@@ -64,14 +64,11 @@ void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
     StageCardManager = InWorld.GetSubsystem<UStageCardWSubsystem>();
 
-    if (ActingManager)
+    ActingManager->OnCoinLanded.BindLambda([this]()
     {
-        ActingManager->OnCoinLanded.BindLambda([this]()
-        {
-            if (BossManager)
-                BossManager->StopBossRoleRoulette();
-        });
-    }
+        if (BossManager)
+            BossManager->BroadcastCoinLanded();
+    });
 
     if (BossManager)
     {
@@ -220,9 +217,6 @@ void UBattleManagerWSubsystem::DoCoinSelectTurn()
     false);
     MatchCoinsToRandomState();
 
-    if (BossManager)
-        BossManager->StartBossRoleRoulette();
-
     if (StageCardManager)
     {
         StageCardManager->ExecuteCardsEffect();
@@ -232,20 +226,19 @@ void UBattleManagerWSubsystem::DoCoinSelectTurn()
     ItemManager->SetTurn(true);
     ItemManager->CoinBindsToItemMan();
 
-    if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
+     if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
+    for (UBossGimmickBase* G : Boss->GetGimmickList())
     {
-        if (Boss->GetActiveGimmick())
-            Boss->GetActiveGimmick()->OnPlayerTurnStart(Boss);
-
+        if (IsValid(G)) G->OnPlayerTurnStart(Boss);
     }
 }
 
 void UBattleManagerWSubsystem::DoBossTurn()
 {
-    if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
+     if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
+    for (UBossGimmickBase* G : Boss->GetGimmickList())
     {
-        if (Boss->GetActiveGimmick())
-            Boss->GetActiveGimmick()->OnPlayerTurnEnd(Boss);
+        if (IsValid(G)) G->OnPlayerTurnEnd(Boss);
     }
 
     CoinActionManager->SetTurn(false);

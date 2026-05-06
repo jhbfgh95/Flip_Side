@@ -15,6 +15,7 @@ class UW_BattleCoinInfo;
 class UW_ItemInfo;
 class UUserWidget;
 class AUseableItemActor;
+class UNiagaraSystem;
 
 UCLASS(Config=Game, meta=(DisplayName="My Manager Settings"))
 class FLIP_SIDE_API UFlipSideDevloperSettings : public UDeveloperSettings
@@ -75,4 +76,16 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
 	TSoftObjectPtr<USoundBase> CoinSlotClickSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Battle VFX")
+	TSoftObjectPtr<UNiagaraSystem> Boss_Hit_VFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Battle VFX")
+	TSoftObjectPtr<UNiagaraSystem> Boss_CC_VFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Battle VFX")
+	TSoftObjectPtr<UNiagaraSystem> Coin_Logic_Failed_VFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Battle VFX")
+	float CommonVFXDelayAfterCoinVFX = 0.35f;
 };
