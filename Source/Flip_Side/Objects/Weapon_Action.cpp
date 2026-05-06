@@ -6,7 +6,6 @@
 #include "Engine/World.h"
 #include "GridActor.h"
 #include "DataManagerSubsystem.h"
-#include "WeaponLogicLibrary.h"
 
 void UWeapon_Action::SetFinalAttackPoint(const int32 AttackPoint)
 {
@@ -34,6 +33,22 @@ int32 UWeapon_Action::GetFinalAttackPoint() const
 int32 UWeapon_Action::GetFinalBehaviorPoint() const
 {
     return FinalBehaviorPoint;
+}
+
+FWeaponActionResolveResult UWeapon_Action::ResolveAction()
+{
+    if(LogicID == -1 || !GetWorld()) return FWeaponActionResolveResult();
+
+    UGameInstance* GI = GetWorld()->GetGameInstance();
+    if(!GI) return FWeaponActionResolveResult();
+
+    UActionLogicRegistryGISubsystem* ActionRegistry = GI->GetSubsystem<UActionLogicRegistryGISubsystem>();
+    if(!ActionRegistry) return FWeaponActionResolveResult();
+
+    SetWeaponData();
+
+    FActionResolveLogic ResolveLogic = ActionRegistry->GetWeaponResolveLogic(this->LogicID);
+    return ResolveLogic ? ResolveLogic(this) : FWeaponActionResolveResult();
 }
 
 void UWeapon_Action::ExecuteAction()

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "WeaponDataTypes.h"
 #include "WeaponLogicLibrary.generated.h"
 
 class UWeapon_Action;
@@ -15,6 +16,13 @@ class FLIP_SIDE_API UWeaponLogicLibrary : public UBlueprintFunctionLibrary
 	
 /* 딜러 */
 public:
+	static FWeaponActionResolveResult ResolveBossDamage(UWeapon_Action* WeaponContext);
+	static FWeaponActionResolveResult ResolveBossCC(UWeapon_Action* WeaponContext);
+	static FWeaponActionResolveResult ResolveBossDamageWithCoinTarget(UWeapon_Action* WeaponContext);
+	static FWeaponActionResolveResult ResolveGridTarget(UWeapon_Action* WeaponContext);
+	static FWeaponActionResolveResult ResolveCoinTarget(UWeapon_Action* WeaponContext);
+	static FWeaponActionResolveResult ResolveOtherTarget(UWeapon_Action* WeaponContext);
+
 	static void Test_Logic(UWeapon_Action* WeaponContext);
 
 	static void SteelPipe_Logic(UWeapon_Action* WeaponContext);

@@ -65,6 +65,8 @@ public:
 
 	ABase_OtherActor* GetTargetOther() const { return TargetOther; }
 
+	const FFaceData& GetWeaponData() const { return WeaponData; }
+
 	/*Get은 CoinActionStaticLibrary에서 */
 
 	virtual int32 GetFinalAttackPoint() const;
@@ -74,6 +76,8 @@ public:
 	virtual int32 GetFinalRangeX() const { return FinalRangeX; }
 	virtual int32 GetFinalRangeY() const { return FinalRangeY; }
 	UTexture2D* GetWeaponIcon() const { return WeaponData.WeaponIcon; }
+
+	FWeaponActionResolveResult ResolveAction();
 
 	virtual void ExecuteAction() override;
 };
