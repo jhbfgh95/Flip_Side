@@ -310,12 +310,13 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
     }
 
     // 늪 설치 패턴(bNoDamage)이면 보라색, 일반 공격이면 빨간색으로 예고
+    // 늪이 깔린 셀 위로 공격이 겹치면 주황색으로 구분
     const bool bIsInstallPattern = PickedPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex)
         && PickedPattern->PatternData[TurnContext.CurrentPatternIndex].bNoDamage;
-    const FLinearColor TelegraphColor = bIsInstallPattern
+    const FLinearColor NormalTelegraphColor = bIsInstallPattern
         ? FLinearColor(0.5f, 0.1f, 0.9f, 1.f)
         : FLinearColor(1.f, 0.f, 0.f, 1.f);
-    ShowTelegraphPreview(TurnContext.LockedCells, TelegraphColor);
+    ShowTelegraphPreviewWithSwamp(TurnContext.LockedCells, NormalTelegraphColor);
 
     TurnContext.bPrepared = true;
     return true;
@@ -357,7 +358,7 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
     }
 
     BuildLockedTargetsFromCells(TurnContext.LockedCells, TurnContext.LockedTargets);
-    
+
     CurrentBoss->PlayAttack();
 
     UWorld* World = GetWorld();
@@ -442,9 +443,12 @@ void UBossManagerSubsystem::ClearCurrentTurn()
         ClearTelegraphPreview(TurnContext.LockedCells);
     }
 
-    if (IsValid(CurrentBoss) && CurrentBoss->GetActiveGimmick())
+    if (IsValid(CurrentBoss))
     {
-        CurrentBoss->GetActiveGimmick()->OnTurnEnd(CurrentBoss);
+        for (UBossGimmickBase* G : CurrentBoss->GetGimmickList())
+        {
+            if (IsValid(G)) G->OnTurnEnd(CurrentBoss);
+        }
     }
 
     TurnContext.Reset();
@@ -464,6 +468,29 @@ void UBossManagerSubsystem::ShowTelegraphPreview(const TArray<FGridPoint>& Cells
         {
             Grid->bIsBossAttack = true;
             Grid->ApplyCellMaterialParams(Color, 0.9f, 0.0f);
+        }
+    }
+}
+
+void UBossManagerSubsystem::ShowTelegraphPreviewWithSwamp(const TArray<FGridPoint>& Cells, const FLinearColor& Color)
+{
+    UGridManagerSubsystem* GridMgr = GetWorld()->GetSubsystem<UGridManagerSubsystem>();
+    if (!GridMgr) return;
+
+    for (const FGridPoint& Cell : Cells)
+    {
+        if (AGridActor* Grid = GridMgr->GetGridActor(Cell))
+        {
+            if (Grid->HasSwamp())
+            {
+                // 늪 셀은 bIsBossAttack 세팅 안 함 → InitColor()가 늪 색 유지
+                Grid->InitColor();
+            }
+            else
+            {
+                Grid->bIsBossAttack = true;
+                Grid->ApplyCellMaterialParams(Color, 0.9f, 0.0f);
+            }
         }
     }
 }

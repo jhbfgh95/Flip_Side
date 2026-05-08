@@ -3,8 +3,88 @@
 #include "GridActor.h"
 #include "GridManagerSubsystem.h"
 #include "BossManagerSubsystem.h"
-#include "BossPatternBase.h"
+#include "CoinActor.h"
+#include "Component_Status.h"
 #include "Actors/Others/Base_OtherActor.h"
+
+FLinearColor UBossGimmick_Swamp::GetSwampColor(EWeaponClass Type)
+{
+	switch (Type)
+	{
+	case EWeaponClass::Deal: return FLinearColor(1.f,  0.1f, 0.1f, 1.f);
+	case EWeaponClass::Tank: return FLinearColor(0.1f, 0.3f, 1.f,  1.f);
+	case EWeaponClass::Heal: return FLinearColor(0.1f, 0.9f, 0.2f, 1.f);
+	default:                 return FLinearColor(0.5f, 0.5f, 0.5f, 1.f);
+	}
+}
+
+void UBossGimmick_Swamp::OnPlayerTurnStart(ABossActor* Boss)
+{
+	if (!Boss) return;
+
+	UWorld* World = Boss->GetWorld();
+	if (!World) return;
+
+	UGridManagerSubsystem* GridMgr = World->GetSubsystem<UGridManagerSubsystem>();
+	if (!GridMgr) return;
+
+	// 이미 깔린 늪 색 표시
+	for (const FSwampCell& S : ActiveSwamps)
+	{
+		if (AGridActor* Grid = GridMgr->GetGridActor(S.GridPoint))
+		{
+			Grid->ClearBossAttackFlag();
+			Grid->InitColor();
+		}
+	}
+}
+
+void UBossGimmick_Swamp::OnCoinLanded(ABossActor* Boss, FBossTurnContext& Context)
+{
+	if (!Boss) return;
+
+	UWorld* World = Boss->GetWorld();
+	if (!World) return;
+
+	UGridManagerSubsystem* GridMgr = World->GetSubsystem<UGridManagerSubsystem>();
+	if (!GridMgr) return;
+
+	// 설치 패턴이면 늪 설치
+	if (Context.CurrentPattern
+		&& Context.CurrentPattern->PatternData.IsValidIndex(Context.CurrentPatternIndex)
+		&& Context.CurrentPattern->PatternData[Context.CurrentPatternIndex].bNoDamage
+		&& Context.CurrentPattern->PatternData[Context.CurrentPatternIndex].GimmickType == EBossGimmickType::GridDebuff)
+	{
+		InstallSwamp(Boss, Context.LockedCells);
+	}
+
+	// 늪 위에 올라온 코인 중 대상 타입이면 공격력 디버프
+	const int32 DebuffAmount = GimmickData.ParamIntB > 0 ? GimmickData.ParamIntB : 1;
+
+	for (const FSwampCell& S : ActiveSwamps)
+	{
+		AGridActor* Grid = GridMgr->GetGridActor(S.GridPoint);
+		if (!Grid) continue;
+
+		ACoinActor* Coin = Cast<ACoinActor>(Grid->GetCurrentOccupied());
+		if (!IsValid(Coin)) continue;
+		if (Coin->GetWeaponType() != S.SwampType) continue;
+
+		UComponent_Status* Status = Coin->FindComponentByClass<UComponent_Status>();
+		if (!Status) continue;
+
+		FBuffInfo Debuff;
+		Debuff.bIsDebuff = true;
+		Debuff.BuffName = TEXT("늪 디버프");
+		const int32 Penalty = -DebuffAmount;
+		Debuff.StatDelegate = FOnCalculateStats::FDelegate::CreateLambda([Penalty](FActionTask& Task)
+		{
+			Task.ModifiedAttackPoint += Penalty;
+		});
+
+		Status->AddBuffs(Debuff);
+	}
+}
 
 void UBossGimmick_Swamp::OnBeforePatternExecute(ABossActor* Boss, FBossTurnContext& Context)
 {
@@ -21,32 +101,9 @@ void UBossGimmick_Swamp::OnBeforePatternExecute(ABossActor* Boss, FBossTurnConte
 		{
 			const float Multiplier = GimmickData.ParamFloatB > 0.f ? GimmickData.ParamFloatB : 1.5f;
 			Context.BonusDamage = FMath::RoundToInt(Context.BaseDamage * (Multiplier - 1.f));
-			UE_LOG(LogTemp, Log, TEXT("[Swamp] Overlap → BonusDamage=%d (x%.2f)"), Context.BonusDamage, Multiplier);
 			return;
 		}
 	}
-}
-
-void UBossGimmick_Swamp::OnPatternExecute(
-	ABossActor* Boss,
-	const TArray<FGridPoint>& LockedCells,
-	const TArray<ACoinActor*>& LockedTargets,
-	const TArray<ABase_OtherActor*>& LockedOthers)
-{
-	if (!Boss) return;
-
-	UWorld* World = Boss->GetWorld();
-	if (!World) return;
-
-	UBossManagerSubsystem* BossMgr = World->GetSubsystem<UBossManagerSubsystem>();
-	if (!BossMgr) return;
-
-	UBossPatternBase* Pattern = BossMgr->GetCurrentTurnPattern();
-	const int32 PatternIndex = BossMgr->GetCurrentTurnPatternIndex();
-	if (!Pattern || !Pattern->PatternData.IsValidIndex(PatternIndex)) return;
-	if (!Pattern->PatternData[PatternIndex].bNoDamage) return;
-
-	InstallSwamp(Boss, LockedCells);
 }
 
 void UBossGimmick_Swamp::OnTurnEnd(ABossActor* Boss)
@@ -96,14 +153,18 @@ void UBossGimmick_Swamp::InstallSwamp(ABossActor* Boss, const TArray<FGridPoint>
 
 	const int32 RemainingTurns = GimmickData.ParamIntA > 0 ? GimmickData.ParamIntA : 2;
 	const int32 DebuffAmount   = GimmickData.ParamIntB > 0 ? GimmickData.ParamIntB : 1;
-	const FLinearColor SwampColor = FLinearColor(0.1f, 0.6f, 0.1f, 1.f);
+
+	const TArray<EWeaponClass> SwampTypes = { EWeaponClass::Deal, EWeaponClass::Tank, EWeaponClass::Heal };
+	const EWeaponClass PickedType = SwampTypes[FMath::RandRange(0, SwampTypes.Num() - 1)];
+	const FLinearColor SwampColor = GetSwampColor(PickedType);
 
 	for (const FGridPoint& Cell : Cells)
 	{
 		AGridActor* Grid = GridMgr->GetGridActor(Cell);
 		if (!Grid) continue;
 
-		Grid->SetSwamp(RemainingTurns, DebuffAmount, EWeaponClass::Deal, SwampColor);
+		Grid->SetSwamp(RemainingTurns, DebuffAmount, PickedType, SwampColor);
+		Grid->ClearBossAttackFlag();
 		Grid->InitColor();
 
 		bool bAlreadyTracked = false;
@@ -112,18 +173,18 @@ void UBossGimmick_Swamp::InstallSwamp(ABossActor* Boss, const TArray<FGridPoint>
 			if (S.GridPoint.GridX == Cell.GridX && S.GridPoint.GridY == Cell.GridY)
 			{
 				S.RemainingTurns = RemainingTurns;
-				bAlreadyTracked = true;
+				S.SwampType      = PickedType;
+				bAlreadyTracked  = true;
 				break;
 			}
 		}
 		if (!bAlreadyTracked)
 		{
 			FSwampCell NewSwamp;
-			NewSwamp.GridPoint = Cell;
+			NewSwamp.GridPoint      = Cell;
 			NewSwamp.RemainingTurns = RemainingTurns;
+			NewSwamp.SwampType      = PickedType;
 			ActiveSwamps.Add(NewSwamp);
 		}
-
-		UE_LOG(LogTemp, Warning, TEXT("[Swamp] 설치 (%d,%d) 남은턴=%d"), Cell.GridX, Cell.GridY, RemainingTurns);
 	}
 }
