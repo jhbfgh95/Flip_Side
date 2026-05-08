@@ -226,10 +226,17 @@ void UBattleManagerWSubsystem::DoCoinSelectTurn()
     ItemManager->SetTurn(true);
     ItemManager->CoinBindsToItemMan();
 
-     if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
-    for (UBossGimmickBase* G : Boss->GetGimmickList())
+    if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
     {
-        if (IsValid(G)) G->OnPlayerTurnStart(Boss);
+        UE_LOG(LogTemp, Warning, TEXT("[Battle] DoCoinSelectTurn OnPlayerTurnStart broadcast, GimmickCount=%d"), Boss->GetGimmickList().Num());
+        for (UBossGimmickBase* G : Boss->GetGimmickList())
+        {
+            if (IsValid(G)) G->OnPlayerTurnStart(Boss);
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[Battle] DoCoinSelectTurn: Boss null, OnPlayerTurnStart skipped"));
     }
 }
 

@@ -92,6 +92,7 @@ private:
 
     bool PrepareCurrentPattern();
     void ShowTelegraphPreview(const TArray<FGridPoint>& Cells, const FLinearColor& Color);
+    void ShowTelegraphPreviewWithSwamp(const TArray<FGridPoint>& Cells, const FLinearColor& Color);
     void ClearTelegraphPreview(const TArray<FGridPoint>& Cells);
     bool IsCellIncluded(const FGridPoint& P, const TArray<FGridPoint>& Cells) const;
     void BuildLockedTargetsFromCells(const TArray<FGridPoint>& Cells, TArray<FLockedBossTarget>& OutLockedTargets) const;

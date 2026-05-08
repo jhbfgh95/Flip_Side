@@ -8,6 +8,7 @@
 #include "Component_Status.h"
 #include "CoinActor.h"
 #include "Actors/Others/Base_OtherActor.h"
+#include "SimulationLogger.h"
 
 void UBossPatternBase::BuildTargetCells(
 	ABossActor* Boss,
@@ -149,6 +150,8 @@ void UBossPatternBase::ExecutePattern(
 
 void UBossPatternBase::ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, const TArray<ABase_OtherActor*>& LockedOthers, ABossActor* Boss, int32 Damage)
 {
+    int32 TotalDamageDealt = 0;
+
     for (ACoinActor* Coin : LockedTargets)
     {
         if (!IsValid(Coin)) continue;
@@ -161,18 +164,32 @@ void UBossPatternBase::ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, c
         }
 
         const int32 PrevHP = StatusComp->GetHP();
-        const int32 NextHP = PrevHP - FMath::Max(0, Damage);
+        const int32 ActualDamage = FMath::Max(0, Damage);
+        const int32 NextHP = PrevHP - ActualDamage;
 
         StatusComp->ApplyDamage(Damage, Boss);
+        TotalDamageDealt += FMath::Min(ActualDamage, PrevHP);
 
         UE_LOG(LogTemp, Log, TEXT("[BossPattern] Damage Applied - CoinID=%d HP %d -> %d"),
             Coin->GetCoinID(), PrevHP, FMath::Max(0, NextHP));
-	}
+    }
 
     for (ABase_OtherActor* Other : LockedOthers)
     {
         if (!IsValid(Other)) continue;
         Other->ApplyDamage(Damage, Boss);
+    }
+
+    // 시뮬레이션 로거에 보스→코인 피해 기록
+    if (TotalDamageDealt > 0)
+    {
+        if (UWorld* World = GetWorld())
+        {
+            if (USimulationLogger* Logger = World->GetSubsystem<USimulationLogger>())
+            {
+                Logger->NotifyBossDamageDealt(TotalDamageDealt);
+            }
+        }
     }
 }
 void UBossPatternBase::PlayPatternEffect_Implementation(int32 PatternNum, FVector EffectLocation)
