@@ -8,6 +8,8 @@
 
 class AGridActor;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBossPatternWanted);
+
 UCLASS()
 class FLIP_SIDE_API ABossPatternPreviewActor : public AActor
 {
@@ -52,6 +54,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Preview")
 	void RebuildGrid();
+
+	UPROPERTY(BlueprintAssignable, Category = "Preview")
+	FOnBossPatternWanted OnPatternWanted;
 
 private:
 	void SpawnGrid();

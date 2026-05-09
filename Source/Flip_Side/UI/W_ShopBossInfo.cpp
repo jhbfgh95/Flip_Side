@@ -9,6 +9,7 @@
 #include "Engine/GameInstance.h"
 #include "Subsystem/BossSetupGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Subsystem/ShopLevel/ShopBossWSubsystem.h"
 
 void UW_ShopBossInfo::NativeConstruct()
 {
@@ -79,6 +80,17 @@ void UW_ShopBossInfo::SetBossInfo(const FBossDisplayData& BossData, const TArray
 	CurrentBossData = BossData;
 	CurrentPatternDataList = PatternDataList;
 	CurrentPatternIndex = 0;
+
+	if (!IsValid(PatternPreviewActor))
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (UShopBossWSubsystem* Sub = World->GetSubsystem<UShopBossWSubsystem>())
+			{
+				PatternPreviewActor = Sub->GetPatternPreviewActor();
+			}
+		}
+	}
 
 	if(IsValid(PatternPreviewActor))
 	{
@@ -251,15 +263,7 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 
 	if(PatternRangeImage)
 	{
-		if(PatternData.PatternRangeImage)
-		{
-			PatternRangeImage->SetBrushFromTexture(PatternData.PatternRangeImage);
-			PatternRangeImage->SetVisibility(ESlateVisibility::HitTestInvisible);
-		}
-		else
-		{
-			PatternRangeImage->SetVisibility(ESlateVisibility::Hidden);
-		}
+		PatternRangeImage->SetVisibility(ESlateVisibility::HitTestInvisible);
 	}
 
 	if(PatternIconImage)
