@@ -80,6 +80,14 @@ void UW_ShopBossInfo::SetBossInfo(const FBossDisplayData& BossData, const TArray
 	CurrentPatternDataList = PatternDataList;
 	CurrentPatternIndex = 0;
 
+	if(IsValid(PatternPreviewActor))
+	{
+		if(CurrentPatternDataList.IsValidIndex(0))
+			PatternPreviewActor->ShowPatternPreview(CurrentPatternDataList[0].PatternSpec);
+		else
+			PatternPreviewActor->ClearPreview();
+	}
+
 	SetPatternButtonCount(FMath::Min(CurrentPatternDataList.Num(), PatternButtons.Num()));
 	RefreshBossTexts();
 	RefreshPatternTexts();
@@ -99,6 +107,11 @@ void UW_ShopBossInfo::SelectPattern(int32 PatternIndex)
 	}
 
 	CurrentPatternIndex = PatternIndex;
+
+	if(IsValid(PatternPreviewActor))
+	{
+		PatternPreviewActor->ShowPatternPreview(CurrentPatternDataList[PatternIndex].PatternSpec);
+	}
 
 	RefreshPatternTexts();
 	RefreshPatternButtonState();
