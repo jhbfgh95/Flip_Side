@@ -28,10 +28,7 @@ void UBossSetupGISubsystem::AssignBossesToStages()
 {
     StageBossAssignment.Reset();
 
-    // 스테이지 1은 튜토리얼 보스 고정
-    StageBossAssignment.Add(1, 1);
-
-    // 나머지 보스들(boss_id >= 2)을 스테이지 2부터 랜덤 배정
+    // BossID 2~5를 Stage 1~4로 랜덤 배정 (튜토리얼 보스 BossID 1은 L_Stage_Battle_Tutorial 전용)
     TArray<int32> BossIDs;
     for (const FBossDisplayData& Data : AllBossData)
     {
@@ -48,7 +45,7 @@ void UBossSetupGISubsystem::AssignBossesToStages()
 
     for (int32 i = 0; i < BossIDs.Num(); ++i)
     {
-        StageBossAssignment.Add(i + 2, BossIDs[i]);
+        StageBossAssignment.Add(i + 1, BossIDs[i]);
     }
 
     UE_LOG(LogTemp, Warning, TEXT("[BossSetupGI] Stage assignment:"));

@@ -4,6 +4,16 @@
 
 void ULevelGISubsystem::MoveBattleLevel()
 {
+    BattleLevelIndex = 1;
+    UGameInstance* GI = Cast<UGameInstance>(GetOuter());
+    if (GI)
+    {
+        UBossSetupGISubsystem* BossSetupGI = GI->GetSubsystem<UBossSetupGISubsystem>();
+        if (BossSetupGI)
+        {
+            BossSetupGI->PrepareBossForStage(BattleLevelIndex);
+        }
+    }
     UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_StageOne")));
 }
 
