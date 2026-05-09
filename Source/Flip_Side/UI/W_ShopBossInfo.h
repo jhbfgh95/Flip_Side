@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "BossDataTypes.h"
 #include "BossPatternBase.h"
+#include "BossPatternPreviewActor.h"
 #include "W_ShopBossInfo.generated.h"
 
 /**
@@ -149,4 +150,9 @@ protected:
 
 	UPROPERTY()
 	TArray<TObjectPtr<class UButton>> PatternButtons;
+
+public:
+	// 레벨에 배치된 BossPatternPreviewActor를 블루프린트에서 연결
+	UPROPERTY(BlueprintReadWrite, Category = "Preview")
+	TObjectPtr<ABossPatternPreviewActor> PatternPreviewActor;
 };
