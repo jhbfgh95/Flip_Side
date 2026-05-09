@@ -12,6 +12,7 @@ class FLIP_SIDE_API UW_StageHandCardWidget : public UW_CardWidget
 
 protected:
     virtual void NativeConstruct() override;
+    virtual void NativeDestruct() override;
 
     UPROPERTY()
     class UStageCardWSubsystem* StageCardSubSystem;
@@ -56,8 +57,5 @@ public:
     int32 HandIndex = 0;
 
     UFUNCTION()
-    void ActiveCard();
-
-    UFUNCTION()
-    void DeactiveCard();
+    void SetActiveCardEffect(int32 index, bool IsActive);
 };

@@ -259,7 +259,7 @@ void UBattleManagerWSubsystem::DoSettingTurn()
 {
     if (StageCardManager)
     {
-        StageCardManager->ClearPromotionHighlight();
+        StageCardManager->SettingDoSettingTurn();
     }
 
     GenerateRandomStates();

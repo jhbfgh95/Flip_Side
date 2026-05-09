@@ -230,6 +230,14 @@ void UStageCardWSubsystem::ClearSlot(int32 HandIndex, bool bNotify)
 void UStageCardWSubsystem::ClearAllModifiers()
 {
     CoinMods.Empty();
+    UnActiveCardUI();
+}
+
+void UStageCardWSubsystem::SettingDoSettingTurn()
+{
+    ClearPromotionHighlight();
+    //카드 활성화 초기화
+    UnActiveCardUI();
 }
 
 void UStageCardWSubsystem::ClearPromotionHighlight()
@@ -329,16 +337,24 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
             // 프로모션: 빛나는 칸에 쇠파이프(WeaponID==3) 코인이 있을 때만 버프
             if (PromotionHighlightedGrid.GridX >= 0)
             {
-                FCardLogicLibrary::ApplyPromotion(Card, FieldCoins, LocalMods, DM, PromotionHighlightedGrid);
+                if(FCardLogicLibrary::ApplyPromotion(Card, FieldCoins, LocalMods, DM, PromotionHighlightedGrid))
+                    OnStageHandCardActive.Broadcast(Slot, true);
+                else
+                    OnStageHandCardActive.Broadcast(Slot, false);
             }
         }
         else if (const FCardLogicFn* Logic = CardLogicTable.Find(Card.CardID))
         {
-            (*Logic)(Card, FieldCoins, LocalMods, DM);
+            if((*Logic)(Card, FieldCoins, LocalMods, DM))
+                OnStageHandCardActive.Broadcast(Slot, true);
+            else
+                OnStageHandCardActive.Broadcast(Slot, false);
+
         }
         else
         {
             UE_LOG(LogTemp, Warning, TEXT("[StageCard] CardID=%d 에 등록된 로직 없음"), Card.CardID);
+            OnStageHandCardActive.Broadcast(Slot, false);
         }
     }
 
@@ -377,4 +393,13 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
     CoinMods = LocalMods;
 
     UE_LOG(LogTemp, Log, TEXT("[StageCard] ExecuteCardsEffect done. BuffAppliedCoins=%d"), LocalMods.Num());
+}
+
+
+void UStageCardWSubsystem::UnActiveCardUI()
+{
+    for(int i =0; i< HandCount; i++)
+    {
+        OnStageHandCardActive.Broadcast(i, false);
+    }
 }

@@ -32,8 +32,15 @@ void UW_StageHandCardWidget::NativeConstruct()
             InitCard(Card);
             SetVisibility(ESlateVisibility::Visible);
         }
+
+        StageCardSubSystem->OnStageHandCardActive.AddDynamic(this, &UW_StageHandCardWidget::SetActiveCardEffect);
     }
-    DeactiveCard();
+    
+}
+void UW_StageHandCardWidget::NativeDestruct()
+{
+    StageCardSubSystem->OnStageHandCardActive.RemoveAll(this);
+    Super::NativeDestruct();
 }
 
 void UW_StageHandCardWidget::OnHandCardSet(int32 Index, FCardData CardData)
@@ -95,11 +102,12 @@ void UW_StageHandCardWidget::PlayCardAnim(UWidgetAnimation* Anim)
     if (!CanControl) return;
     if (Anim) PlayAnimation(Anim);
 }
-void UW_StageHandCardWidget::ActiveCard()
+void UW_StageHandCardWidget::SetActiveCardEffect(int32 index, bool IsActive)
 {
-    ActiveWidget->SetVisibility(ESlateVisibility::Visible);
-}
-void UW_StageHandCardWidget::DeactiveCard()
-{
-    ActiveWidget->SetVisibility(ESlateVisibility::Hidden);
+    if(index != HandIndex)
+        return;
+    if(IsActive)
+        ActiveWidget->SetVisibility(ESlateVisibility::Visible);
+    else
+        ActiveWidget->SetVisibility(ESlateVisibility::Collapsed);
 }

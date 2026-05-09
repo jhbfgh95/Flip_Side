@@ -9,7 +9,7 @@ class UDataManagerSubsystem;
 struct FFaceData;
 
 // 카드 로직 함수 시그니처
-using FCardLogicFn = TFunction<void(
+using FCardLogicFn = TFunction<bool(
     const FCardData&,                                          // 카드 수치 파라미터
     const TArray<FCoinOnGridInfo>&,                           // 필드 코인 목록
     TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>&,    // modifier 맵 출력
@@ -23,7 +23,7 @@ public:
     static void BuildLogicTable(TMap<int32, FCardLogicFn>& OutTable);
 
     // 프로모션 카드: 빛나는 칸에 있는 쇠파이프 코인에만 버프
-    static void ApplyPromotion(
+    static bool ApplyPromotion(
         const FCardData& Card,
         const TArray<FCoinOnGridInfo>& FieldCoins,
         TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
@@ -32,25 +32,25 @@ public:
 
 private:
     // ===== 카드별 로직 =====
-    static void Card_Encore(
+    static bool Card_Encore(
         const FCardData& Card,
         const TArray<FCoinOnGridInfo>& FieldCoins,
         TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
         UDataManagerSubsystem* DM);
 
-    static void Card_LongRangeAmplifier(
+    static bool Card_LongRangeAmplifier(
         const FCardData& Card,
         const TArray<FCoinOnGridInfo>& FieldCoins,
         TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
         UDataManagerSubsystem* DM);
 
-    static void Card_OneForAll(
+    static bool Card_OneForAll(
         const FCardData& Card,
         const TArray<FCoinOnGridInfo>& FieldCoins,
         TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
         UDataManagerSubsystem* DM);
 
-    static void Card_Alliance(
+    static bool Card_Alliance(
         const FCardData& Card,
         const TArray<FCoinOnGridInfo>& FieldCoins,
         TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,

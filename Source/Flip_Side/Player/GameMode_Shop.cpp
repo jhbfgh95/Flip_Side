@@ -40,20 +40,8 @@ void AGameMode_Shop::ChangeBattleLevel()
         FSelectItem PlayerItem = ShopItemSubsystem->GetPlayerItem(i);
         if(PlayerItem.ItemID != -1 && PlayerItem.SameItemNum != -1)
         {
-            CrossSubsystem->SetBattleUseItemID(i,PlayerItem.ItemID, PlayerItem.SameItemNum);
+            CrossSubsystem->SetBattleUseItemID(PlayerItem.ItemID,i, PlayerItem.SameItemNum);
         }
-    }
-
-    for(int i =0; i<10; i++)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("%d 번쨰 코인 아이디 : 앞 %d, 뒤 %d, 개수 : %d"),i, 
-        CrossSubsystem->GetSlotCoin(i).FrontWeaponID,CrossSubsystem->GetSlotCoin(i).BackWeaponID,CrossSubsystem->GetSlotCoin(i).SameTypeCoinNum);
-    }
-
-    TArray<int32> CardArray =  CrossSubsystem->GetBattleCardIDs();
-    for(int i =0; i<3; i++)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("%d 번째 카드 아이디 :  %d"), i, CardArray[i]);
     }
 
     LevelSubsystem->MoveBattleLevel();

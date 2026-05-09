@@ -15,28 +15,34 @@ void FCardLogicLibrary::BuildLogicTable(TMap<int32, FCardLogicFn>& OutTable)
 {
     OutTable.Add(1, [](const FCardData& Card, const TArray<FCoinOnGridInfo>& Coins, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods, UDataManagerSubsystem* DM)
     {
-        Card_Encore(Card, Coins, Mods, DM);
+        return Card_Encore(Card, Coins, Mods, DM);
     });
 
     OutTable.Add(2, [](const FCardData& Card, const TArray<FCoinOnGridInfo>& Coins, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods, UDataManagerSubsystem* DM)
     {
-        Card_LongRangeAmplifier(Card, Coins, Mods, DM);
+        return Card_LongRangeAmplifier(Card, Coins, Mods, DM);
     });
 
     // 3: 프로모션 - StageCardWSubsystem에서 직접 처리 (HighlightedGrid 필요)
-    OutTable.Add(3, [](const FCardData&, const TArray<FCoinOnGridInfo>&, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>&, UDataManagerSubsystem*) {});
+    OutTable.Add(3, [](const FCardData&, const TArray<FCoinOnGridInfo>&, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>&, UDataManagerSubsystem*)
+    {
+        return false;
+    });
 
     // 4: 황금 기회 - 미구현
-    OutTable.Add(4, [](const FCardData&, const TArray<FCoinOnGridInfo>&, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>&, UDataManagerSubsystem*) {});
+    OutTable.Add(4, [](const FCardData&, const TArray<FCoinOnGridInfo>&, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>&, UDataManagerSubsystem*)
+    {
+        return false;
+    });
 
     OutTable.Add(5, [](const FCardData& Card, const TArray<FCoinOnGridInfo>& Coins, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods, UDataManagerSubsystem* DM)
     {
-        Card_OneForAll(Card, Coins, Mods, DM);
+        return Card_OneForAll(Card, Coins, Mods, DM);
     });
 
     OutTable.Add(6, [](const FCardData& Card, const TArray<FCoinOnGridInfo>& Coins, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods, UDataManagerSubsystem* DM)
     {
-        Card_Alliance(Card, Coins, Mods, DM);
+        return Card_Alliance(Card, Coins, Mods, DM);
     });
 }
 
@@ -82,7 +88,7 @@ int32 FCardLogicLibrary::GetRangeValue(const FFaceData& Face)
 
 // ===== Card Logic =====
 
-void FCardLogicLibrary::Card_Encore(
+bool FCardLogicLibrary::Card_Encore(
     const FCardData& Card,
     const TArray<FCoinOnGridInfo>& FieldCoins,
     TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
@@ -91,7 +97,7 @@ void FCardLogicLibrary::Card_Encore(
     for (const FCoinOnGridInfo& Info : FieldCoins)
     {
         if (!IsValid(Info.CoinActor)) continue;
-        if (Info.CoinActor->GetCoinDecidedFace() != EFaceState::Front) return;
+        if (Info.CoinActor->GetCoinDecidedFace() != EFaceState::Front) return false;
     }
 
     for (const FCoinOnGridInfo& Info : FieldCoins)
@@ -100,9 +106,10 @@ void FCardLogicLibrary::Card_Encore(
         AddMods(Mods, Info.CoinActor, 0, 0, 0, false, Card.ExtraActions);
         break;
     }
+    return true;
 }
 
-void FCardLogicLibrary::Card_LongRangeAmplifier(
+bool FCardLogicLibrary::Card_LongRangeAmplifier(
     const FCardData& Card,
     const TArray<FCoinOnGridInfo>& FieldCoins,
     TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
@@ -116,7 +123,7 @@ void FCardLogicLibrary::Card_LongRangeAmplifier(
         if (GetRangeValue(Face) >= 3) ++CountHighRange;
     }
 
-    if (CountHighRange < Card.TriggerCount) return;
+    if (CountHighRange < Card.TriggerCount) return false;
 
     // behavior_add == -1: sentinel meaning "equal to each coin's range value"
     for (const FCoinOnGridInfo& Info : FieldCoins)
@@ -128,9 +135,10 @@ void FCardLogicLibrary::Card_LongRangeAmplifier(
         const int32 ActualBehaviorAdd = (Card.BehaviorAdd == -1) ? R : Card.BehaviorAdd;
         AddMods(Mods, Info.CoinActor, Card.AttackAdd, ActualBehaviorAdd, Card.RangeAdd);
     }
+    return true;
 }
 
-void FCardLogicLibrary::ApplyPromotion(
+bool FCardLogicLibrary::ApplyPromotion(
     const FCardData& Card,
     const TArray<FCoinOnGridInfo>& FieldCoins,
     TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
@@ -145,10 +153,12 @@ void FCardLogicLibrary::ApplyPromotion(
 
         AddMods(Mods, Info.CoinActor,
             Card.AttackAdd, Card.BehaviorAdd, Card.RangeAdd, Card.bLifeSteal);
+        return true;
     }
+    return false;
 }
 
-void FCardLogicLibrary::Card_OneForAll(
+bool FCardLogicLibrary::Card_OneForAll(
     const FCardData& Card,
     const TArray<FCoinOnGridInfo>& FieldCoins,
     TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
@@ -168,10 +178,13 @@ void FCardLogicLibrary::Card_OneForAll(
     if (ValidCount == Card.TriggerCount && IsValid(OnlyCoin))
     {
         AddMods(Mods, OnlyCoin, Card.AttackAdd, Card.BehaviorAdd, Card.RangeAdd);
+        return true;
     }
+    else
+        return false;
 }
 
-void FCardLogicLibrary::Card_Alliance(
+bool FCardLogicLibrary::Card_Alliance(
     const FCardData& Card,
     const TArray<FCoinOnGridInfo>& FieldCoins,
     TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
@@ -208,5 +221,7 @@ void FCardLogicLibrary::Card_Alliance(
                 AddMods(Mods, Coin, Card.AttackAdd, 0, 0);
             }
         }
+        return true;
     }
+    return false;
 }

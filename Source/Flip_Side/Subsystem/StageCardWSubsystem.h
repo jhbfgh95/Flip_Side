@@ -19,7 +19,7 @@ struct FGridPoint;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FStageHandCardSet, int32, HandIndex, FCardData, CardInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStageHandCardCleared, int32, HandIndex);
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FStageHandCardActive, int32, HandIndex, bool, IsActive);
 
 UCLASS()
 class FLIP_SIDE_API UStageCardWSubsystem : public UWorldSubsystem
@@ -39,6 +39,9 @@ public:
 
     UPROPERTY(BlueprintAssignable)
     FStageHandCardCleared OnHandCardCleared;
+
+    UPROPERTY(BlueprintAssignable)
+    FStageHandCardActive OnStageHandCardActive;
 
 public:
     // ===== [���� ���� ���� API ����] =====
@@ -65,6 +68,8 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void ClearAllModifiers();
+
+    void SettingDoSettingTurn();
 
 private:
     static constexpr int32 HandCount = 3;
@@ -111,4 +116,8 @@ private:
 
     UPROPERTY()
     UUserWidget* StageHUDInstance = nullptr;
+
+private:
+    //카드 UI 비활성화
+    void UnActiveCardUI();
 };

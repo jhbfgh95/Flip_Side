@@ -31,9 +31,6 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* LockImage;
 
-	UPROPERTY(meta = (BindWidget), Transient)
-	class UCanvasPanel* MainCanvas;
-
 	FCardData CardData;
 
 
