@@ -2,6 +2,7 @@
 #include "GridActor.h"
 #include "GridAreaBuilder.h"
 #include "Engine/World.h"
+#include "Subsystem/ShopLevel/ShopBossWSubsystem.h"
 
 ABossPatternPreviewActor::ABossPatternPreviewActor()
 {
@@ -12,6 +13,14 @@ void ABossPatternPreviewActor::BeginPlay()
 {
 	Super::BeginPlay();
 	SpawnGrid();
+
+	if (UWorld* World = GetWorld())
+	{
+		if (UShopBossWSubsystem* Sub = World->GetSubsystem<UShopBossWSubsystem>())
+		{
+			Sub->RegisterPatternPreviewActor(this);
+		}
+	}
 }
 
 void ABossPatternPreviewActor::ShowPatternPreview(const FAttackAreaSpec& Spec)
@@ -31,6 +40,7 @@ void ABossPatternPreviewActor::ShowPatternPreview(const FAttackAreaSpec& Spec)
 	}
 
 	HighlightedCells = Cells;
+	OnPatternWanted.Broadcast();
 }
 
 void ABossPatternPreviewActor::ClearPreview()
@@ -43,6 +53,7 @@ void ABossPatternPreviewActor::ClearPreview()
 		}
 	}
 	HighlightedCells.Reset();
+	OnPatternWanted.Broadcast();
 }
 
 void ABossPatternPreviewActor::RebuildGrid()
