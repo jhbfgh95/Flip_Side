@@ -41,6 +41,9 @@ struct FItemData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString ItemName;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 Price = 0;
 };
 
 /**

@@ -52,4 +52,7 @@ struct FCardData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     bool bLifeSteal = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 Price = 0;
 };

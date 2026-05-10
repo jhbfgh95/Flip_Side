@@ -75,6 +75,8 @@ bool UDataManagerSubsystem::ReloadCache()
     bOk &= LoadItems();
     bOk &= LoadWeaponTypes();
     bOk &= LoadCards();
+    bOk &= LoadStageRewards();
+    bOk &= LoadGameConfig();
 
     bCacheReady = bOk;
 
@@ -163,6 +165,16 @@ bool UDataManagerSubsystem::TryGetAllCards(TArray<FCardData>& OutCards) const
     return true;
 }
 
+bool UDataManagerSubsystem::TryGetStageReward(int32 StageID, FStageRewardData& Out) const
+{
+    if (const FStageRewardData* Found = StageRewardByStageID.Find(StageID))
+    {
+        Out = *Found;
+        return true;
+    }
+    return false;
+}
+
 void UDataManagerSubsystem::ClearCache()
 {
     WeaponByID.Reset();
@@ -172,6 +184,8 @@ void UDataManagerSubsystem::ClearCache()
     BossPatternDisplayByBossID.Reset();
     ItemByID.Reset();
     WeaponTypes.Reset();
+    StageRewardByStageID.Reset();
+    GameConfig = FGameConfigData();
 }
 
 bool UDataManagerSubsystem::OpenDbReadWrite()
@@ -233,7 +247,8 @@ bool UDataManagerSubsystem::LoadWeapons()
             IFNULL(a.param_b,      1) AS param_b,
             IFNULL(a.side,         0) AS side,          -- 기본: Up
             IFNULL(a.flags,        0) AS flags,
-            IFNULL(a.action_repeat_type,  0) AS action_repeat_type
+            IFNULL(a.action_repeat_type,  0) AS action_repeat_type,
+            IFNULL(c.price,        0) AS price
 
         FROM coin_weapon_def AS c
         JOIN weapon_type AS w
@@ -321,6 +336,8 @@ bool UDataManagerSubsystem::LoadWeapons()
         {
             Data.SingleCellWeaponType = (ESingleCellWeaponType)ParamB;
         }
+
+        Data.Price = GetColInt(Stmt, Col++);
 
         WeaponByID.Add(Data.WeaponID, Data);
         WeaponByTypeID.FindOrAdd(Data.TypeID).Add(Data);
@@ -682,7 +699,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
 bool UDataManagerSubsystem::LoadItems()
 {
     const TCHAR* Sql =
-        TEXT("SELECT i.item_id, i.item_range, i.item_effect_value, i.icon_path, i.item_description AS item_des, i.item_type_id, i.behavior, t.item_type_color, i.item_name FROM item i JOIN item_type t ON i.item_type_id = t.item_type_id;");
+        TEXT("SELECT i.item_id, i.item_range, i.item_effect_value, i.icon_path, i.item_description AS item_des, i.item_type_id, i.behavior, t.item_type_color, i.item_name, IFNULL(i.price, 0) FROM item i JOIN item_type t ON i.item_type_id = t.item_type_id;");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
@@ -714,6 +731,7 @@ bool UDataManagerSubsystem::LoadItems()
             Item.TypeColor = FLinearColor::White;
         }
         Item.ItemName = GetColTextUTF8(Stmt, 8);
+        Item.Price = GetColInt(Stmt, 9);
         ItemByID.Add(Item.ItemID, Item);
         Items.Add(Item);
     }
@@ -757,7 +775,8 @@ bool UDataManagerSubsystem::LoadCards()
 {
     const TCHAR* Sql =
         TEXT("SELECT CardID, icon_path, CardName, Card_Description,")
-        TEXT("       trigger_count, attack_add, behavior_add, range_add, extra_actions, b_lifesteal ")
+        TEXT("       trigger_count, attack_add, behavior_add, range_add, extra_actions, b_lifesteal,")
+        TEXT("       IFNULL(price, 0) ")
         TEXT("FROM Card;");
 
     FSQLitePreparedStatement Stmt;
@@ -781,6 +800,7 @@ bool UDataManagerSubsystem::LoadCards()
         Card.RangeAdd         = GetColInt(Stmt, 7);
         Card.ExtraActions     = GetColInt(Stmt, 8);
         Card.bLifeSteal       = GetColInt(Stmt, 9) != 0;
+        Card.Price            = GetColInt(Stmt, 10);
 
         if (!IconPath.IsEmpty())
         {
@@ -814,6 +834,55 @@ static bool TryParseHexColor_RRGGBBAA(const FString& InHex, FLinearColor& Out)
 
     const FColor SRGB = FColor::FromHex(AARRGGBB);
     Out = FLinearColor::FromSRGBColor(SRGB);
+    return true;
+}
+
+bool UDataManagerSubsystem::LoadStageRewards()
+{
+    const TCHAR* Sql = TEXT("SELECT stage_id, reward_gold FROM stage_reward;");
+
+    FSQLitePreparedStatement Stmt;
+    if (!PrepareStmt(Db, Sql, Stmt))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[DB] LoadStageRewards: PrepareStatement failed"));
+        return false;
+    }
+
+    while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
+    {
+        FStageRewardData Data;
+        Data.StageID    = GetColInt(Stmt, 0);
+        Data.RewardGold = GetColInt(Stmt, 1);
+        StageRewardByStageID.Add(Data.StageID, Data);
+    }
+
+    Stmt.Destroy();
+    return true;
+}
+
+bool UDataManagerSubsystem::LoadGameConfig()
+{
+    const TCHAR* Sql = TEXT("SELECT config_key, config_value FROM game_config;");
+
+    FSQLitePreparedStatement Stmt;
+    if (!PrepareStmt(Db, Sql, Stmt))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[DB] LoadGameConfig: PrepareStatement failed"));
+        return false;
+    }
+
+    while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
+    {
+        FString Key;
+        Stmt.GetColumnValueByIndex(0, Key);
+        int32 Value = GetColInt(Stmt, 1);
+
+        if (Key == TEXT("initial_gold"))              GameConfig.InitialGold = Value;
+        else if (Key == TEXT("coin_slot_unlock_cost")) GameConfig.CoinSlotUnlockCost = Value;
+        else if (Key == TEXT("coin_count_add_cost"))   GameConfig.CoinCountAddCost = Value;
+    }
+
+    Stmt.Destroy();
     return true;
 }
 
