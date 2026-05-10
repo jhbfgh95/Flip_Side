@@ -26,4 +26,9 @@ public:
 
     UFUNCTION(BlueprintImplementableEvent, Category = "Lever | Outline")
     void LeverUnHoverOutline();
+
+    float GetLeverAnimationTotalTime() const
+    {
+        return FMath::Max(ReturnDelay, AnimationSpeed) + AnimationSpeed;
+    }
 };

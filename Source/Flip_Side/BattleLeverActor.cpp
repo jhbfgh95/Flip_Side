@@ -12,10 +12,8 @@ void ABattleLeverActor::ExecuteLeverLogic()
     
     if (!BattleSub) return;
 
-    if(BattleSub->GetCurrentTurn() != ETurnState::BossTurn || BattleSub->GetCurrentTurn() != ETurnState::SettingTurn)
-    {
-        bCanAnimate = BattleSub->StartBattleFromLever();
-    }
+    bCanAnimate = BattleSub->StartBattleFromLever(ABattleLeverActor::GetLeverAnimationTotalTime());
+    
 }
 
 void ABattleLeverActor::OnClicked_Implementation()

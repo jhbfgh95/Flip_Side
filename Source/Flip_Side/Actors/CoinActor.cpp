@@ -184,6 +184,11 @@ void ACoinActor::SetCoinFace(EFaceState DecidedFace)
 	{
 		DecidedWeaponID = BackWeaponID;
 	}
+
+	if(StatComponent)
+	{
+		StatComponent->ApplyFaceWeaponStat(CurrentFace);
+	}
 }
 
 // BattleManager에서 SetGridPoint 부를 때 X, Y 최대값을 GridManager에서 받아서 그거 넘어가면 Return하고 랜덤값 다시 만드는 코드 있어야함!!
@@ -193,7 +198,7 @@ void ACoinActor::SetGridPoint(FGridPoint DecidedGridPoint)
 	CurrentGridPoint.GridY = DecidedGridPoint.GridY;
 }
 
-void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass WeaponTypes, UTexture2D *FrontTexture, UTexture2D *BackTexture, FLinearColor DecideColor, int32 CoinHP, int32 SlotNum)
+void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass WeaponTypes, UTexture2D *FrontTexture, UTexture2D *BackTexture, FLinearColor DecideColor, int32 CoinHP, int32 SlotNum, int32 price)
 {
 	if (WeaponTypes != EWeaponClass::None && FrontTexture && BackTexture)
 	{
@@ -206,6 +211,7 @@ void ACoinActor::SetCoinValues(int CoinId, int FrontId, int BackId, EWeaponClass
 		TypeColor = DecideColor;
 		StatComponent->SetHP(CoinHP, true);
 		SlotIndex = SlotNum;
+		CoinPrice = price;
 	}
 }
 
@@ -359,6 +365,7 @@ void ACoinActor::OnClicked_Implementation()
 			//아니면, 일단 배틀상태의 코인이기 때문에 한 번 배틀상태의 코인이라고 말한 후에 막는다.
 			// 한 번 Battle상태 들어가서 클릭하면 두 번째 클릭부터는 막음.
 			// CoinActionManagementWSubsystem에 바인딩
+			/*
 			if (!GetCoinIsActed())
 			{
 				OnClickBattleCoin.Broadcast(this);
@@ -367,6 +374,8 @@ void ACoinActor::OnClicked_Implementation()
 			{
 				return;
 			}
+			*/
+			OnClickBattleCoin.Broadcast(this);
 		}
 	}
 }

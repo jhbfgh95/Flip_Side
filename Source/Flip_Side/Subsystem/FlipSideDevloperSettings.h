@@ -14,6 +14,8 @@ class UW_ReadyAndSlotCoinInfo;
 class UW_BattleCoinInfo;
 class UW_ItemInfo;
 class UUserWidget;
+class UW_StageEnd;
+class UW_MoneyDisplay;
 class AUseableItemActor;
 class UNiagaraSystem;
 
@@ -50,6 +52,12 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Stage UI",
 		meta = (AllowedClasses = "/Script/UMG.UserWidget"))
 	TSoftClassPtr<UUserWidget> StageHUDWidgetClass;
+
+	UPROPERTY(EditAnywhere, config, Category = "Battle | UI")
+	TSoftClassPtr<UW_StageEnd> StageEndWidgetClass;
+
+	UPROPERTY(EditAnywhere, config, Category = "Common | UI")
+	TSoftClassPtr<UW_MoneyDisplay> MoneyDisplayWidgetClass;
 
 	// 테스트용 — 0이면 기본 폴백(BossID=1), 1 이상이면 해당 ID로 강제 스폰
 	UPROPERTY(Config, EditAnywhere, Category = "Debug | Boss")

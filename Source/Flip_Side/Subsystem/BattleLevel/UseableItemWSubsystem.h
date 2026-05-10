@@ -25,6 +25,9 @@ class FLIP_SIDE_API UUseableItemWSubsystem : public UWorldSubsystem
 	UPROPERTY()
 	TArray<FSelectItem> ItemSlotArray;
 
+	UPROPERTY()
+	TArray<AUseableItemActor*> UnUsedItemArray;
+
 	struct FAttackAreaSpec ItemAreaSpec;
 
 	UPROPERTY()
@@ -119,4 +122,8 @@ public:
 	//bool IsItemSetupInGrid() const;
 
 	void SetTurn(const bool bIsTurn);
+
+	int32 CalculateItemPrice() const;
+
+	int32 CalculateItemCount() const;
 };

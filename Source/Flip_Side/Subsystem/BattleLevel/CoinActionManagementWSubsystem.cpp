@@ -184,7 +184,6 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
 {
     if(!bIsCorrectTurn) return;
     if(!IsValid(HoveredCoin)) return;
-    if(HoveredCoin->GetCoinIsActed()) return;
     if(bActionSequenceActive) return;
 
     FActionTask ActionTask = HoveredCoin->StatComponent->GetModifiedStats();
@@ -206,7 +205,6 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
             SelectedAction->SetActionRange(LastGridPoint);
             SelectedAction->SetFinalAttackPoint(SelectWeapon.AttackPoint + ActionTask.ModifiedAttackPoint);
             SelectedAction->SetFinalBehaviorPoint(SelectWeapon.BehaviorPoint + ActionTask.ModifiedBehaviorPoint);
-            SelectedAction->SetFinalRange(LastGridPoint.GridX, LastGridPoint.GridY);
             switch(SelectWeapon.ActionRepeatType)
             {
                 case EActionRepeatType::Behavior :
@@ -268,6 +266,11 @@ void UCoinActionManagementWSubsystem::SetCasterCoin(ACoinActor* CasterCoin)
 //코인은 나 선택됬다고 신호만 보내면 됨
 void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedCoin)
 {
+    if(ClickedCoin->GetCoinIsActed())
+    {
+        PlayFailedVFX();
+        return;
+    }
     ACoinActor* CasterCoin = SelectedAction ? SelectedAction->GetCasterCoin() : nullptr;
     if(!IsValid(CasterCoin) && IsValid(ClickedCoin))
     {

@@ -43,6 +43,8 @@ public:
     UPROPERTY(BlueprintAssignable)
     FStageHandCardActive OnStageHandCardActive;
 
+    int32 CardPrice = 0;
+
 public:
     // ===== [���� ���� ���� API ����] =====
     UFUNCTION(BlueprintCallable)
@@ -71,6 +73,9 @@ public:
 
     void SettingDoSettingTurn();
 
+    //Park 추가
+    int32 GetCardPrice() { return static_cast<int32>(CardPrice / 2); }
+    int32 GetCardCount() const;
 private:
     static constexpr int32 HandCount = 3;
 
@@ -120,4 +125,5 @@ private:
 private:
     //카드 UI 비활성화
     void UnActiveCardUI();
+
 };

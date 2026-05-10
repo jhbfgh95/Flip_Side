@@ -32,6 +32,9 @@ class AUseableItemActor : public AActor, public IBattleHoverInterface, public IB
 	UPROPERTY(VisibleAnywhere, Category = "UseableItem | Type")
 	EItemType ItemType = EItemType::CoinBuff;
 
+	UPROPERTY(VisibleAnywhere, Category = "UseableItem | Price")
+	int32 ItemPrice = 0;
+
 	UPROPERTY(VisibleAnywhere)
 	UTexture2D* ItemTexture;
 
@@ -46,7 +49,10 @@ public:
 	EItemType GetItemType() const { return ItemType; }
 
 	UFUNCTION()
-	void SetItemValues(int TheItemID, EItemType theItemType ,UTexture2D* ItemTex, FLinearColor Color);
+	void SetItemValues(int TheItemID, EItemType theItemType ,UTexture2D* ItemTex, FLinearColor Color, int32 price);
+
+	UFUNCTION()
+	int32 GetItemPrice() const { return ItemPrice; }
 
 	UFUNCTION()
     void SetOriginLocation(FVector InLoc) { OriginLocation = InLoc; }

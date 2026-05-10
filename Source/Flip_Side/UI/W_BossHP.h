@@ -48,13 +48,6 @@ private:
 	bool bIsShieldBarInitialized = false;
 
 private:
-
-	UPROPERTY(meta = (BindWidget))
-    class UWidget* ClearPanel;
-
-	UPROPERTY(meta = (BindWidget))
-    class UButton* GotoShopButton;
-
 	UPROPERTY(meta = (BindWidget))
     class UTextBlock* HpText;
 	
@@ -130,18 +123,12 @@ public:
 	void UpdateGroggyAsShield(int32 NewCurrentGroggy);
 	int32 GetCurrentShield() const { return CurrentShield; }
 
-	UFUNCTION()
-	void ShowClearPanel();
-
 private:
 	UFUNCTION()
 	void ShowPatternPopup();
 
 	UFUNCTION()
 	void HidePatternPopup();
-
-	UFUNCTION()
-	void StageCleardClicked();
 
 	void RefreshHpBar();
 	void RefreshShieldBar();

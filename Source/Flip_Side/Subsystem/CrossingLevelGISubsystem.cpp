@@ -75,13 +75,6 @@ void UCrossingLevelGISubsystem::SetBattleUseItemID(int32 UseableItemID, int32 It
     }
 }
 
-/*
-void UCrossingLevelGISubsystem::SetBattleUseItemID(FSelectItem UseItem)
-{
-    SelectedUseableItemArray.Empty();
-    SelectedUseableItemArray.Add(UseItem);
-}*/
-
 
 //정해진 슬롯에 위치한 코인구조체를 반환
 FCoinTypeStructure UCrossingLevelGISubsystem::GetSlotCoin(int SlotNum) const
@@ -142,6 +135,7 @@ int32 UCrossingLevelGISubsystem::GetMakedItemNum() const
 //테스트용 코인 생성
 void UCrossingLevelGISubsystem::GenerateTestCoin()
 {
+    /*
     // {FrontWeaponID, BackWeaponID}  같은 타입끼리 짝
     const int32 CoinPairs[][2] = {
         {  9, 10 },  // 0: Tank - 장갑 슈트 / 창의 적(방패)
@@ -163,6 +157,12 @@ void UCrossingLevelGISubsystem::GenerateTestCoin()
         Coin.SameTypeCoinNum = 5;
         SetSlotCoin(i, Coin);
     }
+    */
+    FCoinTypeStructure Coin;
+    Coin.FrontWeaponID = 11;
+    Coin.BackWeaponID = 9;
+    Coin.SameTypeCoinNum = 1;
+    SetSlotCoin(0,Coin);
 
     SetBattleUseItemID(5,0,3);
     SetBattleUseItemID(6,1,3);

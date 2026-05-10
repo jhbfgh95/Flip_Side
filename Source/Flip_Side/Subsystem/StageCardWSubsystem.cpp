@@ -168,7 +168,7 @@ void UStageCardWSubsystem::RefreshHandFromGI()
 
         HandCards[Slot] = CardData;
         bHasCard[Slot] = true;
-
+        CardPrice += CardData.Price;
         OnHandCardSet.Broadcast(Slot, CardData);
     }
 }
@@ -225,6 +225,20 @@ void UStageCardWSubsystem::ClearSlot(int32 HandIndex, bool bNotify)
     {
         OnHandCardCleared.Broadcast(HandIndex);
     }
+}
+
+int32 UStageCardWSubsystem::GetCardCount() const
+{
+    int32 CardCount = 0;
+    for (bool bHas : bHasCard)
+    {
+        if (bHas)
+        {
+            CardCount++;
+        }
+    }
+
+    return CardCount;
 }
 
 void UStageCardWSubsystem::ClearAllModifiers()

@@ -63,6 +63,9 @@ class ACoinActor : public AActor, public IBattleHoverInterface, public IBattleCl
 	UPROPERTY(VisibleAnywhere)
 	FLinearColor TypeColor;
 
+	UPROPERTY(VisibleAnywhere, Category = "Coin | Price")
+	int32 CoinPrice = 0;
+
 
 /* Battle상태 변수들 */
 protected:
@@ -159,8 +162,11 @@ public:
 		UTexture2D* BackTexture,
 		FLinearColor DecideColor,
 		int32 CoinHP,
-		int32 SlotNum
+		int32 SlotNum,
+		int32 price
 	);
+
+	int32 GetCoinPrice() const { return CoinPrice; }
 
 	/* 앞,뒤 결정 */
 	int32 GetCoinFaceID() const;

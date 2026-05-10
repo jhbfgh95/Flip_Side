@@ -21,12 +21,6 @@ class FLIP_SIDE_API UWeapon_Action : public UActionBase
 	UPROPERTY(VisibleAnywhere, Category = "Weapon | Status")
 	int32 FinalBehaviorPoint = 0;
 
-	UPROPERTY(VisibleAnywhere, Category = "Weapon | Status")
-	int32 FinalRangeX = 0;
-
-	UPROPERTY(VisibleAnywhere, Category = "Weapon | Status")
-	int32 FinalRangeY = 0;
-
 	UPROPERTY()
 	class ACoinActor* CasterCoin = nullptr;
 
@@ -52,10 +46,6 @@ public:
 
 	virtual void SetOtherForAction(class ABase_OtherActor* targetOther);
 
-	//FGridPoint 안쓰는 이유 : 헤더가 많아져서
-	virtual void SetFinalRange(const int32 gridX, const int32 gridY) 
-	{ FinalRangeX = gridX; FinalRangeY = gridY;}
-
 	void SetWeaponData();
 
 	void SetCasterCoin(ACoinActor* InCaster) { CasterCoin = InCaster; }
@@ -73,8 +63,6 @@ public:
 
 	virtual int32 GetFinalBehaviorPoint() const;
 
-	virtual int32 GetFinalRangeX() const { return FinalRangeX; }
-	virtual int32 GetFinalRangeY() const { return FinalRangeY; }
 	UTexture2D* GetWeaponIcon() const { return WeaponData.WeaponIcon; }
 
 	FWeaponActionResolveResult ResolveAction();

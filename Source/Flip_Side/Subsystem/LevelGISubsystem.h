@@ -6,6 +6,10 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "LevelGISubsystem.generated.h"
 
+/*
+	게임의 레벨 상태들을 관리해주는 GISubsystem이다.
+*/
+
 UCLASS()
 class FLIP_SIDE_API ULevelGISubsystem : public UGameInstanceSubsystem
 {
@@ -27,6 +31,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void MovingTutorialLevel(int32 tutorialflag);
 
+	//처음으로 돌아가면 무조건 초기화
 	UFUNCTION(BlueprintCallable)
 	void MoveStartLevel();
 

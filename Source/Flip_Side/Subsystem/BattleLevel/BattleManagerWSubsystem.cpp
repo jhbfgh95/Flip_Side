@@ -17,10 +17,24 @@
 #include "GridManagerSubsystem.h"
 #include "BattleLevelActingWSubsystem.h"
 #include "CoinActionManagementWSubsystem.h"
+#include "DataManagerSubsystem.h"
+#include "Subsystem/MoneyGISubsystem.h"
 #include "Subsystem/StageCardWSubsystem.h"
+#include "Subsystem/FlipSideDevloperSettings.h"
 #include "TemplateFunction_Utils.h"
+#include "Blueprint/UserWidget.h"
+#include "Engine/GameInstance.h"
+#include "UI/W_StageEnd.h"
 
 #define BATTLE_COIN_MAX 10
+
+namespace
+{
+    constexpr int32 StageClearFlag = 0;
+    constexpr int32 GameOverFlag = 1;
+    constexpr int32 GameClearFlag = 2;
+    constexpr int32 GameClearBattleLevelIndex = 4;
+}
 
 void UBattleManagerWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -81,6 +95,11 @@ void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
             }
         }
     }
+
+    if(CoinManager)
+    {
+        CoinManager->OnAllCoinDead.BindUObject(this, &UBattleManagerWSubsystem::GameOver);
+    }
     DoSettingTurn();
 }
 
@@ -99,13 +118,63 @@ ETurnState UBattleManagerWSubsystem::GetCurrentTurn()
     return TurnManageMentStack.Top();
 }
 
-bool UBattleManagerWSubsystem::StartBattleFromLever() { 
-    if(bCanProgressTurn)
+bool UBattleManagerWSubsystem::StartBattleFromLever(float BattleLeverEndTime) { 
+   
+    if (bIsStageEnded)
     {
-        TurnProgressing(); 
-        return true;
+        return false;
     }
-    return false;
+
+    if (LeverGateState != EBattleLeverGateState::WaitingForLever)
+    {
+        return false;
+    }
+
+    if (CurrentTurn != ETurnState::CoinReadyTurn &&
+        CurrentTurn != ETurnState::CoinSelectTurn)
+    {
+        return false;
+    }
+
+    LeverLockTime = BattleLeverEndTime;
+
+    LockLever(EBattleLeverLockReason::TurnTransition);
+    TurnProgressing();
+
+    return true;
+}
+
+void UBattleManagerWSubsystem::LockLever(EBattleLeverLockReason Reason)
+{
+    LeverGateState = EBattleLeverGateState::Locked;
+    LeverLockReason = Reason;
+
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(LeverUnlockTimer);
+    }
+}
+
+void UBattleManagerWSubsystem::UnlockLever()
+{
+    LeverGateState = EBattleLeverGateState::WaitingForLever;
+    LeverLockReason = EBattleLeverLockReason::None;
+}
+
+void UBattleManagerWSubsystem::UnlockLeverAfter(float DelaySeconds)
+{
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(LeverUnlockTimer);
+
+        World->GetTimerManager().SetTimer(
+            LeverUnlockTimer,
+            this,
+            &UBattleManagerWSubsystem::UnlockLever,
+            DelaySeconds,
+            false
+        );
+    }
 }
 
 void UBattleManagerWSubsystem::TurnProgressing()
@@ -197,26 +266,17 @@ void UBattleManagerWSubsystem::MatchCoinsToRandomState()
 
 void UBattleManagerWSubsystem::DoCoinReadyTurn()
 {
-    bCanProgressTurn = false;
-    GetWorld()->GetTimerManager().SetTimer(LockLeverWhenCanInteractTimer, [this]()
-    {
-        this->bCanProgressTurn = true;
-    }, 
-    1.0f, 
-    false);
+    LockLever(EBattleLeverLockReason::TurnTransition);
+    CoinManager->SetCoinReadyTurn(true);
+    UnlockLeverAfter(LeverLockTime + 1.0f);
 }
 
 void UBattleManagerWSubsystem::DoCoinSelectTurn()
 {
-    bCanProgressTurn = false;
-    GetWorld()->GetTimerManager().SetTimer(LockLeverWhenCanInteractTimer, [this]()
-    {
-        this->bCanProgressTurn = true;
-    },
-    3.0f,
-    false);
+    CoinManager->SetCoinReadyTurn(false);
+    
     MatchCoinsToRandomState();
-
+    
     if (StageCardManager)
     {
         StageCardManager->ExecuteCardsEffect();
@@ -226,6 +286,8 @@ void UBattleManagerWSubsystem::DoCoinSelectTurn()
     ItemManager->SetTurn(true);
     ItemManager->CoinBindsToItemMan();
 
+    UnlockLeverAfter(LeverLockTime + 3.0f);
+
     if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
     {
         UE_LOG(LogTemp, Warning, TEXT("[Battle] DoCoinSelectTurn OnPlayerTurnStart broadcast, GimmickCount=%d"), Boss->GetGimmickList().Num());
@@ -234,10 +296,7 @@ void UBattleManagerWSubsystem::DoCoinSelectTurn()
             if (IsValid(G)) G->OnPlayerTurnStart(Boss);
         }
     }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[Battle] DoCoinSelectTurn: Boss null, OnPlayerTurnStart skipped"));
-    }
+
 }
 
 void UBattleManagerWSubsystem::DoBossTurn()
@@ -279,5 +338,98 @@ void UBattleManagerWSubsystem::DoSettingTurn()
 
 void UBattleManagerWSubsystem::StageEnded()
 {
+    UGameInstance* GameInstance = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
+    ULevelGISubsystem* LevelManager = GameInstance ? GameInstance->GetSubsystem<ULevelGISubsystem>() : nullptr;
+    const int32 StageEndFlag = LevelManager && LevelManager->GetBattleLevelIndex() >= GameClearBattleLevelIndex
+        ? GameClearFlag
+        : StageClearFlag;
+
+    if (!TryEndStage(StageEndFlag)) return;
+
+    ShowStageEndWidget(StageEndFlag);
+}
+
+void UBattleManagerWSubsystem::GameOver()
+{
+    if (!TryEndStage(GameOverFlag)) return;
+
+    ShowStageEndWidget(GameOverFlag);
+}
+
+bool UBattleManagerWSubsystem::TryEndStage(int32 StageEndFlag)
+{
+    if (bIsStageEnded)
+    {
+        return false;
+    }
+
     bIsStageEnded = true;
+
+    if (StageEndFlag == StageClearFlag)
+    {
+        AddStageClearRefundToMoney();
+    }
+
+    OnStageEnded.Broadcast(StageEndFlag);
+    return true;
+}
+
+void UBattleManagerWSubsystem::AddStageClearRefundToMoney()
+{
+    UGameInstance* GameInstance = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
+    UMoneyGISubsystem* MoneyManager = GameInstance ? GameInstance->GetSubsystem<UMoneyGISubsystem>() : nullptr;
+    if (!MoneyManager)
+    {
+        return;
+    }
+
+    if (CoinManager)
+    {
+        MoneyManager->AddStageRefund(EMoneyRecordType::Coin, CoinManager->CalculateCoinPrice(), CoinManager->CalculateCoinCount());
+    }
+
+    if (ItemManager)
+    {
+        MoneyManager->AddStageRefund(EMoneyRecordType::Item, ItemManager->CalculateItemPrice(), ItemManager->CalculateItemCount());
+    }
+
+    if (StageCardManager)
+    {
+        MoneyManager->AddStageRefund(EMoneyRecordType::Card, StageCardManager->GetCardPrice(), StageCardManager->GetCardCount());
+    }
+
+    ULevelGISubsystem* LevelManager = GameInstance->GetSubsystem<ULevelGISubsystem>();
+    UDataManagerSubsystem* DataManager = GameInstance->GetSubsystem<UDataManagerSubsystem>();
+    if (LevelManager && DataManager)
+    {
+        FStageRewardData Reward;
+        if (DataManager->TryGetStageReward(LevelManager->GetBattleLevelIndex(), Reward))
+        {
+            MoneyManager->AddRewardMoney(Reward.RewardGold);
+        }
+    }
+}
+
+void UBattleManagerWSubsystem::ShowStageEndWidget(int32 StageEndFlag)
+{
+    if (StageEndWidgetInstance && StageEndWidgetInstance->IsInViewport())
+    {
+        return;
+    }
+
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    UClass* StageEndWidgetClass = Settings ? Settings->StageEndWidgetClass.LoadSynchronous() : nullptr;
+    if (!StageEndWidgetClass)
+    {
+        return;
+    }
+
+    StageEndWidgetInstance = CreateWidget<UW_StageEnd>(GetWorld(), StageEndWidgetClass);
+    if (!StageEndWidgetInstance)
+    {
+        return;
+    }
+
+    StageEndWidgetInstance->SetStageEndFlag(StageEndFlag);
+    StageEndWidgetInstance->AddToViewport(100);
 }

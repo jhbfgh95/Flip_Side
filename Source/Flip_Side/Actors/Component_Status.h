@@ -70,13 +70,15 @@ class FLIP_SIDE_API UComponent_Status : public UActorComponent
 	UPROPERTY(VisibleAnywhere, Category = "Weapon | Status")
 	int32 HP = 1;
 
-	//앞면의 기본 BP
+	//앞면 BP[0] 뒷면 BP[1]
 	UPROPERTY(VisibleAnywhere, Category = "Weapon | Status")
-	int32 BP = 0;
+	TArray<int32> BP = {0, 0};
 	
-	//앞면의 기본 AP
+	//앞면 AP[0] 뒷면 AP[1]
 	UPROPERTY(VisibleAnywhere, Category = "Weapon | Status")
-	int32 AP = 0;
+	TArray<int32> AP = {0, 0};
+
+	int32 CurrentFaceIndex = 0;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon | Status")
 	int32 Shield = 0;
@@ -123,11 +125,12 @@ public:
 	//초기 HP 세팅 및 진짜 특수한 경우의 함수 왠만하면 Damage, Heal로 HP관리
 	void SetHP(const int32 ApplyHP, bool bIsFirst);
 
-	//스탯이 필요하면 꺼내서 써야함
-	void SetWeaponStat(const int32 weaponBP, const int32 weaponAP) { BP = weaponBP; AP = weaponAP;}
+	void SetFaceWeaponStats(int32 FrontBP, int32 FrontAP, int32 BackBP, int32 BackAP);
 
-	int32 GetWeaponBP() const { return BP; }
-	int32 GetWeaponAP() const { return AP; }
+	void ApplyFaceWeaponStat(EFaceState Face);
+
+	int32 GetWeaponBP() const { return BP.IsValidIndex(CurrentFaceIndex) ? BP[CurrentFaceIndex] : 0; }
+	int32 GetWeaponAP() const { return AP.IsValidIndex(CurrentFaceIndex) ? AP[CurrentFaceIndex] : 0; }
 /* 스탯 직접 함수 */
 	void ApplyDamage(int32 Damage, AActor* DamageCauser);
 

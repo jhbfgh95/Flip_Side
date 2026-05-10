@@ -59,6 +59,29 @@ void UComponent_Status::SetHP(const int32 ApplyHP, bool bIsFirst)
     OnHpChanged.Broadcast(DeltaHP);
 }
 
+void UComponent_Status::SetFaceWeaponStats(int32 FrontBP, int32 FrontAP, int32 BackBP, int32 BackAP)
+{
+    BP.SetNum(2);
+    AP.SetNum(2);
+
+    BP[0] = FrontBP;
+    AP[0] = FrontAP;
+    BP[1] = BackBP;
+    AP[1] = BackAP;
+}
+
+void UComponent_Status::ApplyFaceWeaponStat(EFaceState Face)
+{
+    if(Face == EFaceState::Front)
+    {
+        CurrentFaceIndex = 0;
+    }
+    else if(Face == EFaceState::Back)
+    {
+        CurrentFaceIndex = 1;
+    }
+}
+
 void UComponent_Status::ApplyDamage(int32 Damage, AActor* DamageCauser)
 {
 	int32 FinalDamage = Damage;

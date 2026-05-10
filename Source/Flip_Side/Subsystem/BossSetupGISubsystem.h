@@ -77,4 +77,10 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Boss")
     void ClearPreparedBoss();
+
+    UFUNCTION(BlueprintCallable, Category = "Boss")
+    void ResetBossStageAssignments()
+    {
+        AssignBossesToStages();
+    }
 };

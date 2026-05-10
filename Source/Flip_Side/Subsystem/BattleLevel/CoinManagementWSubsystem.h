@@ -12,6 +12,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRangeWanted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCoinAddedToReady);
+DECLARE_DELEGATE(FOnAllCoinDead);
 
 class ACoinActor;
 
@@ -23,11 +24,17 @@ class FLIP_SIDE_API UCoinManagementWSubsystem : public UWorldSubsystem
 	UPROPERTY()
 	TArray<FCoinTypeStructure> CoinSlotDataArray;
 
+	//서랍으로 가는 코인
 	UPROPERTY()
 	TArray<ACoinActor*> BattleReadyCoins;
 
+	//그리드에서 살아남은 코인
 	UPROPERTY()
 	TArray<ACoinActor*> LiveCoinStacks;
+
+	//게임 오버용 전체 코인 확인
+	UPROPERTY()
+	TArray<ACoinActor*> GameOverCheckArray;
 
 	UPROPERTY()
 	TArray<ACoinSlotActor*> CoinSlots;
@@ -37,6 +44,8 @@ class FLIP_SIDE_API UCoinManagementWSubsystem : public UWorldSubsystem
 
 	UPROPERTY()
 	class UCoinActionManagementWSubsystem* CoinActionManager = nullptr;
+
+	bool bIsCoinReadyTurn = false;
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -79,6 +88,9 @@ protected:
 	void HandleCoinSlotClicked(ACoinActor* ReadyTargetCoin);
 
 	UFUNCTION()
+	void HandleCoinDestroyed(AActor* DestroyedCoin);
+
+	UFUNCTION()
 	void OnArrangeSlotMoveComplete() {}
 public:
 	//서랍 초기화
@@ -101,10 +113,18 @@ public:
 
 	void LockCoinReady(ACoinActor* TargetCoin);
 
+	void SetCoinReadyTurn(const bool TurnFlag) { bIsCoinReadyTurn = TurnFlag;}
+
+	int32 CalculateCoinPrice() const;
+
+	int32 CalculateCoinCount() const;
+
 	//외부 사거리 카메라에 바인딩할 델리게이트
 	UPROPERTY(BlueprintAssignable, Category = "Events|Hover")
 	FOnRangeWanted OnRangeWanted;
 
 	UPROPERTY(BlueprintAssignable, Category = "Events|Sound")
 	FOnCoinAddedToReady OnCoinAddedToReady;
+
+	FOnAllCoinDead OnAllCoinDead;
 };

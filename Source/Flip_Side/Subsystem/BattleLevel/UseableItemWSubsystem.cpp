@@ -169,9 +169,10 @@ void UUseableItemWSubsystem::InstanceUseItems()
                             
                             if(NewItem)
                             {
-                                NewItem->SetItemValues(ItemData.ItemID, ItemData.ItemType,ItemData.ItemIcon, ItemData.TypeColor);
+                                NewItem->SetItemValues(ItemData.ItemID, ItemData.ItemType,ItemData.ItemIcon, ItemData.TypeColor, ItemData.Price);
                                 NewItem->FinishSpawning(SpawnTransform);
                                 BindItemDelegates(NewItem);
+                                UnUsedItemArray.Add(NewItem);
                             }
                         }
                     }
@@ -527,4 +528,32 @@ void UUseableItemWSubsystem::SetTurn(const bool bIsTurn)
             ItemInfoWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
         }
     }
+}
+
+int32 UUseableItemWSubsystem::CalculateItemPrice() const
+{
+    int32 ReturnItemPrice = 0;
+    for(AUseableItemActor* Item : UnUsedItemArray)
+    {
+        if(IsValid(Item))
+        {
+            ReturnItemPrice += Item->GetItemPrice();
+        }
+    }
+
+    return static_cast<int32>(ReturnItemPrice / 2);
+}
+
+int32 UUseableItemWSubsystem::CalculateItemCount() const
+{
+    int32 ItemCount = 0;
+    for (AUseableItemActor* Item : UnUsedItemArray)
+    {
+        if (IsValid(Item))
+        {
+            ItemCount++;
+        }
+    }
+
+    return ItemCount;
 }

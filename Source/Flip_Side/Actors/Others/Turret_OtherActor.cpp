@@ -23,9 +23,10 @@ void ATurret_OtherActor::OnHover_Implementation()
     {
         TArray<FGridPoint> OutCells;
         FObjectOnGridInfo Info;
+        const FGridPoint NoOffset(0, 0);
 
-        GridManager->PreviewHoveredCoinRange(TurretSpec.AnchorCell, TurretSpec, TurretRange);
-        GridManager->GetObjectsAtRange(TurretSpec, TurretRange, OutCells, Info);
+        GridManager->PreviewHoveredCoinRange(TurretSpec.AnchorCell, TurretSpec, NoOffset);
+        GridManager->GetObjectsAtRange(TurretSpec, NoOffset, OutCells, Info);
         if(Info.Boss)
         {
             CachedBoss = Info.Boss;

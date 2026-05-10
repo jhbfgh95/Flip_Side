@@ -10,7 +10,6 @@
 #include "AttackAreaTypes.h"
 #include "FlipSide_Enum.h"
 #include "CoinActionManagementWSubsystem.h"
-#include "BattleManagerWSubsystem.h"
 #include "CrossingLevelGISubsystem.h"
 #include "DataManagerSubsystem.h"
 #include "FlipSideDevloperSettings.h"
@@ -368,6 +367,7 @@ void UCoinManagementWSubsystem::InstanceCoins()
         {
             FFaceData FrontWP;
             FFaceData BackWP;
+            int32 price;
             EWeaponClass CoinType = EWeaponClass::None;
             FWeaponType TypeDatas; 
 
@@ -400,6 +400,7 @@ void UCoinManagementWSubsystem::InstanceCoins()
                                     TypeDatas = DM->WeaponTypes[FrontWP.TypeID - 1];
                                 }
                                 int32 FinalIndex = i;
+                                price = FrontWP.Price + BackWP.Price;
 
                                 NewCoin->SetCoinValues(
                                     CoinNum, 
@@ -410,8 +411,19 @@ void UCoinManagementWSubsystem::InstanceCoins()
                                     BackWP.WeaponIcon,
                                     TypeDatas.TypeColor,
                                     TypeDatas.HP,
-                                    SlotIndex
+                                    SlotIndex,
+                                    price
                                 );
+
+                                if(NewCoin->StatComponent)
+                                {
+                                    NewCoin->StatComponent->SetFaceWeaponStats(
+                                        FrontWP.BehaviorPoint,
+                                        FrontWP.AttackPoint,
+                                        BackWP.BehaviorPoint,
+                                        BackWP.AttackPoint
+                                    );
+                                }
 
                                 NewCoin->SetOriginSlotLocation(CoinSlots[SlotIndex]->GetSlotTransform().GetLocation());
                                 CoinSlots[SlotIndex]->AllowcatedCoins.Add(NewCoin);
@@ -421,6 +433,7 @@ void UCoinManagementWSubsystem::InstanceCoins()
 
                                 BindCoinEvents(NewCoin);
 
+                                GameOverCheckArray.Add(NewCoin);
                                 CoinNum++;
                             }
                         }
@@ -459,6 +472,7 @@ void UCoinManagementWSubsystem::BindCoinEvents(ACoinActor* CoinActor)
     CoinActor->OnUnhoverCoin.AddDynamic(CoinActionManager,  &UCoinActionManagementWSubsystem::HandleCoinUnHovered);
     CoinActor->OnClickReadyCoin.AddDynamic(this, &UCoinManagementWSubsystem::HandleReadyCoinClicked);
     CoinActor->OnClickBattleCoin.AddDynamic(CoinActionManager, &UCoinActionManagementWSubsystem::ExecuteSelectedWeapon);
+    CoinActor->OnDestroyed.AddDynamic(this, &UCoinManagementWSubsystem::HandleCoinDestroyed);
 }
 
 void UCoinManagementWSubsystem::HandleReadyCoinHovered(ACoinActor* HoveredCoin)
@@ -509,8 +523,7 @@ void UCoinManagementWSubsystem::HandleCoinUnHovered()
 
 void UCoinManagementWSubsystem::HandleReadyCoinClicked(ACoinActor* ClickedCoin)
 {
-    UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
-    if (!BattleManager || BattleManager->GetCurrentTurn() != ETurnState::CoinReadyTurn) return;
+    if(!bIsCoinReadyTurn) return;
 
     RemoveBattleReadyCoins(ClickedCoin);
 }
@@ -543,8 +556,7 @@ void UCoinManagementWSubsystem::HandleCoinSlotClicked(ACoinActor* ReadyTargetCoi
 {
     if(!ReadyTargetCoin) return;
 
-    UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
-    if (!BattleManager || BattleManager->GetCurrentTurn() != ETurnState::CoinReadyTurn) return;
+    if(!bIsCoinReadyTurn) return;
 
     AddBattleReadyCoins(ReadyTargetCoin);
 }
@@ -575,4 +587,51 @@ void UCoinManagementWSubsystem::SetCoinInfoWidgetData(FCoinWidgetInfoData& Front
         BackWeaponData.DefaultAP,
         BackWeaponData.TypeColor
     );
+}
+
+void UCoinManagementWSubsystem::HandleCoinDestroyed(AActor* DestroyedCoin)
+{
+    if (ACoinActor* DestroyedCoinActor = Cast<ACoinActor>(DestroyedCoin))
+    {
+        GameOverCheckArray.Remove(DestroyedCoinActor);
+    }
+
+    for (ACoinActor* Coin : GameOverCheckArray)
+    {
+        if (IsValid(Coin))
+        {
+            return;
+        }
+    }
+
+
+    OnAllCoinDead.ExecuteIfBound();
+}
+
+int32 UCoinManagementWSubsystem::CalculateCoinPrice() const
+{
+    int32 CoinReturnPrice = 0;
+    for(ACoinActor* Coin : GameOverCheckArray)
+    {
+        if(IsValid(Coin))
+        {
+            CoinReturnPrice += Coin->GetCoinPrice();
+        }
+    }
+
+    return static_cast<int32>(CoinReturnPrice / 2);
+}
+
+int32 UCoinManagementWSubsystem::CalculateCoinCount() const
+{
+    int32 CoinCount = 0;
+    for (ACoinActor* Coin : GameOverCheckArray)
+    {
+        if (IsValid(Coin))
+        {
+            CoinCount++;
+        }
+    }
+
+    return CoinCount;
 }

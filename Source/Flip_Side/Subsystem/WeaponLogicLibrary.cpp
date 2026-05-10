@@ -202,18 +202,52 @@ void UWeaponLogicLibrary::BloodCanon_Logic(UWeapon_Action* WeaponContext)
     UComponent_Status* TargetStat = nullptr;
     int32 AP = WeaponContext->GetFinalAttackPoint();
 
+    UE_LOG(LogTemp, Warning, TEXT("[BloodCanon] Start AP=%d, RangedCoins=%d, Caster=%s"),
+        AP,
+        RangedCoins.Num(),
+        *GetNameSafe(WeaponContext->GetCasterCoin()));
+
     for(ACoinActor* Coin : RangedCoins)
     {
-        if(Coin == WeaponContext->GetCasterCoin()) continue;
+        if(Coin == WeaponContext->GetCasterCoin())
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[BloodCanon] Skip caster coin=%s"), *GetNameSafe(Coin));
+            continue;
+        }
+
+        if(!IsValid(Coin))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[BloodCanon] Skip invalid coin"));
+            continue;
+        }
+
         TargetStat = Coin->StatComponent;
+        if(!TargetStat)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[BloodCanon] Skip coin without StatComponent=%s"), *GetNameSafe(Coin));
+            continue;
+        }
+
         FActionTask NewTask;
 
+        const int32 DamageToCoin = AP;
         TargetStat->ApplyDamage(AP, WeaponContext->GetCasterCoin());
         NewTask = TargetStat->GetModifiedStats();
         int32 FinalBP = NewTask.ModifiedBehaviorPoint + TargetStat->GetWeaponBP();
+
+        UE_LOG(LogTemp, Warning, TEXT("[BloodCanon] Coin=%s, Damage=%d, BaseBP=%d, ModifiedBP=%d, AbsorbBP=%d, APBefore=%d, APAfter=%d"),
+            *GetNameSafe(Coin),
+            DamageToCoin,
+            TargetStat->GetWeaponBP(),
+            NewTask.ModifiedBehaviorPoint,
+            FinalBP,
+            AP,
+            AP + FinalBP);
+
         AP += FinalBP;
     }
 
+    UE_LOG(LogTemp, Warning, TEXT("[BloodCanon] Final BossDamage=%d"), AP);
     ApplyBossDamageWithAttackerBuff(WeaponContext, Boss, AP, AP);
 }
 //자동터렛↓
@@ -262,10 +296,10 @@ void UWeaponLogicLibrary::SniperRifle_Logic(UWeapon_Action* WeaponContext)
     bool bIsSideOfWall = false;
 
     int32 AP = WeaponContext->GetFinalAttackPoint();
-    int32 Range = WeaponContext->GetFinalRangeY();
+    int32 Range = WeaponContext->GetWeaponData().AttackAreaSpec.ParamB;
 
     FAttackAreaSpec CheckSpec;
-    FGridPoint CheckRange = {1,1};
+    FGridPoint CheckRange = {0,0};
     TArray<FGridPoint> CheckCells;
     FObjectOnGridInfo Info;
     CheckSpec.Pattern = EAttackAreaPattern::CrossOnCell;
@@ -273,6 +307,14 @@ void UWeaponLogicLibrary::SniperRifle_Logic(UWeapon_Action* WeaponContext)
     CheckSpec.AnchorCell = WeaponContext->GetCasterCoin()->GetDecidedGrid();
     CheckSpec.ParamA = 1;
     CheckSpec.ParamB = 1;
+
+    UE_LOG(LogTemp, Warning, TEXT("[SniperRifle] CasterGrid=(%d,%d), CheckOffset=(%d,%d), CheckCenter=(%d,%d)"),
+        CheckSpec.AnchorCell.GridX,
+        CheckSpec.AnchorCell.GridY,
+        CheckRange.GridX,
+        CheckRange.GridY,
+        CheckSpec.AnchorCell.GridX + CheckRange.GridX,
+        CheckSpec.AnchorCell.GridY + CheckRange.GridY);
 
     if (UWorld* World = WeaponContext->GetWorld())
     {
@@ -282,6 +324,7 @@ void UWeaponLogicLibrary::SniperRifle_Logic(UWeapon_Action* WeaponContext)
             GM->GetObjectsAtRange(CheckSpec, CheckRange, CheckCells, Info);
         }
     }
+
     for(AActor* Other : Info.Others)
     {
         ABase_OtherActor* Wall = Cast<ABase_OtherActor>(Other);
@@ -439,6 +482,7 @@ void UWeaponLogicLibrary::EnemyOfSpear_Logic(UWeapon_Action* WeaponContext)
         float DmgReduction =  FMath::Clamp(BuffCoinNum * (95 - ((AP * 10)/ 100.0f)* InDmg) + InDmg, 0, 100.0f);
         OutDmg = FMath::RoundToInt(DmgReduction);
     });
+    MyStat->AddBuffs(MyInfo);
 
     for(ACoinActor* Coin : RangedCoins)
     {

@@ -8,9 +8,28 @@
 #include "CoinDataTypes.h"
 #include "BattleManagerWSubsystem.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTurnChanged, ETurnState, NewTurn);
+UENUM()
+enum class EBattleLeverGateState : uint8
+{
+    Locked,
+    WaitingForLever,
+};
 
+UENUM()
+enum class EBattleLeverLockReason : uint8
+{
+    None,
+    TurnTransition,
+    SettingTurn,
+    BossTurn,
+    LeverAnimation,
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTurnChanged, ETurnState, NewTurn);
+//StageEndFlag: 0 = StageClear, 1 = GameOver, 2 = GameClear
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStageEnded, int32, StageEndFlag);
 class ACoinActor;
+class UW_StageEnd;
 
 UCLASS()
 class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
@@ -27,11 +46,31 @@ class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
 	
 	bool bIsStageEnded = false;
 
+	UPROPERTY()
+	UW_StageEnd* StageEndWidgetInstance = nullptr;
+
+
 /* 레버 잠금 */
 protected:
 	FTimerHandle LockLeverWhenCanInteractTimer;
 
-	bool bCanProgressTurn = true;
+	//레버가 작동할 수 있는가?
+	EBattleLeverGateState LeverGateState = EBattleLeverGateState::Locked;
+
+	//작동 할 수 없다면 이유는 무엇인가
+	EBattleLeverLockReason LeverLockReason = EBattleLeverLockReason::None;
+	
+	FTimerHandle LeverUnlockTimer;
+
+	float LeverLockTime = 0.0f;
+
+	/*FUNCTION*/
+	void LockLever(EBattleLeverLockReason Reason);
+
+    void UnlockLever();
+
+    void UnlockLeverAfter(float DelaySeconds);
+
 
 protected:
 	/* Subsystem Caches */
@@ -86,15 +125,28 @@ protected:
 
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 
+	//스테이지 클리어
 	UFUNCTION()
 	void StageEnded();
+
+	UFUNCTION()
+	void GameOver();
+
+	bool TryEndStage(int32 StageEndFlag);
+
+	void AddStageClearRefundToMoney();
+
+	void ShowStageEndWidget(int32 StageEndFlag);
 
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnTurnChanged OnTurnChanged;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnStageEnded OnStageEnded;
+
 	ETurnState GetCurrentTurn();
 
-	bool StartBattleFromLever();
+	bool StartBattleFromLever(float BattleLeverEndTime);
 
 };

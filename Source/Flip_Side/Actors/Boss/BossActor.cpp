@@ -389,8 +389,6 @@ void ABossActor::BossMontageEnded(UAnimMontage * TargetMontage, bool bInterrupte
 	else if(TargetMontage == BossClearAnim)
 	{
 		BossDeadEffect();
-		if (BossHpWidget)
-			BossHpWidget->ShowClearPanel();
 	}
 }
 

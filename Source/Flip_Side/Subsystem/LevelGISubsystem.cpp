@@ -1,10 +1,10 @@
 #include "LevelGISubsystem.h"
 #include "BossSetupGISubsystem.h"
+#include "MoneyGISubsystem.h"
 #include "Kismet/GameplayStatics.h"
 
 void ULevelGISubsystem::MoveBattleLevel()
 {
-    BattleLevelIndex = 1;
     UGameInstance* GI = Cast<UGameInstance>(GetOuter());
     if (GI)
     {
@@ -71,5 +71,15 @@ int32 ULevelGISubsystem::GetBattleLevelIndex()
 
 void ULevelGISubsystem::MoveStartLevel()
 {
+    if (UBossSetupGISubsystem* BossSetup = GetGameInstance()->GetSubsystem<UBossSetupGISubsystem>())
+    {
+        BossSetup->ResetBossStageAssignments();
+    }
+    if(UMoneyGISubsystem* MM = GetGameInstance()->GetSubsystem<UMoneyGISubsystem>())
+    {
+        MM->InitMoney();
+    }
+
+    BattleLevelIndex = 0;
     UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_GameStart")));
 }

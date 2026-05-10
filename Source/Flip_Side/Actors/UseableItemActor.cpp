@@ -42,12 +42,13 @@ void AUseableItemActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AUseableItemActor::SetItemValues(int32 TheItemID, EItemType theItemType,UTexture2D* ItemTex, FLinearColor Color)
+void AUseableItemActor::SetItemValues(int32 TheItemID, EItemType theItemType,UTexture2D* ItemTex, FLinearColor Color, int32 price)
 {
 	ItemID = TheItemID;
 	ItemType = theItemType;
 	ItemTexture = ItemTex;
 	ItemColor = Color;
+	ItemPrice = price;
 }
 
 int32 AUseableItemActor::GetItemID() const
