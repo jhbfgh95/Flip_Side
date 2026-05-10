@@ -10,6 +10,7 @@
 #include "FlipSide_Enum.h"
 #include "GridTypes.h"
 #include "CardTypes.h"
+#include "GameConfigTypes.h"
 
 #include "SQLiteDatabase.h"
 #include "SQLitePreparedStatement.h"
@@ -55,6 +56,12 @@ public:
     UPROPERTY(BlueprintReadOnly)
     TArray<FCardData> Cards;
 
+    UPROPERTY(BlueprintReadOnly)
+    TMap<int32, FStageRewardData> StageRewardByStageID;
+
+    UPROPERTY(BlueprintReadOnly)
+    FGameConfigData GameConfig;
+
     // ===== Subsystem =====
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     virtual void Deinitialize() override;
@@ -91,6 +98,9 @@ public:
     bool TryGetCard(int32 CardID, FCardData& Out) const;
     bool TryGetAllCards(TArray<FCardData>& OutCards) const;
 
+    UFUNCTION(BlueprintCallable)
+    bool TryGetStageReward(int32 StageID, FStageRewardData& Out) const;
+
 private:
     bool bCacheReady = false;
     FSQLiteDatabase Db;
@@ -107,6 +117,8 @@ private:
     bool LoadBossPatternDisplay();
     bool LoadItems();
     bool LoadCards();
+    bool LoadStageRewards();
+    bool LoadGameConfig();
 
     static EAttackAreaPattern AttackAreaPatternFromInt(int32 Val);
     static EAreaAnchor AreaAnchorFromInt(int32 Val);

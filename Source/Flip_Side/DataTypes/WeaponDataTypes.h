@@ -85,6 +85,9 @@ struct FFaceData
     // pattern == SingleCell 일 때만 유효 (param_b 값)
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     ESingleCellWeaponType SingleCellWeaponType = ESingleCellWeaponType::Other;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 Price = 0;
 };
 
 USTRUCT(BlueprintType)
