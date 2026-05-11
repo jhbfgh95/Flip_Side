@@ -4,6 +4,7 @@
 #include "HAL/FileManager.h"
 #include "Engine/Texture2D.h"
 #include "NiagaraSystem.h"
+#include "Sound/SoundBase.h"
 
 static bool TryParseHexColor_RRGGBBAA(const FString& InHex, FLinearColor& OutColor);
 
@@ -248,7 +249,8 @@ bool UDataManagerSubsystem::LoadWeapons()
             IFNULL(a.side,         0) AS side,          -- 기본: Up
             IFNULL(a.flags,        0) AS flags,
             IFNULL(a.action_repeat_type,  0) AS action_repeat_type,
-            IFNULL(c.price,        0) AS price
+            IFNULL(c.price,        0) AS price,
+            c.sfx_path
 
         FROM coin_weapon_def AS c
         JOIN weapon_type AS w
@@ -338,6 +340,12 @@ bool UDataManagerSubsystem::LoadWeapons()
         }
 
         Data.Price = GetColInt(Stmt, Col++);
+
+        const FString SfxPath = GetColText(Stmt, Col++);
+        if (!SfxPath.IsEmpty())
+        {
+            Data.WeaponSFX = LoadObject<USoundBase>(nullptr, *SfxPath);
+        }
 
         WeaponByID.Add(Data.WeaponID, Data);
         WeaponByTypeID.FindOrAdd(Data.TypeID).Add(Data);

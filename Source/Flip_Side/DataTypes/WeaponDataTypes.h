@@ -7,7 +7,8 @@
 #include "FlipSide_Enum.h"
 #include "Engine/Texture2D.h"
 #include "NiagaraSystem.h"
-#include "AttackAreaTypes.h" 
+#include "AttackAreaTypes.h"
+#include "Sound/SoundBase.h"
 class UBehavior; // forward declaration
 #include "WeaponDataTypes.generated.h"
 
@@ -88,6 +89,9 @@ struct FFaceData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 Price = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    USoundBase* WeaponSFX = nullptr;
 };
 
 USTRUCT(BlueprintType)
