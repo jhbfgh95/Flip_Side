@@ -34,6 +34,8 @@ protected:
 private:
 	class UDataManagerSubsystem* DM;
 	class UUnlockGISubsystem* UnlockSubsystem;
+	class UMoneyGISubsystem* MoneySubsystem;
+
 
 private:
 

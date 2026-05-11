@@ -4,7 +4,7 @@
 #include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
 #include "Subsystem/UnlockGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
-
+#include "Subsystem/MoneyGISubsystem.h"
 
 bool UShopUnlockWeaponWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -23,6 +23,8 @@ bool UShopUnlockWeaponWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 
 void UShopUnlockWeaponWSubsystem::OnWorldBeginPlay(UWorld& World)
 {
+    Super::OnWorldBeginPlay(World);
+    MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
     UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
     DM = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
     if(DM)
@@ -55,7 +57,15 @@ void UShopUnlockWeaponWSubsystem::UnlockCurrentWeapon()
 {
     if(CurrentUnlockWeaponID != -1)
     {
-        UnlockSubsystem->UnlockWeapon(CurrentUnlockWeaponClass, CurrentUnlockWeaponID);
+        FFaceData WeaponFaceData;
+        if(!DM->TryGetWeapon(CurrentUnlockWeaponID,WeaponFaceData))
+            return;
+
+        if(MoneySubsystem->SpendMoney(EMoneyRecordType::Weapon, WeaponFaceData.Price))
+        {
+            UnlockSubsystem->UnlockWeapon(CurrentUnlockWeaponClass, CurrentUnlockWeaponID);
+        }
+       
     }
     
 }

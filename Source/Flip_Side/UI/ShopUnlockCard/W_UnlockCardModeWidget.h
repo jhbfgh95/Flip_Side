@@ -44,6 +44,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UUserWidget* CancelImage;
 
+	UPROPERTY(meta = (BindWidget))
+	class UW_PriceWidget* CardPriceText;
+
 private:
 	
 	UPROPERTY(meta = (BindWidget))

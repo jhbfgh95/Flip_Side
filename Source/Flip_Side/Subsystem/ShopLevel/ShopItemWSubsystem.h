@@ -38,6 +38,7 @@ protected:
 
 private:
 	class UDataManagerSubsystem* DM;
+	class UMoneyGISubsystem* MoneySubsystem;
 
 public:
 	//아이템 선택 됬을때 델리게이트

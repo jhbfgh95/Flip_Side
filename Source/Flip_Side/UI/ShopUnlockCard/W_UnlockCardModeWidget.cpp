@@ -7,7 +7,7 @@
 #include "Subsystem/UnlockGISubsystem.h"
 #include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
-
+#include "UI/W_PriceWidget.h"
 
 
 #include "Components/Button.h"
@@ -83,6 +83,7 @@ void UW_UnlockCardModeWidget::SetSelectShopCardPopup(FCardData SelectCardData)
 
 
     UnlockButton->SetVisibility(ESlateVisibility::Hidden);
+    CardPriceText->SetVisibility(ESlateVisibility::Hidden);
     SelectPlayerCardButton->SetVisibility(ESlateVisibility::Hidden);
     UnSelectPlayerCardButton->SetVisibility(ESlateVisibility::Hidden);
 
@@ -90,23 +91,14 @@ void UW_UnlockCardModeWidget::SetSelectShopCardPopup(FCardData SelectCardData)
     if(!UnlockSubsystem->IsCardUnlockByID(CurrentCardData.CardID))
     {
         UnlockButton->SetVisibility(ESlateVisibility::Visible);
+        
+        CardPriceText->SetVisibility(ESlateVisibility::Visible);
+        CardPriceText->SetPriceText(SelectCardData.Price);
     }
     else
     {
         SelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
         UnSelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
-        /*
-        //손에 있는지 검사
-        if(!ShopCardSubsystem->CheckPlayerHaveCard(CurrentCardData.CardID))
-        {
-            //없는경우
-            SelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
-        }
-        else
-        {
-            //있는경우
-            UnSelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
-        }*/
     }
 }
 
@@ -121,6 +113,7 @@ void UW_UnlockCardModeWidget::SetSelectPlayerCardPopup(FCardData SelectCardData)
     CancelButton->SetVisibility(ESlateVisibility::Visible);
     
     UnlockButton->SetVisibility(ESlateVisibility::Hidden);
+    CardPriceText->SetVisibility(ESlateVisibility::Hidden);
     SelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
     UnSelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
     /*
@@ -141,6 +134,7 @@ void UW_UnlockCardModeWidget::SetUnSelectPlayerCardPopup(FCardData UnSelectCardD
     if(UnSelectCardData.CardID != CurrentCardData.CardID)
         return;
     UnlockButton->SetVisibility(ESlateVisibility::Hidden);
+    CardPriceText->SetVisibility(ESlateVisibility::Hidden);
     SelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
     UnSelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
 }
@@ -171,6 +165,7 @@ void UW_UnlockCardModeWidget::SelectCard(FCardData SelectCardData)
     else
     {
         UnlockButton->SetVisibility(ESlateVisibility::Visible);
+        CardPriceText->SetVisibility(ESlateVisibility::Visible);
     }
 }
 
@@ -178,6 +173,7 @@ void UW_UnlockCardModeWidget::CloseSelectCardPopup()
 {
     SelectCardWidget->SetVisibility(ESlateVisibility::Hidden);
     UnlockButton->SetVisibility(ESlateVisibility::Hidden);
+    CardPriceText->SetVisibility(ESlateVisibility::Hidden);
     CancelImage->SetVisibility(ESlateVisibility::Hidden);
     UnSelectPlayerCardButton->SetVisibility(ESlateVisibility::Hidden);
     SelectPlayerCardButton->SetVisibility(ESlateVisibility::Hidden);
@@ -210,6 +206,8 @@ void UW_UnlockCardModeWidget::UnlockCardAdaptor(int32 ID)
     if(ID == CurrentCardData.CardID)
     {
         UnlockButton->SetVisibility(ESlateVisibility::Hidden);
+        CardPriceText->SetVisibility(ESlateVisibility::Hidden);
+        
         SelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
         UnSelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
     }

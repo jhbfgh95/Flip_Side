@@ -23,4 +23,6 @@ class FLIP_SIDE_API UW_WeaponDescription : public UUserWidget
 	public:
 	void SetExplainText(const FString & WeaponName, const FString & Description, int32 DefaultBP, int32 DefaultAP);
 	void SetExplainTextEmpty();
+	
+	void SetPanelStringText(FString Title, FString Descrip);
 };

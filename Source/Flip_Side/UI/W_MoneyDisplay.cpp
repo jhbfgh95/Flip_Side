@@ -15,7 +15,7 @@ void UW_MoneyDisplay::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
     if(IsMoneyChanged)
     {
 
-        CurrentMoneyText = FMath::FInterpTo(CurrentMoneyText, MoneyText, InDeltaTime, 10.0f);
+        CurrentMoneyText = FMath::FInterpTo(CurrentMoneyText, MoneyText, InDeltaTime, 20.0f);
         
         if (MoneyTextBlock)
         {

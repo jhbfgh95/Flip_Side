@@ -4,6 +4,7 @@
 #include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "SubSystem/UnlockGISubsystem.h"
+#include "Subsystem/MoneyGISubsystem.h"
 bool UShopCardWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     Super::ShouldCreateSubsystem(Outer);
@@ -25,6 +26,7 @@ void UShopCardWSubsystem::OnWorldBeginPlay(UWorld& World)
 
     DM = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
     UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
+    MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
 
     UnlockSubsystem->OnUnlockCard.AddDynamic(this,&UShopCardWSubsystem::AddCardListToUnlockCard);
 
@@ -77,8 +79,11 @@ void UShopCardWSubsystem::UnlockCard()
 {
     if(!UnlockSubsystem->IsCardUnlockByID(CurrentSelectCard.CardID))
     {
-        UnlockSubsystem->UnlockCard(CurrentSelectCard.CardID);
-        OnUnlockCard.Broadcast(CurrentSelectCard.CardID);
+        if(MoneySubsystem->SpendMoney(EMoneyRecordType::Card, CurrentSelectCard.Price))
+        {
+            UnlockSubsystem->UnlockCard(CurrentSelectCard.CardID);
+            OnUnlockCard.Broadcast(CurrentSelectCard.CardID);
+        }
     }
 }
 

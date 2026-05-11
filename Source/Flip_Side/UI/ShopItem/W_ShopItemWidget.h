@@ -25,6 +25,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UW_ShopItemDescription* ItemDes;
 
+	UPROPERTY(meta = (BindWidget))
+	class UW_PriceWidget* ItemPrice;
+
 
 	UFUNCTION()
 	void SetDesText(FItemData ItemData);

@@ -37,6 +37,7 @@ private:
 
 private:
 	class UUnlockGISubsystem* UnlockSubsystem;
+	class UMoneyGISubsystem* MoneySubsystem;
 	
 private:
 	//현재 선택중인 무기 인덱스

@@ -46,6 +46,8 @@ private:
 
 	TArray<class UW_CoinSlotWidget*> CoinSlot;
 
+	int CoinSlotCount =0;
+
 private:
 	UFUNCTION()
 	void AddCoinSlot();

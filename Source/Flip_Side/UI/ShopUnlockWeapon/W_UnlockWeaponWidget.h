@@ -29,6 +29,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UW_WeaponDescription* WeaponDes;
 
+	UPROPERTY(meta = (BindWidget))
+	class UW_PriceWidget* WeaponPriceText;
+
 private:
 
 	void SetDesText(FFaceData FaceData);

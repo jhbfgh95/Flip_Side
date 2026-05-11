@@ -32,3 +32,9 @@ void UW_WeaponDescription::SetExplainTextEmpty()
     WeaponText->SetText(FText::GetEmpty());
     WeaponNameText->SetText(FText::GetEmpty());
 }
+	
+void UW_WeaponDescription::SetPanelStringText(FString Title, FString Descrip)
+{
+    WeaponNameText->SetText(FText::FromString(Title));
+    WeaponText->SetText(FText::FromString(Descrip));
+}

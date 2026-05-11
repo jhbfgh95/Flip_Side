@@ -2,7 +2,6 @@
 
 
 #include "UI/ShopCoinCreate/W_SelectWeaponButton.h"
-#include "UI/ShopCoinCreate/W_CoinCreateWidget.h"
 #include "Player/ShopController_FlipSide.h"
 #include "Components/Button.h"
 
@@ -43,14 +42,6 @@ void UW_SelectWeaponButton::InitButton(int32 ID)
 
     if(IsGetWeaponData && WeaponButton)
     {
-        /*
-        FButtonStyle ButtonStyle = WeaponButton->GetStyle();
-
-        ButtonStyle.Normal.SetResourceObject(WeaponData.WeaponIcon);
-        ButtonStyle.Hovered.SetResourceObject(WeaponData.WeaponIcon);
-        ButtonStyle.Pressed.SetResourceObject(WeaponData.WeaponIcon);
-        WeaponButton->SetStyle(ButtonStyle);*/
-
         WeaponImage->SetBrushFromTexture(WeaponData.WeaponIcon);
 
         WeaponNameBlock->SetText(FText::FromString(WeaponName));

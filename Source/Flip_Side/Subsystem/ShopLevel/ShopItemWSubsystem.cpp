@@ -3,6 +3,7 @@
 
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Subsystem/MoneyGISubsystem.h"
 bool UShopItemWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     Super::ShouldCreateSubsystem(Outer);
@@ -38,7 +39,7 @@ void UShopItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         DM->TryGetAllItems(ShopItemArray);
     }
 
-
+    MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
     PlayerItemArray.Reset();
     for(int i =0; i <3 ;i++)
         PlayerItemArray.Add(DefaultSelecttemData);
@@ -72,20 +73,24 @@ void UShopItemWSubsystem::BuyItem(FItemData ItemData)
         int32 EmptyIvenNum = GetEmptyInvenIndex(ItemData.ItemID);
         if(EmptyIvenNum != -1)
         {
-            FSelectItem SelectItemData;
-            SelectItemData.ItemID = ItemData.ItemID;
-            SelectItemData.SameItemNum = 1;
-
-            PlayerItemArray[EmptyIvenNum] = SelectItemData;
-            
-            OnItemBuy.Broadcast(EmptyIvenNum);
+            if(MoneySubsystem->SpendMoney(EMoneyRecordType::Item, ItemData.Price))
+            {
+                FSelectItem SelectItemData;
+                SelectItemData.ItemID = ItemData.ItemID;
+                SelectItemData.SameItemNum = 1;
+                PlayerItemArray[EmptyIvenNum] = SelectItemData;
+                
+                OnItemBuy.Broadcast(EmptyIvenNum);
+            }
         }
-        
     }
     else
     {
-        PlayerItemArray[InvenIndex].SameItemNum++;
-        OnItemBuy.Broadcast(InvenIndex);
+        if(MoneySubsystem->SpendMoney(EMoneyRecordType::Item, ItemData.Price))
+        {
+            PlayerItemArray[InvenIndex].SameItemNum++;
+            OnItemBuy.Broadcast(InvenIndex);
+        }
     }
 }
 
@@ -153,6 +158,7 @@ void UShopItemWSubsystem::SellItem(FItemData ItemData)
     {
         if(PlayerItemArray[i].ItemID == ItemData.ItemID)
         {
+            
             if(0<PlayerItemArray[i].SameItemNum)
             {
                 PlayerItemArray[i].SameItemNum--;
@@ -165,6 +171,8 @@ void UShopItemWSubsystem::SellItem(FItemData ItemData)
                 
                 PlayerItemArray[i].SameItemNum= 0;
             }
+            int32 SellCost = ItemData.Price/2;
+            MoneySubsystem->AddSaleMoney(EMoneyRecordType::Item, SellCost);
             OnItemSell.Broadcast(i);
             return;
         }

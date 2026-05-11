@@ -2,7 +2,8 @@
 
 
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
-
+#include "Subsystem/MoneyGISubsystem.h"
+#include "Subsystem/CrossingLevelGISubsystem.h"
 bool UShopCoinWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     Super::ShouldCreateSubsystem(Outer);
@@ -22,6 +23,8 @@ void UShopCoinWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
+    MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
+    CrossLevelSubsystem =GetWorld()->GetGameInstance()->GetSubsystem<UCrossingLevelGISubsystem>();
     FCoinTypeStructure DefaultCoin;
     DefaultCoin.BackWeaponID = -1;
     DefaultCoin.FrontWeaponID = -1;
@@ -41,6 +44,13 @@ void UShopCoinWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     }
 
     IsCreateCoinFront = true;
+}
+
+
+void UShopCoinWSubsystem::InitCoinSetting()
+{
+    //CrossLevelSubsystem->
+    //추후 레벨 넘어가면
 }
 
 
@@ -66,10 +76,6 @@ bool UShopCoinWSubsystem::CanIncreaseCoin(int32 SlotNum)
         OnWarningCreate.Broadcast(4);
         return false;
     }
-        
-
-    
-
     return true;
 }
 
@@ -92,7 +98,6 @@ bool UShopCoinWSubsystem::CanDecreaseCoin(int32 SlotNum)
     
     return true;
 }
-
 
 int32 UShopCoinWSubsystem::GetSameWeaponInCoinSlot(int32 SlotNum, int32 WeaponID)
 {
@@ -156,15 +161,17 @@ bool UShopCoinWSubsystem::IsTrySetSameWeapon(bool IsFront, int32 WeaponID)
     return false;
 }
 
-
-
 void UShopCoinWSubsystem::IncreaseSlotCoinCount()
 {
     if(CanIncreaseCoin(CurrentCoinSlotNum))
     {
-        TotalCoinCount++;
-        ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum++;
-        OnCoinCountUpdate.Broadcast(CurrentCoinSlotNum,ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
+        if(MoneySubsystem->SpendMoney(EMoneyRecordType::Coin, 50))
+        {
+            TotalCoinCount++;
+            ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum++;
+            OnCoinCountUpdate.Broadcast(CurrentCoinSlotNum,ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
+        }
+        
     }
 }
 
@@ -172,9 +179,12 @@ void UShopCoinWSubsystem::DecreaseSlotCoinCount()
 {
     if(CanDecreaseCoin(CurrentCoinSlotNum))
     {
+        
         TotalCoinCount--;
         ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum--;
+        MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 25);
         OnCoinCountUpdate.Broadcast(CurrentCoinSlotNum,ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
+            
     }
 }
 
@@ -182,9 +192,13 @@ void UShopCoinWSubsystem::IncreaseSlotCoinCount(int32 SlotNum)
 {
     if(CanIncreaseCoin(SlotNum))
     {
-        TotalCoinCount++;
-        ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum++;
-        OnCoinCountUpdate.Broadcast(SlotNum,ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum);
+        if(MoneySubsystem->SpendMoney(EMoneyRecordType::CoinSlot, 50))
+        {
+            TotalCoinCount++;
+            ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum++;
+            OnCoinCountUpdate.Broadcast(SlotNum,ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum);
+        }
+        
     }
 }
 void UShopCoinWSubsystem::DecreaseSlotCoinCount(int32 SlotNum)
@@ -193,6 +207,7 @@ void UShopCoinWSubsystem::DecreaseSlotCoinCount(int32 SlotNum)
     {
         TotalCoinCount--;
         ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum--;
+        MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 25);
         OnCoinCountUpdate.Broadcast(SlotNum,ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum);
     }
 }
@@ -209,7 +224,10 @@ EWeaponClass UShopCoinWSubsystem::GetCurrentSlotCoinClass()
 {
     return ShopCoinSlotArray[CurrentCoinSlotNum].CoinClass; 
 }
-
+EWeaponClass UShopCoinWSubsystem::GetSlotCoinClass(int32 index)
+{
+    return ShopCoinSlotArray[index].CoinClass;
+}
 void UShopCoinWSubsystem::SetSlotCoin(FCoinTypeStructure SetCoinInfo, EWeaponClass CoinClass)
 {
     if(ShopCoinSlotArray.Num()-1<SetCoinInfo.SlotNum)
@@ -236,10 +254,7 @@ FCoinTypeStructure UShopCoinWSubsystem::GetSlotCoin(int32 index)
         return ShopCoinSlotArray[index].CoinData;
     }
 }
-EWeaponClass UShopCoinWSubsystem::GetSlotCoinClass(int32 index)
-{
-    return ShopCoinSlotArray[index].CoinClass;
-}
+
 
 int32 UShopCoinWSubsystem::GetSlotCoinCount(int32 index)
 {
@@ -257,8 +272,12 @@ void UShopCoinWSubsystem::ResetCoin(int32 SlotNum)
     ShopCoinSlotArray[SlotNum].CoinData.BackWeaponID = -1;
     ShopCoinSlotArray[SlotNum].CoinClass = EWeaponClass::None;
 
-    TotalCoinCount -= ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum;
+    int CoinCount = ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum;
+
+    TotalCoinCount -= CoinCount;
     ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum = 0;
+
+    MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 50, CoinCount);
 
     OnCoinCountUpdate.Broadcast(SlotNum, 0);
     OnSetWeapon.Broadcast(-1);
@@ -275,9 +294,13 @@ void UShopCoinWSubsystem::ResetCoinSide(int32 SlotNum, bool IsFront)
         ShopCoinSlotArray[SlotNum].CoinData.BackWeaponID = -1;
     }
 
-        TotalCoinCount -= ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum;
+    int CoinCount = ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum;
+    
+    TotalCoinCount -= ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum;
     ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum = 0;
 
+    MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 50, CoinCount);
+    
     OnCoinCountUpdate.Broadcast(SlotNum, 0);
     OnSetWeapon.Broadcast(-1);
 }
@@ -297,8 +320,11 @@ void UShopCoinWSubsystem::UnlockCurrentCoinSlot()
 {
     if(!ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock)
     {
-        ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock = true;
-        OnUnlockCoinSlot.Broadcast();
+        if(MoneySubsystem->SpendMoney(EMoneyRecordType::CoinSlot, 100))
+        {
+            ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock = true;
+            OnUnlockCoinSlot.Broadcast();
+        }
     }
     
 }
@@ -309,13 +335,23 @@ bool UShopCoinWSubsystem::GetCurrentCoinUnlock()
 }
 
 	
-void UShopCoinWSubsystem::UnlockCoinSlot(int32 SlotNum)
+bool UShopCoinWSubsystem::UnlockCoinSlot(int32 SlotNum)
 {
-    if(!ShopCoinSlotArray[SlotNum].IsUnlock)
+    if(10<SlotNum)
+        return false;
+
+    if(ShopCoinSlotArray[SlotNum].IsUnlock)
+        return false;
+
+    if(MoneySubsystem->SpendMoney(EMoneyRecordType::CoinSlot, 100))
     {
         ShopCoinSlotArray[SlotNum].IsUnlock = true;
         OnUnlockCoinSlot.Broadcast();
+        return true;
     }
+
+    return false;
+    
 }
 
 void UShopCoinWSubsystem::UnlockCoin()

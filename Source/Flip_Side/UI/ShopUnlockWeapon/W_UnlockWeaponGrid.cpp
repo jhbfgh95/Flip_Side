@@ -33,8 +33,9 @@ void UW_UnlockWeaponGrid::InitWeaponGrid()
     for(int i =0; i< UnlockWeaponSubsystem->GetWeaponArrayNum(GridWeaponClass); i++)
     {
         int32 WeaponID = UnlockWeaponSubsystem->GetWeaponIDByIndex(GridWeaponClass, i);
-
-        AddButton(WeaponID);
+        //버거 제외
+        if(WeaponID != 3)
+            AddButton(WeaponID);
     }
 }
 

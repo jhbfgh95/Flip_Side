@@ -67,6 +67,9 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 private:
+	class UMoneyGISubsystem* MoneySubsystem;
+	class UCrossingLevelGISubsystem* CrossLevelSubsystem;
+private:
 	//총 코인 개수
 	int32 TotalCoinCount;
 	/*10개의 코인슬롯 정보*/
@@ -86,6 +89,9 @@ public:
 	FHoverWeapon OnHoverWeapon;
 	FUnHoverWeapon OnUnHoverWeapon;
 	FChangeCoinClass OnChangeCoinClass;
+
+private:
+	void InitCoinSetting();
 private:
 	//코인 개수를 증가 시킬수 있는가?
 	bool CanIncreaseCoin(int32 SlotNum);
@@ -101,7 +107,7 @@ public:
 	//현재 코인슬롯을 개방
 
 	void UnlockCurrentCoinSlot();
-	void UnlockCoinSlot(int32 SlotNum);
+	bool UnlockCoinSlot(int32 SlotNum);
 	//현재 코인슬롯이 해금되었는지 반환
 	bool GetCurrentCoinUnlock();
 	bool GetCoinUnlockByIndex(int32 index);

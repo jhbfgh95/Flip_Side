@@ -4,7 +4,9 @@
 #include "UI/ShopItem/W_ShopItemWidget.h"
 
 #include "UI/ShopItem/W_ShopItemDescription.h"
+#include "UI/W_PriceWidget.h"
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
+
 void UW_ShopItemWidget::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -35,14 +37,17 @@ void UW_ShopItemWidget::SetDesText(FItemData ItemData)
 {
     ShowDescrip();
     ItemDes->SetItemInfo(ItemData.ItemName ,ItemData.Item_DES);
+    ItemPrice->SetPriceText(ItemData.Price);
 }
 	
 void UW_ShopItemWidget::ShowDescrip()
 {
     ItemDes->SetVisibility(ESlateVisibility::Visible);
+    ItemPrice->SetVisibility(ESlateVisibility::Visible);
 }
 	
 void UW_ShopItemWidget::HideDescrip()
 {
     ItemDes->SetVisibility(ESlateVisibility::Hidden);
+    ItemPrice->SetVisibility(ESlateVisibility::Hidden);
 }
