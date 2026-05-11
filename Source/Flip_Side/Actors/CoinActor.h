@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "BattleHoverInterface.h"
 #include "BattleClickInterface.h"
+#include "BattleRightClickInterface.h"
 #include "DataTypes/CoinDataTypes.h"
 #include "DataTypes/GridTypes.h"
 #include "DataTypes/FlipSide_Enum.h"
@@ -16,10 +17,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoverReadyCoinDelegate, ACoinActo
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoverBattleCoinDelegate, ACoinActor*, HoveredCoin);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedReadyCoinDelegate, ACoinActor*, HoveredCoin);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedBattleCoinDelegate, ACoinActor*, HoveredCoin);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCoinRightClicked, ACoinActor*, ClickedCoin);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemExcuteCoinDelegate, ACoinActor*, ClickedCoin);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoverCoinDelegate);
 UCLASS()
-class ACoinActor : public AActor, public IBattleHoverInterface, public IBattleClickInterface
+class ACoinActor : public AActor, public IBattleHoverInterface, public IBattleClickInterface, public IBattleRightClickInterface
 {
 	GENERATED_BODY()
 
@@ -80,6 +82,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	bool bIsActed = false;
+	
+	//singleCell 일때만 동작
+	UPROPERTY(VisibleAnywhere)
+	bool bIsActing = false;
 
 	UPROPERTY(VisibleAnywhere)
 	bool ItemFlag = false;
@@ -150,6 +156,9 @@ public:
 	void SetCoinOnBattle(const bool IsOnBattle);
 	bool GetCoinOnBattle() const { return bIsOnBattle; }
 
+	void SetCoinIsActing(const bool IsActing);
+	bool GetCoinIsActing() const { return bIsActing; }
+
 	void SetCoinItemFlag(const bool IsItem ){ ItemFlag = IsItem; }
 	bool GetCoinItemFlag() const { return ItemFlag; }
 
@@ -200,11 +209,16 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Events|Click")
 	FOnItemExcuteCoinDelegate OnCoinClickForItemExcute;
 
+	UPROPERTY(BlueprintAssignable, Category = "Events|Click")
+	FOnCoinRightClicked OnCoinRightClicked;
+
 	virtual void OnHover_Implementation() override;
 
 	virtual void OnUnhover_Implementation() override;
 
 	virtual void OnClicked_Implementation() override;
+
+	virtual void OnRightClicked_Implementation() override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Coin | Outline")
 	void CoinHoverOutline();

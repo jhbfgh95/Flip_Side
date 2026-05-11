@@ -31,6 +31,15 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 	UPROPERTY()
 	TArray<FGridPoint> ValidTargetGrids;
 
+	UPROPERTY()
+	TArray<class ACoinActor*> ValidTargetCoins;
+
+	UPROPERTY()
+	TArray<class AGridActor*> ValidTargetGridActors;
+
+	UPROPERTY()
+	TArray<class ABase_OtherActor*> ValidTargetOthers;
+
 	//이거로 이펙트 타이머함
 	FTimerHandle AutoActionHandler;
 
@@ -66,6 +75,9 @@ public:
 	void HandleCoinUnHovered();
 
 	bool TryExecuteOtherAction(class ABase_OtherActor* TargetOther);
+
+	UFUNCTION()
+	void CancelSingleCellAction(class ACoinActor* ClickedCoin);
 public:
 	EActionInputState CurrentInputState = EActionInputState::None;
 
@@ -115,6 +127,10 @@ protected:
 	void SpawnVFXAtLocation(class UNiagaraSystem* VFX, const FVector& Location) const;
 
 	class UBattleLevelActingWSubsystem* GetActingManager() const;
+
+	void BuildValidSingleCellTargets();
+
+	void ClearValidSingleCellTargets();
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

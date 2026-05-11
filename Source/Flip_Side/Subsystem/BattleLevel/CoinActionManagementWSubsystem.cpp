@@ -116,7 +116,7 @@ void UCoinActionManagementWSubsystem::InitWeaponAction()
     RepeatActionCnt = 1;
     bPendingFailedVFX = false;
     CurrentInputState = EActionInputState::None;
-    ValidTargetGrids.Empty();
+    ClearValidSingleCellTargets();
     if (GridManager)
     {
         GridManager->ResetBattleCoinPreview();
@@ -224,7 +224,6 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
             else if (AreaSpec.Pattern == EAttackAreaPattern::RectFromCell)
             {
                 AreaSpec.ParamB += ActionTask.ModifiedRange.GridY;
-                UE_LOG(LogTemp, Warning, TEXT("[LensDebug] RectFromCell ParamB=%d, ModifiedRangeY=%d"), AreaSpec.ParamB, ActionTask.ModifiedRange.GridY);
             }
 
             SetBattleCoinInfo(
@@ -239,6 +238,7 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
             if(AreaSpec.Pattern == EAttackAreaPattern::SingleCell)
             {
                 GridManager->GetValidGridsForSingleCell(CoinGrid,AreaSpec,ValidTargetGrids);
+                BuildValidSingleCellTargets();
             }
             else
             {
@@ -249,6 +249,14 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
                 ? FGridPoint{0, 0}
                 : LastGridPoint;
             GridManager->PreviewHoveredCoinRange(CoinGrid, AreaSpec, PreviewFinalRange);
+        }
+    }
+    ABossActor* Boss = nullptr;
+    if(SelectedAction && SelectedAction->GetInRangeBoss(Boss) && IsValid(Boss))
+    {
+        if(!HoveredCoin->GetCoinIsActed())
+        {
+            Boss->DisPlayOutline();
         }
     }
 }
@@ -266,6 +274,24 @@ void UCoinActionManagementWSubsystem::SetCasterCoin(ACoinActor* CasterCoin)
 //코인은 나 선택됬다고 신호만 보내면 됨
 void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedCoin)
 {
+    if(CurrentInputState == EActionInputState::WaitingForGridClick ||
+        CurrentInputState == EActionInputState::WaitingForOtherClick)
+    {
+        return;
+    }
+
+    if(CurrentInputState == EActionInputState::WaitingForCoinClick)
+    {
+        if(!ValidTargetCoins.Contains(ClickedCoin))
+        {
+            PlayFailedVFX();
+            return;
+        }
+
+        ExecuteTimeAction(ClickedCoin);
+        return;
+    }
+
     if(ClickedCoin->GetCoinIsActed())
     {
         PlayFailedVFX();
@@ -278,19 +304,15 @@ void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedC
         CasterCoin = SelectedAction ? SelectedAction->GetCasterCoin() : nullptr;
     }
 
+    ABossActor* Boss = nullptr;
+    if(SelectedAction && SelectedAction->GetInRangeBoss(Boss) && IsValid(Boss))
+    {
+        Boss->UnDisPlayOutline();
+    }
+
     if(CurrentInputState == EActionInputState::None)
     {
-        ABossActor* Boss = nullptr;
-        if(SelectedAction && SelectedAction->GetInRangeBoss(Boss) && IsValid(Boss))
-        {
-            Boss->UnDisPlayOutline();
-        }
-
         StartCoinActionSequence(CasterCoin);
-    }
-    else if(CurrentInputState == EActionInputState::WaitingForCoinClick)
-    {
-        ExecuteTimeAction(ClickedCoin);
     }
 }
 
@@ -321,6 +343,12 @@ bool UCoinActionManagementWSubsystem::TryExecuteOtherAction(ABase_OtherActor* Ta
 
     if(RepeatActionCnt <= 0) return true;
 
+    if(!ValidTargetOthers.Contains(TargetOther))
+    {
+        PlayFailedVFX();
+        return true;
+    }
+
     SelectedAction->SetOtherForAction(TargetOther);
     bCurrentStepTargetValid = IsValid(TargetOther) && TargetOther->GetOccupiedGrid() && ApplyRangedThings(TargetOther->GetOccupiedGrid()->GetGridPoint());
     RunCoinActionStep();
@@ -332,6 +360,17 @@ bool UCoinActionManagementWSubsystem::TryExecuteOtherAction(ABase_OtherActor* Ta
 void UCoinActionManagementWSubsystem::ExecuteGridAction(AGridActor* targetGrid)
 {
     if (RepeatActionCnt <= 0) return;
+
+    if(CurrentInputState != EActionInputState::WaitingForGridClick)
+    {
+        return;
+    }
+
+    if(!ValidTargetGridActors.Contains(targetGrid))
+    {
+        PlayFailedVFX();
+        return;
+    }
 
     SelectedAction->SetGridForAction(targetGrid);
     bCurrentStepTargetValid = IsValid(targetGrid) && ApplyRangedThings(targetGrid->GetGridPoint());
@@ -412,6 +451,8 @@ void UCoinActionManagementWSubsystem::RunCoinActionStep()
         return;
     }
 
+    ACoinActor* CasterCoin = SelectedAction->GetCasterCoin();
+
     const bool bHadSingleCellTargetInput =
         CurrentInputState == EActionInputState::WaitingForCoinClick ||
         CurrentInputState == EActionInputState::WaitingForGridClick ||
@@ -419,6 +460,11 @@ void UCoinActionManagementWSubsystem::RunCoinActionStep()
 
     if(AreaSpec.Pattern == EAttackAreaPattern::SingleCell && !bHadSingleCellTargetInput)
     {
+        if(IsValid(CasterCoin))
+        {
+            CasterCoin->SetCoinIsActing(true);
+        }
+
         bCurrentStepTargetValid = true;
         SelectedAction->SetSingleCellTargetCoin(nullptr);
         SelectedAction->SetGridForAction(nullptr);
@@ -448,7 +494,6 @@ void UCoinActionManagementWSubsystem::RunCoinActionStep()
         GridManager->SetGridClickFlag(EGridClickFlag::None);
     }
 
-    ACoinActor* CasterCoin = SelectedAction->GetCasterCoin();
     if(!IsValid(CasterCoin))
     {
         FinishCoinActionSequence();
@@ -528,6 +573,14 @@ void UCoinActionManagementWSubsystem::FinishCoinActionSequence()
 
 void UCoinActionManagementWSubsystem::HandleCoinActionLowerFinished()
 {
+    if(SelectedAction)
+    {
+        if(ACoinActor* CasterCoin = SelectedAction->GetCasterCoin())
+        {
+            CasterCoin->SetCoinIsActing(false);
+        }
+    }
+
     if(bPendingFailedVFX)
     {
         PlayFailedVFX();
@@ -537,6 +590,28 @@ void UCoinActionManagementWSubsystem::HandleCoinActionLowerFinished()
     bActionSequenceActive = false;
     bCurrentStepTargetValid = true;
     InitWeaponAction();
+}
+
+void UCoinActionManagementWSubsystem::CancelSingleCellAction(ACoinActor* ClickedCoin)
+{
+    if(!bActionSequenceActive || !SelectedAction || AreaSpec.Pattern != EAttackAreaPattern::SingleCell) return;
+    if(CurrentInputState != EActionInputState::WaitingForCoinClick &&
+        CurrentInputState != EActionInputState::WaitingForGridClick &&
+        CurrentInputState != EActionInputState::WaitingForOtherClick)
+    {
+        return;
+    }
+
+    ACoinActor* CasterCoin = SelectedAction->GetCasterCoin();
+    if(!IsValid(CasterCoin) || ClickedCoin != CasterCoin) return;
+
+    GetWorld()->GetTimerManager().ClearTimer(AutoActionHandler);
+    GetWorld()->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+
+    bPendingFailedVFX = false;
+    bCurrentStepTargetValid = true;
+    RepeatActionCnt = 0;
+    FinishCoinActionSequence();
 }
 
 void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
@@ -609,6 +684,7 @@ void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
     default:
         break;
     }
+    //여기서 사운드 재생
 }
 
 void UCoinActionManagementWSubsystem::PlayCommonVFX(const FWeaponActionResolveResult& Result)
@@ -639,6 +715,7 @@ void UCoinActionManagementWSubsystem::PlayFailedVFX()
     if(!Settings) return;
 
     SpawnVFXAtLocation(Settings->Coin_Logic_Failed_VFX.LoadSynchronous(), CasterCoin->GetActorLocation());
+    //여기서 사운드 재생
 }
 
 void UCoinActionManagementWSubsystem::SpawnVFXAtLocation(UNiagaraSystem* VFX, const FVector& Location) const
@@ -651,4 +728,39 @@ void UCoinActionManagementWSubsystem::SpawnVFXAtLocation(UNiagaraSystem* VFX, co
 UBattleLevelActingWSubsystem* UCoinActionManagementWSubsystem::GetActingManager() const
 {
     return GetWorld() ? GetWorld()->GetSubsystem<UBattleLevelActingWSubsystem>() : nullptr;
+}
+
+void UCoinActionManagementWSubsystem::BuildValidSingleCellTargets()
+{
+    ValidTargetCoins.Empty();
+    ValidTargetGridActors.Empty();
+    ValidTargetOthers.Empty();
+
+    if(!GridManager) return;
+
+    for(const FGridPoint& TargetCell : ValidTargetGrids)
+    {
+        AGridActor* GridActor = GridManager->GetGridActor(TargetCell);
+        if(!IsValid(GridActor)) continue;
+
+        ValidTargetGridActors.Add(GridActor);
+
+        AActor* OccupiedActor = GridActor->GetCurrentOccupied();
+        if(ACoinActor* Coin = Cast<ACoinActor>(OccupiedActor))
+        {
+            ValidTargetCoins.Add(Coin);
+        }
+        else if(ABase_OtherActor* Other = Cast<ABase_OtherActor>(OccupiedActor))
+        {
+            ValidTargetOthers.Add(Other);
+        }
+    }
+}
+
+void UCoinActionManagementWSubsystem::ClearValidSingleCellTargets()
+{
+    ValidTargetGrids.Empty();
+    ValidTargetCoins.Empty();
+    ValidTargetGridActors.Empty();
+    ValidTargetOthers.Empty();
 }

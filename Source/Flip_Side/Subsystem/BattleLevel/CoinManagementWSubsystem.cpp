@@ -112,6 +112,7 @@ void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
             LiveCoinStacks.Add(BattleReadyCoins[i]);
             BattleReadyCoins[i]->SetCoinOnBattle(false);
             BattleReadyCoins[i]->SetCoinIsActed(false);
+            BattleReadyCoins[i]->SetCoinIsActing(false);
             BattleReadyCoins[i]->SetCoinIsReady(true);
             BattleReadyCoins[i]->CoinMesh->SetVisibility(false);
             BattleReadyCoins[i]->CoinHPUI->SetVisibility(false);
@@ -472,6 +473,7 @@ void UCoinManagementWSubsystem::BindCoinEvents(ACoinActor* CoinActor)
     CoinActor->OnUnhoverCoin.AddDynamic(CoinActionManager,  &UCoinActionManagementWSubsystem::HandleCoinUnHovered);
     CoinActor->OnClickReadyCoin.AddDynamic(this, &UCoinManagementWSubsystem::HandleReadyCoinClicked);
     CoinActor->OnClickBattleCoin.AddDynamic(CoinActionManager, &UCoinActionManagementWSubsystem::ExecuteSelectedWeapon);
+    CoinActor->OnCoinRightClicked.AddDynamic(CoinActionManager, &UCoinActionManagementWSubsystem::CancelSingleCellAction);
     CoinActor->OnDestroyed.AddDynamic(this, &UCoinManagementWSubsystem::HandleCoinDestroyed);
 }
 

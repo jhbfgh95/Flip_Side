@@ -38,10 +38,6 @@ void UActionBase::SetInRangeCoins(ACoinActor* TargetCoin)
 void UActionBase::SetInRangeBoss(ABossActor* TargetBoss)
 {
     InRangeBoss = TargetBoss; // null이든 아니든 그냥 대입
-    if(TargetBoss)
-    {
-        TargetBoss->DisPlayOutline();
-    }
 }
 
 void UActionBase::SetInRangeOthers(ABase_OtherActor* TargetOthers)

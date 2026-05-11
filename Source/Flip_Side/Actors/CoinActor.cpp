@@ -139,6 +139,11 @@ void ACoinActor::SetCoinIsActed(const bool IsActed)
 	RefreshCover();
 }
 
+void ACoinActor::SetCoinIsActing(const bool IsActing)
+{
+	bIsActing = IsActing;
+}
+
 bool ACoinActor::GetCoinIsActed() const
 { 
 	return bIsActed; 
@@ -377,6 +382,14 @@ void ACoinActor::OnClicked_Implementation()
 			*/
 			OnClickBattleCoin.Broadcast(this);
 		}
+	}
+}
+
+void ACoinActor::OnRightClicked_Implementation()
+{
+	if(!GetCoinIsReady() && GetCoinOnBattle() && bIsActing)
+	{
+		OnCoinRightClicked.Broadcast(this);
 	}
 }
 
