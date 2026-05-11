@@ -5,6 +5,8 @@
 #include "DataTypes/CardTypes.h"
 #include "W_StageHandCardWidget.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHoverHandCard, FCardData, HoverCardData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnhoverHandCard);
 UCLASS()
 class FLIP_SIDE_API UW_StageHandCardWidget : public UW_CardWidget
 {
@@ -17,9 +19,12 @@ protected:
     UPROPERTY()
     class UStageCardWSubsystem* StageCardSubSystem;
 
-    virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
     virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
     virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+
+public:
+    FHoverHandCard OnHoverHandCard;
+    FUnhoverHandCard OnUnHoverHandCard;
 
 protected:
     UPROPERTY(meta = (BindWidgetAnim), Transient)
@@ -49,9 +54,19 @@ private:
     UFUNCTION()
     void OnHandCardCleared(int32 Index);
 
+    
+    UFUNCTION()
+    void HoverCard();
+
+    UFUNCTION()
+    void UnhoverCard();
+
+
 private:
     bool CanControl = true;
 
+private:
+    FCardData CurrentCardData;
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 HandIndex = 0;

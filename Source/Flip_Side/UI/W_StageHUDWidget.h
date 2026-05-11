@@ -2,8 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/HorizontalBox.h"
 #include "Components/Button.h"
+#include "DataTypes/CardTypes.h"
 #include "W_StageHUDWidget.generated.h"
 
 UCLASS()
@@ -14,18 +14,21 @@ class FLIP_SIDE_API UW_StageHUDWidget : public UUserWidget
 protected:
     virtual void NativeConstruct() override;
 
+    virtual void NativeDestruct() override;
 private:
     UPROPERTY()
     class UStageCardWSubsystem* StageCardSubSystem;
 
-    // Ä«µå 3Àå ¹­À½ ÄÁÅ×ÀÌ³Ê
+    // Ä«ï¿½ï¿½ 3ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³ï¿½
     UPROPERTY(meta = (BindWidget))
-    class UHorizontalBox* HandCardPanel;
+    class UVerticalBox* HandCardPanel;
 
-    // ¿À¸¥ÂÊ Åä±Û ¹öÆ°
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°
     UPROPERTY(meta = (BindWidget))
     class UButton* ToggleHandButton;
 
+    UPROPERTY(meta = (BindWidget))
+    class UW_CardWidget* PopUpCardWidget;
 
 protected:
 
@@ -42,4 +45,10 @@ protected:
     void OnClickToggleHandButton();
 
     bool bHandVisible = true;
+
+protected:
+    UFUNCTION()
+    void ShowPopupCard(FCardData CardData);
+    UFUNCTION()
+    void HidePopupCard();
 };

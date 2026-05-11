@@ -39,6 +39,14 @@ void UW_StageHandCardWidget::NativeConstruct()
 }
 void UW_StageHandCardWidget::NativeDestruct()
 {
+    if (OnHoverHandCard.IsBound())
+    {
+        OnHoverHandCard.Clear();
+    }
+    if (OnUnHoverHandCard.IsBound())
+    {
+        OnUnHoverHandCard.Clear();
+    }
     StageCardSubSystem->OnStageHandCardActive.RemoveAll(this);
     Super::NativeDestruct();
 }
@@ -50,7 +58,7 @@ void UW_StageHandCardWidget::OnHandCardSet(int32 Index, FCardData CardData)
     InitCard(CardData);
     SetVisibility(ESlateVisibility::Visible);
     CanControl = true;
-    PlayCardAnim(AddCardAnim);
+    CurrentCardData = CardData;
 }
 
 void UW_StageHandCardWidget::OnHandCardCleared(int32 Index)
@@ -61,20 +69,6 @@ void UW_StageHandCardWidget::OnHandCardCleared(int32 Index)
     CanControl = true;
 }
 
-FReply UW_StageHandCardWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
-{
-    if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
-    {
-        if (RemoveCardAnim && CanControl)
-        {
-            CanControl = false;
-            PlayCardAnim(RemoveCardAnim);
-        }
-        return FReply::Handled();
-    }
-
-    return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
-}
 
 void UW_StageHandCardWidget::OnRemoveAnimFinished()
 {
@@ -88,13 +82,15 @@ void UW_StageHandCardWidget::OnRemoveAnimFinished()
 void UW_StageHandCardWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
-    PlayCardAnim(HoverCardAnim);
+    HoverCard();
+    //PlayCardAnim(HoverCardAnim);
 }
 
 void UW_StageHandCardWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseLeave(InMouseEvent);
-    PlayCardAnim(UnHoverCardAnim);
+    UnhoverCard();
+    //PlayCardAnim(UnHoverCardAnim);
 }
 
 void UW_StageHandCardWidget::PlayCardAnim(UWidgetAnimation* Anim)
@@ -110,4 +106,16 @@ void UW_StageHandCardWidget::SetActiveCardEffect(int32 index, bool IsActive)
         ActiveWidget->SetVisibility(ESlateVisibility::Visible);
     else
         ActiveWidget->SetVisibility(ESlateVisibility::Collapsed);
+}
+    
+void UW_StageHandCardWidget::HoverCard()
+{
+    UE_LOG(LogTemp, Warning, TEXT("카드 호버링"));
+    OnHoverHandCard.Broadcast(CurrentCardData);
+}
+    
+void UW_StageHandCardWidget::UnhoverCard()
+{
+    UE_LOG(LogTemp, Warning, TEXT("카드 언호버링"));
+    OnUnHoverHandCard.Broadcast();
 }

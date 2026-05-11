@@ -13,7 +13,7 @@ void UCrossingLevelGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
     InitSlots();
 
-    GenerateTestCoin();
+    //GenerateTestCoin();
 }
 
 //코인 초기화
