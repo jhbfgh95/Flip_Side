@@ -6,6 +6,7 @@
 #include "W_ShopWidget.h"
 #include "ShopPlayerPawn_FlipSide.h"
 #include "Player/GameMode_Shop.h"
+#include "Subsystem/MoneyGISubsystem.h"
 
 #include "Interface/ShopMouseInterface.h"
 
@@ -32,9 +33,12 @@ void AShopController_FlipSide::BeginPlay()
         ShopGameMode->OnCheckBossMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
     }
 
+    UMoneyGISubsystem* MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
+    if(MoneySubsystem)
+        MoneySubsystem->UpdateMoneyDisplayWidget();
+
 
     InitWidget(BlockWidgetClass,BlockWidget,20);
-
     InitWidget(ShopMainWidgetClass,ShopMainWidget,0);
     InitWidget(ShopModeWidgetClass,ShopModeWidget,0);
     

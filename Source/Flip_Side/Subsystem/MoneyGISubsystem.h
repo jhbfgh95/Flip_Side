@@ -166,9 +166,9 @@ public:
 	UFUNCTION()
 	int32 GetCurrentMoney() const;
 
+	void UpdateMoneyDisplayWidget();
 private:
 	void EnsureMoneyDisplayWidget();
-	void UpdateMoneyDisplayWidget();
 	//돈 쓰면 타입 맞게 Summary에 넣어줌
 	void AddSpendToSummary(FStageMoneySummary& Summary, EMoneyRecordType RecordType, int32 Amount, int32 Count);
 	//판거 타입 맞게 Summary에서 빼줌
