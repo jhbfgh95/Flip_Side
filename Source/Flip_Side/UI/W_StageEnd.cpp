@@ -89,9 +89,9 @@ void UW_StageEnd::UpdateMoneySummary()
     SetMoneyText(RefundCardCountText, DisplayMoneySummary.RefundCardCount);
     SetMoneyText(RefundCardMoneyText, DisplayMoneySummary.RefundCard);
     SetMoneyText(RefundTotalMoneyText, DisplayMoneySummary.TotalRefund);
+    SetMoneyText(StageRewardMoneyText, DisplayMoneySummary.RewardMoney);
     SetMoneyText(CurrentMoneyText, DisplayCurrentMoney);
     SetSpentWidgetVisibility(StageEndFlag == 1 || StageEndFlag == 2);
-    SetRefundTextVisibility(StageEndFlag == 0);
 
     OnMoneySummaryChanged(DisplayMoneySummary, DisplayCurrentMoney);
 }
@@ -114,17 +114,6 @@ void UW_StageEnd::SetSpentWidgetVisibility(bool bVisible)
     }
 
     SpentWidget->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-}
-
-void UW_StageEnd::SetRefundTextVisibility(bool bVisible)
-{
-    SetOptionalTextVisibility(RefundCoinCountText, bVisible);
-    SetOptionalTextVisibility(RefundCoinMoneyText, bVisible);
-    SetOptionalTextVisibility(RefundItemCountText, bVisible);
-    SetOptionalTextVisibility(RefundItemMoneyText, bVisible);
-    SetOptionalTextVisibility(RefundCardCountText, bVisible);
-    SetOptionalTextVisibility(RefundCardMoneyText, bVisible);
-    SetOptionalTextVisibility(RefundTotalMoneyText, bVisible);
 }
 
 void UW_StageEnd::SetOptionalTextVisibility(UTextBlock* TextBlock, bool bVisible) const

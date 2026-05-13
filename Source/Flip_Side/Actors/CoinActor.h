@@ -89,6 +89,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	bool ItemFlag = false;
+
+	UPROPERTY(VisibleAnywhere)
+	bool bCanCancelFromReady = true;
+
 	//이거로 Getter, Setter로 앞뒤 판별
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Face")
 	EFaceState CurrentFace = EFaceState::None;
@@ -161,6 +165,9 @@ public:
 
 	void SetCoinItemFlag(const bool IsItem ){ ItemFlag = IsItem; }
 	bool GetCoinItemFlag() const { return ItemFlag; }
+
+	void SetCanCancelFromReady(const bool bCanCancel) { bCanCancelFromReady = bCanCancel; }
+	bool CanCancelFromReady() const { return bCanCancelFromReady; }
 
 	void SetCoinValues(
 		int CoinId,

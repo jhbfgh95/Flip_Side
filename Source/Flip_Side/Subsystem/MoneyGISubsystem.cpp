@@ -78,6 +78,12 @@ void UMoneyGISubsystem::AddRewardMoney(int32 Amount)
     }
 
     AddMoney(Amount);
+    LastStageMoneySummary.RewardMoney += Amount;
+    RunMoneySummary.RewardMoney += Amount;
+
+    RecalculateSummaryTotal(LastStageMoneySummary);
+    RecalculateSummaryTotal(RunMoneySummary);
+
     UpdateMoneyDisplayWidget();
 }
 

@@ -114,6 +114,9 @@ struct FStageMoneySummary
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 TotalRefund = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int32 RewardMoney = 0;
 };
 
 UCLASS()

@@ -139,7 +139,7 @@ void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
                 Coin->CoinHPUI->SetVisibility(true);
                 Coin->StatComponent->ClearTurnBasedBuffs();
                 AddBattleReadyCoins(Coin, false);
-                LockCoinReady(Coin);
+                Coin->SetCanCancelFromReady(false);
                 WeaponIDsToArrange.Add(Coin->GetFrontWeaponID()); 
             }
         }
@@ -172,6 +172,7 @@ void UCoinManagementWSubsystem::AddBattleReadyCoins(ACoinActor* SelectCoinActor,
     BattleReadyCoins[TargetIdx] = SelectCoinActor;
     OnCoinAddedToReady.Broadcast();
     SelectCoinActor->SetCoinIsReady(true);
+    SelectCoinActor->SetCanCancelFromReady(true);
 
     int32 RowIndex = TargetIdx / 5; 
     int32 ColIndex = TargetIdx % 5;
@@ -526,6 +527,7 @@ void UCoinManagementWSubsystem::HandleCoinUnHovered()
 void UCoinManagementWSubsystem::HandleReadyCoinClicked(ACoinActor* ClickedCoin)
 {
     if(!bIsCoinReadyTurn) return;
+    if(!ClickedCoin || !ClickedCoin->CanCancelFromReady()) return;
 
     RemoveBattleReadyCoins(ClickedCoin);
 }

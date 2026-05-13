@@ -83,6 +83,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* RefundCardMoneyText;
+	
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* StageRewardMoneyText;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* RefundTotalMoneyText;
@@ -115,7 +118,6 @@ private:
 	void UpdateMoneySummary();
 	void SetMoneyText(class UTextBlock* TextBlock, int32 Money) const;
 	void SetSpentWidgetVisibility(bool bVisible);
-	void SetRefundTextVisibility(bool bVisible);
 	void SetOptionalTextVisibility(class UTextBlock* TextBlock, bool bVisible) const;
 
 };
