@@ -14,6 +14,7 @@
 #include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
 #include "Subsystem/BattleLevel/CoinManagementWSubsystem.h"
+#include "Subsystem/BattleLevel/BattleLevelActingWSubsystem.h"
 
 ABattlePlayerController_FlipSide::ABattlePlayerController_FlipSide()
 {
@@ -55,6 +56,11 @@ void ABattlePlayerController_FlipSide::BeginPlay()
     if (UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>())
     {
         BattleManager->OnTurnChanged.AddDynamic(this, &ABattlePlayerController_FlipSide::OnTurnChanged);
+    }
+
+    if (UBattleLevelActingWSubsystem* Acting = GetWorld()->GetSubsystem<UBattleLevelActingWSubsystem>())
+    {
+        Acting->OnBossDeadAct.BindUObject(this, &ABattlePlayerController_FlipSide::MoveCameraForBossDead);
     }
 }
 
@@ -168,6 +174,12 @@ void ABattlePlayerController_FlipSide::OnPossess(APawn *InPawn)
 
     ControlledPawn = Cast<ABattlePlayerPawn_FlipSide>(InPawn);
     check(ControlledPawn);
+}
+
+void ABattlePlayerController_FlipSide::MoveCameraForBossDead()
+{
+    if (ControlledPawn)
+        ControlledPawn->MoveCameraToArea(BossDeadCameraLocation, BossDeadCameraRotation, BossDeadCameraArmLength);
 }
 
 void ABattlePlayerController_FlipSide::OnTurnChanged(ETurnState NewTurn)

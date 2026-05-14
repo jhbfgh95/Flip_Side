@@ -34,10 +34,21 @@ private:
     UPROPERTY(EditAnywhere, Category = "Camera")
     float CoinSelectCameraDelay = 0.6f;
 
+    UPROPERTY(EditAnywhere, Category = "Camera")
+    FVector BossDeadCameraLocation;
+
+    UPROPERTY(EditAnywhere, Category = "Camera")
+    FRotator BossDeadCameraRotation;
+
+    UPROPERTY(EditAnywhere, Category = "Camera")
+    float BossDeadCameraArmLength = 0.f;
+
     FTimerHandle CoinSelectCameraDelayHandle;
 
     UFUNCTION()
     void OnTurnChanged(ETurnState NewTurn);
+
+    void MoveCameraForBossDead();
 
 protected:
 	TObjectPtr<ABattlePlayerPawn_FlipSide> ControlledPawn;

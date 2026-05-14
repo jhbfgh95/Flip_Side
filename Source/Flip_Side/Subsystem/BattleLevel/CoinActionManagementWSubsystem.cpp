@@ -12,6 +12,7 @@
 #include "FlipSideDevloperSettings.h"
 #include "DataManagerSubsystem.h"
 #include "BattleLevelActingWSubsystem.h"
+#include "SoundManagerWSubsystem.h"
 #include "BossActor.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
@@ -427,6 +428,11 @@ void UCoinActionManagementWSubsystem::StartCoinActionSequence(ACoinActor* Caster
     if(!bIsCorrectTurn || !SelectedAction || !IsValid(CasterCoin)) return;
     if(bActionSequenceActive) return;
 
+    if (USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>())
+    {
+        SoundManager->PlayCoinClickSound();
+    }
+
     bActionSequenceActive = true;
     bCurrentStepTargetValid = true;
     CasterCoin->SetCoinIsActed(true);
@@ -619,6 +625,15 @@ void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
     if(!SelectedAction) return;
 
     const FFaceData& WeaponData = SelectedAction->GetWeaponData();
+
+    if (WeaponData.WeaponSFX)
+    {
+        if (USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>())
+        {
+            SoundManager->PlayCoinActionSound(WeaponData.WeaponSFX);
+        }
+    }
+
     if(!WeaponData.WeaponVFX || WeaponData.WeaponVFXTarget == EWeaponVFXTarget::None) return;
 
     switch(WeaponData.WeaponVFXTarget)
@@ -684,7 +699,6 @@ void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
     default:
         break;
     }
-    //여기서 사운드 재생
 }
 
 void UCoinActionManagementWSubsystem::PlayCommonVFX(const FWeaponActionResolveResult& Result)
@@ -715,7 +729,11 @@ void UCoinActionManagementWSubsystem::PlayFailedVFX()
     if(!Settings) return;
 
     SpawnVFXAtLocation(Settings->Coin_Logic_Failed_VFX.LoadSynchronous(), CasterCoin->GetActorLocation());
-    //여기서 사운드 재생
+
+    if (USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>())
+    {
+        SoundManager->PlayCoinActionFailedSound();
+    }
 }
 
 void UCoinActionManagementWSubsystem::SpawnVFXAtLocation(UNiagaraSystem* VFX, const FVector& Location) const

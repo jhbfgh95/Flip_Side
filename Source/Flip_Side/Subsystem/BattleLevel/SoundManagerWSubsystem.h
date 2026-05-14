@@ -31,4 +31,8 @@ private:
 
 public:
     void PlayLeverPullSound();
+    void PlayCoinActionSound(USoundBase* Sound);
+    void PlayCoinActionFailedSound();
+    void PlayCoinTeleportSound();
+    void PlayCoinClickSound();
 };

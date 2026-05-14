@@ -96,6 +96,9 @@ protected:
 	UPROPERTY()
 	class UStageCardWSubsystem* StageCardManager;
 
+	UPROPERTY()
+	class USoundManagerWSubsystem* SoundManager;
+
 protected:
 	void TurnProgressing();
 

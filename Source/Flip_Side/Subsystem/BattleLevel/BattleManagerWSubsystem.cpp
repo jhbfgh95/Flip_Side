@@ -16,6 +16,7 @@
 #include "UseableItemWSubsystem.h"
 #include "GridManagerSubsystem.h"
 #include "BattleLevelActingWSubsystem.h"
+#include "SoundManagerWSubsystem.h"
 #include "CoinActionManagementWSubsystem.h"
 #include "DataManagerSubsystem.h"
 #include "Subsystem/MoneyGISubsystem.h"
@@ -46,6 +47,7 @@ void UBattleManagerWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     ActingManager = Collection.InitializeDependency<UBattleLevelActingWSubsystem>();
     CoinActionManager = Collection.InitializeDependency<UCoinActionManagementWSubsystem>();
     BossManager = Collection.InitializeDependency<UBossManagerSubsystem>();
+    SoundManager = Collection.InitializeDependency<USoundManagerWSubsystem>();
 
     RandomStateArray.SetNum(BATTLE_COIN_MAX);
 
@@ -82,6 +84,8 @@ void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
     {
         if (BossManager)
             BossManager->BroadcastCoinLanded();
+        if (SoundManager)
+            SoundManager->PlayCoinTeleportSound();
     });
 
     if (BossManager)
@@ -346,6 +350,7 @@ void UBattleManagerWSubsystem::StageEnded()
 
     if (!TryEndStage(StageEndFlag)) return;
 
+    ActingManager->OnBossDeadAct.ExecuteIfBound();
     ShowStageEndWidget(StageEndFlag);
 }
 

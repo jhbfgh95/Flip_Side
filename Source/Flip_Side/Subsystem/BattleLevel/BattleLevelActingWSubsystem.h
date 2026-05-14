@@ -111,6 +111,8 @@ public:
 
 	FOnGear OnCoinLanded;
 
+	FOnGear OnBossDeadAct;
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 

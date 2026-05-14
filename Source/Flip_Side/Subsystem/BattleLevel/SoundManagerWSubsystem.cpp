@@ -96,6 +96,32 @@ void USoundManagerWSubsystem::PlayLeverPullSound()
     PlaySFX(Settings->LeverPullSFX.LoadSynchronous());
 }
 
+void USoundManagerWSubsystem::PlayCoinActionSound(USoundBase* Sound)
+{
+    PlaySFX(Sound);
+}
+
+void USoundManagerWSubsystem::PlayCoinActionFailedSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->CoinActionFailedSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayCoinTeleportSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->CoinTeleportSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayCoinClickSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->CoinClickSFX.LoadSynchronous());
+}
+
 void USoundManagerWSubsystem::PlaySFX(USoundBase* Sound)
 {
     if (!Sound) return;

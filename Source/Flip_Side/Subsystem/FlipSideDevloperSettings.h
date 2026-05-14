@@ -23,7 +23,7 @@ UCLASS(Config=Game, meta=(DisplayName="My Manager Settings"))
 class FLIP_SIDE_API UFlipSideDevloperSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
-	
+
 public:
 	UPROPERTY(Config, EditAnywhere, Category = "Coin | Spawn")
 	TSoftClassPtr<ACoinActor> CoinActor;
@@ -84,6 +84,15 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
 	TSoftObjectPtr<USoundBase> CoinSlotClickSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> CoinActionFailedSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> CoinTeleportSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> CoinClickSFX;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Battle VFX")
 	TSoftObjectPtr<UNiagaraSystem> Boss_Hit_VFX;
