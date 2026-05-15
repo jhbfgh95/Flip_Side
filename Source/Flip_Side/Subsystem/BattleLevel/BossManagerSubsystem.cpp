@@ -467,7 +467,7 @@ void UBossManagerSubsystem::ShowTelegraphPreview(const TArray<FGridPoint>& Cells
         if (AGridActor* Grid = GridMgr->GetGridActor(Cell))
         {
             Grid->bIsBossAttack = true;
-            Grid->ApplyCellMaterialParams(Color, 0.9f, 0.0f);
+            Grid->ApplyCellMaterialParams(Color, 0.3f, 0.0f);
         }
     }
 }
@@ -481,15 +481,12 @@ void UBossManagerSubsystem::ShowTelegraphPreviewWithSwamp(const TArray<FGridPoin
     {
         if (AGridActor* Grid = GridMgr->GetGridActor(Cell))
         {
+            Grid->bIsBossAttack = true;
+            Grid->ApplyCellMaterialParams(Color, 0.9f, 0.0f);
+
             if (Grid->HasSwamp())
             {
-                // 늪 셀은 bIsBossAttack 세팅 안 함 → InitColor()가 늪 색 유지
                 Grid->InitColor();
-            }
-            else
-            {
-                Grid->bIsBossAttack = true;
-                Grid->ApplyCellMaterialParams(Color, 0.9f, 0.0f);
             }
         }
     }

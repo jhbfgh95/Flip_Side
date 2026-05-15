@@ -33,7 +33,6 @@ void UBossGimmick_Swamp::OnPlayerTurnStart(ABossActor* Boss)
 	{
 		if (AGridActor* Grid = GridMgr->GetGridActor(S.GridPoint))
 		{
-			Grid->ClearBossAttackFlag();
 			Grid->InitColor();
 		}
 	}

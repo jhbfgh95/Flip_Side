@@ -44,7 +44,7 @@ public:
 	FLinearColor AttackHighlightColor = FLinearColor(1.f, 0.f, 0.f, 1.f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Visual")
-	float HighlightFillIntensity = 0.9f;
+	float HighlightFillIntensity = 0.3f;
 
 	UFUNCTION(BlueprintCallable, Category = "Preview")
 	void ShowPatternPreview(const FAttackAreaSpec& Spec);

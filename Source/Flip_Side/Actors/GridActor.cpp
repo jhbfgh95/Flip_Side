@@ -101,7 +101,7 @@ void AGridActor::SetSwamp(int32 RemainingTurns, int32 DebuffAmount, EWeaponClass
 	SwampTargetClass = TargetClass;
 	SwampColor = Color;
 	SwampColorSet.Color = Color;
-	SwampColorSet.Intensity = 0.5f;
+	SwampColorSet.Intensity = 0.3f;
 	SwampColorSet.DoorOpen = 0.f;
 	InitColor();
 }
@@ -113,6 +113,31 @@ void AGridActor::ClearSwamp()
 	SwampDebuffAmount = 0;
 	SwampTargetClass = EWeaponClass::None;
 	InitColor();
+}
+
+void AGridActor::SetSwampPreviewColor(const FLinearColor& Color)
+{
+	bIsSwampPreview = true;
+	SwampPreviewColorSet.Color = Color;
+	SwampPreviewColorSet.Intensity = 0.3f;
+	SwampPreviewColorSet.DoorOpen = 0.f;
+
+	UMaterialInstanceDynamic* MID = EnsureMID(0);
+	if (!MID) return;
+
+	MID->SetVectorParameterValue(TEXT("Cover_Color"), FLinearColor::White);
+	MID->SetVectorParameterValue(TEXT("Outline_Color"), SwampPreviewColorSet.Color);
+}
+
+void AGridActor::ClearSwampPreviewColor()
+{
+	bIsSwampPreview = false;
+
+	UMaterialInstanceDynamic* MID = EnsureMID(0);
+	if (!MID) return;
+
+	const FLinearColor OutlineColor = bHasSwamp ? SwampColorSet.Color : FLinearColor::White;
+	MID->SetVectorParameterValue(TEXT("Outline_Color"), OutlineColor);
 }
 
 AActor* AGridActor::GetCurrentOccupied() const
@@ -137,7 +162,7 @@ void AGridActor::ApplyCellMaterialParams(const FLinearColor& OutlineColor, float
 	UMaterialInstanceDynamic* MID = EnsureMID(0);
 	if (!MID) return;
 
-	MID->SetVectorParameterValue(TEXT("Outline_Color"), OutlineColor);
+	MID->SetVectorParameterValue(TEXT("Fill_Color"), OutlineColor);
 	MID->SetScalarParameterValue(TEXT("Fill_intensity"), FillIntensity);
 	MID->SetScalarParameterValue(TEXT("Door_Open"), DoorOpen);
 
@@ -160,50 +185,74 @@ void AGridActor::InitColor()
 	UMaterialInstanceDynamic* MID = EnsureMID(0);
 	if (!MID) return;
 
+	const bool bShouldShowSwamp = bHasSwamp || bIsSwampPreview;
+	const FCachedColorSet& ActiveSwampColorSet = bIsSwampPreview ? SwampPreviewColorSet : SwampColorSet;
+
 	if (bIsCoinRangePreview)
 	{
-		MID->SetVectorParameterValue(TEXT("Outline_Color"), CoinRangeSet.Color);
+		MID->SetVectorParameterValue(TEXT("Cover_Color"), CoinRangeSet.Color);
+		MID->SetVectorParameterValue(TEXT("Fill_Color"), FLinearColor::White);
+		MID->SetVectorParameterValue(TEXT("Outline_Color"), FLinearColor::White);
 		MID->SetScalarParameterValue(TEXT("Fill_intensity"), CoinRangeSet.Intensity);
 		MID->SetScalarParameterValue(TEXT("Door_Open"), CoinRangeSet.DoorOpen);
 	}
+	/*
 	else if (bIsPromotionHighlight)
 	{
 		MID->SetVectorParameterValue(TEXT("Outline_Color"), PromotionColorSet.Color);
 		MID->SetScalarParameterValue(TEXT("Fill_intensity"), PromotionColorSet.Intensity);
 		MID->SetScalarParameterValue(TEXT("Door_Open"), PromotionColorSet.DoorOpen);
 	}
+	*/
 	else if (bIsItemTargetHighlight)
 	{
-		MID->SetVectorParameterValue(TEXT("Outline_Color"), ItemTargetColorSet.Color);
+		MID->SetVectorParameterValue(TEXT("Cover_Color"), ItemTargetColorSet.Color);
+		MID->SetVectorParameterValue(TEXT("Fill_Color"), FLinearColor::White);
+		MID->SetVectorParameterValue(TEXT("Outline_Color"), FLinearColor::White);
 		MID->SetScalarParameterValue(TEXT("Fill_intensity"), ItemTargetColorSet.Intensity);
 		MID->SetScalarParameterValue(TEXT("Door_Open"), ItemTargetColorSet.DoorOpen);
 	}
-	else if (bIsBossAttack)
+	else if(bIsBossAttack && bShouldShowSwamp)
 	{
-		MID->SetVectorParameterValue(TEXT("Outline_Color"), BossColorset.Color);
+		MID->SetVectorParameterValue(TEXT("Cover_Color"), FLinearColor::White);
+		MID->SetVectorParameterValue(TEXT("Outline_Color"), ActiveSwampColorSet.Color);
+		MID->SetVectorParameterValue(TEXT("Fill_Color"), BossColorset.Color);
 		MID->SetScalarParameterValue(TEXT("Fill_intensity"), BossColorset.Intensity);
 		MID->SetScalarParameterValue(TEXT("Door_Open"), BossColorset.DoorOpen);
 	}
-	else if (bHasSwamp)
+	else if (bIsBossAttack)
 	{
-		MID->SetVectorParameterValue(TEXT("Outline_Color"), SwampColorSet.Color);
-		MID->SetScalarParameterValue(TEXT("Fill_intensity"), SwampColorSet.Intensity);
-		MID->SetScalarParameterValue(TEXT("Door_Open"), SwampColorSet.DoorOpen);
+		MID->SetVectorParameterValue(TEXT("Cover_Color"), FLinearColor::White);
+		MID->SetVectorParameterValue(TEXT("Outline_Color"), FLinearColor::White);
+		MID->SetVectorParameterValue(TEXT("Fill_Color"), BossColorset.Color);
+		MID->SetScalarParameterValue(TEXT("Fill_intensity"), BossColorset.Intensity);
+		MID->SetScalarParameterValue(TEXT("Door_Open"), BossColorset.DoorOpen);
+	}
+	else if (bShouldShowSwamp)
+	{
+		MID->SetVectorParameterValue(TEXT("Cover_Color"), FLinearColor::White);
+		MID->SetVectorParameterValue(TEXT("Fill_Color"), FLinearColor::White);
+		MID->SetVectorParameterValue(TEXT("Outline_Color"), ActiveSwampColorSet.Color);
+		MID->SetScalarParameterValue(TEXT("Fill_intensity"), ActiveSwampColorSet.Intensity);
+		MID->SetScalarParameterValue(TEXT("Door_Open"), ActiveSwampColorSet.DoorOpen);
 	}
 	else
 	{
-		MID->SetVectorParameterValue(TEXT("Outline_Color"), FLinearColor(1.f, 1.f, 1.f, 1.f));
-		MID->SetScalarParameterValue(TEXT("Fill_intensity"), 0.03f);
+		MID->SetVectorParameterValue(TEXT("Cover_Color"), FLinearColor::White);
+		MID->SetVectorParameterValue(TEXT("Fill_Color"), FLinearColor::White);
+		MID->SetVectorParameterValue(TEXT("Outline_Color"), FLinearColor::White);
+		MID->SetScalarParameterValue(TEXT("Fill_intensity"), 0.3f);
 	}
 }
 
+//나이아가라로 변경
 void AGridActor::SetPromotionHighlight(bool bOn)
 {
 	bIsPromotionHighlight = bOn;
 	if (bOn)
 	{
 		PromotionColorSet.Color     = FLinearColor(1.f, 0.84f, 0.f, 1.f);
-		PromotionColorSet.Intensity = 0.8f;
+		PromotionColorSet.Intensity = 0.3f;
 		PromotionColorSet.DoorOpen  = 0.f;
 	}
 	InitColor();
@@ -217,7 +266,7 @@ void AGridActor::SetItemTargetHighlight(bool bOn)
 		ItemTargetColorSet.Color = HoverColor.IsValidIndex(2)
 			? HoverColor[2]
 			: FLinearColor(0.2f, 0.7f, 1.f, 1.f);
-		ItemTargetColorSet.Intensity = 0.8f;
+		ItemTargetColorSet.Intensity = 1.f;
 		ItemTargetColorSet.DoorOpen = 0.f;
 	}
 	InitColor();
@@ -236,8 +285,8 @@ void AGridActor::OnHover_Implementation()
 
 	if(!HoverColor.IsValidIndex(HoverFlag)) return;
 
-	MID->SetVectorParameterValue(TEXT("Outline_Color"),  HoverColor[HoverFlag]);
-	MID->SetScalarParameterValue(TEXT("Fill_intensity"), 0.6f);
+	MID->SetVectorParameterValue(TEXT("Cover_Color"),  HoverColor[HoverFlag]);
+	MID->SetScalarParameterValue(TEXT("Fill_intensity"), 1.f);
 }
 
 void AGridActor::OnUnhover_Implementation()

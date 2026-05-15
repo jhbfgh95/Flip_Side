@@ -134,11 +134,19 @@ public:
 	EWeaponClass SwampTargetClass = EWeaponClass::None;
 	FLinearColor SwampColor = FLinearColor::Green;
 	FCachedColorSet SwampColorSet;
+	bool bIsSwampPreview = false;
+	FCachedColorSet SwampPreviewColorSet;
 
 	void SetSwamp(int32 RemainingTurns, int32 DebuffAmount, EWeaponClass TargetClass, const FLinearColor& Color);
 	void ClearSwamp();
 	bool HasSwamp() const { return bHasSwamp; }
 	void ClearBossAttackFlag() { bIsBossAttack = false; bBossColorFirstSetted = false; }
+
+	UFUNCTION(BlueprintCallable, Category = "Grid | Preview")
+	void SetSwampPreviewColor(const FLinearColor& Color);
+
+	UFUNCTION(BlueprintCallable, Category = "Grid | Preview")
+	void ClearSwampPreviewColor();
 
 	UFUNCTION(BlueprintCallable)
 	void ApplyCellMaterialParams(const FLinearColor& OutlineColor, float FillIntensity, float DoorOpen);
