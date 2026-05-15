@@ -102,15 +102,6 @@ void UItemLogicLibrary::PhaseChangePotion_Logic(UItem_Action* ItemContext)
 
     TargetCoin->SetCoinFace(NextFace);
 
-    if(TargetCoin->CoinMesh)
-    {
-        const FRotator FaceRotation = NextFace == EFaceState::Front
-            ? FRotator(0.f, -180.f, 0.f)
-            : FRotator(-180.f, 0.f, 0.f);
-
-        TargetCoin->CoinMesh->SetRelativeRotation(FaceRotation);
-    }
-
     UE_LOG(LogTemp, Warning, TEXT("PhaseChange"));
 }
 //사방팔방 물약↓
@@ -131,7 +122,7 @@ void UItemLogicLibrary::EverwherePotion_Logic(UItem_Action* ItemContext)
     AGridActor* PrevGrid = GridManager->GetGridActor(TargetCoin->GetDecidedGrid());
     if(!PrevGrid) return;
 
-    PrevGrid->ClearOccupied();
+    PrevGrid->ClearOccupiedOnly();
 
     const FVector TargetLocation = FVector(
         TargetGrid->GetGridWorldXY().X,

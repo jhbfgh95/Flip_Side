@@ -113,6 +113,9 @@ public:
 	void ClearOccupied();
 
 	UFUNCTION(BlueprintCallable)
+	void ClearOccupiedOnly();
+
+	UFUNCTION(BlueprintCallable)
 	void InitColor();
 
 	bool bIsBossAttack = false;

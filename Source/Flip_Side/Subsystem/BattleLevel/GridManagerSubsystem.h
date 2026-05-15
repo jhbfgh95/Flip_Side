@@ -137,6 +137,8 @@ public:
 
 	void SetGridItemFlags(int32 InItemFlag);
 
+	void SetGridHoverFlags(int32 InHoverFlag);
+
 	void SetGridItemTargetGrids(const TArray<FGridPoint>& TargetGrids);
 
 	FOnGridClickedForCoin OnGridClickedForCoin;

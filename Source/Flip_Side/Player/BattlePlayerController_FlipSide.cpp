@@ -199,3 +199,28 @@ void ABattlePlayerController_FlipSide::OnTurnChanged(ETurnState NewTurn)
         ControlledPawn->MoveCameraToArea(DefaultCameraLocation, DefaultCameraRotation, DefaultCameraArmLength);
     }
 }
+
+bool ABattlePlayerController_FlipSide::GetCursorWorldLocationOnPlane(float PlaneZ, FVector& OutWorldLocation) const
+{
+    FVector WorldOrigin;
+    FVector WorldDirection;
+
+    if(!DeprojectMousePositionToWorld(WorldOrigin, WorldDirection))
+    {
+        return false;
+    }
+
+    if(FMath::IsNearlyZero(WorldDirection.Z))
+    {
+        return false;
+    }
+
+    const float Distance = (PlaneZ - WorldOrigin.Z) / WorldDirection.Z;
+    if(Distance < 0.f)
+    {
+        return false;
+    }
+
+    OutWorldLocation = WorldOrigin + WorldDirection * Distance;
+    return true;
+}

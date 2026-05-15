@@ -45,10 +45,23 @@ class FLIP_SIDE_API UUseableItemWSubsystem : public UWorldSubsystem
 	AUseableItemActor* SelectedItemActor = nullptr;
 
 	UPROPERTY()
+	FItemData SelectedItemData;
+
+	bool bHasSelectedItemData = false;
+
+	UPROPERTY()
 	class ACoinActor* SelectedTargetCoin = nullptr;
 
 	UPROPERTY()
 	TArray<FGridPoint> ValidTargetGrids;
+
+	UPROPERTY()
+	class AItemPreviewActor* ItemPreviewActor = nullptr;
+
+	FTimerHandle ItemPreviewFollowTimerHandle;
+
+	UPROPERTY(EditAnywhere, Category = "UseableItem | Preview")
+	float ItemPreviewPlaneZ = -80.0f;
 
 /* Dependency post - managers */
 protected:
@@ -60,6 +73,9 @@ protected:
 
 	UPROPERTY()
 	class UGridManagerSubsystem* GridManager;
+
+	UPROPERTY()
+	class UBattleLevelActingWSubsystem* ActingManager;
 
 	/*UI for Hovering */
 	UPROPERTY()
@@ -88,6 +104,18 @@ protected:
 
 	void ConsumeSelectedItemActor();
 
+	void ConsumeSelectedItemActorOnly();
+
+	void PlayItemFailedFeedback();
+
+	void PlaySelectedItemSuccessVFX(class AGridActor* TargetGrid, class ACoinActor* TargetCoin, AActor* TargetOther);
+
+	void StartItemCursorPreview(AUseableItemActor* SourceItem);
+
+	void UpdateItemCursorPreview();
+
+	void StopItemCursorPreview();
+
 	/* Bind for item actor delegate */
 	UFUNCTION() //hover
 	void VisibleItemInfoUI(AUseableItemActor* TargetItem);
@@ -100,6 +128,9 @@ protected:
 
 	UFUNCTION() //click
 	void SelectWantUseCoinItem(AUseableItemActor* TargetItem);
+
+	UFUNCTION() //RightClick
+	void HandleItemRightClicked(AUseableItemActor* TargetItem);
 /* Execution */
 protected:
 	UFUNCTION()

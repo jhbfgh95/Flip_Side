@@ -80,4 +80,6 @@ public:
 	virtual void OnPossess(APawn* InPawn);
 
 	virtual void PlayerTick(float DeltaTime) override; // 매 프레임 마우스 호버 감지용
+
+	bool GetCursorWorldLocationOnPlane(float PlaneZ, FVector& OutWorldLocation) const;
 };

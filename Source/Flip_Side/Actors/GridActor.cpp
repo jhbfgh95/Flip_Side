@@ -93,6 +93,21 @@ void AGridActor::ClearOccupied()
 	CurrentObject = nullptr;
 }
 
+void AGridActor::ClearOccupiedOnly()
+{
+	bIsOccupied = false;
+	ItemFlag = 0;
+
+	if(ABase_OtherActor* OtherActor = Cast<ABase_OtherActor>(CurrentObject))
+	{
+		OtherActor->SetOccupiedGrid(nullptr);
+	}
+
+	CurrentOccupying = EGridOccupyingType::None;
+	CurrentObject = nullptr;
+	InitColor();
+}
+
 void AGridActor::SetSwamp(int32 RemainingTurns, int32 DebuffAmount, EWeaponClass TargetClass, const FLinearColor& Color)
 {
 	bHasSwamp = true;

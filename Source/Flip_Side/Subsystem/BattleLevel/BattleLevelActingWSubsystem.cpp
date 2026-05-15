@@ -7,7 +7,12 @@
 #include "GridTypes.h"
 #include "GridActor.h"
 #include "CoinActor.h"
+#include "UseableItemActor.h"
 #include "Base_PatternVisualActor.h"
+#include "FlipSideDevloperSettings.h"
+#include "ItemDataTypes.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 
 void UBattleLevelActingWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -147,6 +152,65 @@ void UBattleLevelActingWSubsystem::PlayBossPatternAct()
     {
         CurrentVisualActor->PlayBossPatternAct();
     }
+}
+
+void UBattleLevelActingWSubsystem::PlayUseableItemFailedVFX(AUseableItemActor* ItemActor)
+{
+    PlayUseableItemFailedVFXAtActor(ItemActor);
+}
+
+void UBattleLevelActingWSubsystem::PlayUseableItemFailedVFXAtActor(AActor* TargetActor)
+{
+    if(!GetWorld() || !IsValid(TargetActor)) return;
+
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if(!Settings) return;
+
+    UNiagaraSystem* FailedVFX = Settings->Coin_Logic_Failed_VFX.LoadSynchronous();
+    if(!FailedVFX) return;
+
+    UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), FailedVFX, TargetActor->GetActorLocation());
+}
+
+void UBattleLevelActingWSubsystem::PlayUseableItemVFX(const FItemData& ItemData, AGridActor* TargetGrid, ACoinActor* TargetCoin, AActor* TargetOther)
+{
+    UNiagaraSystem* ItemVFX = ItemData.ItemVFX.Get();
+    if(!GetWorld() || !ItemVFX) return;
+
+    FVector SpawnLocation = FVector::ZeroVector;
+    switch(ItemData.ItemVFXTarget)
+    {
+    case EItemVFXTarget::TargetGrid:
+        if(!IsValid(TargetGrid)) return;
+        SpawnLocation = FVector(TargetGrid->GetGridWorldXY().X, TargetGrid->GetGridWorldXY().Y, -80.0f);
+        break;
+    case EItemVFXTarget::TargetCoin:
+        if(!IsValid(TargetCoin)) return;
+        SpawnLocation = TargetCoin->GetActorLocation();
+        break;
+    case EItemVFXTarget::TargetOther:
+        if(!IsValid(TargetOther)) return;
+        SpawnLocation = TargetOther->GetActorLocation();
+        break;
+    case EItemVFXTarget::None:
+    default:
+        return;
+    }
+
+    UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ItemVFX, SpawnLocation);
+}
+
+void UBattleLevelActingWSubsystem::PlayPhaseChangePotionAct(ACoinActor* TargetCoin)
+{
+    if(!IsValid(TargetCoin) || !GridManager) return;
+
+    AGridActor* TargetGrid = GridManager->GetGridActor(TargetCoin->GetDecidedGrid());
+    if(!IsValid(TargetGrid)) return;
+
+    TargetCoin->DoCoinActAtBattleStart(
+        TargetGrid->GetGridWorldXY().X,
+        TargetGrid->GetGridWorldXY().Y
+    );
 }
 
 void UBattleLevelActingWSubsystem::RaiseCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished)

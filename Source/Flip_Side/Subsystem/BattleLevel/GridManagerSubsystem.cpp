@@ -608,7 +608,7 @@ void UGridManagerSubsystem::PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, f
     DoorFxByCell.Add(Cell, State);
 
     CellActor->ApplyCellMaterialParams(
-        FLinearColor(0.f, 0.f, 0.f, 1.f),  // Outline 000000FF
+        FLinearColor::White,
         0.8f,                               // Fill_intensity
         0.0f                                // Door_Open
     );
@@ -639,7 +639,7 @@ void UGridManagerSubsystem::TickPhase1(FGridPoint Cell)
     const float Door = FMath::Lerp(0.0f, 0.4f, Alpha);
 
     CellActor->ApplyCellMaterialParams(
-        FLinearColor(0.f, 0.f, 0.f, 1.f),
+        FLinearColor::White,
         0.8f,
         Door
     );
@@ -693,7 +693,7 @@ void UGridManagerSubsystem::TickPhase2(FGridPoint Cell)
     {
         CellActor->ApplyCellMaterialParams(
             FLinearColor(1.f, 1.f, 1.f, 1.f),  // Outline FFFFFFFF
-            0.03f,                               // Fill_intensity ����
+            0.3f,                               // Fill_intensity ����
             Door
         );
     }
@@ -779,6 +779,20 @@ void UGridManagerSubsystem::SetGridItemFlags(int32 InItemFlag)
 
         Grid->SetItemFlag(InItemFlag);
         Grid->HoverFlag = InItemFlag > 0 ? 2 : 0;
+    }
+}
+
+void UGridManagerSubsystem::SetGridHoverFlags(int32 InHoverFlag)
+{
+    for (const auto& Pair : GridActors)
+    {
+        AGridActor* Grid = Pair.Value.Get();
+        if (!IsValid(Grid)) continue;
+
+        Grid->SetItemTargetHighlight(false);
+        if (Grid->GetIsOccupied()) continue;
+
+        Grid->HoverFlag = InHoverFlag;
     }
 }
 

@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "BattleHoverInterface.h"
 #include "BattleClickInterface.h"
+#include "BattleRightClickInterface.h"
 #include "FlipSide_Enum.h"
 #include "UseableItemActor.generated.h"
 
@@ -13,10 +14,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoverItemDelegate, AUseableItemAc
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGridClickItemDelegate, AUseableItemActor*, ClickedItem);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCoinClickItemDelegate, AUseableItemActor*, ClickedItem);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOtherClickItemDelegate, AUseableItemActor*, ClickedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemRightClickDelegate, AUseableItemActor*, ClickedItem);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoverItemDelegate);
 
 UCLASS()
-class AUseableItemActor : public AActor, public IBattleHoverInterface, public IBattleClickInterface
+class AUseableItemActor : public AActor, public IBattleHoverInterface, public IBattleClickInterface, public IBattleRightClickInterface
 {
 	GENERATED_BODY()
 
@@ -48,6 +50,8 @@ public:
 
 	EItemType GetItemType() const { return ItemType; }
 
+	class UStaticMeshComponent* GetUseableItemMesh() const { return UseableItemMesh; }
+
 	UFUNCTION()
 	void SetItemValues(int TheItemID, EItemType theItemType ,UTexture2D* ItemTex, FLinearColor Color, int32 price);
 
@@ -69,6 +73,9 @@ public:
 
 	UFUNCTION()
 	virtual void OnClicked_Implementation() override;
+
+	UFUNCTION()
+	virtual void OnRightClicked_Implementation() override;
 	
 	UPROPERTY()
 	FOnHoverItemDelegate OnHoverItem;
@@ -84,6 +91,9 @@ public:
 
 	UPROPERTY()
 	FOnOtherClickItemDelegate OnOtherClickItem;
+
+	UPROPERTY()
+	FOnItemRightClickDelegate OnItemRightClick;
 
 protected:
 	virtual void BeginPlay() override;

@@ -7,6 +7,8 @@
 #include "BattleLevelActingWSubsystem.generated.h"
 
 class ACoinActor;
+class AUseableItemActor;
+struct FItemData;
 
 DECLARE_DELEGATE_OneParam(FOnDrawMove, bool);
 DECLARE_DELEGATE(FOnGear);
@@ -102,6 +104,16 @@ public:
 /* Boss Turn */
 public:
 	void PlayBossPatternAct();
+
+/* Useable Item */
+public:
+	void PlayUseableItemFailedVFX(AUseableItemActor* ItemActor);
+
+	void PlayUseableItemFailedVFXAtActor(AActor* TargetActor);
+
+	void PlayUseableItemVFX(const FItemData& ItemData, class AGridActor* TargetGrid, ACoinActor* TargetCoin, AActor* TargetOther);
+
+	void PlayPhaseChangePotionAct(ACoinActor* TargetCoin);
 	
 /* 연출용 델리게이트 */
 public:

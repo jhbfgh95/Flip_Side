@@ -4,7 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "FlipSide_Enum.h"
+#include "NiagaraSystem.h"
 #include "ItemDataTypes.generated.h"
+
+UENUM(BlueprintType)
+enum class EItemVFXTarget : uint8
+{
+    None,
+    TargetGrid,
+    TargetCoin,
+    TargetOther
+};
 
 USTRUCT(BlueprintType)
 struct FItemData
@@ -44,6 +54,12 @@ struct FItemData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 Price = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<UNiagaraSystem> ItemVFX = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EItemVFXTarget ItemVFXTarget = EItemVFXTarget::None;
 };
 
 /**

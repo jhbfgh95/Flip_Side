@@ -9,11 +9,14 @@
 #include "GridManagerSubsystem.h"
 #include "CoinActionManagementWSubsystem.h"
 #include "CoinManagementWSubsystem.h"
+#include "BattleLevelActingWSubsystem.h"
 #include "UseableItemActor.h"
 #include "FlipSide_Enum.h"
 #include "SlotActor.h"
 #include "CoinActor.h"
 #include "GridActor.h"
+#include "ItemPreviewActor.h"
+#include "BattlePlayerController_FlipSide.h"
 #include "ItemDataTypes.h"
 #include "GridTypes.h"
 #include "Item_Action.h"
@@ -21,6 +24,7 @@
 
 namespace
 {
+    constexpr int32 PhaseChangePotionItemID = 4;
     constexpr int32 EverywherePotionItemID = 6;
 }
 
@@ -35,6 +39,7 @@ void UUseableItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     CoinActionManager = Collection.InitializeDependency<UCoinActionManagementWSubsystem>();
     CoinManager = Collection.InitializeDependency<UCoinManagementWSubsystem>();
     GridManager = Collection.InitializeDependency<UGridManagerSubsystem>();
+    ActingManager = Collection.InitializeDependency<UBattleLevelActingWSubsystem>();
 
     if(SelectedItemAction)
     {
@@ -194,6 +199,7 @@ void UUseableItemWSubsystem::BindItemDelegates(AUseableItemActor* TargetItem)
         //클릭 다른 곳 하면 그때 Init불러도 늦지 않으니..
         TargetItem->OnGridClickItem.AddDynamic(this, &UUseableItemWSubsystem::SelectWantUseGridItem);
         TargetItem->OnCoinClickItem.AddDynamic(this, &UUseableItemWSubsystem::SelectWantUseCoinItem);
+        TargetItem->OnItemRightClick.AddDynamic(this, &UUseableItemWSubsystem::HandleItemRightClicked);
     }
 }
 
@@ -210,11 +216,113 @@ bool UUseableItemWSubsystem::TryGetItemData(AUseableItemActor* TargetItem, FItem
 
 void UUseableItemWSubsystem::ConsumeSelectedItemActor()
 {
+    ConsumeSelectedItemActorOnly();
+}
+
+void UUseableItemWSubsystem::ConsumeSelectedItemActorOnly()
+{
+    StopItemCursorPreview();
+
+    if(ItemInfoWidgetInstance)
+    {
+        ItemInfoWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+    }
+
     if(IsValid(SelectedItemActor))
     {
         SelectedItemActor->Destroy();
     }
     SelectedItemActor = nullptr;
+}
+
+void UUseableItemWSubsystem::PlayItemFailedFeedback()
+{
+    if(ActingManager && IsValid(ItemPreviewActor))
+    {
+        ActingManager->PlayUseableItemFailedVFXAtActor(ItemPreviewActor);
+    }
+
+    //SoundManager에 아이템 실패 사운드 API가 추가되면 여기서 호출.
+}
+
+void UUseableItemWSubsystem::PlaySelectedItemSuccessVFX(AGridActor* TargetGrid, ACoinActor* TargetCoin, AActor* TargetOther)
+{
+    if(!ActingManager || !bHasSelectedItemData) return;
+
+    ActingManager->PlayUseableItemVFX(SelectedItemData, TargetGrid, TargetCoin, TargetOther);
+
+    if(SelectedItemData.ItemID == PhaseChangePotionItemID)
+    {
+        ActingManager->PlayPhaseChangePotionAct(TargetCoin);
+    }
+
+    //SoundManager에 아이템 성공 사운드 API가 추가되면 여기서 호출.
+}
+
+void UUseableItemWSubsystem::StartItemCursorPreview(AUseableItemActor* SourceItem)
+{
+    StopItemCursorPreview();
+
+    UWorld* World = GetWorld();
+    if(!World || !IsValid(SourceItem)) return;
+
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    ItemPreviewActor = World->SpawnActor<AItemPreviewActor>(
+        AItemPreviewActor::StaticClass(),
+        SourceItem->GetActorTransform(),
+        SpawnParams
+    );
+
+    if(!ItemPreviewActor) return;
+
+    ItemPreviewActor->InitFromItem(SourceItem);
+    UpdateItemCursorPreview();
+
+    World->GetTimerManager().SetTimer(
+        ItemPreviewFollowTimerHandle,
+        this,
+        &UUseableItemWSubsystem::UpdateItemCursorPreview,
+        0.01f,
+        true
+    );
+}
+
+void UUseableItemWSubsystem::UpdateItemCursorPreview()
+{
+    if(!IsValid(ItemPreviewActor))
+    {
+        StopItemCursorPreview();
+        return;
+    }
+
+    UWorld* World = GetWorld();
+    if(!World) return;
+
+    ABattlePlayerController_FlipSide* BattlePC = Cast<ABattlePlayerController_FlipSide>(World->GetFirstPlayerController());
+    if(!BattlePC) return;
+
+    FVector CursorWorldLocation;
+    if(BattlePC->GetCursorWorldLocationOnPlane(ItemPreviewPlaneZ, CursorWorldLocation))
+    {
+        ItemPreviewActor->SetActorLocation(CursorWorldLocation);
+    }
+}
+
+void UUseableItemWSubsystem::StopItemCursorPreview()
+{
+    UWorld* World = GetWorld();
+    if(World)
+    {
+        World->GetTimerManager().ClearTimer(ItemPreviewFollowTimerHandle);
+    }
+
+    if(IsValid(ItemPreviewActor))
+    {
+        ItemPreviewActor->Destroy();
+    }
+    ItemPreviewActor = nullptr;
 }
 
 void UUseableItemWSubsystem::InitSelectedItem()
@@ -228,6 +336,8 @@ void UUseableItemWSubsystem::InitSelectedItem()
     SelectedItemAction->SetInRangeBoss(nullptr);
     CurrentTargetMode = EUseableItemTargetMode::None;
     SelectedItemActor = nullptr;
+    SelectedItemData = FItemData();
+    bHasSelectedItemData = false;
     SelectedTargetCoin = nullptr;
     ValidTargetGrids.Empty();
     if(CoinManager)
@@ -289,6 +399,11 @@ void UUseableItemWSubsystem::ApplyRangedThings()
 
 void UUseableItemWSubsystem::CancelWantUseItem()
 {
+    StopItemCursorPreview();
+    if(ItemInfoWidgetInstance)
+    {
+        ItemInfoWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+    }
     InitSelectedItem();
     if(CoinActionManager)
     {
@@ -324,19 +439,19 @@ void UUseableItemWSubsystem::ExecuteItemForGrid(AGridActor* TargetGrid)
 {
     if(CurrentTargetMode != EUseableItemTargetMode::Grid)
     {
-        CancelWantUseItem();
+        PlayItemFailedFeedback();
         return;
     }
 
     if(!TargetGrid || TargetGrid->GetIsOccupied() || TargetGrid->GetItemFlag() == 0)
     {
-        CancelWantUseItem();
+        PlayItemFailedFeedback();
         return;
     }
 
     if(SelectedTargetCoin && !ValidTargetGrids.Contains(TargetGrid->GetGridPoint()))
     {
-        CancelWantUseItem();
+        PlayItemFailedFeedback();
         return;
     }
 
@@ -344,6 +459,7 @@ void UUseableItemWSubsystem::ExecuteItemForGrid(AGridActor* TargetGrid)
     {
         SelectedItemAction->SetTargetGrid(TargetGrid);
         SelectedItemAction->ExecuteAction();
+        PlaySelectedItemSuccessVFX(TargetGrid, SelectedTargetCoin, nullptr);
         ConsumeSelectedItemActor();
     }
     CancelWantUseItem();
@@ -355,7 +471,7 @@ void UUseableItemWSubsystem::ExecuteItemForCoin(ACoinActor* TargetCoin)
     {
         if(!TargetCoin || !SelectedItemAction || !SelectedItemActor) 
         {
-            CancelWantUseItem();
+            PlayItemFailedFeedback();
             return;
         }
 
@@ -369,10 +485,11 @@ void UUseableItemWSubsystem::ExecuteItemForCoin(ACoinActor* TargetCoin)
         BuildEverywhereValidTargetGrids(TargetCoin);
         if(ValidTargetGrids.IsEmpty())
         {
-            CancelWantUseItem();
+            PlayItemFailedFeedback();
             return;
         }
 
+        ConsumeSelectedItemActorOnly();
         CurrentTargetMode = EUseableItemTargetMode::Grid;
         if(CoinManager)
         {
@@ -387,7 +504,13 @@ void UUseableItemWSubsystem::ExecuteItemForCoin(ACoinActor* TargetCoin)
 
     if(CurrentTargetMode != EUseableItemTargetMode::Coin)
     {
-        CancelWantUseItem();
+        PlayItemFailedFeedback();
+        return;
+    }
+
+    if(!TargetCoin || !SelectedItemAction)
+    {
+        PlayItemFailedFeedback();
         return;
     }
 
@@ -399,6 +522,7 @@ void UUseableItemWSubsystem::ExecuteItemForCoin(ACoinActor* TargetCoin)
             SelectedItemAction->SetTargetGrid(GridManager->GetGridActor(TargetCoin->GetDecidedGrid()));
         }
         SelectedItemAction->ExecuteAction();
+        PlaySelectedItemSuccessVFX(nullptr, TargetCoin, nullptr);
         ConsumeSelectedItemActor();
     }
     CancelWantUseItem();
@@ -431,6 +555,11 @@ void UUseableItemWSubsystem::VisibleItemInfoUI(AUseableItemActor* TargetItem)
 
 void UUseableItemWSubsystem::HideItemInfoUi()
 {
+    if(CurrentTargetMode != EUseableItemTargetMode::None || IsValid(SelectedItemActor))
+    {
+        return;
+    }
+
     if(ItemInfoWidgetInstance)
     {
         ItemInfoWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
@@ -458,6 +587,9 @@ void UUseableItemWSubsystem::SelectWantUseGridItem(AUseableItemActor* TargetItem
     SetItemInfo(TargetItem);
     CurrentTargetMode = EUseableItemTargetMode::Grid;
     SelectedItemActor = TargetItem;
+    bHasSelectedItemData = TryGetItemData(TargetItem, SelectedItemData);
+    VisibleItemInfoUI(TargetItem);
+    StartItemCursorPreview(TargetItem);
 
     if(CoinManager)
     {
@@ -489,6 +621,9 @@ void UUseableItemWSubsystem::SelectWantUseCoinItem(AUseableItemActor* TargetItem
         ? EUseableItemTargetMode::CoinThenGrid
         : EUseableItemTargetMode::Coin;
     SelectedItemActor = TargetItem;
+    bHasSelectedItemData = TryGetItemData(TargetItem, SelectedItemData);
+    VisibleItemInfoUI(TargetItem);
+    StartItemCursorPreview(TargetItem);
 
     if(CoinManager)
     {
@@ -497,9 +632,18 @@ void UUseableItemWSubsystem::SelectWantUseCoinItem(AUseableItemActor* TargetItem
 
     if(GridManager)
     {
-        GridManager->SetGridClickFlag(EGridClickFlag::None);
+        GridManager->SetGridClickFlag(EGridClickFlag::None, false);
+        GridManager->SetGridHoverFlags(2);
     }
 
+}
+
+void UUseableItemWSubsystem::HandleItemRightClicked(AUseableItemActor* TargetItem)
+{
+    if(!bIsCoinSelectTurn || !TargetItem) return;
+    if(TargetItem != SelectedItemActor) return;
+
+    PlayItemFailedFeedback();
 }
 
 void UUseableItemWSubsystem::CoinBindsToItemMan()

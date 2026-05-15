@@ -83,3 +83,8 @@ void AUseableItemActor::OnClicked_Implementation()
 		return;
 	}
 }
+
+void AUseableItemActor::OnRightClicked_Implementation()
+{
+	OnItemRightClick.Broadcast(this);
+}
