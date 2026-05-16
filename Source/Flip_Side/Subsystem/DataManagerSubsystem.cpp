@@ -413,7 +413,7 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
 {
     {
         const TCHAR* Sql = TEXT(
-            "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, attack_point, ability_description "
+            "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, ability_description, attack_point, boss_hp, shield_value "
             "FROM boss_def;"
         );
 
@@ -436,8 +436,10 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
             if (!ImagePath.IsEmpty())
                 Boss.BossImage = LoadObject<UTexture2D>(nullptr, *ImagePath);
 
-            Boss.AttackPoint = GetColInt(Stmt, 5);
-            Boss.BossAbilityDescription = FText::FromString(GetColTextUTF8(Stmt, 6));
+            Boss.BossAbilityDescription = FText::FromString(GetColTextUTF8(Stmt, 5));
+            Boss.AttackPoint = GetColInt(Stmt, 6);
+            Boss.BossHP      = GetColInt(Stmt, 7);
+            Boss.ShieldValue = GetColInt(Stmt, 8);
 
             BossByID.Add(Boss.BossID, Boss);
             BossIDByStage.Add(Boss.BossStage, Boss.BossID);
@@ -482,12 +484,15 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
 bool UDataManagerSubsystem::LoadBossPatternDisplay()
 {
     const TCHAR* Sql = TEXT(
-        "SELECT boss_id, pattern_order, pattern_name, pattern_description, "
-        "damage_ratio, "
-        "area_pattern, anchor_dx, anchor_dy, anchor_mode, param_a, param_b, side, "
-        "pattern_icon_path, pattern_range_image_path "
-        "FROM boss_pattern_def "
-        "ORDER BY boss_id, pattern_order;"
+        "SELECT p.boss_id, p.pattern_order, p.pattern_name, p.pattern_description, "
+        "p.damage_ratio, "
+        "p.area_pattern, p.anchor_dx, p.anchor_dy, p.anchor_mode, p.param_a, p.param_b, p.side, "
+        "p.pattern_icon_path, p.pattern_range_image_path, p.shield_heal, "
+        "p.gimmick_type, p.param_a, p.param_b, "
+        "COALESCE(g.param_int_a, 0) AS gimmick_int_a, COALESCE(g.param_int_b, 0) AS gimmick_int_b "
+        "FROM boss_pattern_def p "
+        "LEFT JOIN boss_gimmick g ON p.boss_id = g.boss_id AND p.gimmick_type = g.gimmick_type "
+        "ORDER BY p.boss_id, p.pattern_order;"
     );
 
     FSQLitePreparedStatement Stmt;
@@ -519,6 +524,26 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
         const FString RangeImagePath = GetColText(Stmt, 13);
         if (!RangeImagePath.IsEmpty())
             Pattern.PatternRangeImage = LoadObject<UTexture2D>(nullptr, *RangeImagePath);
+
+        Pattern.ShieldHeal   = GetColInt(Stmt, 14);
+        Pattern.GimmickType  = static_cast<EBossGimmickType>(GetColInt(Stmt, 15));
+
+        // 실명(Blind=6): param_a = 지속 턴수
+        // 늪(GridDebuff=2): param_a = 지속 턴수, param_b = 공격력 디버프
+        // 독(Poison=5): gimmick_int_a = 독 데미지
+        const int32 PatternParamA  = GetColInt(Stmt, 16);
+        const int32 PatternParamB  = GetColInt(Stmt, 17);
+        const int32 GimmickIntA    = GetColInt(Stmt, 18);
+
+        if (Pattern.GimmickType == EBossGimmickType::Poison)
+        {
+            Pattern.GimmickParamA = GimmickIntA;
+        }
+        else
+        {
+            Pattern.GimmickParamA = PatternParamA;
+            Pattern.GimmickParamB = PatternParamB;
+        }
 
         BossPatternDisplayByBossID.FindOrAdd(BossID).Add(Pattern);
     }
@@ -704,10 +729,18 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
     return true;
 }
 
+static EItemVFXTarget ItemVFXTargetFromString(const FString& S)
+{
+    if (S.Equals(TEXT("TargetGrid"), ESearchCase::IgnoreCase)) return EItemVFXTarget::TargetGrid;
+    if (S.Equals(TEXT("TargetCoin"), ESearchCase::IgnoreCase)) return EItemVFXTarget::TargetCoin;
+    if (S.Equals(TEXT("TargetOther"), ESearchCase::IgnoreCase)) return EItemVFXTarget::TargetOther;
+    return EItemVFXTarget::None;
+}
+
 bool UDataManagerSubsystem::LoadItems()
 {
     const TCHAR* Sql =
-        TEXT("SELECT i.item_id, i.item_range, i.item_effect_value, i.icon_path, i.item_description AS item_des, i.item_type_id, i.behavior, t.item_type_color, i.item_name, IFNULL(i.price, 0) FROM item i JOIN item_type t ON i.item_type_id = t.item_type_id;");
+        TEXT("SELECT i.item_id, i.item_range, i.item_effect_value, i.icon_path, i.item_description AS item_des, i.item_type_id, i.behavior, t.item_type_color, i.item_name, IFNULL(i.price, 0), i.vfx_path, i.VFXTarget FROM item i JOIN item_type t ON i.item_type_id = t.item_type_id;");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
@@ -740,6 +773,14 @@ bool UDataManagerSubsystem::LoadItems()
         }
         Item.ItemName = GetColTextUTF8(Stmt, 8);
         Item.Price = GetColInt(Stmt, 9);
+
+        const FString VfxPath = GetColText(Stmt, 10);
+        if (!VfxPath.IsEmpty())
+        {
+            Item.ItemVFX = LoadObject<UNiagaraSystem>(nullptr, *VfxPath);
+        }
+        Item.ItemVFXTarget = ItemVFXTargetFromString(GetColText(Stmt, 11));
+
         ItemByID.Add(Item.ItemID, Item);
         Items.Add(Item);
     }

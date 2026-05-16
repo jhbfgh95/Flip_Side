@@ -86,6 +86,12 @@ struct FBossDisplayData
     int32 AttackPoint = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 BossHP = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 ShieldValue = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FText BossAbilityDescription;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -115,6 +121,20 @@ struct FBossPatternDisplayData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FAttackAreaSpec PatternSpec;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 ShieldHeal = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EBossGimmickType GimmickType = EBossGimmickType::None;
+
+    // 실명/늪: 지속 턴수, 독: 독 데미지
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 GimmickParamA = 0;
+
+    // 늪: 공격력 디버프 수치
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 GimmickParamB = 0;
 };
 
 // 배틀용 패턴 데이터

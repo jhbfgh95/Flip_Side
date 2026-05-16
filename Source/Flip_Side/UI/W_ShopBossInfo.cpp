@@ -2,6 +2,7 @@
 
 
 #include "UI/W_ShopBossInfo.h"
+#include "DataTypes/BossDataTypes.h"
 
 #include "Components/Button.h"
 #include "Components/Image.h"
@@ -27,6 +28,18 @@ void UW_ShopBossInfo::NativeConstruct()
 	if(PatternButton_8) PatternButton_8->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern8);
 	if(PatternButton_9) PatternButton_9->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern9);
 	if(PatternButton_10) PatternButton_10->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern10);
+
+	TArray<UTextBlock*> ButtonTexts = {
+		PatternButtonText_1, PatternButtonText_2, PatternButtonText_3,
+		PatternButtonText_4, PatternButtonText_5, PatternButtonText_6,
+		PatternButtonText_7, PatternButtonText_8, PatternButtonText_9,
+		PatternButtonText_10
+	};
+	for (int32 i = 0; i < ButtonTexts.Num(); i++)
+	{
+		if (ButtonTexts[i])
+			ButtonTexts[i]->SetText(FText::AsNumber(i + 1));
+	}
 
 	RefreshPreparedBossInfo();
 }
@@ -59,12 +72,17 @@ void UW_ShopBossInfo::RefreshPreparedBossInfo()
 		return;
 	}
 
-	TArray<FBossPatternDisplayData> PreparedPatternDataList;
 	UDataManagerSubsystem* DataMgr = GI->GetSubsystem<UDataManagerSubsystem>();
+
+	const int32 StageIndex = BossSetupGI->GetPreparedBossContext().StageIndex;
+	CurrentStatMultiplier = 1.0f;
+	CurrentGimmickMultiplier = 1.0f;
+	if (DataMgr)
+		DataMgr->TryGetStageMultiplier(PreparedBossData.BossID, StageIndex, CurrentStatMultiplier, CurrentGimmickMultiplier);
+
+	TArray<FBossPatternDisplayData> PreparedPatternDataList;
 	if(DataMgr)
-	{
 		DataMgr->TryGetBossPatternDisplay(PreparedBossData.BossID, PreparedPatternDataList);
-	}
 
 	SetBossInfo(PreparedBossData, PreparedPatternDataList);
 }
@@ -238,6 +256,29 @@ void UW_ShopBossInfo::RefreshBossTexts()
 		BossNameText->SetText(FText::FromString(CurrentBossData.BossName));
 	}
 
+	const int32 FinalHP     = static_cast<int32>(CurrentBossData.BossHP * CurrentStatMultiplier);
+	const int32 FinalShield = static_cast<int32>(CurrentBossData.ShieldValue * CurrentStatMultiplier);
+
+	if(BossHPText)
+	{
+		BossHPText->SetText(FText::Format(NSLOCTEXT("BossInfo", "HPFmt", "HP  {0}"), FText::AsNumber(FinalHP)));
+		BossHPText->SetColorAndOpacity(FSlateColor(FLinearColor(1.f, 0.2f, 0.2f)));
+	}
+
+	if(BossShieldText)
+	{
+		if (FinalShield > 0)
+		{
+			BossShieldText->SetText(FText::Format(NSLOCTEXT("BossInfo", "ShieldValFmt", "쉴드  {0}"), FText::AsNumber(FinalShield)));
+			BossShieldText->SetColorAndOpacity(FSlateColor(FLinearColor(0.3f, 0.6f, 1.f)));
+			BossShieldText->SetVisibility(ESlateVisibility::HitTestInvisible);
+		}
+		else
+		{
+			BossShieldText->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+
 	if(BossAbilityText)
 	{
 		BossAbilityText->SetText(CurrentBossData.BossAbilityDescription);
@@ -259,7 +300,9 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 	}
 
 	const FBossPatternDisplayData& PatternData = CurrentPatternDataList[CurrentPatternIndex];
-	const int32 FinalDamage = static_cast<int32>(CurrentBossData.AttackPoint * PatternData.DamageRatio);
+	const int32 FinalDamage = static_cast<int32>(CurrentBossData.AttackPoint * PatternData.DamageRatio * CurrentStatMultiplier);
+	const int32 FinalShieldHeal = static_cast<int32>(PatternData.ShieldHeal * CurrentGimmickMultiplier);
+	const int32 FinalGimmickParamA = static_cast<int32>(PatternData.GimmickParamA * CurrentGimmickMultiplier);
 
 	if(PatternRangeImage)
 	{
@@ -282,11 +325,39 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 	if(PatternNameText)
 	{
 		PatternNameText->SetText(FText::FromString(PatternData.PatternName));
+		PatternNameText->SetColorAndOpacity(FSlateColor(FLinearColor(1.f, 0.85f, 0.3f)));
+	}
+
+	if(AttackIconImage)
+	{
+		AttackIconImage->SetVisibility(FinalDamage > 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
 	}
 
 	if(PatternAttackText)
 	{
-		PatternAttackText->SetText(FText::AsNumber(FinalDamage));
+		FText StatText = FText::GetEmpty();
+
+		switch (PatternData.GimmickType)
+		{
+		case EBossGimmickType::Shield:
+			StatText = FText::Format(NSLOCTEXT("BossInfo", "ShieldFmt", "쉴드 회복  {0}"), FText::AsNumber(FinalShieldHeal));
+			break;
+		case EBossGimmickType::Blind:
+			StatText = FText::Format(NSLOCTEXT("BossInfo", "BlindFmt", "실명  {0}턴"), FText::AsNumber(PatternData.GimmickParamA));
+			break;
+		case EBossGimmickType::GridDebuff:
+			StatText = FText::Format(NSLOCTEXT("BossInfo", "SwampFmt", "{0}턴 지속  공격력 -{1}"), FText::AsNumber(PatternData.GimmickParamA), FText::AsNumber(PatternData.GimmickParamB));
+			break;
+		case EBossGimmickType::Poison:
+			StatText = FText::Format(NSLOCTEXT("BossInfo", "PoisonFmt", "공격력  {0}  독 데미지  {1}/5초"), FText::AsNumber(FinalDamage), FText::AsNumber(FinalGimmickParamA));
+			break;
+		default:
+			if (FinalDamage > 0)
+				StatText = FText::Format(NSLOCTEXT("BossInfo", "DmgFmt", "공격력  {0}"), FText::AsNumber(FinalDamage));
+			break;
+		}
+
+		PatternAttackText->SetText(StatText);
 	}
 
 	if(PatternDescriptionText)
@@ -317,9 +388,13 @@ void UW_ShopBossInfo::ClearBossInfo()
 	}
 
 	if(BossNameText)
-	{
 		BossNameText->SetText(FText::GetEmpty());
-	}
+
+	if(BossHPText)
+		BossHPText->SetText(FText::GetEmpty());
+
+	if(BossShieldText)
+		BossShieldText->SetVisibility(ESlateVisibility::Hidden);
 
 	if(BossAbilityText)
 	{
