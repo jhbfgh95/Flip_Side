@@ -263,7 +263,23 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
         return false;
     }
 
-    const int32 PatternIndex = FMath::RandRange(0, PatternCount - 1);
+    // 방어막이 가득 찬 경우 ShieldHeal 패턴 제외
+    UBossPatternBase* PatternObj = CurrentBoss->GetPattern();
+    TArray<int32> CandidateIndices;
+    const bool bShieldFull = CurrentBoss->GetCurrentShield() >= CurrentBoss->GetMaxShield() && CurrentBoss->GetMaxShield() > 0;
+    for (int32 i = 0; i < PatternCount; ++i)
+    {
+        if (PatternObj && PatternObj->PatternData.IsValidIndex(i) && bShieldFull && PatternObj->PatternData[i].ShieldHeal > 0)
+        {
+            continue;
+        }
+        CandidateIndices.Add(i);
+    }
+    if (CandidateIndices.IsEmpty())
+    {
+        CandidateIndices.Add(FMath::RandRange(0, PatternCount - 1));
+    }
+    const int32 PatternIndex = CandidateIndices[FMath::RandRange(0, CandidateIndices.Num() - 1)];
     UE_LOG(LogTemp, Warning, TEXT("[BossManager] PatternCount=%d, SelectedIndex=%d"), PatternCount, PatternIndex);
     UBossPatternBase* PickedPattern = CurrentBoss->GetPattern();
     if (!PickedPattern)

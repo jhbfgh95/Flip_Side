@@ -36,6 +36,12 @@ protected:
 	class UTextBlock* BossNameText;
 
 	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* BossHPText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* BossShieldText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* BossAbilityText;
 
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -49,6 +55,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* PatternNameText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UImage* AttackIconImage;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* PatternAttackText;
@@ -86,11 +95,47 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UButton* PatternButton_10;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternButtonText_1;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternButtonText_2;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternButtonText_3;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternButtonText_4;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternButtonText_5;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternButtonText_6;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternButtonText_7;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternButtonText_8;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternButtonText_9;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* PatternButtonText_10;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Boss")
 	FBossDisplayData CurrentBossData;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Boss")
 	int32 CurrentPatternIndex = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Boss")
+	float CurrentStatMultiplier = 1.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Boss")
+	float CurrentGimmickMultiplier = 1.0f;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Boss")
 	TArray<FBossPatternDisplayData> CurrentPatternDataList;
