@@ -231,6 +231,7 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
                 SelectWeapon.WeaponIcon, FText::FromString(SelectWeapon.WeaponName), FText::FromString(SelectWeapon.KOR_DES), 
                 SelectWeapon.BehaviorPoint, ActionTask.ModifiedBehaviorPoint, 
                 SelectWeapon.AttackPoint, ActionTask.ModifiedAttackPoint, SelectWeapon.TypeColor,
+                HoveredCoin->StatComponent->GetHP(), HoveredCoin->StatComponent->GetMaxHP(),
                 HoveredCoin->StatComponent->ActiveBuffs
             );
 
@@ -383,6 +384,7 @@ void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
         UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
 		int32 DefaultBP, int32 ModifiedBP, 
 		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor,
+        int32 CurrentHP, int32 MaxHP,
         const TArray<FBuffInfo>& ActiveBuffs)
 {
     if(BattleCoinInfoWidgetInstance)
@@ -390,7 +392,8 @@ void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
         BattleCoinInfoWidgetInstance->UpdateBattleCoinInfo(
             Icon, WeaponName, RawDescription,
             DefaultBP, ModifiedBP,
-            DefaultAP, ModifiedAP, WeaponColor,
+            DefaultAP, ModifiedAP,
+            CurrentHP, MaxHP, WeaponColor,
             ActiveBuffs
         );
         BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);

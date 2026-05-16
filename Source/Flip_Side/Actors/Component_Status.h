@@ -119,6 +119,7 @@ public:
 	UComponent_Status();
 
 	int32 GetHP() const;
+	int32 GetMaxHP() const;
 
 	FActionTask GetModifiedStats();
 

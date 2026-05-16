@@ -21,6 +21,7 @@ struct FCoinWidgetInfoData
 	FText RawDescription;
 	int32 DefaultBP;
 	int32 DefaultAP;
+	int32 MaxHP = 0;
 	FAttackAreaSpec AttackAreaSpec;
 	FLinearColor TypeColor;
 };
@@ -58,6 +59,7 @@ public:
 		const FText& RawDescription,
 		int32 DefaultBP,
 		int32 DefaultAP,
+		int32 MaxHP,
 		const FAttackAreaSpec& Spec,
 		FLinearColor typeColor
 	)
@@ -67,6 +69,7 @@ public:
 		FrontFaceInfo.RawDescription = RawDescription;
 		FrontFaceInfo.DefaultBP = DefaultBP;
 		FrontFaceInfo.DefaultAP = DefaultAP;
+		FrontFaceInfo.MaxHP = MaxHP;
 		FrontFaceInfo.AttackAreaSpec = Spec;
 		FrontFaceInfo.TypeColor = typeColor;
 	}
@@ -77,6 +80,7 @@ public:
 		const FText& RawDescription,
 		int32 DefaultBP,
 		int32 DefaultAP,
+		int32 MaxHP,
 		const FAttackAreaSpec& Spec,
 		FLinearColor typeColor
 	)
@@ -86,6 +90,7 @@ public:
 		BackFaceInfo.RawDescription = RawDescription;
 		BackFaceInfo.DefaultBP = DefaultBP;
 		BackFaceInfo.DefaultAP = DefaultAP;
+		BackFaceInfo.MaxHP = MaxHP;
 		BackFaceInfo.AttackAreaSpec = Spec;
 		BackFaceInfo.TypeColor = typeColor;
 	}

@@ -26,8 +26,13 @@ void UW_ReadyAndSlotCoinInfo::NativeConstruct()
     }
 }
 
-void UW_ReadyAndSlotCoinInfo::SetReadyCoinInfo(bool FaceFlag, UTexture2D * Icon, const FText & WeaponName, const FText & RawDescription, int32 DefaultBP, int32 DefaultAP, FLinearColor typeColor)
+void UW_ReadyAndSlotCoinInfo::SetReadyCoinInfo(bool FaceFlag, UTexture2D * Icon, const FText & WeaponName, const FText & RawDescription, int32 DefaultBP, int32 DefaultAP, int32 MaxHP, FLinearColor typeColor)
 {
+    if (CoinMaxHPText)
+    {
+        CoinMaxHPText->SetText(FText::AsNumber(MaxHP));
+    }
+
     if(FaceFlag)
     {
         if (HoveredFrontWeaponIcon && Icon && FrontDynamicMaterial)

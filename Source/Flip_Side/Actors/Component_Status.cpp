@@ -26,6 +26,11 @@ int32 UComponent_Status::GetHP() const
 	return HP;
 }
 
+int32 UComponent_Status::GetMaxHP() const
+{
+	return MaxHP;
+}
+
 FActionTask UComponent_Status::GetModifiedStats() 
 {
 	FActionTask FinalTask;

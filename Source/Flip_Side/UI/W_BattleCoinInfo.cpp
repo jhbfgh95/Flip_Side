@@ -21,7 +21,7 @@ void UW_BattleCoinInfo::NativeConstruct()
 void UW_BattleCoinInfo::UpdateBattleCoinInfo(
 	UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
 	int32 DefaultBP, int32 ModifiedBP, 
-	int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor,
+	int32 DefaultAP, int32 ModifiedAP, int32 CurrentHP, int32 MaxHP, FLinearColor WeaponColor,
 	const TArray<FBuffInfo>& ActiveBuffs
     )
 {
@@ -33,6 +33,14 @@ void UW_BattleCoinInfo::UpdateBattleCoinInfo(
 	if (HoveredWeaponName)
 	{
 		HoveredWeaponName->SetText(WeaponName);
+	}
+	if (CoinCurrentHPText)
+	{
+		CoinCurrentHPText->SetText(FText::AsNumber(CurrentHP));
+	}
+	if (CoinMaxHPText)
+	{
+		CoinMaxHPText->SetText(FText::AsNumber(MaxHP));
 	}
 
 	auto FormatStatWithDiff = [](int32 DefaultVal, int32 ModifiedVal, const TCHAR* DefaultColorTag, const TCHAR* StatLabel) -> FText

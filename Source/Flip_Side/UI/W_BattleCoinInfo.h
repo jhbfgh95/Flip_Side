@@ -25,6 +25,12 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class URichTextBlock* HoveredWeaponDes;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* CoinCurrentHPText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* CoinMaxHPText;
+
 	UPROPERTY()
 	class UMaterialInstanceDynamic* DynamicMaterial;
 
@@ -57,6 +63,7 @@ public:
 		const FText& RawDescription, 
 		int32 DefaultBP, int32 ModifiedBP, 
 		int32 DefaultAP, int32 ModifiedAP,
+		int32 CurrentHP, int32 MaxHP,
 		FLinearColor WeaponColor,
 		const TArray<FBuffInfo>& ActiveBuffs
 		/*int32 DefaultRange, int32 ModifiedRange */

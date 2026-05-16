@@ -33,6 +33,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class URichTextBlock* HoveredBackWeaponDes;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* CoinMaxHPText;
+
 	UPROPERTY()
 	class UMaterialInstanceDynamic* FrontDynamicMaterial;
 
@@ -48,6 +51,7 @@ public:
 		const FText& RawDescription,
 		int32 DefaultBP, 
 		int32 DefaultAP,
+		int32 MaxHP,
 		FLinearColor typeColor
 	);
 };

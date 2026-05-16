@@ -441,8 +441,8 @@ void UCoinManagementWSubsystem::InstanceCoins()
                         }
                     }
                 }
-                CoinSlots[SlotIndex]->SetFrontFaceInfo(FrontWP.WeaponIcon, FText::FromString(FrontWP.WeaponName),FText::FromString(FrontWP.KOR_DES),FrontWP.BehaviorPoint,FrontWP.AttackPoint, FrontWP.AttackAreaSpec, TypeDatas.TypeColor);
-                CoinSlots[SlotIndex]->SetBackFaceInfo(BackWP.WeaponIcon, FText::FromString(BackWP.WeaponName),FText::FromString(BackWP.KOR_DES),BackWP.BehaviorPoint,BackWP.AttackPoint, BackWP.AttackAreaSpec, TypeDatas.TypeColor);
+                CoinSlots[SlotIndex]->SetFrontFaceInfo(FrontWP.WeaponIcon, FText::FromString(FrontWP.WeaponName),FText::FromString(FrontWP.KOR_DES),FrontWP.BehaviorPoint,FrontWP.AttackPoint, TypeDatas.HP, FrontWP.AttackAreaSpec, TypeDatas.TypeColor);
+                CoinSlots[SlotIndex]->SetBackFaceInfo(BackWP.WeaponIcon, FText::FromString(BackWP.WeaponName),FText::FromString(BackWP.KOR_DES),BackWP.BehaviorPoint,BackWP.AttackPoint, TypeDatas.HP, BackWP.AttackAreaSpec, TypeDatas.TypeColor);
                 SlotIndex++;
             }
         }
@@ -579,6 +579,7 @@ void UCoinManagementWSubsystem::SetCoinInfoWidgetData(FCoinWidgetInfoData& Front
         FrontWeaponData.RawDescription,
         FrontWeaponData.DefaultBP,
         FrontWeaponData.DefaultAP,
+        FrontWeaponData.MaxHP,
         FrontWeaponData.TypeColor
     );
                     
@@ -589,6 +590,7 @@ void UCoinManagementWSubsystem::SetCoinInfoWidgetData(FCoinWidgetInfoData& Front
         BackWeaponData.RawDescription,
         BackWeaponData.DefaultBP,
         BackWeaponData.DefaultAP,
+        BackWeaponData.MaxHP,
         BackWeaponData.TypeColor
     );
 }
