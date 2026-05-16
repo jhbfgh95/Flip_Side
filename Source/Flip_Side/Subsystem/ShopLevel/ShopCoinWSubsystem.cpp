@@ -182,7 +182,7 @@ void UShopCoinWSubsystem::DecreaseSlotCoinCount()
         
         TotalCoinCount--;
         ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum--;
-        MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 25);
+        MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 50);
         OnCoinCountUpdate.Broadcast(CurrentCoinSlotNum,ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
             
     }
