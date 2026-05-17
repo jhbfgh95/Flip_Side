@@ -34,8 +34,9 @@ void UW_UnlockWeaponGrid::InitWeaponGrid()
     {
         int32 WeaponID = UnlockWeaponSubsystem->GetWeaponIDByIndex(GridWeaponClass, i);
         //버거 제외
-        if(WeaponID != 3)
+        if(WeaponID != 3 || WeaponID != 13)
             AddButton(WeaponID);
+        
     }
 }
 

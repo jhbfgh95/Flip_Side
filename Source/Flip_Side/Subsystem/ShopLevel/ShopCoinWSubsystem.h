@@ -170,4 +170,6 @@ public:
 	void HoverWeapon(int32 WeaponID);
 	void UnHoverWeapon();
 
+public:
+	void ChangeCoinClass(EWeaponClass WeaponClass);
 };

@@ -495,3 +495,8 @@ int32 UShopCoinWSubsystem::GetCurrentSlotCount()
     
     return Count;
 }
+	
+void UShopCoinWSubsystem::ChangeCoinClass(EWeaponClass WeaponClass)
+{
+    OnChangeCoinClass.Broadcast(WeaponClass);   
+}

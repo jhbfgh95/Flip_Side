@@ -22,7 +22,6 @@ private:
 private:
 	class UDataManagerSubsystem* DataSubsystem;
 	class UShopCoinWSubsystem* CoinSubsystem;
-	
 
 private:
 	UPROPERTY(meta = (BindWidget))
@@ -34,6 +33,8 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* CoinSideClearButton;
 
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* HPText;
 	
 
 private:
@@ -62,6 +63,7 @@ private:
 	UFUNCTION()
 	void ClearCoinSide();
 
-
+	UFUNCTION()
+	void SetHpText(EWeaponClass WeaponClass);
 
 };

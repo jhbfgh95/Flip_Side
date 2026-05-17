@@ -39,8 +39,13 @@ void UW_UnlockCardModeWidget::NativeConstruct()
     ////
     TArray<FCardData> CardData = ShopCardSubsystem->GetCardListArray();
 
+    //더 많은 황금 제거
+    if(CardData.IsValidIndex(4))
+    {
+        CardData.RemoveAt(3);
+    }
+      
     int32 CardListNum = CardData.Num();
-
     
     for (int32 i = 0; i < CardListNum; i++)
     {
@@ -66,7 +71,7 @@ void UW_UnlockCardModeWidget::NativeDestruct()
     ShopCardSubsystem->OnSelectCard.RemoveAll(this);
     ShopCardSubsystem->OnSelectCard.RemoveAll(this);
     
-    ShopCardSubsystem->OnUnlockCard.AddDynamic(this, &UW_UnlockCardModeWidget::UnlockCardAdaptor);
+    ShopCardSubsystem->OnUnlockCard.RemoveAll(this);
     Super::NativeDestruct();
 }
 

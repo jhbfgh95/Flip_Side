@@ -89,4 +89,6 @@ void UW_WeaponGridContainer::SetWeaponGrid(EWeaponClass weaponClass)
         default:
             break;
     }
+
+    CoinSubsystem->ChangeCoinClass(weaponClass);
 }
