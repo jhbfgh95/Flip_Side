@@ -10,6 +10,7 @@
 #include "Subsystem/CrossingLevelGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
+#include "Subsystem/BattleLevel/BattleLevelActingWSubsystem.h"
 #include "Subsystem/CardLogicLibrary.h"
 #include "Component_Status.h"
 #include "CoinActor.h"
@@ -57,6 +58,7 @@ void UStageCardWSubsystem::Deinitialize()
 {
     StageHUDInstance = nullptr;
     GridSubsys = nullptr;
+    ActingManager = nullptr;
     CrossingGI = nullptr;
     DM = nullptr;
     CoinMods.Empty();
@@ -72,6 +74,7 @@ void UStageCardWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
         return;
 
     GridSubsys = InWorld.GetSubsystem<UGridManagerSubsystem>();
+    ActingManager = InWorld.GetSubsystem<UBattleLevelActingWSubsystem>();
 
     if (UGameInstance* GI = InWorld.GetGameInstance())
     {
@@ -256,13 +259,11 @@ void UStageCardWSubsystem::SettingDoSettingTurn()
 
 void UStageCardWSubsystem::ClearPromotionHighlight()
 {
-    if (GridSubsys && PromotionHighlightedGrid.GridX >= 0)
+    if (ActingManager)
     {
-        if (AGridActor* PrevGrid = GridSubsys->GetGridActor(PromotionHighlightedGrid))
-        {
-            PrevGrid->SetPromotionHighlight(false);
-        }
+        ActingManager->HidePromotionVFX();
     }
+
     PromotionHighlightedGrid.GridX = -1;
     PromotionHighlightedGrid.GridY = -1;
 }
@@ -290,6 +291,7 @@ void UStageCardWSubsystem::CollectCoinsOnField(TArray<FCoinOnGridInfo>& OutCoins
 void UStageCardWSubsystem::ExecuteCardsEffect()
 {
     ClearAllModifiers();
+    ClearPromotionHighlight();
 
     TArray<FCoinOnGridInfo> FieldCoins;
     CollectCoinsOnField(FieldCoins);
@@ -327,7 +329,10 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
 
         if (AGridActor* HighlightGrid = GridSubsys->GetGridActor(RandPoint))
         {
-            HighlightGrid->SetPromotionHighlight(true);
+            if (ActingManager)
+            {
+                ActingManager->ShowPromotionVFX(HighlightGrid->GetActorLocation());
+            }
             PromotionHighlightedGrid = RandPoint;
         }
     }

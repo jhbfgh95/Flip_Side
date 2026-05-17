@@ -57,6 +57,8 @@ protected:
 protected:
 	void InitCoinSlot();
 
+	void AddEmptyFallbackCoinSlot();
+
 	void InstanceCoins();
 
 	void BindCoinEvents(ACoinActor* CoinActor);

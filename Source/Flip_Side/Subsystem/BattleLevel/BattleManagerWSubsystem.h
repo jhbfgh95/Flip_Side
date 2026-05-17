@@ -133,6 +133,9 @@ protected:
 	void StageEnded();
 
 	UFUNCTION()
+	void BossDeathStarted();
+
+	UFUNCTION()
 	void GameOver();
 
 	bool TryEndStage(int32 StageEndFlag);

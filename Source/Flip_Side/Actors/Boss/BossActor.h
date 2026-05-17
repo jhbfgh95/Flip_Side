@@ -10,6 +10,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBossAttackEndedDelegate);
 DECLARE_DYNAMIC_DELEGATE(FOnDeadDeathMontageEnded);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBossDeathStarted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBossDead);
 
 UCLASS()
@@ -130,8 +131,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
 	TObjectPtr<class UAnimMontage> BossHitAnim = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Death")
+	float BossDeadEffectDelay = 1.0f;
+
+	bool bIsDying = false;
+
+	bool bBossDeathFinished = false;
+
+	FTimerHandle BossDeadEffectTimerHandle;
+
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	void BossMontageEnded(class UAnimMontage* TargetMontage, bool bInterrupted);
+
+	UFUNCTION()
+	void BroadcastBossDeadAfterEffect();
 
 	void UpdateShieldEffect();
 	void ApplyCachedPatternInfoToWidget();
@@ -250,6 +263,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	void FinishBossAttack();
 
+	virtual void PlayHitAnimation();
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Boss")
 	void DisPlayOutline();
 
@@ -266,7 +281,12 @@ public:
 	FOnBossAttackEndedDelegate OnBossAttackEnded;
 
 	UPROPERTY(BlueprintAssignable, Category = "Boss")
+	FOnBossDeathStarted OnBossDeathStarted;
+
+	UPROPERTY(BlueprintAssignable, Category = "Boss")
 	FOnBossDead OnBossDead;
+
+	void FinishBossClearAnimation();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Boss")
 	void BossDeadEffect();

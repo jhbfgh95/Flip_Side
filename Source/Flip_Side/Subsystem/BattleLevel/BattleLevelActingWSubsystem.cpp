@@ -11,6 +11,7 @@
 #include "Base_PatternVisualActor.h"
 #include "FlipSideDevloperSettings.h"
 #include "ItemDataTypes.h"
+#include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 
@@ -211,6 +212,42 @@ void UBattleLevelActingWSubsystem::PlayPhaseChangePotionAct(ACoinActor* TargetCo
         TargetGrid->GetGridWorldXY().X,
         TargetGrid->GetGridWorldXY().Y
     );
+}
+
+void UBattleLevelActingWSubsystem::ShowPromotionVFX(const FVector& Location)
+{
+    if(!GetWorld()) return;
+
+    if(!IsValid(PromotionVFXComponent))
+    {
+        const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+        if(!Settings) return;
+
+        UNiagaraSystem* PromotionVFX = Settings->Promotion_VFX.LoadSynchronous();
+        if(!PromotionVFX) return;
+
+        PromotionVFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+            GetWorld(),
+            PromotionVFX,
+            Location,
+            FRotator::ZeroRotator,
+            FVector(1.0f),
+            false,
+            true
+        );
+        return;
+    }
+
+    PromotionVFXComponent->SetWorldLocation(Location);
+    PromotionVFXComponent->Activate(true);
+}
+
+void UBattleLevelActingWSubsystem::HidePromotionVFX()
+{
+    if(IsValid(PromotionVFXComponent))
+    {
+        PromotionVFXComponent->DeactivateImmediate();
+    }
 }
 
 void UBattleLevelActingWSubsystem::RaiseCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished)

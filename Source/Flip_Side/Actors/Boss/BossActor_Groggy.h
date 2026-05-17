@@ -16,6 +16,7 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+    virtual void PlayHitAnimation() override;
 
 public:
     virtual void ApplyCC(const FCCStructure& CC) override;

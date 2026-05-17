@@ -31,6 +31,29 @@ void ABossActor_Groggy::BeginPlay()
     }
 }
 
+void ABossActor_Groggy::PlayHitAnimation()
+{
+    if (!BossHitAnim || !AnimInstance)
+    {
+        return;
+    }
+
+    AnimInstance->Montage_Play(BossHitAnim);
+
+    for (UBossGimmickBase* G : GimmickList)
+    {
+        if (UBossGimmick_Groggy* GroggyGimmick = Cast<UBossGimmick_Groggy>(G))
+        {
+            const FName SectionName = GroggyGimmick->IsGroggy()
+                ? TEXT("GroggyFull")
+                : TEXT("GroggyNotFull");
+
+            AnimInstance->Montage_JumpToSection(SectionName, BossHitAnim);
+            return;
+        }
+    }
+}
+
 int32 ABossActor_Groggy::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCauser)
 {
     for (UBossGimmickBase* G : GimmickList)

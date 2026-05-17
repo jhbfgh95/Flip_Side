@@ -11,6 +11,7 @@
 class UGridManagerSubsystem;
 class UCrossingLevelGISubsystem;
 class UDataManagerSubsystem;
+class UBattleLevelActingWSubsystem;
 class ACoinActor;
 
 struct FCoinOnGridInfo; // GridTypes �ʿ� ���� ���ɼ� ����
@@ -99,6 +100,7 @@ private:
     UPROPERTY() UGridManagerSubsystem* GridSubsys = nullptr;
     UPROPERTY() UCrossingLevelGISubsystem* CrossingGI = nullptr;
     UPROPERTY() UDataManagerSubsystem* DM = nullptr;
+    UPROPERTY() UBattleLevelActingWSubsystem* ActingManager = nullptr;
 
     // ���κ� ī�� ȿ�� ��� ĳ��(�ϸ��� �ʱ�ȭ ����)
     UPROPERTY()

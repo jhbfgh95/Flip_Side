@@ -104,5 +104,8 @@ public:
 	TSoftObjectPtr<UNiagaraSystem> Coin_Logic_Failed_VFX;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Battle VFX")
+	TSoftObjectPtr<UNiagaraSystem> Promotion_VFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Battle VFX")
 	float CommonVFXDelayAfterCoinVFX = 0.35f;
 };

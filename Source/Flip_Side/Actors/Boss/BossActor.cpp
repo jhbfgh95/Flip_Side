@@ -121,6 +121,7 @@ void ABossActor::ApplyDamage(int32 Damage, AActor* DamageCauser)
 int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCauser)
 {
 	if(!DamageCauser) return 0;
+	if(bIsDying) return 0;
 
 	int32 FinalDamage = FMath::Max(0, Damage);
 
@@ -142,7 +143,7 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 
 		if(ActualDamageToHP <= 0)
 		{
-			if(BossHitAnim && AnimInstance) AnimInstance->Montage_Play(BossHitAnim);
+			PlayHitAnimation();
 			UpdateShieldEffect();
 			return 0;
 		}
@@ -157,17 +158,18 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 		BossHpWidget->ChangeCurrentHp(-ActualDamageToHP);
 	}
 
-	if(CurrentHP <= 0)
+	if(CurrentHP <= 0 && !bIsDying)
 	{
 		if(AnimInstance && BossClearAnim)
 		{
-			if(OnBossDead.IsBound()) OnBossDead.Broadcast();
+			bIsDying = true;
+			if(OnBossDeathStarted.IsBound()) OnBossDeathStarted.Broadcast();
 			AnimInstance->Montage_Play(BossClearAnim);
 		}
 	}
-	else
+	else if(CurrentHP > 0)
 	{
-		if(BossHitAnim && AnimInstance) AnimInstance->Montage_Play(BossHitAnim);
+		PlayHitAnimation();
 	}
 	UpdateShieldEffect();
 
@@ -188,7 +190,7 @@ int32 ABossActor::ApplyShieldOnlyDamage(int32 Damage, AActor* DamageCauser)
 		BossHpWidget->ChangeCurrentShield(-ShieldDamage);
 	}
 
-	if(BossHitAnim && AnimInstance) AnimInstance->Montage_Play(BossHitAnim);
+	PlayHitAnimation();
 	UpdateShieldEffect();
 
 	return ShieldDamage;
@@ -379,8 +381,20 @@ void ABossActor::FinishBossAttack()
 	}
 }
 
+void ABossActor::PlayHitAnimation()
+{
+	if(BossHitAnim && AnimInstance)
+	{
+		AnimInstance->Montage_Play(BossHitAnim);
+	}
+}
+
 void ABossActor::BossMontageEnded(UAnimMontage * TargetMontage, bool bInterrupted)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[Boss] MontageEnded Target=%s Clear=%s Interrupted=%d"),
+    *GetNameSafe(TargetMontage),
+    *GetNameSafe(BossClearAnim),
+    bInterrupted);
 	if (TargetMontage == SelectedPatternAnim)
     {
         if(OnBossAttackEnded.IsBound()) OnBossAttackEnded.Broadcast();
@@ -388,8 +402,51 @@ void ABossActor::BossMontageEnded(UAnimMontage * TargetMontage, bool bInterrupte
     }
 	else if(TargetMontage == BossClearAnim)
 	{
-		BossDeadEffect();
+
+		UE_LOG(LogTemp, Warning, TEXT("[Boss] BossClearAnim ended. Interrupted=%d"), bInterrupted);
+		if(bInterrupted) return;
+
+		FinishBossClearAnimation();
 	}
+}
+
+void ABossActor::FinishBossClearAnimation()
+{
+	if(bBossDeathFinished) return;
+
+	bBossDeathFinished = true;
+
+	if(BossMesh)
+	{
+		BossMesh->bPauseAnims = true;
+	}
+
+	BossDeadEffect();
+
+	if(BossDeadEffectDelay <= 0.0f)
+	{
+		BroadcastBossDeadAfterEffect();
+		return;
+	}
+
+	if(UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(
+			BossDeadEffectTimerHandle,
+			this,
+			&ABossActor::BroadcastBossDeadAfterEffect,
+			BossDeadEffectDelay,
+			false
+		);
+		return;
+	}
+
+	BroadcastBossDeadAfterEffect();
+}
+
+void ABossActor::BroadcastBossDeadAfterEffect()
+{
+	if(OnBossDead.IsBound()) OnBossDead.Broadcast();
 }
 
 void ABossActor::UpdateShieldEffect()

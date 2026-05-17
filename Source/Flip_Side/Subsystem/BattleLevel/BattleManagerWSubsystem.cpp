@@ -95,6 +95,7 @@ void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
             if (ABossActor* Boss = BossManager->GetCurrentBoss())
             {
                 Boss->OnBossAttackEnded.AddDynamic(this, &UBattleManagerWSubsystem::DoSettingTurn);
+                Boss->OnBossDeathStarted.AddDynamic(this, &UBattleManagerWSubsystem::BossDeathStarted);
                 Boss->OnBossDead.AddDynamic(this, &UBattleManagerWSubsystem::StageEnded);
             }
         }
@@ -350,8 +351,15 @@ void UBattleManagerWSubsystem::StageEnded()
 
     if (!TryEndStage(StageEndFlag)) return;
 
-    ActingManager->OnBossDeadAct.ExecuteIfBound();
     ShowStageEndWidget(StageEndFlag);
+}
+
+void UBattleManagerWSubsystem::BossDeathStarted()
+{
+    if (ActingManager)
+    {
+        ActingManager->OnBossDeadAct.ExecuteIfBound();
+    }
 }
 
 void UBattleManagerWSubsystem::GameOver()

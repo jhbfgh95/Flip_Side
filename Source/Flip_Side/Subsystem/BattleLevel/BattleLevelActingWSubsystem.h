@@ -8,6 +8,7 @@
 
 class ACoinActor;
 class AUseableItemActor;
+class UNiagaraComponent;
 struct FItemData;
 
 DECLARE_DELEGATE_OneParam(FOnDrawMove, bool);
@@ -75,6 +76,9 @@ class FLIP_SIDE_API UBattleLevelActingWSubsystem : public UWorldSubsystem
 	UPROPERTY()
     TObjectPtr<ABase_PatternVisualActor> CurrentVisualActor = nullptr;
 
+	UPROPERTY()
+	TObjectPtr<UNiagaraComponent> PromotionVFXComponent = nullptr;
+
 /* Battle Start */
 protected:
 	void OpenGrid();
@@ -114,6 +118,10 @@ public:
 	void PlayUseableItemVFX(const FItemData& ItemData, class AGridActor* TargetGrid, ACoinActor* TargetCoin, AActor* TargetOther);
 
 	void PlayPhaseChangePotionAct(ACoinActor* TargetCoin);
+
+	void ShowPromotionVFX(const FVector& Location);
+
+	void HidePromotionVFX();
 	
 /* 연출용 델리게이트 */
 public:

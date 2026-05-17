@@ -84,12 +84,29 @@ void UCoinManagementWSubsystem::InitCoinSlot()
 
     UCrossingLevelGISubsystem* CrossingLevelSubsystem = GI->GetSubsystem<UCrossingLevelGISubsystem>();
 
+    if (CrossingLevelSubsystem->GetIsCoinEmpty())
+    {
+        AddEmptyFallbackCoinSlot();
+        return;
+    }
+
     for(int i = 0; i < CrossingLevelSubsystem->GetMakedCoinNum(); i++)
     {
         //없으면 그냥 다 -1로 채워지는 DefaultCoin이 들어감. 걍 나중에 이걸 보면 될듯
         FCoinTypeStructure CoinData = CrossingLevelSubsystem->GetSlotCoin(i);
         CoinSlotDataArray.Add(CoinData);
     }
+}
+
+void UCoinManagementWSubsystem::AddEmptyFallbackCoinSlot()
+{
+    FCoinTypeStructure EmptyFallbackCoin;
+    EmptyFallbackCoin.FrontWeaponID = -3;
+    EmptyFallbackCoin.BackWeaponID = -2;
+    EmptyFallbackCoin.SameTypeCoinNum = 1;
+    EmptyFallbackCoin.SlotNum = 0;
+
+    CoinSlotDataArray.Add(EmptyFallbackCoin);
 }
 
 void UCoinManagementWSubsystem::InitBattleReadyCoin()
