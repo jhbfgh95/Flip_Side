@@ -39,7 +39,6 @@ void UW_CoinSlotWidget::NativeConstruct()
 	
 void UW_CoinSlotWidget::NativeDestruct()
 {
-    CoinSubsystem->OnUnlockCoinSlot.RemoveAll(this);
     CoinSubsystem->OnSetWeapon.RemoveAll(this);
     CoinSubsystem->OnCoinSlotChange.RemoveAll(this);
     Super::NativeDestruct();

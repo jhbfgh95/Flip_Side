@@ -39,7 +39,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCoinCountUpdate , int32 , CoinSlot
 /*코인 슬롯이 변경되었을 떄 델리게이트 위에서 아래로 변경 됬는지 검사*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangeCoinSlot);
 /*코인 슬롯 해금시 델리게이트*/
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockCoinSlot);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeCoinSlotCount, bool, IsIncrease);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHoverWeapon,int32, WeaponID);
 
@@ -81,7 +81,7 @@ private:
 public:
 	FChangeCoinSlot OnCoinSlotChange;
 	FCoinCountUpdate OnCoinCountUpdate;
-	FUnlockCoinSlot OnUnlockCoinSlot;
+	FChangeCoinSlotCount OnChangeCoinSlotCount;
 	FCoinCreated OnCoinCreated;
 	FChangeSlotCoinSide OnChangeSlotCoinSide;
 	FSetWeapon OnSetWeapon;
@@ -111,6 +111,10 @@ public:
 
 	void UnlockCurrentCoinSlot();
 	bool UnlockCoinSlot(int32 SlotNum);
+
+	bool IncreaseCoinSlot(int32 SlotNum);
+	bool DecreaseCoinSlot(int32 SlotNum);
+
 	//현재 코인슬롯이 해금되었는지 반환
 	bool GetCurrentCoinUnlock();
 	bool GetCoinUnlockByIndex(int32 index);

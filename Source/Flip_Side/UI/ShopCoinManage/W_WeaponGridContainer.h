@@ -59,7 +59,7 @@ private:
 	UFUNCTION()
 	void SetUnlockImageSlotChange();
 	UFUNCTION()
-	void SetUnlockImage();
+	void SetUnlockImage(bool IsIncrease);
 	UFUNCTION()
 	void SetDealGrid();
 	UFUNCTION()

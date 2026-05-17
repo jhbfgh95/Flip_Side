@@ -17,17 +17,19 @@ void UW_CoinSlotContainer::NativeConstruct()
     Super::NativeConstruct();
     ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     ShopCoinSubsystem->OnCoinCountUpdate.AddDynamic(this , &UW_CoinSlotContainer::SetTotalCoinText);
-    ShopCoinSubsystem->OnUnlockCoinSlot.AddDynamic(this , &UW_CoinSlotContainer::UpdateSlotText);
+    ShopCoinSubsystem->OnChangeCoinSlotCount.AddDynamic(this , &UW_CoinSlotContainer::UpdateSlotText);
     
 
     SlotAddButton->OnClicked.AddDynamic(this, &UW_CoinSlotContainer::AddCoinSlot);
+    DecreaseSlotButton->OnClicked.AddDynamic(this, &UW_CoinSlotContainer::DecreaseCoinSlot);
     SetTotalCoinText(0, 0);
+    InitCoinSlot();
 }
 
 void UW_CoinSlotContainer::NativeDestruct()
 {
     ShopCoinSubsystem->OnCoinCountUpdate.RemoveAll(this);
-    ShopCoinSubsystem->OnUnlockCoinSlot.RemoveAll(this);
+    ShopCoinSubsystem->OnChangeCoinSlotCount.RemoveAll(this);
     Super::NativeDestruct();
 }
 
@@ -43,25 +45,51 @@ void UW_CoinSlotContainer::SetTotalCoinText(int32 ChangedSlotIndex, int32 Count)
 void UW_CoinSlotContainer::AddCoinSlot()
 {
 
-    if(ShopCoinSubsystem->UnlockCoinSlot(CoinSlotCount))
+    UWidget* SlotWidget = SlotScroll->GetChildAt(CoinSlotCount);
+    if(!SlotWidget)
+        return;
+    if(ShopCoinSubsystem->IncreaseCoinSlot(CoinSlotCount))
     {
         if(SlotBuyDescrip->GetVisibility() == ESlateVisibility::Visible)
             SlotBuyDescrip->SetVisibility(ESlateVisibility::Collapsed);
 
+        SlotWidget->SetVisibility(ESlateVisibility::Visible);
+        CoinSlotCount++;
+    }
+
+
+}
+
+void UW_CoinSlotContainer::DecreaseCoinSlot()
+{
+    UWidget* SlotWidget = SlotScroll->GetChildAt(CoinSlotCount-1);
+    if(!SlotWidget)
+        return;
+    if(ShopCoinSubsystem->DecreaseCoinSlot(CoinSlotCount-1))
+    {
+        SlotWidget->SetVisibility(ESlateVisibility::Collapsed);
+        CoinSlotCount--;
+    }
+}
+
+
+void UW_CoinSlotContainer::InitCoinSlot()
+{
+    for(int i =0; i<10; i++)
+    {
         UUserWidget* CoinSlotUserWidget = CreateWidget<UUserWidget>(GetWorld(), CoinSlotWidget);
         if(Slot)
         {
             SlotScroll->AddChild(CoinSlotUserWidget);
             UW_CoinSlotWidget* SlotClass = Cast<UW_CoinSlotWidget>(CoinSlotUserWidget);
             CoinSlot.Add(SlotClass);
-            SlotClass->InitSlot(CoinSlotCount);
+            SlotClass->InitSlot(i);
+            SlotClass->SetVisibility(ESlateVisibility::Collapsed);
         }
-        CoinSlotCount++;
     }
-
 }
-	
-void UW_CoinSlotContainer::UpdateSlotText()
+
+void UW_CoinSlotContainer::UpdateSlotText(bool IsIncrease)
 {
     int32 SlotCount = ShopCoinSubsystem->GetCurrentSlotCount();
     FString SlotText = FString::Printf(TEXT("%d / 10"), SlotCount);

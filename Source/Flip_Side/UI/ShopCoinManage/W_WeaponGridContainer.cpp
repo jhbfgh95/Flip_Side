@@ -12,7 +12,7 @@ void UW_WeaponGridContainer::NativeConstruct()
     CoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
 
     CoinSubsystem->OnCoinSlotChange.AddDynamic(this, &UW_WeaponGridContainer::SetUnlockImageSlotChange);
-    CoinSubsystem->OnUnlockCoinSlot.AddDynamic(this, &UW_WeaponGridContainer::SetUnlockImage);
+    CoinSubsystem->OnChangeCoinSlotCount.AddDynamic(this, &UW_WeaponGridContainer::SetUnlockImage);
     
     DealGridButton->OnClicked.AddDynamic(this, &UW_WeaponGridContainer::SetDealGrid);
     TankGridButton->OnClicked.AddDynamic(this, &UW_WeaponGridContainer::SetTankGrid);
@@ -23,24 +23,23 @@ void UW_WeaponGridContainer::NativeConstruct()
 void UW_WeaponGridContainer::NativeDestruct()
 {
     CoinSubsystem->OnCoinSlotChange.RemoveAll(this);
-    CoinSubsystem->OnUnlockCoinSlot.RemoveAll(this);
+    CoinSubsystem->OnChangeCoinSlotCount.RemoveAll(this);
     Super::NativeDestruct();
 }
 
 void UW_WeaponGridContainer::SetUnlockImageSlotChange()
 {
-    SetUnlockImage();
 }   
 
-void UW_WeaponGridContainer::SetUnlockImage()
+void UW_WeaponGridContainer::SetUnlockImage(bool IsIncrease)
 {
-    if(CoinSubsystem->GetCurrentCoinUnlock())
+    if(CoinSubsystem->GetCurrentSlotCount()==0)
     {
-        LockImage->SetVisibility(ESlateVisibility::Collapsed);
+        LockImage->SetVisibility(ESlateVisibility::Visible);
     }
     else
     {
-        LockImage->SetVisibility(ESlateVisibility::Visible);
+        LockImage->SetVisibility(ESlateVisibility::Collapsed);
     }
 }   
 

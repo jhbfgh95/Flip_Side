@@ -207,7 +207,7 @@ void UShopCoinWSubsystem::DecreaseSlotCoinCount(int32 SlotNum)
     {
         TotalCoinCount--;
         ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum--;
-        MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 25);
+        MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 50);
         OnCoinCountUpdate.Broadcast(SlotNum,ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum);
     }
 }
@@ -315,19 +315,6 @@ void UShopCoinWSubsystem::ChangeCoinSlotByIndex(int32 SlotNum)
     }
 }
 
-//현재 코인슬롯을 개방
-void UShopCoinWSubsystem::UnlockCurrentCoinSlot()
-{
-    if(!ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock)
-    {
-        if(MoneySubsystem->SpendMoney(EMoneyRecordType::CoinSlot, 100))
-        {
-            ShopCoinSlotArray[CurrentCoinSlotNum].IsUnlock = true;
-            OnUnlockCoinSlot.Broadcast();
-        }
-    }
-    
-}
 
 bool UShopCoinWSubsystem::GetCurrentCoinUnlock()
 {
@@ -346,55 +333,40 @@ bool UShopCoinWSubsystem::UnlockCoinSlot(int32 SlotNum)
     if(MoneySubsystem->SpendMoney(EMoneyRecordType::CoinSlot, 100))
     {
         ShopCoinSlotArray[SlotNum].IsUnlock = true;
-        OnUnlockCoinSlot.Broadcast();
+        OnChangeCoinSlotCount.Broadcast(true);
         return true;
     }
 
     return false;
     
 }
-
-bool UShopCoinWSubsystem::BuyCoinSlot(int32 SlotNum)
+	
+bool UShopCoinWSubsystem::IncreaseCoinSlot(int32 SlotNum)
 {
-    if(10<SlotNum || SlotNum<0)
-        return false;
-
-    if(!ShopCoinSlotArray[SlotNum].IsUnlock)
+    if(!ShopCoinSlotArray.IsValidIndex(SlotNum))
         return false;
 
     if(MoneySubsystem->SpendMoney(EMoneyRecordType::CoinSlot, 100))
     {
         ShopCoinSlotArray[SlotNum].IsUnlock = true;
-        OnUnlockCoinSlot.Broadcast();
+        OnChangeCoinSlotCount.Broadcast(true);
         return true;
     }
 
     return false;
 }
 
-bool UShopCoinWSubsystem::SellCoinSlot(int32 SlotNum)
+bool UShopCoinWSubsystem::DecreaseCoinSlot(int32 SlotNum)
 {
-    if(10<SlotNum || SlotNum<0)
+    if(!ShopCoinSlotArray.IsValidIndex(SlotNum))
         return false;
 
-    if(ShopCoinSlotArray[SlotNum].IsUnlock)
-        return false;
+    ShopCoinSlotArray[SlotNum].IsUnlock = false;
+    OnChangeCoinSlotCount.Broadcast(false);
+    MoneySubsystem->AddSaleMoney(EMoneyRecordType::CoinSlot, 100);
+    return true;
 
-    if(MoneySubsystem->SpendMoney(EMoneyRecordType::CoinSlot, 100))
-    {
-        ShopCoinSlotArray[SlotNum].IsUnlock = true;
-        OnUnlockCoinSlot.Broadcast();
-        return true;
-    }
-
-    return false;
 }
-
-void UShopCoinWSubsystem::UnlockCoin()
-{
-    OnUnlockCoinSlot.Broadcast();
-}
-
 
 int32 UShopCoinWSubsystem::GetCurrentCoinCount()
 {
