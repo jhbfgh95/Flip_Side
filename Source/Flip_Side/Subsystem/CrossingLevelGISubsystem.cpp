@@ -168,3 +168,13 @@ void UCrossingLevelGISubsystem::GenerateTestCoin()
     SetBattleUseItemID(6,1,3);
     SetBattleUseItemID(4,2,3);
 }
+	
+bool UCrossingLevelGISubsystem::GetIsCoinEmpty()
+{
+    return IsCoinEmpty;
+}
+	
+void UCrossingLevelGISubsystem::SetIsCoinEmpty(bool IsEmpty)
+{
+    IsCoinEmpty = IsEmpty;
+}

@@ -171,8 +171,7 @@ void UShopItemWSubsystem::SellItem(FItemData ItemData)
                 
                 PlayerItemArray[i].SameItemNum= 0;
             }
-            int32 SellCost = ItemData.Price/2;
-            MoneySubsystem->AddSaleMoney(EMoneyRecordType::Item, SellCost);
+            MoneySubsystem->AddSaleMoney(EMoneyRecordType::Item, ItemData.Price);
             OnItemSell.Broadcast(i);
             return;
         }

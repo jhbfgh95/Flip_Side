@@ -85,9 +85,10 @@ void UW_ShopModeChangeWidget::OpenWidget()
 
 void UW_ShopModeChangeWidget::ClickShopMainModeButton()
 {
-    OpenWidget();
     if(ShopGameMode)
     {
+        IsSlidePanelOpen = false;
+        PlayAnimationTimeRange(SlidePanelOpenAnim, 0.0f, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
         ShopGameMode->SetShopMainMode();
     }
 }
