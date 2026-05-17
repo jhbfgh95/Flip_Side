@@ -106,6 +106,9 @@ public:
 	void ChangeCoinSlotByIndex(int32 SlotNum);
 	//현재 코인슬롯을 개방
 
+	bool BuyCoinSlot(int32 SlotNum);
+	bool SellCoinSlot(int32 SlotNum);
+
 	void UnlockCurrentCoinSlot();
 	bool UnlockCoinSlot(int32 SlotNum);
 	//현재 코인슬롯이 해금되었는지 반환
@@ -142,6 +145,7 @@ public:
 
 	void ChangeSlotCoinSide(bool IsChangedSideFront);
 
+	bool GetIsCoinEmpty();
 public:
 	int32 GetCurrentCoinCount();
 	int32 GetCurrentSlotNum();
@@ -170,4 +174,6 @@ public:
 	void HoverWeapon(int32 WeaponID);
 	void UnHoverWeapon();
 
+public:
+	void ChangeCoinClass(EWeaponClass WeaponClass);
 };

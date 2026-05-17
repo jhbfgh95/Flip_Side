@@ -33,6 +33,8 @@ private:
 	//슬롯에 코인을 제작함
 	void InitSlots();
 
+	bool IsCoinEmpty = false;
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
@@ -66,5 +68,9 @@ public:
 
 	//테스트용 코인슬롯에 코인들을 채움 카드 및 소모품도 넣겠음.
 	void GenerateTestCoin();
+
+	bool GetIsCoinEmpty();
+	
+	void SetIsCoinEmpty(bool IsEmpty);
 
 };

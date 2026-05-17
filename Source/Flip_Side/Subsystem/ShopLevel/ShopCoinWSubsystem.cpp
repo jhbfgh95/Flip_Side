@@ -337,7 +337,7 @@ bool UShopCoinWSubsystem::GetCurrentCoinUnlock()
 	
 bool UShopCoinWSubsystem::UnlockCoinSlot(int32 SlotNum)
 {
-    if(10<SlotNum)
+    if(10<SlotNum || SlotNum<0)
         return false;
 
     if(ShopCoinSlotArray[SlotNum].IsUnlock)
@@ -352,6 +352,42 @@ bool UShopCoinWSubsystem::UnlockCoinSlot(int32 SlotNum)
 
     return false;
     
+}
+
+bool UShopCoinWSubsystem::BuyCoinSlot(int32 SlotNum)
+{
+    if(10<SlotNum || SlotNum<0)
+        return false;
+
+    if(!ShopCoinSlotArray[SlotNum].IsUnlock)
+        return false;
+
+    if(MoneySubsystem->SpendMoney(EMoneyRecordType::CoinSlot, 100))
+    {
+        ShopCoinSlotArray[SlotNum].IsUnlock = true;
+        OnUnlockCoinSlot.Broadcast();
+        return true;
+    }
+
+    return false;
+}
+
+bool UShopCoinWSubsystem::SellCoinSlot(int32 SlotNum)
+{
+    if(10<SlotNum || SlotNum<0)
+        return false;
+
+    if(ShopCoinSlotArray[SlotNum].IsUnlock)
+        return false;
+
+    if(MoneySubsystem->SpendMoney(EMoneyRecordType::CoinSlot, 100))
+    {
+        ShopCoinSlotArray[SlotNum].IsUnlock = true;
+        OnUnlockCoinSlot.Broadcast();
+        return true;
+    }
+
+    return false;
 }
 
 void UShopCoinWSubsystem::UnlockCoin()
@@ -494,4 +530,19 @@ int32 UShopCoinWSubsystem::GetCurrentSlotCount()
     }
     
     return Count;
+}
+	
+void UShopCoinWSubsystem::ChangeCoinClass(EWeaponClass WeaponClass)
+{
+    OnChangeCoinClass.Broadcast(WeaponClass);   
+}	
+
+bool UShopCoinWSubsystem::GetIsCoinEmpty()
+{
+    if(TotalCoinCount <= 0)
+    {
+        return true;
+    }
+    else
+        return false;
 }

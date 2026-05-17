@@ -11,8 +11,8 @@ void UW_ShopTuto_Blocker::NativeConstruct()
     TutorialSubsystem = GetWorld()->GetSubsystem<UShopTutorialWSubsystem>();
     SetVisibility(ESlateVisibility::Visible);
 
-    for(int i =0; i< EventOrder.Num();i++)
-        TutorialSubsystem->SetTutorialEvent(EventOrder[i],this);
+    for(int i =0; i< UnBlockEventOrder.Num();i++)
+        TutorialSubsystem->SetTutorialEvent(UnBlockEventOrder[i],this);
 }
 
 void UW_ShopTuto_Blocker::ExecuteTutorialEvent_Implementation()

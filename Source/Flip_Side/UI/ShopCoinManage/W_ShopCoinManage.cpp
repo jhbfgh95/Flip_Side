@@ -6,29 +6,31 @@
 #include "Subsystem/DataManagerSubsystem.h"
 #include "UI/W_WeaponDescription.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
 void UW_ShopCoinManage::NativeConstruct()
 {
     Super::NativeConstruct();
 
     CoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     DataSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
-
     
 	CoinSubsystem->OnChangeSlotCoinSide.AddDynamic(this, &UW_ShopCoinManage::CoinFlipAdaptor);
 	CoinSubsystem->OnCoinSlotChange.AddDynamic(this, &UW_ShopCoinManage::CoinSlotChangeAdaptor);
 	CoinSubsystem->OnSetWeapon.AddDynamic(this, &UW_ShopCoinManage::SetWeaponAdaptor);
 	CoinSubsystem->OnHoverWeapon.AddDynamic(this, &UW_ShopCoinManage::ShowDesPanel);
 	CoinSubsystem->OnUnHoverWeapon.AddDynamic(this, &UW_ShopCoinManage::HideDesPanel);
-
+	CoinSubsystem->OnChangeCoinClass.AddDynamic(this, &UW_ShopCoinManage::SetHpText);
 	CoinClearButton->OnClicked.AddDynamic(this, &UW_ShopCoinManage::ClearCoin);
 	CoinSideClearButton->OnClicked.AddDynamic(this, &UW_ShopCoinManage::ClearCoinSide);
 
 	WeaponDes->SetVisibility(ESlateVisibility::Hidden);
+	SetHpText(EWeaponClass::Deal);
 }
 
 
 void UW_ShopCoinManage::NativeDestruct()
 {
+	CoinSubsystem->OnChangeCoinClass.RemoveAll(this);
     CoinSubsystem->OnChangeSlotCoinSide.RemoveAll(this);
 	CoinSubsystem->OnCoinSlotChange.RemoveAll(this);
 	CoinSubsystem->OnSetWeapon.RemoveAll(this);
@@ -75,6 +77,8 @@ void UW_ShopCoinManage::SetDesText(FFaceData FaceData)
 		WeaponDes->SetExplainText(FaceData.WeaponName, FaceData.KOR_DES, FaceData.BehaviorPoint, FaceData.AttackPoint);
 	else
 		WeaponDes->SetExplainTextEmpty();
+
+	UE_LOG(LogTemp, Error, TEXT("%d"), FaceData.TypeID);
 }
 	
 void UW_ShopCoinManage::ShowDesPanel(int32 WeaponID)
@@ -97,4 +101,32 @@ void UW_ShopCoinManage::ClearCoin()
 void UW_ShopCoinManage::ClearCoinSide()
 {
 	CoinSubsystem->ResetCoinSide(CoinSubsystem->GetCurrentSlotNum(), CoinSubsystem->GetIsCreateCoinFront());
+}
+
+
+void UW_ShopCoinManage::SetHpText(EWeaponClass WeaponClass)
+{
+	int32 ID = -1;
+	switch (WeaponClass)
+	{
+	case EWeaponClass::Deal:
+		ID =1;
+		break;
+	case EWeaponClass::Tank:
+		ID=0;
+		break;
+	case EWeaponClass::Heal:
+		ID=2;
+		break;
+	
+	default:
+		break;
+	}
+	int32 Hp = -1;
+	if(DataSubsystem->WeaponTypes.IsValidIndex(ID))
+		Hp = DataSubsystem->WeaponTypes[ID].HP;
+	if(Hp != -1)
+		HPText->SetText(FText::AsNumber(Hp));
+	else
+		HPText->SetText(FText::FromString(TEXT("--")));
 }

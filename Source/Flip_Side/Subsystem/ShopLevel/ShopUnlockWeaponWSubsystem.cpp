@@ -64,6 +64,7 @@ void UShopUnlockWeaponWSubsystem::UnlockCurrentWeapon()
         if(MoneySubsystem->SpendMoney(EMoneyRecordType::Weapon, WeaponFaceData.Price))
         {
             UnlockSubsystem->UnlockWeapon(CurrentUnlockWeaponClass, CurrentUnlockWeaponID);
+            OnSelectUnlockWeapon.Broadcast(CurrentUnlockWeaponClass,CurrentUnlockWeaponID,true);
         }
        
     }

@@ -19,7 +19,7 @@ class FLIP_SIDE_API UW_ShopTuto_Blocker : public UUserWidget, public IShopTutori
 
 private:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TArray<int32> EventOrder;
+	TArray<int32> UnBlockEventOrder;
 private:
 	class UShopTutorialWSubsystem* TutorialSubsystem;
 private:
