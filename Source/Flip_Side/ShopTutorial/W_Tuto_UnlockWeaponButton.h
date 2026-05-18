@@ -13,18 +13,19 @@ UCLASS()
 class FLIP_SIDE_API UW_Tuto_UnlockWeaponButton : public UW_UnlockWeaponButton
 {
 	GENERATED_BODY()
-protected:
-	virtual void NativeConstruct() override;
 
-	
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
-	int32 NextOrder = -1;
-	
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
-	bool IsExecuteNextOrder = true;
 
-	class UShopTutorialWSubsystem* TutorialSubsystem;
+	virtual void NativeOnInitialized() override;
+	
+	class UShopTutorialWSubsystem* TutoSubsystem;
+
+private:
+	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess))
+	int32 ExcuteOrder;
+
+	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess))
+	int32 InitID;
 
 	UFUNCTION()
-	void ExcuteTutorial();
+	void ExcuteEvent();
 };

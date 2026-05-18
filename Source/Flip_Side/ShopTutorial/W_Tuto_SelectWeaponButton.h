@@ -15,14 +15,14 @@ class FLIP_SIDE_API UW_Tuto_SelectWeaponButton : public UW_SelectWeaponButton
 	GENERATED_BODY()
 	
 protected:
-	virtual void NativeConstruct() override;
+	virtual void NativeOnInitialized() override;
 
 	
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	int32 NextOrder = -1;
-	
+
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
-	bool IsExecuteNextOrder = true;
+	int32 InitID = -1;
 
 	class UShopTutorialWSubsystem* TutorialSubsystem;
 

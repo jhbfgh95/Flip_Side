@@ -24,7 +24,7 @@ private:
 	class UShopCardWSubsystem* ShopCardSubsystem;
 	class UDataManagerSubsystem* DataSubsystem;
 	class UUnlockGISubsystem* UnlockSubsystem;
-private:
+protected:
 	
 	UPROPERTY(meta =(BindWidget))
 	class UUniformGridPanel* CardGrid;

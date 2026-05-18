@@ -19,7 +19,7 @@ virtual void NativeDestruct() override;
 private:
 	class UShopCoinWSubsystem* CoinSubsystem;
 	class UDataManagerSubsystem* DataSubsystem;
-private:
+protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* SlotButton;
 	
@@ -44,7 +44,6 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UBorder* BackGroundBorder;
 
-
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	class UTexture2D* DefaultsTexture;
@@ -62,6 +61,7 @@ private:
 	UFUNCTION()
 	void SetBackGround();
 
+
 public:
 	UFUNCTION()
 	void SetWeaponTexture(int32 WeaponID);
@@ -70,4 +70,6 @@ public:
 	void SetCountText(int32 SlotNum, int32 Count);
 
 	void InitSlot(int32 SlotNum);
+
+	void ResetSlot();
 };

@@ -29,4 +29,6 @@ private:
 	int32 MoneyText = 0;
 	int32 CurrentMoneyText;
 	bool IsMoneyChanged;
+	bool IsInitMoney =false;
+
 };

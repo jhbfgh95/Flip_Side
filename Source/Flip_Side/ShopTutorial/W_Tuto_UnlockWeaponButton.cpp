@@ -2,24 +2,20 @@
 
 
 #include "ShopTutorial/W_Tuto_UnlockWeaponButton.h"
-#include "Components/Button.h"
 #include "Subsystem/ShopTutorialWSubsystem.h"
+#include "Components/Button.h"
 
-void UW_Tuto_UnlockWeaponButton::NativeConstruct()
+void UW_Tuto_UnlockWeaponButton::NativeOnInitialized()
 {
-    Super::NativeConstruct();
-    TutorialSubsystem = GetWorld()->GetSubsystem<UShopTutorialWSubsystem>();
-
-    if(WeaponButton)
-    {
-        WeaponButton->OnClicked.AddDynamic(this, &UW_Tuto_UnlockWeaponButton::ExcuteTutorial);
-    }
+    Super::NativeOnInitialized();
+    TutoSubsystem = GetWorld()->GetSubsystem<UShopTutorialWSubsystem>();
+    WeaponButton->OnClicked.AddDynamic(this, &UW_Tuto_UnlockWeaponButton::ExcuteEvent);
+    InitButton(InitID);
 }
 
 
-void UW_Tuto_UnlockWeaponButton::ExcuteTutorial()
+void UW_Tuto_UnlockWeaponButton::ExcuteEvent()
 {
-    if(IsExecuteNextOrder)
-        TutorialSubsystem->ExecuteEvents(NextOrder);
+    TutoSubsystem->ExecuteEvents(ExcuteOrder);
 }
 	

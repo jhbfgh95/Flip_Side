@@ -362,10 +362,21 @@ bool UShopCoinWSubsystem::DecreaseCoinSlot(int32 SlotNum)
         return false;
 
     ShopCoinSlotArray[SlotNum].IsUnlock = false;
-    OnChangeCoinSlotCount.Broadcast(false);
-    MoneySubsystem->AddSaleMoney(EMoneyRecordType::CoinSlot, 100);
-    return true;
 
+    ShopCoinSlotArray[SlotNum].CoinData.FrontWeaponID =-1;
+    ShopCoinSlotArray[SlotNum].CoinData.BackWeaponID =-1;
+
+    int CoinCount = ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum;
+
+    TotalCoinCount -= ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum;
+
+    ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum = 0;
+
+    MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 50, CoinCount);
+    MoneySubsystem->AddSaleMoney(EMoneyRecordType::CoinSlot, 100);
+
+    OnChangeCoinSlotCount.Broadcast(false);
+    return true;
 }
 
 int32 UShopCoinWSubsystem::GetCurrentCoinCount()

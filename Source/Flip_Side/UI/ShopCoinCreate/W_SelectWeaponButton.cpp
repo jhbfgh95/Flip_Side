@@ -11,9 +11,9 @@
 #include "Subsystems/WorldSubsystem.h" 
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
-void UW_SelectWeaponButton::NativeConstruct()
+void UW_SelectWeaponButton::NativeOnInitialized()
 {
-    Super::NativeConstruct();
+    Super::NativeOnInitialized();
 
     CoinWSubsystem =  GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     DataManager = GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();

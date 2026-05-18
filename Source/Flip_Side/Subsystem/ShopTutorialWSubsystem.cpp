@@ -45,7 +45,8 @@ void UShopTutorialWSubsystem::ExecuteEvents(int32 EventOrder)
 {
     if(ReadyTutorialEvents.Num()<= EventOrder || EventOrder==-1)
         return;
-    
+    CurrentExecuteNum = EventOrder;
+
     if(0<=EventOrder-1)
     {
         for(TScriptInterface<IShopTutorialInterface>& TutorialObject : ReadyTutorialEvents[EventOrder-1].TutorialEvents)
@@ -59,4 +60,9 @@ void UShopTutorialWSubsystem::ExecuteEvents(int32 EventOrder)
         TutorialObject->Execute_ExecuteTutorialEvent(TutorialObject.GetObject());
     }
     
+}
+    
+int32 UShopTutorialWSubsystem::GetExecuteOrderNum()
+{
+    return CurrentExecuteNum;
 }

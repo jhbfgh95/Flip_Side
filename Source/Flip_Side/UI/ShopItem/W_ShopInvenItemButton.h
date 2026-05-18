@@ -21,7 +21,7 @@ private:
 	class UShopItemWSubsystem* ItemSubsystem;
 	class UDataManagerSubsystem* DataSubsystem;
 
-private:
+protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* ItemButton;
 	

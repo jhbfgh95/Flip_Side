@@ -21,7 +21,7 @@ class FLIP_SIDE_API UW_SellItemButton : public UUserWidget
 private:
 	class UShopItemWSubsystem* ItemSubsystem;
 
-private:
+protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* ItemButton;
 	UPROPERTY(meta = (BindWidget))

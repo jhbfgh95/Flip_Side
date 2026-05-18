@@ -27,7 +27,7 @@ FReply UW_ShopCardWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,co
 {
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
     {
-        ShopCardSubsystem->SelectCard(CardData);
+        LeftClickCard();
     }
     else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
     {
@@ -73,4 +73,9 @@ void UW_ShopCardWidget::UnlockCard(int32 UnlockCardID)
 void UW_ShopCardWidget::HideLockIamge()
 {
     LockImage->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UW_ShopCardWidget::LeftClickCard()
+{
+    ShopCardSubsystem->SelectCard(CardData);
 }

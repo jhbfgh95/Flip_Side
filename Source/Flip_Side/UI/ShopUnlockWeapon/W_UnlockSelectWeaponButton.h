@@ -17,6 +17,7 @@ class FLIP_SIDE_API UW_UnlockSelectWeaponButton : public UUserWidget
 	virtual void NativeConstruct() override;
 	
 	class UShopUnlockWeaponWSubsystem* UnlockWeaponSubsystem;
+	protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* UnlockButton;
 

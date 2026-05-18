@@ -5,21 +5,21 @@
 #include "Components/Button.h"
 #include "Subsystem/ShopTutorialWSubsystem.h"
 
-void UW_Tuto_SelectWeaponButton::NativeConstruct()
+void UW_Tuto_SelectWeaponButton::NativeOnInitialized()
 {
-    Super::NativeConstruct();
+    Super::NativeOnInitialized();
     TutorialSubsystem = GetWorld()->GetSubsystem<UShopTutorialWSubsystem>();
 
     if(WeaponButton)
     {
         WeaponButton->OnClicked.AddDynamic(this, &UW_Tuto_SelectWeaponButton::ExcuteTutorial);
     }
+    InitButton(InitID);
 }
 
 
 void UW_Tuto_SelectWeaponButton::ExcuteTutorial()
 {
-    if(IsExecuteNextOrder)
-        TutorialSubsystem->ExecuteEvents(NextOrder);
+    TutorialSubsystem->ExecuteEvents(NextOrder);
 }
 	

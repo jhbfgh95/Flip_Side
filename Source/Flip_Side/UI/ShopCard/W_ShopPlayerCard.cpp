@@ -9,9 +9,9 @@
 #include "Components/Image.h"
 #include "Components/Border.h"
 #include "Animation/WidgetAnimation.h"
-void UW_ShopPlayerCard::NativeConstruct()
+void UW_ShopPlayerCard::NativeOnInitialized()
 {
-    Super::NativeConstruct();
+    Super::NativeOnInitialized();
     UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
 
     ShopCardSubsystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
@@ -34,7 +34,7 @@ FReply UW_ShopPlayerCard::NativeOnMouseButtonDown(const FGeometry& InGeometry,co
     }
     else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
     {
-        ShopCardSubsystem->UnSelectPlayerCard(CardData);
+        RClickCard();
     }
 
     return FReply::Handled();
@@ -55,4 +55,9 @@ void UW_ShopPlayerCard::InitPlayerCard(FCardData CardDataValue)
     InitCard(CardDataValue);
 
 
+}
+
+void UW_ShopPlayerCard::RClickCard()
+{
+    ShopCardSubsystem->SelectPlayerCard(CardData);
 }

@@ -16,7 +16,7 @@ class FLIP_SIDE_API UW_ShopPlayerCard : public UW_CardWidget
 	GENERATED_BODY()
 	
 protected:
-	virtual void NativeConstruct() override;
+	virtual void NativeOnInitialized() override;
 	virtual void NativeDestruct() override;
 
 	class UUnlockGISubsystem* UnlockSubsystem;
@@ -53,6 +53,8 @@ private:
 
 	void CheckSelectCard();	
 
+protected:
+	virtual void RClickCard();
 
 public:
 

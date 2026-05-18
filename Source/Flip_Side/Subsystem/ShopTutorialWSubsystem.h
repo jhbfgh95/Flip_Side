@@ -29,11 +29,12 @@ class FLIP_SIDE_API UShopTutorialWSubsystem : public UWorldSubsystem
 private:
     virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
     virtual void OnWorldBeginPlay(UWorld& InWorld) override;
-	
+	int32 CurrentExecuteNum = -1;
 private:
 	TArray<FShopTutorialEvents>ReadyTutorialEvents;
 
 public:
 	bool SetTutorialEvent(int32 EventOrder, TScriptInterface<IShopTutorialInterface> SetEvent);
 	void ExecuteEvents(int32 EventOrder);
+    int32 GetExecuteOrderNum();
 };

@@ -105,7 +105,15 @@ void UW_CoinSlotWidget::InitSlot(int32 SlotNum)
     IncreaseButton->InitButton(SlotIndex);
     DecreaseButton->InitButton(SlotIndex);
     SlotIndexText->SetText(FText::AsNumber(SlotNum+1));
+    SetCountText(SlotIndex,0);
+    FrontDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
+    BackDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
 
+}
+	
+void UW_CoinSlotWidget::ResetSlot()
+{
+    SetCountText(SlotIndex,0);
     FrontDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
     BackDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
 

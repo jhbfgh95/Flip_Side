@@ -18,7 +18,7 @@ class FLIP_SIDE_API UW_CoinSlotContainer : public UUserWidget
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
-	private:
+private:
 	class UShopCoinWSubsystem* ShopCoinSubsystem;
 
 	UPROPERTY(meta  =(BindWidget))
@@ -30,7 +30,7 @@ class FLIP_SIDE_API UW_CoinSlotContainer : public UUserWidget
 	UFUNCTION()
 	void SetTotalCoinText(int32 ChangedSlotIndex, int32 Count);
 
-	private:
+protected:
 	UPROPERTY(meta= (BindWidget))
 	class UScrollBox* SlotScroll;
 
@@ -56,9 +56,9 @@ private:
 	void AddCoinSlot();
 	UFUNCTION()
 	void DecreaseCoinSlot();
-
 	UFUNCTION()
 	void UpdateSlotText(bool IsIncrease);
 
 	void InitCoinSlot();
+
 };	

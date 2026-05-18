@@ -24,7 +24,7 @@ private:
 	class UDataManagerSubsystem* DataManager;
 	
 protected:
-	virtual void NativeConstruct() override;
+	virtual void NativeOnInitialized() override;
 
 
 	FFaceData WeaponData;

@@ -45,7 +45,6 @@ FReply UW_ShopHandCardWidget::NativeOnMouseButtonDown(const FGeometry& InGeometr
 {
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
     {
-        UE_LOG(LogTemp, Log, TEXT("Left Click"));
         if (SelectCardAnim)
         {
             //PlayAnimation(SelectCardAnim);
@@ -53,11 +52,9 @@ FReply UW_ShopHandCardWidget::NativeOnMouseButtonDown(const FGeometry& InGeometr
     }
     else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
     {
-        UE_LOG(LogTemp, Log, TEXT("Right Click"));
         if (RemoveCardAnim)
         {
-            PlayCardAnim(RemoveCardAnim);
-            CanControl = false;
+            UnselectCard();
         }
     }
 
@@ -88,4 +85,10 @@ void UW_ShopHandCardWidget::PlayCardAnim(UWidgetAnimation* Anim)
     {
         PlayAnimation(Anim);
     }
+}
+	
+void UW_ShopHandCardWidget::UnselectCard()
+{
+    PlayCardAnim(RemoveCardAnim);
+    CanControl = false;
 }

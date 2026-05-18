@@ -12,10 +12,11 @@ void UW_MoneyDisplay::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
     Super::NativeTick(MyGeometry, InDeltaTime);
 
+
     if(IsMoneyChanged)
     {
 
-        CurrentMoneyText = FMath::FInterpTo(CurrentMoneyText, MoneyText, InDeltaTime, 20.0f);
+        CurrentMoneyText = FMath::FInterpConstantTo(CurrentMoneyText, MoneyText, InDeltaTime, 250.0f);
         
         if (MoneyTextBlock)
         {
@@ -36,6 +37,13 @@ void UW_MoneyDisplay::NativeDestruct()
 
 void UW_MoneyDisplay::SetMoneyText(int32 Money)
 {
+    if(!IsInitMoney)
+    {
+        CurrentMoneyText = Money;
+        MoneyTextBlock->SetText(FText::AsNumber(CurrentMoneyText));
+        IsInitMoney=true;
+    }
     IsMoneyChanged = true;
     MoneyText = Money;
+    
 }

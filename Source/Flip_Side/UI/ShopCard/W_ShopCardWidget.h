@@ -27,6 +27,7 @@ protected:
 
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent) override;
 
+	virtual void LeftClickCard();
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* LockImage;

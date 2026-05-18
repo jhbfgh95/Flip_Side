@@ -50,6 +50,9 @@ private:
 private:
 	bool CanControl;
 
+protected:
+	virtual void UnselectCard();
+
 public:
 	UPROPERTY(EditAnywhere)
 	int32 HandIndex;

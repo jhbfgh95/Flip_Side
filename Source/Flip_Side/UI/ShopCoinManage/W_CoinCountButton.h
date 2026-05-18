@@ -17,7 +17,7 @@ class FLIP_SIDE_API UW_CoinCountButton : public UUserWidget
 private:
 	virtual void NativeConstruct() override;
 
-private:
+protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* CountButton;
 private:

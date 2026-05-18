@@ -67,6 +67,7 @@ void UW_CoinSlotContainer::DecreaseCoinSlot()
         return;
     if(ShopCoinSubsystem->DecreaseCoinSlot(CoinSlotCount-1))
     {
+        CoinSlot[CoinSlotCount-1]->ResetSlot();
         SlotWidget->SetVisibility(ESlateVisibility::Collapsed);
         CoinSlotCount--;
     }
