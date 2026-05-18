@@ -356,8 +356,19 @@ void UBattleManagerWSubsystem::StageEnded()
 
 void UBattleManagerWSubsystem::BossDeathStarted()
 {
+    if (CoinActionManager)
+    {
+        CoinActionManager->StopActionSequenceForStageEnd();
+    }
+
+    if (ItemManager)
+    {
+        ItemManager->SetTurn(false);
+    }
+
     if (ActingManager)
     {
+        ActingManager->StopCoinActionAct();
         ActingManager->OnBossDeadAct.ExecuteIfBound();
     }
 }
@@ -406,10 +417,12 @@ void UBattleManagerWSubsystem::AddStageClearRefundToMoney()
         MoneyManager->AddStageRefund(EMoneyRecordType::Item, ItemManager->CalculateItemPrice(), ItemManager->CalculateItemCount());
     }
 
+    /*
     if (StageCardManager)
     {
         MoneyManager->AddStageRefund(EMoneyRecordType::Card, StageCardManager->GetCardPrice(), StageCardManager->GetCardCount());
     }
+    */
 
     ULevelGISubsystem* LevelManager = GameInstance->GetSubsystem<ULevelGISubsystem>();
     UDataManagerSubsystem* DataManager = GameInstance->GetSubsystem<UDataManagerSubsystem>();

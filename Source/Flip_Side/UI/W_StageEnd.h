@@ -56,13 +56,13 @@ protected:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* SpentItemMoneyText;
-
+	/*
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* SpentCardCountText;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* SpentCardMoneyText;
-
+	*/
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* SpentTotalMoneyText;
 
@@ -77,13 +77,13 @@ protected:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* RefundItemMoneyText;
-
+	/*
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* RefundCardCountText;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* RefundCardMoneyText;
-	
+	*/
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* StageRewardMoneyText;
 

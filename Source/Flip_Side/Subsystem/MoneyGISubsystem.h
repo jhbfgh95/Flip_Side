@@ -42,10 +42,10 @@ struct FStageMoneySummary
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 SpentCardCount = 0;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 SpentCard = 0;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 SpentWeaponCount = 0;
 
@@ -99,13 +99,13 @@ struct FStageMoneySummary
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 RefundItem = 0;
-
+	/*
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 RefundCardCount = 0;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 RefundCard = 0;
-
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 TotalSpent = 0;
 

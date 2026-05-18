@@ -220,8 +220,8 @@ void UMoneyGISubsystem::AddSaleToSummary(FStageMoneySummary& Summary, EMoneyReco
         Summary.SaleItem += Amount;
         break;
     case EMoneyRecordType::Card:
-        Summary.SaleCardCount += Count;
-        Summary.SaleCard += Amount;
+        //Summary.SaleCardCount += Count;
+        //Summary.SaleCard += Amount;
         break;
     case EMoneyRecordType::Weapon:
         Summary.SaleWeaponCount += Count;
@@ -250,10 +250,12 @@ void UMoneyGISubsystem::AddRefundToSummary(FStageMoneySummary& Summary, EMoneyRe
         Summary.RefundItemCount += Count;
         Summary.RefundItem += Amount;
         break;
+    /*
     case EMoneyRecordType::Card:
         Summary.RefundCardCount += Count;
         Summary.RefundCard += Amount;
         break;
+    */
     default:
         break;
     }
@@ -265,7 +267,7 @@ void UMoneyGISubsystem::RecalculateSummaryTotal(FStageMoneySummary& Summary)
 {
     Summary.TotalSpent = Summary.SpentCoin + Summary.SpentItem + Summary.SpentCard + Summary.SpentWeapon + Summary.SpentCoinSlot;
     Summary.TotalSale = Summary.SaleCoin + Summary.SaleItem + Summary.SaleCard + Summary.SaleWeapon + Summary.SaleCoinSlot;
-    Summary.TotalRefund = Summary.RefundCoin + Summary.RefundItem + Summary.RefundCard;
+    Summary.TotalRefund = Summary.RefundCoin + Summary.RefundItem /* + Summary.RefundCard*/;
 }
 
 void UMoneyGISubsystem::AddMoney(int32 Amount)

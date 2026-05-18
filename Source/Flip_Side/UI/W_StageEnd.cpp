@@ -78,16 +78,16 @@ void UW_StageEnd::UpdateMoneySummary()
     SetMoneyText(SpentCoinMoneyText, DisplayMoneySummary.SpentCoin);
     SetMoneyText(SpentItemCountText, DisplayMoneySummary.SpentItemCount);
     SetMoneyText(SpentItemMoneyText, DisplayMoneySummary.SpentItem);
-    SetMoneyText(SpentCardCountText, DisplayMoneySummary.SpentCardCount);
-    SetMoneyText(SpentCardMoneyText, DisplayMoneySummary.SpentCard);
+    //SetMoneyText(SpentCardCountText, DisplayMoneySummary.SpentCardCount);
+    //SetMoneyText(SpentCardMoneyText, DisplayMoneySummary.SpentCard);
     SetMoneyText(SpentTotalMoneyText, DisplayMoneySummary.TotalSpent);
 
     SetMoneyText(RefundCoinCountText, DisplayMoneySummary.RefundCoinCount);
     SetMoneyText(RefundCoinMoneyText, DisplayMoneySummary.RefundCoin);
     SetMoneyText(RefundItemCountText, DisplayMoneySummary.RefundItemCount);
     SetMoneyText(RefundItemMoneyText, DisplayMoneySummary.RefundItem);
-    SetMoneyText(RefundCardCountText, DisplayMoneySummary.RefundCardCount);
-    SetMoneyText(RefundCardMoneyText, DisplayMoneySummary.RefundCard);
+    //SetMoneyText(RefundCardCountText, DisplayMoneySummary.RefundCardCount);
+    //SetMoneyText(RefundCardMoneyText, DisplayMoneySummary.RefundCard);
     SetMoneyText(RefundTotalMoneyText, DisplayMoneySummary.TotalRefund);
     SetMoneyText(StageRewardMoneyText, DisplayMoneySummary.RewardMoney);
     SetMoneyText(CurrentMoneyText, DisplayCurrentMoney);

@@ -100,6 +100,31 @@ void UCoinActionManagementWSubsystem::SetTurn(const bool bIsTurn)
     }
 }
 
+void UCoinActionManagementWSubsystem::StopActionSequenceForStageEnd()
+{
+    if(UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(AutoActionHandler);
+        World->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+    }
+
+    if(SelectedAction)
+    {
+        if(ACoinActor* CasterCoin = SelectedAction->GetCasterCoin())
+        {
+            CasterCoin->SetCoinIsActing(false);
+        }
+    }
+
+    bIsCorrectTurn = false;
+    bActionSequenceActive = false;
+    bCurrentStepTargetValid = true;
+    bPendingFailedVFX = false;
+    RepeatActionCnt = 0;
+
+    InitWeaponAction();
+}
+
 void UCoinActionManagementWSubsystem::InitWeaponAction()
 {
     FGridPoint DefaultGrid;

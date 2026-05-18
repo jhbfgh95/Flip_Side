@@ -360,6 +360,22 @@ void UBattleLevelActingWSubsystem::LowerCoinAfterAction(ACoinActor* Coin, FSimpl
     World->GetTimerManager().SetTimer(CoinActionLowerTimer, this, &UBattleLevelActingWSubsystem::UpdateCoinActionLower, 0.01f, true);
 }
 
+void UBattleLevelActingWSubsystem::StopCoinActionAct()
+{
+    if(UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(CoinActionRaiseTimer);
+        World->GetTimerManager().ClearTimer(CoinActionShakeTimer);
+        World->GetTimerManager().ClearTimer(CoinActionLowerTimer);
+    }
+
+    CoinActionActor.Reset();
+    CoinActionRaiseFinished.Unbind();
+    CoinActionShakeFinished.Unbind();
+    CoinActionLowerFinished.Unbind();
+    CoinActionElapsedTime = 0.0f;
+}
+
 void UBattleLevelActingWSubsystem::UpdateCoinActionLower()
 {
     UWorld* World = GetWorld();

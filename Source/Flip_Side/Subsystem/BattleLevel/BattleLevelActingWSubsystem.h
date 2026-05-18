@@ -99,6 +99,8 @@ public:
 
 	void LowerCoinAfterAction(ACoinActor* Coin, FSimpleDelegate OnFinished);
 
+	void StopCoinActionAct();
+
 /* Setting Turn */
 public:
 	void DoSettingAct();

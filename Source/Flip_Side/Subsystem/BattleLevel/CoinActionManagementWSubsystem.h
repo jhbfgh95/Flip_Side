@@ -61,6 +61,8 @@ public:
 	//이거로 코인 선택하는거 잠궜습니다.
 	void SetTurn(const bool bIsTurn);
 
+	void StopActionSequenceForStageEnd();
+
 	UFUNCTION()
 	void SetSelectedWeapon(class ACoinActor* HoveredCoin);
 
