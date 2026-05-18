@@ -63,6 +63,8 @@ public:
 
 	void StopActionSequenceForStageEnd();
 
+	bool IsActionSequenceActive() const { return bActionSequenceActive; }
+
 	UFUNCTION()
 	void SetSelectedWeapon(class ACoinActor* HoveredCoin);
 

@@ -574,6 +574,7 @@ void UUseableItemWSubsystem::HideItemInfoUi()
 void UUseableItemWSubsystem::SelectWantUseGridItem(AUseableItemActor* TargetItem)
 {
     if(!bIsCoinSelectTurn || !TargetItem) return;
+    if(CoinActionManager && CoinActionManager->IsActionSequenceActive()) return;
 
     if(CoinActionManager)
     {
@@ -606,6 +607,7 @@ void UUseableItemWSubsystem::SelectWantUseGridItem(AUseableItemActor* TargetItem
 void UUseableItemWSubsystem::SelectWantUseCoinItem(AUseableItemActor* TargetItem)
 {
     if(!bIsCoinSelectTurn || !TargetItem) return;
+    if(CoinActionManager && CoinActionManager->IsActionSequenceActive()) return;
 
     if(CoinActionManager)
     {
