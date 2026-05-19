@@ -580,6 +580,7 @@ void UCoinManagementWSubsystem::HandleCoinSlotClicked(ACoinActor* ReadyTargetCoi
     if(!bIsCoinReadyTurn) return;
 
     AddBattleReadyCoins(ReadyTargetCoin);
+    OnBattleTutorialCoinSlotClicked.Broadcast(ReadyTargetCoin);
 }
 
 void UCoinManagementWSubsystem::HandleCoinSlotUnHovered() 

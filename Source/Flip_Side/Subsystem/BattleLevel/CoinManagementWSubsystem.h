@@ -10,11 +10,12 @@
 #include "CoinSlotActor.h"
 #include "CoinManagementWSubsystem.generated.h"
 
+class ACoinActor;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRangeWanted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCoinAddedToReady);
 DECLARE_DELEGATE(FOnAllCoinDead);
-
-class ACoinActor;
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleTutorialCoinSlotClicked, ACoinActor*);
 
 UCLASS()
 class FLIP_SIDE_API UCoinManagementWSubsystem : public UWorldSubsystem
@@ -129,4 +130,6 @@ public:
 	FOnCoinAddedToReady OnCoinAddedToReady;
 
 	FOnAllCoinDead OnAllCoinDead;
+
+	FOnBattleTutorialCoinSlotClicked OnBattleTutorialCoinSlotClicked;
 };

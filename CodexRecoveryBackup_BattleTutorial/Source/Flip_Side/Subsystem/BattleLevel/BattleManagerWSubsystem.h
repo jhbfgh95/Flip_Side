@@ -28,8 +28,6 @@ enum class EBattleLeverLockReason : uint8
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTurnChanged, ETurnState, NewTurn);
 //StageEndFlag: 0 = StageClear, 1 = GameOver, 2 = GameClear
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStageEnded, int32, StageEndFlag);
-DECLARE_MULTICAST_DELEGATE(FOnBattleTutorialLeverTriggered);
-
 class ACoinActor;
 class UW_StageEnd;
 class UW_BattlePhaseAndTurnDisplayUI;
@@ -158,8 +156,6 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnStageEnded OnStageEnded;
-
-	FOnBattleTutorialLeverTriggered OnBattleTutorialLeverTriggered;
 
 	ETurnState GetCurrentTurn();
 

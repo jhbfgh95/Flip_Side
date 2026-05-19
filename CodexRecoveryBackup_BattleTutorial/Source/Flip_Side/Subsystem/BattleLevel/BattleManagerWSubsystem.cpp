@@ -146,7 +146,6 @@ bool UBattleManagerWSubsystem::StartBattleFromLever(float BattleLeverEndTime) {
 
     LockLever(EBattleLeverLockReason::TurnTransition);
     TurnProgressing();
-    OnBattleTutorialLeverTriggered.Broadcast();
 
     return true;
 }
