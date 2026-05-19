@@ -5,7 +5,6 @@
 #include "BossManagerSubsystem.h"
 #include "GridManagerSubsystem.h"
 #include "GridActor.h"
-#include "AttackAreaTypes.h"
 #include "BattleLevelActingWSubsystem.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
@@ -209,15 +208,13 @@ void UBossPatternBase::PlayPatternEffect_Implementation(int32 PatternNum, FVecto
 	}
 
 	// AnchorCell 좌표
-	FVector AnchorLocation = EffectLocation;
-	if (Data.PatternSpec.AnchorMode == EAreaAnchor::UseAnchorCell)
+	// AnchorCell은 런타임에 랜덤 결정되므로 LockedCells 중심을 사용
+	FVector AnchorLocation = FVector::ZeroVector;
+	if (CellLocations.Num() > 0)
 	{
-		AGridActor* AnchorGrid = GridMgr->GetGridActor(Data.PatternSpec.AnchorCell);
-		if (IsValid(AnchorGrid))
-		{
-			FVector2D XY = AnchorGrid->GetGridWorldXY();
-			AnchorLocation = FVector(XY.X, XY.Y, AnchorGrid->GetActorLocation().Z);
-		}
+		for (const FVector& Loc : CellLocations)
+			AnchorLocation += Loc;
+		AnchorLocation /= CellLocations.Num();
 	}
 
 	ActingMgr->PlayBossVFX(Effect, Data.PatternEffectTarget, Data.PatternScale, CellLocations, AnchorLocation);
