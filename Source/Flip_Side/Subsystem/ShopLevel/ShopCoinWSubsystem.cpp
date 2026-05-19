@@ -16,7 +16,7 @@ bool UShopCoinWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
     }
 
     const FString MapName = World->GetMapName();
-    return MapName.Contains(TEXT("L_ShopLevel")) || MapName.Contains(TEXT("L_Tutorial_Shop_Level"));
+    return MapName.Contains(TEXT("L_ShopLevel")) || MapName.Contains(TEXT("L_Tutorial_Shop_Level"))|| MapName.Contains(TEXT("L_Tutorial_TutoShop_Level"));
 } 
 
 void UShopCoinWSubsystem::Initialize(FSubsystemCollectionBase& Collection)

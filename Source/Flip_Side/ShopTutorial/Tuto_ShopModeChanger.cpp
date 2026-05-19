@@ -3,7 +3,8 @@
 
 #include "ShopTutorial/Tuto_ShopModeChanger.h"
 #include "Subsystem/ShopTutorialWSubsystem.h"
-#include "Subsystem/MoneyGISubsystem.h"
+#include "Subsystem/LevelGISubsystem.h"
+#include "Subsystem/UnlockGISubsystem.h"
 #include "Player/GameMode_Shop.h"
 #include "ShopTutorial/ShopTutoController_FlipSide.h"
 
@@ -20,9 +21,9 @@ void ATuto_ShopModeChanger::BeginPlay()
 {
 	Super::BeginPlay();
 	TutoSubsystem = GetWorld()->GetSubsystem<UShopTutorialWSubsystem>();
-	MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
+	LevelSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
 	TutoGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
-	ShopController = Cast<AShopTutoController_FlipSide>(GetWorld()->GetFirstPlayerController());
+	UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
 	if(TutoSubsystem)
 	{
 		for(int i =0; i< Order.Num(); i++)
@@ -59,9 +60,8 @@ void ATuto_ShopModeChanger::ExecuteTutorialEvent_Implementation()
 		TutoGameMode->SetShopMainMode();
 		break;
 	case 6:
-		MoneySubsystem->AddRewardMoney(200);
-		ShopController->SetNonTutorialWidget();
-		
+		UnlockSubsystem->ResetUnlockData();
+		LevelSubsystem->MovingTutorialLevel(2);
 	default:
 		break;
 	}

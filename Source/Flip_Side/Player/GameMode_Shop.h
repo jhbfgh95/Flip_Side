@@ -33,7 +33,7 @@ class FLIP_SIDE_API AGameMode_Shop : public AGameModeBase
 //TArray< 게임모드 변경시 일어나는 활동을 담은 인터페이스 > 
 //아니라면 해당 버튼을 누르면 애니메이션이 나오고 애니메이션이 끝난 다음 델리게이트를 실행시키는 방법도 괜찮음
 
-
+	virtual void BeginPlay() override;
 	//
 public:
 	FShopMainMode OnShopMainMode;

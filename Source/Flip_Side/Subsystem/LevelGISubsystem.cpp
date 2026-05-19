@@ -47,7 +47,7 @@ void ULevelGISubsystem::MovingTutorialLevel(int32 tutorialflag)
                 BossSetupGI->PrepareBossForStage(BattleLevelIndex);
             }
         }
-        UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_Tutorial_Shop_Level")));
+        UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_Tutorial_TutoShop_Level")));
     }
     else if(tutorialflag == 1)
     {
@@ -61,6 +61,19 @@ void ULevelGISubsystem::MovingTutorialLevel(int32 tutorialflag)
             }
         }
         UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_Stage_Battle_Tutorial")));
+    }
+    else if(tutorialflag == 2)
+    {
+        UGameInstance* GI = Cast<UGameInstance>(GetOuter());
+        if (GI)
+        {
+            UBossSetupGISubsystem* BossSetupGI = GI->GetSubsystem<UBossSetupGISubsystem>();
+            if (BossSetupGI)
+            {
+                BossSetupGI->PrepareBossForStage(BattleLevelIndex);
+            }
+        }
+        UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_Tutorial_Shop_Level")));
     }
 }
 

@@ -23,12 +23,11 @@ protected:
 private:
 	class AGameMode_Shop* TutoGameMode;
 
-	class AShopTutoController_FlipSide* ShopController;
+	class UUnlockGISubsystem* UnlockSubsystem;
 
 	class UShopTutorialWSubsystem* TutoSubsystem;
 
-	class UMoneyGISubsystem* MoneySubsystem;
-
+	class ULevelGISubsystem* LevelSubsystem;
 	virtual void ExecuteTutorialEvent_Implementation() override;
 
 	virtual void FinishTutorialEvent_Implementation() override;

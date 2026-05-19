@@ -144,9 +144,9 @@ void UStageCardWSubsystem::RefreshHandFromGI()
     // �׽�Ʈ�� �ڵ� ä��
     if (IsEmpty())
     {
-        CrossingGI->SetBattleCardID(3, 0);
-        CrossingGI->SetBattleCardID(5, 1);
-        CrossingGI->SetBattleCardID(6, 2);
+        //CrossingGI->SetBattleCardID(3, 0);
+        //CrossingGI->SetBattleCardID(5, 1);
+        //CrossingGI->SetBattleCardID(6, 2);
 
         UE_LOG(LogTemp, Warning, TEXT("[StageCard] BattleCardIDs were empty. Filled with 1,2,3 for test."));
     }

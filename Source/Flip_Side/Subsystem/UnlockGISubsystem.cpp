@@ -2,6 +2,7 @@
 
 
 #include "Subsystem/UnlockGISubsystem.h"
+#include "Kismet/GameplayStatics.h"
 
 void UUnlockGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -10,15 +11,44 @@ void UUnlockGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
     {
         DealUnlockArray.Add(1);
     }
+    FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UUnlockGISubsystem::OnLevelLoad);
 }
 
+void UUnlockGISubsystem::Deinitialize()
+{
+    FCoreUObjectDelegates::PostLoadMapWithWorld.RemoveAll(this);
+    Super::Deinitialize();
+}
 int32 UUnlockGISubsystem::GetUnlockCardID(int32 index)
 {
     if(CardUnlockArray.Num() <= index)
         return -1;
     return CardUnlockArray[index];
 }
-	
+
+void UUnlockGISubsystem::OnLevelLoad(UWorld* LoadedWorld)
+{
+    if (!LoadedWorld) return;
+    if (!LoadedWorld->IsGameWorld()) return;
+
+    FString LevelName = UGameplayStatics::GetCurrentLevelName(LoadedWorld, true);
+    if(LevelName.Equals(TEXT("L_GameStart")))
+    {
+        ResetUnlockData();
+    }
+}
+
+
+void UUnlockGISubsystem::ResetUnlockData()
+{
+    TankUnlockArray.Reset();
+	DealUnlockArray.Reset();
+	UtilUnlockArray.Reset();
+	CardUnlockArray.Reset();
+    
+    DealUnlockArray.Add(1);
+}
+
 int32 UUnlockGISubsystem::GetUnlockWeaponID(EWeaponClass WeaponClass, int32 index)
 {
     if(EWeaponClass::Tank == WeaponClass && index< TankUnlockArray.Num())

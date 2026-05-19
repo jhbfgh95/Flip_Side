@@ -14,7 +14,7 @@ bool UShopTutorialWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
         return false;
 
     const FString MapName = World->GetName();
-    return MapName.Contains(TEXT("L_Tutorial_Shop_Level"));
+    return MapName.Contains(TEXT("L_Tutorial_TutoShop_Level"));
 }
 
 void UShopTutorialWSubsystem::OnWorldBeginPlay(UWorld& InWorld)

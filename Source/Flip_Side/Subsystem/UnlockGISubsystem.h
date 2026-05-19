@@ -23,6 +23,9 @@ class FLIP_SIDE_API UUnlockGISubsystem : public UGameInstanceSubsystem
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Deinitialize() override;
+
+	void OnLevelLoad(UWorld* LoadedWorld);
 private:
 	TArray<int32> TankUnlockArray;
 	TArray<int32> DealUnlockArray;
@@ -52,4 +55,6 @@ public:
 	bool IsWeaponUnlockByID(EWeaponClass WeaponClass, int32 ID);
 
 	bool IsCardUnlockByID(int32 ID);
+
+	void ResetUnlockData();
 };
