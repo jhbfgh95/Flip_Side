@@ -14,6 +14,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
+#include "BossDataTypes.h"
 
 void UBattleLevelActingWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -395,5 +396,35 @@ void UBattleLevelActingWSubsystem::UpdateCoinActionLower()
     {
         World->GetTimerManager().ClearTimer(CoinActionLowerTimer);
         CoinActionLowerFinished.ExecuteIfBound();
+    }
+}
+
+void UBattleLevelActingWSubsystem::PlayBossVFX(UNiagaraSystem* Effect, EBossPatternTarget TargetMode, FVector PatternScale,
+    const TArray<FVector>& TargetCellLocations, FVector AnchorLocation)
+{
+    if (!Effect || !GetWorld()) return;
+
+    static const FVector AllCellsCenter(2010.f, -990.f, -220.f);
+
+    switch (TargetMode)
+    {
+    case EBossPatternTarget::TargetCells:
+        for (const FVector& Loc : TargetCellLocations)
+        {
+            UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Effect, Loc, FRotator::ZeroRotator, PatternScale);
+        }
+        break;
+
+    case EBossPatternTarget::AllCells:
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Effect, AllCellsCenter, FRotator::ZeroRotator, PatternScale);
+        break;
+
+    case EBossPatternTarget::AnchorCell:
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Effect, AnchorLocation, FRotator::ZeroRotator, PatternScale);
+        break;
+
+    case EBossPatternTarget::BossLocation:
+    default:
+        break;
     }
 }

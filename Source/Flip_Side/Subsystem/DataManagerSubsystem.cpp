@@ -574,7 +574,8 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
         const TCHAR* Sql = TEXT(
             "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, "
             "attack_point, boss_hp, spawn_loc_x, spawn_loc_y, spawn_loc_z, spawn_rot_yaw, "
-            "boss_class_path, pattern_class_path, stage_multiplier_stat, stage_multiplier_gimmick, shield_value "
+            "boss_class_path, pattern_class_path, stage_multiplier_stat, stage_multiplier_gimmick, shield_value, "
+            "clear_anim_path, hit_anim_path "
             "FROM boss_def WHERE boss_id = ?;"
         );
 
@@ -617,6 +618,14 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
         Out.StageMultiplierStat    = (float)GetColDouble(Stmt, 13);
         Out.StageMultiplierGimmick = (float)GetColDouble(Stmt, 14);
 
+        const FString ClearAnimPath = GetColText(Stmt, 16);
+        if (!ClearAnimPath.IsEmpty())
+            Out.ClearAnim = TSoftObjectPtr<UAnimMontage>(FSoftObjectPath(ClearAnimPath));
+
+        const FString HitAnimPath = GetColText(Stmt, 17);
+        if (!HitAnimPath.IsEmpty())
+            Out.HitAnim = TSoftObjectPtr<UAnimMontage>(FSoftObjectPath(HitAnimPath));
+
         Stmt.Destroy();
     }
 
@@ -626,7 +635,8 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             "SELECT pattern_name, pattern_description, damage_ratio, apply_delay, "
             "area_pattern, anchor_dx, anchor_dy, anchor_mode, param_a, param_b, side, "
             "montage_path, effect_path, effect_scale_x, effect_scale_y, effect_scale_z, "
-            "visual_actor_path, pattern_icon_path, pattern_range_image_path, no_damage, gimmick_type, shield_heal "
+            "visual_actor_path, pattern_icon_path, pattern_range_image_path, no_damage, gimmick_type, shield_heal, "
+            "effect_target "
             "FROM boss_pattern_def WHERE boss_id = ? ORDER BY pattern_order;"
         );
 
@@ -666,9 +676,10 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             if (!RangeImagePath.IsEmpty())
                 P.PatternRangeImage = LoadObject<UTexture2D>(nullptr, *RangeImagePath);
 
-            P.bNoDamage   = GetColInt(Stmt, 19) != 0;
-            P.GimmickType = static_cast<EBossGimmickType>(GetColInt(Stmt, 20));
-            P.ShieldHeal  = GetColInt(Stmt, 21);
+            P.bNoDamage          = GetColInt(Stmt, 19) != 0;
+            P.GimmickType        = static_cast<EBossGimmickType>(GetColInt(Stmt, 20));
+            P.ShieldHeal         = GetColInt(Stmt, 21);
+            P.PatternEffectTarget = static_cast<EBossPatternTarget>(GetColInt(Stmt, 22));
 
             Out.PatternList.Add(P);
         }

@@ -125,10 +125,10 @@ protected:
 
 	TObjectPtr<class UAnimMontage> SelectedPatternAnim = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern")
 	TObjectPtr<class UAnimMontage> BossClearAnim = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern")
 	TObjectPtr<class UAnimMontage> BossHitAnim = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Death")

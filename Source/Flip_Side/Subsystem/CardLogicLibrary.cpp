@@ -148,7 +148,7 @@ bool FCardLogicLibrary::ApplyPromotion(
     for (const FCoinOnGridInfo& Info : FieldCoins)
     {
         if (!IsValid(Info.CoinActor)) continue;
-        if (Info.CoinActor->GetCoinFaceID() != 3) continue;
+        if (Info.CoinActor->GetCoinFaceID() != 1) continue;
         if (!(Info.CoinActor->GetDecidedGrid() == HighlightedGrid)) continue;
 
         AddMods(Mods, Info.CoinActor,

@@ -4,12 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "BossDataTypes.h"
 #include "BattleLevelActingWSubsystem.generated.h"
 
 class ACoinActor;
 class AUseableItemActor;
 class UNiagaraComponent;
+class UNiagaraSystem;
+class ABossActor;
 struct FItemData;
+struct FBossPatternBattleData;
 
 DECLARE_DELEGATE_OneParam(FOnDrawMove, bool);
 DECLARE_DELEGATE(FOnGear);
@@ -110,6 +114,11 @@ public:
 /* Boss Turn */
 public:
 	void PlayBossPatternAct();
+
+	// TargetCellLocations: 패턴 적용 그리드 월드 좌표 목록 (TargetCells 모드에서 사용)
+	// AnchorLocation: AnchorCell 월드 좌표 (AnchorCell 모드에서 사용)
+	void PlayBossVFX(UNiagaraSystem* Effect, EBossPatternTarget TargetMode, FVector PatternScale,
+		const TArray<FVector>& TargetCellLocations, FVector AnchorLocation);
 
 /* Useable Item */
 public:
