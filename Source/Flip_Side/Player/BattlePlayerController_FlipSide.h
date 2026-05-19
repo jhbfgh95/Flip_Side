@@ -73,6 +73,8 @@ protected:
 	UPROPERTY()
     AActor* LastHoveredActor;
 
+	bool bIsTutorialUIOnly = false;
+
 public:
 	ABattlePlayerController_FlipSide();
 

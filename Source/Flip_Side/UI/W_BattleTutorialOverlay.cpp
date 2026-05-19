@@ -6,6 +6,7 @@
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Components/Widget.h"
 #include "GameFramework/PlayerController.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
@@ -17,6 +18,18 @@ void UW_BattleTutorialOverlay::NativeConstruct()
 	{
 		NextButton->OnClicked.RemoveAll(this);
 		NextButton->OnClicked.AddDynamic(this, &UW_BattleTutorialOverlay::HandleNextButtonClicked);
+	}
+
+	if (TopNextButton)
+	{
+		TopNextButton->OnClicked.RemoveAll(this);
+		TopNextButton->OnClicked.AddDynamic(this, &UW_BattleTutorialOverlay::HandleNextButtonClicked);
+	}
+
+	if (BottomNextButton)
+	{
+		BottomNextButton->OnClicked.RemoveAll(this);
+		BottomNextButton->OnClicked.AddDynamic(this, &UW_BattleTutorialOverlay::HandleNextButtonClicked);
 	}
 
 	if (!DimMaskImage)
@@ -39,7 +52,7 @@ void UW_BattleTutorialOverlay::NativeConstruct()
 		return;
 	}
 
-	DimMaterial->SetScalarParameterValue(TEXT("DimOpacity"), 0.65f);
+	DimMaterial->SetScalarParameterValue(TEXT("DimOpacity"), 0.8f);
 	DimMaterial->SetScalarParameterValue(TEXT("HoleCenterX"), 0.5f);
 	DimMaterial->SetScalarParameterValue(TEXT("HoleCenterY"), 0.5f);
 	DimMaterial->SetScalarParameterValue(TEXT("HoleSizeX"), 0.35f);
@@ -47,11 +60,45 @@ void UW_BattleTutorialOverlay::NativeConstruct()
 	DimMaterial->SetScalarParameterValue(TEXT("Feather"), 0.03f);
 }
 
-void UW_BattleTutorialOverlay::SetTutorialText(const FText& InText)
+void UW_BattleTutorialOverlay::SetTutorialText(const FText& InText, bool bUseTopTextBox)
 {
+	SetUseTopTextBox(bUseTopTextBox);
+
+	if (TopTutorialText && BottomTutorialText)
+	{
+		TopTutorialText->SetText(InText);
+		BottomTutorialText->SetText(InText);
+		return;
+	}
+
 	if (TutorialText)
 	{
 		TutorialText->SetText(InText);
+	}
+}
+
+void UW_BattleTutorialOverlay::SetUseTopTextBox(bool bUseTopTextBox)
+{
+	bCurrentUseTopTextBox = bUseTopTextBox;
+
+	if (TopTutorialRoot)
+	{
+		TopTutorialRoot->SetVisibility(bCurrentUseTopTextBox ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	}
+
+	if (BottomTutorialRoot)
+	{
+		BottomTutorialRoot->SetVisibility(bCurrentUseTopTextBox ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+	}
+
+	if (TopTutorialText)
+	{
+		TopTutorialText->SetVisibility(bCurrentUseTopTextBox ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	}
+
+	if (BottomTutorialText)
+	{
+		BottomTutorialText->SetVisibility(bCurrentUseTopTextBox ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
 	}
 }
 
@@ -116,13 +163,27 @@ void UW_BattleTutorialOverlay::SetFeather(float InFeather)
 
 void UW_BattleTutorialOverlay::SetNextButtonEnabled(bool bEnabled)
 {
-	if (!NextButton)
+	const ESlateVisibility ActiveVisibility = bEnabled ? ESlateVisibility::Visible : ESlateVisibility::HitTestInvisible;
+	const ESlateVisibility InactiveVisibility = ESlateVisibility::Collapsed;
+	const bool bUsesSplitButtons = TopNextButton || BottomNextButton;
+
+	if (NextButton)
 	{
-		return;
+		NextButton->SetIsEnabled(true);
+		NextButton->SetVisibility(bUsesSplitButtons ? ESlateVisibility::Collapsed : ActiveVisibility);
 	}
 
-	NextButton->SetIsEnabled(bEnabled);
-	NextButton->SetVisibility(bEnabled ? ESlateVisibility::Visible : ESlateVisibility::HitTestInvisible);
+	if (TopNextButton)
+	{
+		TopNextButton->SetIsEnabled(true);
+		TopNextButton->SetVisibility(bCurrentUseTopTextBox ? ActiveVisibility : InactiveVisibility);
+	}
+
+	if (BottomNextButton)
+	{
+		BottomNextButton->SetIsEnabled(true);
+		BottomNextButton->SetVisibility(bCurrentUseTopTextBox ? InactiveVisibility : ActiveVisibility);
+	}
 }
 
 void UW_BattleTutorialOverlay::HandleNextButtonClicked()

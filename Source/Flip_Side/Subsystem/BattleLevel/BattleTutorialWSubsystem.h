@@ -31,16 +31,21 @@ public:
 
 protected:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 
 private:
+	void InitBattleTutorialFromSettings();
 	void CacheTutorialTargets();
 	void BindBattleEvents();
 	void UnbindBattleEvents();
 	void ApplyCurrentStep();
+	void AdvanceAfterLeverAct();
 	void HandleOverlayClicked();
 	void HandleCoinSlotClicked(ACoinActor* ClickedCoin);
 	void HandleLeverTriggered();
 	void SetTutorialInput(bool bUIOnly);
+	FVector2D GetHoleSizeForStep(const struct FBattleTutorialStep& Step) const;
+	FVector2D GetDefaultHoleSize(FName FocusId) const;
 
 	UPROPERTY()
 	TObjectPtr<UBattleTutorialSequenceData> SequenceData;
@@ -59,6 +64,9 @@ private:
 
 	UPROPERTY()
 	TMap<FName, TObjectPtr<ATutorialTargetPoint>> TutorialTargetMap;
+
+	FTimerHandle InitBattleTutorialTimerHandle;
+	FTimerHandle LeverAdvanceTimerHandle;
 
 	int32 CurrentStepIndex = INDEX_NONE;
 	int32 CurrentStepClickCount = 0;

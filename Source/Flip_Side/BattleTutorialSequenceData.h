@@ -20,14 +20,14 @@ struct FBattleTutorialStep
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial", meta = (MultiLine = "true"))
 	FText Text;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial")
 	FName FocusId = NAME_None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial")
-	FVector2D HoleSize = FVector2D(0.35f, 0.2f);
+	FVector2D HoleSize = FVector2D::ZeroVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial")
 	EBattleTutorialAdvanceType AdvanceType = EBattleTutorialAdvanceType::OverlayClick;
@@ -37,6 +37,9 @@ struct FBattleTutorialStep
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial")
 	bool bUIOnly = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial")
+	bool bUseTopTextBox = false;
 };
 
 UCLASS(BlueprintType)

@@ -8,9 +8,15 @@
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/BattlePlayerController_FlipSide.h"
+#include "Subsystem/FlipSideDevloperSettings.h"
 #include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
 #include "Subsystem/BattleLevel/CoinManagementWSubsystem.h"
 #include "UI/W_BattleTutorialOverlay.h"
+
+namespace
+{
+	constexpr float BattleTutorialLeverAdvanceDelay = 3.1f;
+}
 
 bool UBattleTutorialWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -20,7 +26,37 @@ bool UBattleTutorialWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 	}
 
 	const UWorld* World = Cast<UWorld>(Outer);
-	return World && World->GetName().Contains(TEXT("L_Stage"));
+	return World && World->GetName().Contains(TEXT("L_Stage_Battle_Tutorial"));
+}
+
+void UBattleTutorialWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
+{
+	Super::OnWorldBeginPlay(InWorld);
+
+	const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+	const float InitDelay = Settings ? Settings->BattleTutorialInitDelay : 0.2f;
+
+	InWorld.GetTimerManager().SetTimer(
+		InitBattleTutorialTimerHandle,
+		this,
+		&UBattleTutorialWSubsystem::InitBattleTutorialFromSettings,
+		InitDelay,
+		false
+	);
+}
+
+void UBattleTutorialWSubsystem::InitBattleTutorialFromSettings()
+{
+	const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+	if (!Settings)
+	{
+		return;
+	}
+
+	UBattleTutorialSequenceData* LoadedSequenceData = Settings->BattleTutorialSequenceData.LoadSynchronous();
+	TSubclassOf<UW_BattleTutorialOverlay> LoadedOverlayClass = Settings->BattleTutorialOverlayWidgetClass.LoadSynchronous();
+
+	InitBattleTutorial(LoadedSequenceData, LoadedOverlayClass);
 }
 
 void UBattleTutorialWSubsystem::InitBattleTutorial(UBattleTutorialSequenceData* InSequenceData, TSubclassOf<UW_BattleTutorialOverlay> InOverlayClass, int32 ZOrder)
@@ -66,6 +102,12 @@ void UBattleTutorialWSubsystem::InitBattleTutorial(UBattleTutorialSequenceData* 
 
 void UBattleTutorialWSubsystem::EndBattleTutorial()
 {
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(InitBattleTutorialTimerHandle);
+		World->GetTimerManager().ClearTimer(LeverAdvanceTimerHandle);
+	}
+
 	UnbindBattleEvents();
 
 	if (OverlayWidget)
@@ -104,6 +146,16 @@ void UBattleTutorialWSubsystem::AdvanceBattleTutorial()
 	}
 
 	ApplyCurrentStep();
+}
+
+void UBattleTutorialWSubsystem::AdvanceAfterLeverAct()
+{
+	if (OverlayWidget)
+	{
+		OverlayWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	AdvanceBattleTutorial();
 }
 
 void UBattleTutorialWSubsystem::CacheTutorialTargets()
@@ -161,7 +213,7 @@ void UBattleTutorialWSubsystem::ApplyCurrentStep()
 
 	const FBattleTutorialStep& CurrentStep = SequenceData->Steps[CurrentStepIndex];
 
-	OverlayWidget->SetTutorialText(CurrentStep.Text);
+	OverlayWidget->SetTutorialText(CurrentStep.Text, CurrentStep.bUseTopTextBox);
 	OverlayWidget->SetNextButtonEnabled(CurrentStep.AdvanceType == EBattleTutorialAdvanceType::OverlayClick ||
 		CurrentStep.AdvanceType == EBattleTutorialAdvanceType::End);
 
@@ -175,7 +227,7 @@ void UBattleTutorialWSubsystem::ApplyCurrentStep()
 	{
 		if (*TargetPoint)
 		{
-			OverlayWidget->SetFocusFromWorldLocation(BattlePlayerController, (*TargetPoint)->GetActorLocation(), CurrentStep.HoleSize);
+			OverlayWidget->SetFocusFromWorldLocation(BattlePlayerController, (*TargetPoint)->GetActorLocation(), GetHoleSizeForStep(CurrentStep));
 		}
 	}
 
@@ -238,7 +290,25 @@ void UBattleTutorialWSubsystem::HandleLeverTriggered()
 	const FBattleTutorialStep& CurrentStep = SequenceData->Steps[CurrentStepIndex];
 	if (CurrentStep.AdvanceType == EBattleTutorialAdvanceType::LeverClick)
 	{
-		AdvanceBattleTutorial();
+		if (OverlayWidget)
+		{
+			OverlayWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+
+		if (UWorld* World = GetWorld())
+		{
+			World->GetTimerManager().SetTimer(
+				LeverAdvanceTimerHandle,
+				this,
+				&UBattleTutorialWSubsystem::AdvanceAfterLeverAct,
+				BattleTutorialLeverAdvanceDelay,
+				false
+			);
+		}
+		else
+		{
+			AdvanceAfterLeverAct();
+		}
 	}
 }
 
@@ -248,4 +318,44 @@ void UBattleTutorialWSubsystem::SetTutorialInput(bool bUIOnly)
 	{
 		BattlePlayerController->SetInputForTutorial(bUIOnly);
 	}
+}
+
+FVector2D UBattleTutorialWSubsystem::GetHoleSizeForStep(const FBattleTutorialStep& Step) const
+{
+	if (!Step.HoleSize.IsNearlyZero())
+	{
+		return Step.HoleSize;
+	}
+
+	return GetDefaultHoleSize(Step.FocusId);
+}
+
+FVector2D UBattleTutorialWSubsystem::GetDefaultHoleSize(FName FocusId) const
+{
+	if (FocusId == TEXT("Lever"))
+	{
+		return FVector2D(0.06f, 0.14f);
+	}
+
+	if (FocusId == TEXT("CoinSlot"))
+	{
+		return FVector2D(0.2f, 0.15f);
+	}
+
+	if (FocusId == TEXT("Drawer"))
+	{
+		return FVector2D(0.3f, 0.25f);
+	}
+
+	if (FocusId == TEXT("ItemSlot"))
+	{
+		return FVector2D(0.08f, 0.1f);
+	}
+
+	if (FocusId == TEXT("Card"))
+	{
+		return FVector2D(0.3f, 1.0f);
+	}
+
+	return FVector2D(0.03f, 0.05f);
 }

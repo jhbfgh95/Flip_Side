@@ -17,6 +17,8 @@ class UUserWidget;
 class UW_StageEnd;
 class UW_MoneyDisplay;
 class UW_BattlePhaseAndTurnDisplayUI;
+class UW_BattleTutorialOverlay;
+class UBattleTutorialSequenceData;
 class AUseableItemActor;
 class UNiagaraSystem;
 
@@ -62,6 +64,15 @@ public:
 
 	UPROPERTY(EditAnywhere, config, Category = "Battle | UI")
 	TSoftClassPtr<UW_BattlePhaseAndTurnDisplayUI> BattlePhaseAndTurnDisplayWidgetClass;
+
+	UPROPERTY(EditAnywhere, config, Category = "Battle | Tutorial")
+	TSoftObjectPtr<UBattleTutorialSequenceData> BattleTutorialSequenceData;
+
+	UPROPERTY(EditAnywhere, config, Category = "Battle | Tutorial")
+	TSoftClassPtr<UW_BattleTutorialOverlay> BattleTutorialOverlayWidgetClass;
+
+	UPROPERTY(EditAnywhere, config, Category = "Battle | Tutorial")
+	float BattleTutorialInitDelay = 0.2f;
 
 	UPROPERTY(EditAnywhere, config, Category = "Common | UI")
 	TSoftClassPtr<UW_MoneyDisplay> MoneyDisplayWidgetClass;

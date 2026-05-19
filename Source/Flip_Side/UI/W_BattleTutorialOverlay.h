@@ -11,6 +11,7 @@ class UMaterialInterface;
 class UMaterialInstanceDynamic;
 class UButton;
 class UTextBlock;
+class UWidget;
 
 DECLARE_MULTICAST_DELEGATE(FOnBattleTutorialOverlayClicked);
 
@@ -26,7 +27,10 @@ public:
 	virtual void NativeConstruct() override;
 
 	UFUNCTION(BlueprintCallable)
-	void SetTutorialText(const FText& InText);
+	void SetTutorialText(const FText& InText, bool bUseTopTextBox);
+
+	UFUNCTION(BlueprintCallable)
+	void SetUseTopTextBox(bool bUseTopTextBox);
 
 	UFUNCTION(BlueprintCallable)
 	void SetFocusFromWorldLocation(APlayerController* PlayerController, const FVector& WorldLocation, const FVector2D& HoleSize);
@@ -53,7 +57,25 @@ protected:
 	TObjectPtr<UButton> NextButton;
 
 	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UButton> TopNextButton;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UButton> BottomNextButton;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UWidget> TopTutorialRoot;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UWidget> BottomTutorialRoot;
+
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> TutorialText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> TopTutorialText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> BottomTutorialText;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial")
 	TObjectPtr<UMaterialInterface> DimMaskMaterial;
@@ -64,4 +86,6 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UMaterialInstanceDynamic> DimMaterial;
+
+	bool bCurrentUseTopTextBox = false;
 };

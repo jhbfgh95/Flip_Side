@@ -35,7 +35,7 @@ namespace
     constexpr int32 StageClearFlag = 0;
     constexpr int32 GameOverFlag = 1;
     constexpr int32 GameClearFlag = 2;
-    constexpr int32 GameClearBattleLevelIndex = 4;
+    constexpr int32 GameClearBattleLevelIndex = 2;
 }
 
 void UBattleManagerWSubsystem::Initialize(FSubsystemCollectionBase& Collection)

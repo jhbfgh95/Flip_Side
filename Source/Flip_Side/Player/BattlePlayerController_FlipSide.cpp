@@ -80,6 +80,11 @@ void ABattlePlayerController_FlipSide::ReturnToDefaultCamera() // 일단 당장�
 
 void ABattlePlayerController_FlipSide::OnLeftClick()
 {
+    if (bIsTutorialUIOnly)
+    {
+        return;
+    }
+
     if (UCursorGISubsystem* CursorSys = GetGameInstance()->GetSubsystem<UCursorGISubsystem>())
     {
         CursorSys->SetCursorState(2);
@@ -122,6 +127,26 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
 
 void ABattlePlayerController_FlipSide::CheckMouseHover()
 {
+    if (bIsTutorialUIOnly)
+    {
+        if (LastHoveredActor)
+        {
+            if (IBattleHoverInterface* PrevHover = Cast<IBattleHoverInterface>(LastHoveredActor))
+            {
+                PrevHover->Execute_OnUnhover(LastHoveredActor);
+            }
+            LastHoveredActor = nullptr;
+        }
+
+        if (CurrentHoveredArea)
+        {
+            CurrentHoveredArea->SetHighlight(false);
+            CurrentHoveredArea = nullptr;
+        }
+
+        return;
+    }
+
     FHitResult Hit;
     AActor* CurrentActor = nullptr;
 
@@ -184,6 +209,11 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
 // 우클릭: 디폴트 카메라 시점으로 복귀
 void ABattlePlayerController_FlipSide::OnRightClick()
 {
+    if (bIsTutorialUIOnly)
+    {
+        return;
+    }
+
     if (UCursorGISubsystem* CursorSys = GetGameInstance()->GetSubsystem<UCursorGISubsystem>())
     {
         CursorSys->SetCursorState(2);
@@ -234,6 +264,8 @@ void ABattlePlayerController_FlipSide::OnTurnChanged(ETurnState NewTurn)
 
 void ABattlePlayerController_FlipSide::SetInputForTutorial(bool bIsUIOnly)
 {
+    bIsTutorialUIOnly = bIsUIOnly;
+
     if (bIsUIOnly)
     {
         SetInputMode(FInputModeUIOnly());
