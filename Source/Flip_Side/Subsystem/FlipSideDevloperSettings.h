@@ -25,6 +25,9 @@ class FLIP_SIDE_API UFlipSideDevloperSettings : public UDeveloperSettings
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(Config, EditAnywhere, Category = "Common | UI")
+	TSoftClassPtr<UUserWidget> CursorWidgetClass;
+
 	UPROPERTY(Config, EditAnywhere, Category = "Coin | Spawn")
 	TSoftClassPtr<ACoinActor> CoinActor;
 

@@ -11,15 +11,16 @@
 #include "BattleManagerWSubsystem.h"
 #include "BattleHoverInterface.h"
 #include "BattleClickInterface.h"
+#include "Subsystem/BattleLevel/CoinActionManagementWSubsystem.h"
 #include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
 #include "Subsystem/BattleLevel/CoinManagementWSubsystem.h"
 #include "Subsystem/BattleLevel/BattleLevelActingWSubsystem.h"
+#include "Subsystem/CursorGISubsystem.h"
 
 ABattlePlayerController_FlipSide::ABattlePlayerController_FlipSide()
 {
     bShowMouseCursor = true;
-    DefaultMouseCursor = EMouseCursor::Crosshairs;
 }
 
 void ABattlePlayerController_FlipSide::SetupInputComponent()
@@ -44,6 +45,11 @@ void ABattlePlayerController_FlipSide::PlayerTick(float DeltaTime)
 void ABattlePlayerController_FlipSide::BeginPlay()
 {
     Super::BeginPlay();
+
+    FInputModeGameAndUI InputMode;
+    InputMode.SetHideCursorDuringCapture(false);
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+    SetInputMode(InputMode);
 
     if (ControlledPawn)
     {
@@ -74,6 +80,16 @@ void ABattlePlayerController_FlipSide::ReturnToDefaultCamera() // 일단 당장�
 
 void ABattlePlayerController_FlipSide::OnLeftClick()
 {
+    if (UCursorGISubsystem* CursorSys = GetGameInstance()->GetSubsystem<UCursorGISubsystem>())
+    {
+        CursorSys->SetCursorState(2);
+        GetWorldTimerManager().SetTimer(CursorClickResetHandle, [this]()
+        {
+            if (UCursorGISubsystem* CS = GetGameInstance()->GetSubsystem<UCursorGISubsystem>())
+                CS->SetCursorState(0);
+        }, 0.15f, false);
+    }
+
     FHitResult Hit;
 
     if (GetHitResultUnderCursor(ECC_Camera, true, Hit)) 
@@ -134,6 +150,16 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
         LastHoveredActor = CurrentActor;
     }
 
+    // 커서 상태 업데이트 (클릭 애니메이션 중엔 덮어쓰지 않음)
+    if (!GetWorldTimerManager().IsTimerActive(CursorClickResetHandle))
+    {
+        if (UCursorGISubsystem* CursorSys = GetGameInstance()->GetSubsystem<UCursorGISubsystem>())
+        {
+            const bool bHovering = CurrentActor && CurrentActor->Implements<UBattleHoverInterface>();
+            CursorSys->SetCursorState(bHovering ? 1 : 0);
+        }
+    }
+
     // B. 기존 구역(Area) 하이라이트 체크 (기존 로직 유지)
     if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
     {
@@ -158,13 +184,19 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
 // 우클릭: 디폴트 카메라 시점으로 복귀
 void ABattlePlayerController_FlipSide::OnRightClick()
 {
-    UBattleManagerWSubsystem *BattleSub = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
-    if (BattleSub && BattleSub->GetCurrentTurn() == ETurnState::CoinSelectTurn)
+    if (UCursorGISubsystem* CursorSys = GetGameInstance()->GetSubsystem<UCursorGISubsystem>())
     {
-        /*
-        BattleSub->HandleItemCanceled();
-        BattleSub->HandleGridCanceled();
-        */
+        CursorSys->SetCursorState(2);
+        GetWorldTimerManager().SetTimer(CursorClickResetHandle, [this]()
+        {
+            if (UCursorGISubsystem* CS = GetGameInstance()->GetSubsystem<UCursorGISubsystem>())
+                CS->SetCursorState(0);
+        }, 0.15f, false);
+    }
+
+    if (UCoinActionManagementWSubsystem* CoinActionManager = GetWorld()->GetSubsystem<UCoinActionManagementWSubsystem>())
+    {
+        CoinActionManager->TryCancelCurrentAction();
     }
 }
 
@@ -197,6 +229,21 @@ void ABattlePlayerController_FlipSide::OnTurnChanged(ETurnState NewTurn)
     else if (NewTurn == ETurnState::CoinReadyTurn)
     {
         ControlledPawn->MoveCameraToArea(DefaultCameraLocation, DefaultCameraRotation, DefaultCameraArmLength);
+    }
+}
+
+void ABattlePlayerController_FlipSide::SetInputForTutorial(bool bIsUIOnly)
+{
+    if (bIsUIOnly)
+    {
+        SetInputMode(FInputModeUIOnly());
+    }
+    else
+    {
+        FInputModeGameAndUI InputMode;
+        InputMode.SetHideCursorDuringCapture(false);
+        InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+        SetInputMode(InputMode);
     }
 }
 

@@ -82,6 +82,8 @@ public:
 
 	UFUNCTION()
 	void CancelSingleCellAction(class ACoinActor* ClickedCoin);
+
+	void TryCancelCurrentAction();
 public:
 	EActionInputState CurrentInputState = EActionInputState::None;
 
