@@ -16,6 +16,7 @@ class UW_ItemInfo;
 class UUserWidget;
 class UW_StageEnd;
 class UW_MoneyDisplay;
+class UW_BattlePhaseAndTurnDisplayUI;
 class AUseableItemActor;
 class UNiagaraSystem;
 
@@ -55,6 +56,9 @@ public:
 
 	UPROPERTY(EditAnywhere, config, Category = "Battle | UI")
 	TSoftClassPtr<UW_StageEnd> StageEndWidgetClass;
+
+	UPROPERTY(EditAnywhere, config, Category = "Battle | UI")
+	TSoftClassPtr<UW_BattlePhaseAndTurnDisplayUI> BattlePhaseAndTurnDisplayWidgetClass;
 
 	UPROPERTY(EditAnywhere, config, Category = "Common | UI")
 	TSoftClassPtr<UW_MoneyDisplay> MoneyDisplayWidgetClass;
