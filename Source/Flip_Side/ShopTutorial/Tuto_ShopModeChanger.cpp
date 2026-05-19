@@ -3,8 +3,8 @@
 
 #include "ShopTutorial/Tuto_ShopModeChanger.h"
 #include "Subsystem/ShopTutorialWSubsystem.h"
-#include "Player/GameMode_ShopTuto.h"
-
+#include "Player/GameMode_Shop.h"
+#include "Player/ShopController_FlipSide.h"
 // Sets default values
 ATuto_ShopModeChanger::ATuto_ShopModeChanger()
 {
@@ -18,7 +18,8 @@ void ATuto_ShopModeChanger::BeginPlay()
 {
 	Super::BeginPlay();
 	TutoSubsystem = GetWorld()->GetSubsystem<UShopTutorialWSubsystem>();
-	TutoGameMode = Cast<AGameMode_ShopTuto>(GetWorld()->GetAuthGameMode());
+	TutoGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
+	ShopController = Cast<AShopController_FlipSide>(GetWorld()->GetFirstPlayerController());
 	if(TutoSubsystem)
 	{
 		for(int i =0; i< Order.Num(); i++)

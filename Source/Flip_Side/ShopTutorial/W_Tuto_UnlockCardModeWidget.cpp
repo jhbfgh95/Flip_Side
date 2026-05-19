@@ -17,15 +17,18 @@ void UW_Tuto_UnlockCardModeWidget::NativeOnInitialized()
 
 void UW_Tuto_UnlockCardModeWidget::UnlockExcuteEvent()
 {
+    UE_LOG(LogTemp,Warning, TEXT("1111"));
     TutoSubsystem->ExecuteEvents(UnlockExcuteOrder);
 }
 
 void UW_Tuto_UnlockCardModeWidget::SelectExcuteEvent()
 {
+    UE_LOG(LogTemp,Warning, TEXT("222"));
     TutoSubsystem->ExecuteEvents(SelectExcuteOrder);
 }
 
 void UW_Tuto_UnlockCardModeWidget::UnSelectExcuteEvent()
 {
+    UE_LOG(LogTemp,Warning, TEXT("33"));
     TutoSubsystem->ExecuteEvents(UnselectExcuteOrder);
 }

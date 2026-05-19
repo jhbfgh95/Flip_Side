@@ -14,6 +14,7 @@ class FLIP_SIDE_API UW_CoinSlotWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+	protected:
 virtual void NativeConstruct() override;
 virtual void NativeDestruct() override;
 private:

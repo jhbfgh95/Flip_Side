@@ -14,7 +14,7 @@ class FLIP_SIDE_API UW_Tuto_CoinSlotWidget : public UW_CoinSlotWidget
 {
 	GENERATED_BODY()
 	
-	virtual void NativeOnInitialized() override;
+	virtual void NativeConstruct() override;
 	
 	class UShopTutorialWSubsystem* TutoSubsystem;
 

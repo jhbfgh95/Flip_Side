@@ -59,5 +59,5 @@ void UW_ShopPlayerCard::InitPlayerCard(FCardData CardDataValue)
 
 void UW_ShopPlayerCard::RClickCard()
 {
-    ShopCardSubsystem->SelectPlayerCard(CardData);
+    ShopCardSubsystem->UnSelectPlayerCard(CardData);
 }

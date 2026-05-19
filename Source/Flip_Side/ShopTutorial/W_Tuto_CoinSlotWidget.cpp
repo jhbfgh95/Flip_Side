@@ -5,9 +5,9 @@
 #include "Subsystem/ShopTutorialWSubsystem.h"
 #include "Components/Button.h"
 
-void UW_Tuto_CoinSlotWidget::NativeOnInitialized()
+void UW_Tuto_CoinSlotWidget::NativeConstruct()
 {
-    Super::NativeOnInitialized();
+    Super::NativeConstruct();
     TutoSubsystem = GetWorld()->GetSubsystem<UShopTutorialWSubsystem>();
     SlotButton->OnClicked.AddDynamic(this, &UW_Tuto_CoinSlotWidget::ExcuteEvent);
 }

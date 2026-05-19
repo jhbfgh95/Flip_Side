@@ -21,7 +21,9 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	class AGameMode_ShopTuto* TutoGameMode;
+	class AGameMode_Shop* TutoGameMode;
+
+	class AShopController_FlipSide* ShopController;
 
 	class UShopTutorialWSubsystem* TutoSubsystem;
 

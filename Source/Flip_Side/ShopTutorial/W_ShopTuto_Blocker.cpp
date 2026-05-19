@@ -17,6 +17,7 @@ void UW_ShopTuto_Blocker::NativeConstruct()
 
 void UW_ShopTuto_Blocker::ExecuteTutorialEvent_Implementation()
 {
+    UE_LOG(LogTemp,Warning, TEXT("막음"));
     SetVisibility(ESlateVisibility::Collapsed);
 }
 
