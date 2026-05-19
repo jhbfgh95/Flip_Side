@@ -42,6 +42,7 @@ void AShopCreateCoin::BeginPlay()
 		CoinWSubSystem->OnSetWeapon.AddDynamic(this, &AShopCreateCoin::SetWeaponAdaptor);
 		//코인 상태 업데이트 됬을때
 		CoinWSubSystem->OnCoinSlotChange.AddDynamic(this, &AShopCreateCoin::SetCoin);
+		CoinWSubSystem->OnChangeCoinSlotCount.AddDynamic(this, &AShopCreateCoin::SetCoinSideToDecreaseSlot);
 	}
 
 
@@ -63,6 +64,7 @@ void AShopCreateCoin::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	CoinWSubSystem->OnSetWeapon.RemoveAll(this);
 	CoinWSubSystem->OnCoinSlotChange.RemoveAll(this);
+	CoinWSubSystem->OnChangeCoinSlotCount.RemoveAll(this);
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -73,6 +75,7 @@ void AShopCreateCoin::SetCoin()
 	{
 		ClickCoin();
 	}*/
+	CurrntSlot = CoinWSubSystem->GetCurrentSlotNum();
 	SetCoinWeaponID();
 	SetCoinSideMatarial();
 }
@@ -154,6 +157,20 @@ void AShopCreateCoin::SetCoinSideMatarial()
 	}
 }
 
+void AShopCreateCoin::SetCoinSideToDecreaseSlot(bool IsIncrease)
+{
+	if(IsIncrease)
+		return;
+	/* 나중에 삭제하기
+	UE_LOG(LogTemp, Warning, TEXT("%d 전시중인 코인 번호"), CurrntSlot);
+	
+	UE_LOG(LogTemp, Warning, TEXT("%d 슬롯 마지막 코인 번호"), CoinWSubSystem->GetCurrentSlotCount());
+	if(CurrntSlot == CoinWSubSystem->GetCurrentSlotCount())
+	{
+		ResetCoinSide();
+	}*/
+}
+
 
 void AShopCreateCoin::InteractLeftClick_Implementation()
 {
@@ -163,4 +180,15 @@ void AShopCreateCoin::InteractLeftClick_Implementation()
 void AShopCreateCoin::SetWeaponAdaptor(int32 WeaponID)
 {
 	SetCoin();
+}
+	
+void AShopCreateCoin::ResetCoinSide()
+{
+	UMaterialInstanceDynamic* MID = CoinMesh->CreateDynamicMaterialInstance(0);
+
+	if(MID)
+	{
+		MID->SetVectorParameterValue(FName("Front_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		MID->SetVectorParameterValue(FName("Back_Color"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+	}
 }

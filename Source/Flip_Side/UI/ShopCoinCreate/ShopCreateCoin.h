@@ -37,6 +37,9 @@ private:
 	class UStaticMeshComponent* CoinMesh;
 	
 
+private:
+	int32 CurrntSlot =0;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -57,6 +60,10 @@ private:
 	//코인이 처음 설정 됬을 때 초기화
 	UFUNCTION()
 	void SetCoinWeaponID();
+	
+	UFUNCTION()
+	void SetCoinSideToDecreaseSlot(bool IsIncrease);
+
 private: //코인정보
 
 	//현재 코인 면 데이터
@@ -81,7 +88,7 @@ protected:
 	UFUNCTION()
 	void FinishedRotateCoin();
 
-
+	void ResetCoinSide();
 
 private:
 	//코인 회전 애니메이션 타임라인 컴포넌트

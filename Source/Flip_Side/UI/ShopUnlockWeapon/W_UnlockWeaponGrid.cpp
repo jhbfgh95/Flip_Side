@@ -36,7 +36,7 @@ void UW_UnlockWeaponGrid::InitWeaponGrid()
         if(WeaponID == -3 || WeaponID==-2)
             continue;
         //버거 제외
-        if(WeaponID != 2 && WeaponID != 13)
+        if(WeaponID != 3 && WeaponID != 13)
         {
             UE_LOG(LogTemp, Warning, TEXT("추가된 번호 %d"), WeaponID);
             AddButton(WeaponID);
