@@ -49,7 +49,7 @@ private:
 	UUserWidget* BlockWidget;
 	UPROPERTY()
 	UUserWidget* ShopModeWidget;
-private:
+protected:
 	void InitWidget(TSubclassOf<UUserWidget> WidgetClass, UUserWidget*& widget,int32 ZOrder);
 
 private:

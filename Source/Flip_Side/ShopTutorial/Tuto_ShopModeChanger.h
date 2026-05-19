@@ -23,9 +23,11 @@ protected:
 private:
 	class AGameMode_Shop* TutoGameMode;
 
-	class AShopController_FlipSide* ShopController;
+	class AShopTutoController_FlipSide* ShopController;
 
 	class UShopTutorialWSubsystem* TutoSubsystem;
+
+	class UMoneyGISubsystem* MoneySubsystem;
 
 	virtual void ExecuteTutorialEvent_Implementation() override;
 
