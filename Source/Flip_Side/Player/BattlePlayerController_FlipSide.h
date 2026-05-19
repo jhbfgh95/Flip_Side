@@ -44,6 +44,7 @@ private:
     float BossDeadCameraArmLength = 0.f;
 
     FTimerHandle CoinSelectCameraDelayHandle;
+    FTimerHandle CursorClickResetHandle;
 
     UFUNCTION()
     void OnTurnChanged(ETurnState NewTurn);
@@ -82,4 +83,7 @@ public:
 	virtual void PlayerTick(float DeltaTime) override; // 매 프레임 마우스 호버 감지용
 
 	bool GetCursorWorldLocationOnPlane(float PlaneZ, FVector& OutWorldLocation) const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetInputForTutorial(bool bIsUIOnly);
 };

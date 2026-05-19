@@ -626,6 +626,26 @@ void UCoinActionManagementWSubsystem::HandleCoinActionLowerFinished()
     InitWeaponAction();
 }
 
+void UCoinActionManagementWSubsystem::TryCancelCurrentAction()
+{
+    if (!bActionSequenceActive || !SelectedAction) return;
+    if (AreaSpec.Pattern != EAttackAreaPattern::SingleCell) return;
+    if (CurrentInputState != EActionInputState::WaitingForCoinClick &&
+        CurrentInputState != EActionInputState::WaitingForGridClick &&
+        CurrentInputState != EActionInputState::WaitingForOtherClick)
+    {
+        return;
+    }
+
+    GetWorld()->GetTimerManager().ClearTimer(AutoActionHandler);
+    GetWorld()->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+
+    bPendingFailedVFX = false;
+    bCurrentStepTargetValid = true;
+    RepeatActionCnt = 0;
+    FinishCoinActionSequence();
+}
+
 void UCoinActionManagementWSubsystem::CancelSingleCellAction(ACoinActor* ClickedCoin)
 {
     if(!bActionSequenceActive || !SelectedAction || AreaSpec.Pattern != EAttackAreaPattern::SingleCell) return;
