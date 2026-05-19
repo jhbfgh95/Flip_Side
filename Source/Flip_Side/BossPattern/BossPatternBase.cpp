@@ -4,7 +4,11 @@
 #include "BossActor_RoleTarget.h"
 #include "BossManagerSubsystem.h"
 #include "GridManagerSubsystem.h"
+#include "GridActor.h"
+#include "AttackAreaTypes.h"
+#include "BattleLevelActingWSubsystem.h"
 #include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 #include "Component_Status.h"
 #include "CoinActor.h"
 #include "Actors/Others/Base_OtherActor.h"
@@ -177,23 +181,44 @@ void UBossPatternBase::ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, c
 }
 void UBossPatternBase::PlayPatternEffect_Implementation(int32 PatternNum, FVector EffectLocation)
 {
-	if(!PatternData.IsValidIndex(PatternNum)) return;
-	if(!PatternData[PatternNum].PatternEffect.IsNull())
+	if (!PatternData.IsValidIndex(PatternNum)) return;
+	if (PatternData[PatternNum].PatternEffect.IsNull()) return;
+
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	UBattleLevelActingWSubsystem* ActingMgr = World->GetSubsystem<UBattleLevelActingWSubsystem>();
+	UBossManagerSubsystem* BossMgr = World->GetSubsystem<UBossManagerSubsystem>();
+	UGridManagerSubsystem* GridMgr = World->GetSubsystem<UGridManagerSubsystem>();
+	if (!ActingMgr || !BossMgr || !GridMgr) return;
+
+	UNiagaraSystem* Effect = PatternData[PatternNum].PatternEffect.LoadSynchronous();
+	if (!Effect) return;
+
+	const FBossPatternBattleData& Data = PatternData[PatternNum];
+
+	// LockedCells → 월드 좌표 변환
+	const TArray<FGridPoint>& LockedCells = BossMgr->GetCurrentTurnLockedCells();
+	TArray<FVector> CellLocations;
+	for (const FGridPoint& Cell : LockedCells)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Naiagara On"));
+		AGridActor* GridActor = GridMgr->GetGridActor(Cell);
+		if (!IsValid(GridActor)) continue;
+		FVector2D XY = GridActor->GetGridWorldXY();
+		CellLocations.Add(FVector(XY.X, XY.Y, GridActor->GetActorLocation().Z));
+	}
 
-		UNiagaraSystem* DefaultEffect = PatternData[PatternNum].PatternEffect.LoadSynchronous();
-
-		if (DefaultEffect)
+	// AnchorCell 좌표
+	FVector AnchorLocation = EffectLocation;
+	if (Data.PatternSpec.AnchorMode == EAreaAnchor::UseAnchorCell)
+	{
+		AGridActor* AnchorGrid = GridMgr->GetGridActor(Data.PatternSpec.AnchorCell);
+		if (IsValid(AnchorGrid))
 		{
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-				GetWorld(), 
-				DefaultEffect, 
-				EffectLocation, 
-				FRotator::ZeroRotator,
-				PatternData[PatternNum].PatternScale
-			);
+			FVector2D XY = AnchorGrid->GetGridWorldXY();
+			AnchorLocation = FVector(XY.X, XY.Y, AnchorGrid->GetActorLocation().Z);
 		}
 	}
 
+	ActingMgr->PlayBossVFX(Effect, Data.PatternEffectTarget, Data.PatternScale, CellLocations, AnchorLocation);
 }

@@ -96,6 +96,11 @@ void ABossActor::InitializeFromBossData(const FBossBattleData& InData)
 	StageMultiplierStat = InData.StageMultiplierStat;
 	StageMultiplierGimmick = InData.StageMultiplierGimmick;
 
+	if (!InData.ClearAnim.IsNull())
+		BossClearAnim = InData.ClearAnim.LoadSynchronous();
+	if (!InData.HitAnim.IsNull())
+		BossHitAnim = InData.HitAnim.LoadSynchronous();
+
 	if(BossHpWidget)
 	{
 		BossHpWidget->SetBossName(BossName);

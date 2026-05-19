@@ -10,6 +10,15 @@ class UBossPatternBase;
 class UBossGimmickBase;
 
 UENUM(BlueprintType)
+enum class EBossPatternTarget : uint8
+{
+    BossLocation,   // 미사용 (예약)
+    TargetCells,    // 패턴 적용 그리드 각각에서 재생
+    AllCells,       // 판떼기 중앙 고정 위치에서 재생
+    AnchorCell,     // AnchorCell 좌표에서 재생 (원형/십자 등)
+};
+
+UENUM(BlueprintType)
 enum class EBossGimmickType : uint8
 {
     None       = 0,
@@ -165,6 +174,9 @@ struct FBossPatternBattleData
     TSoftObjectPtr<class UNiagaraSystem> PatternEffect;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EBossPatternTarget PatternEffectTarget = EBossPatternTarget::BossLocation;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FVector PatternScale = FVector::OneVector;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -233,6 +245,12 @@ struct FBossBattleData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     float StageMultiplierGimmick = 1.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<UAnimMontage> ClearAnim;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<UAnimMontage> HitAnim;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TArray<FBossPatternBattleData> PatternList;
