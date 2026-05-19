@@ -404,11 +404,12 @@ void UBattleLevelActingWSubsystem::PlayBossVFX(UNiagaraSystem* Effect, EBossPatt
 {
     if (!Effect || !GetWorld()) return;
 
-    static const FVector AllCellsCenter(2010.f, -990.f, -220.f);
+    UE_LOG(LogTemp, Warning, TEXT("[PlayBossVFX] TargetMode=%d, Effect=%s"), (int32)TargetMode, *Effect->GetName());
 
     switch (TargetMode)
     {
     case EBossPatternTarget::TargetCells:
+        UE_LOG(LogTemp, Warning, TEXT("[PlayBossVFX] Spawning at %d cells"), TargetCellLocations.Num());
         for (const FVector& Loc : TargetCellLocations)
         {
             UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Effect, Loc, FRotator::ZeroRotator, PatternScale);
@@ -416,15 +417,18 @@ void UBattleLevelActingWSubsystem::PlayBossVFX(UNiagaraSystem* Effect, EBossPatt
         break;
 
     case EBossPatternTarget::AllCells:
-        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Effect, AllCellsCenter, FRotator::ZeroRotator, PatternScale);
+        UE_LOG(LogTemp, Warning, TEXT("[PlayBossVFX] Spawning AllCells at fixed location"));
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Effect, FVector(2220.f, -1000.f, 1270.f), FRotator::ZeroRotator, PatternScale);
         break;
 
     case EBossPatternTarget::AnchorCell:
+        UE_LOG(LogTemp, Warning, TEXT("[PlayBossVFX] Spawning AnchorCell at %s"), *AnchorLocation.ToString());
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Effect, AnchorLocation, FRotator::ZeroRotator, PatternScale);
         break;
 
     case EBossPatternTarget::BossLocation:
     default:
+        UE_LOG(LogTemp, Warning, TEXT("[PlayBossVFX] BossLocation or default - not spawning"));
         break;
     }
 }
