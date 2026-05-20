@@ -46,6 +46,7 @@ void ABattlePlayerController_FlipSide::BeginPlay()
 {
     Super::BeginPlay();
 
+    bIsUIOnly = false;
     FInputModeGameAndUI InputMode;
     InputMode.SetHideCursorDuringCapture(false);
     InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
@@ -62,6 +63,7 @@ void ABattlePlayerController_FlipSide::BeginPlay()
     if (UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>())
     {
         BattleManager->OnTurnChanged.AddDynamic(this, &ABattlePlayerController_FlipSide::OnTurnChanged);
+        BattleManager->OnStageEnded.AddDynamic(this, &ABattlePlayerController_FlipSide::OnStageEnded);
     }
 
     if (UBattleLevelActingWSubsystem* Acting = GetWorld()->GetSubsystem<UBattleLevelActingWSubsystem>())
@@ -80,7 +82,7 @@ void ABattlePlayerController_FlipSide::ReturnToDefaultCamera() // 일단 당장�
 
 void ABattlePlayerController_FlipSide::OnLeftClick()
 {
-    if (bIsTutorialUIOnly)
+    if (bIsUIOnly)
     {
         return;
     }
@@ -127,7 +129,7 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
 
 void ABattlePlayerController_FlipSide::CheckMouseHover()
 {
-    if (bIsTutorialUIOnly)
+    if (bIsUIOnly)
     {
         if (LastHoveredActor)
         {
@@ -209,7 +211,7 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
 // 우클릭: 디폴트 카메라 시점으로 복귀
 void ABattlePlayerController_FlipSide::OnRightClick()
 {
-    if (bIsTutorialUIOnly)
+    if (bIsUIOnly)
     {
         return;
     }
@@ -262,11 +264,11 @@ void ABattlePlayerController_FlipSide::OnTurnChanged(ETurnState NewTurn)
     }
 }
 
-void ABattlePlayerController_FlipSide::SetInputForTutorial(bool bIsUIOnly)
+void ABattlePlayerController_FlipSide::SetInputForTutorial(bool bEnable)
 {
-    bIsTutorialUIOnly = bIsUIOnly;
+    bIsUIOnly = bEnable;
 
-    if (bIsUIOnly)
+    if (bEnable)
     {
         SetInputMode(FInputModeUIOnly());
     }
@@ -277,6 +279,11 @@ void ABattlePlayerController_FlipSide::SetInputForTutorial(bool bIsUIOnly)
         InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
         SetInputMode(InputMode);
     }
+}
+
+void ABattlePlayerController_FlipSide::OnStageEnded(int32 StageEndFlag)
+{
+    SetInputForTutorial(true);
 }
 
 bool ABattlePlayerController_FlipSide::GetCursorWorldLocationOnPlane(float PlaneZ, FVector& OutWorldLocation) const
