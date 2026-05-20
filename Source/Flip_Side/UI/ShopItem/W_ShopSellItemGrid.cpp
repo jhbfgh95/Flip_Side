@@ -22,8 +22,8 @@ void UW_ShopSellItemGrid::NativeConstruct()
     TArray<FItemData> SellItemData = ShopItemSubsystem->GetShopItemList();
 
     //피흡 보호막 추뎀 삭제
-    SellItemData.RemoveAt(0);
-    SellItemData.RemoveAt(0);
+    if (SellItemData.Num() > 0) SellItemData.RemoveAt(0);
+    if (SellItemData.Num() > 0) SellItemData.RemoveAt(0);
     
     int32 SellItemCount = SellItemData.Num();
 

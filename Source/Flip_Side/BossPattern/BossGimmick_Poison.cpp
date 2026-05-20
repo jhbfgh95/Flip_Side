@@ -8,6 +8,10 @@
 #include "FlipSide_Enum.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "GameFramework/PlayerController.h"
+#include "Blueprint/UserWidget.h"
+#include "Subsystem/FlipSideDevloperSettings.h"
+#include "UI/W_PoisonTimerUI.h"
 
 void UBossGimmick_Poison::OnPatternExecute(
 	ABossActor* Boss,
@@ -52,11 +56,28 @@ void UBossGimmick_Poison::OnPatternExecute(
 		PoisonedCoins.Add(Coin);
 		UE_LOG(LogTemp, Warning, TEXT("[Poison] CoinID=%d 독 등록"), Coin->GetCoinID());
 	}
+
+	// 독침 패턴 적용 시 타이머 위젯 생성
+	const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+	if (Settings && !Settings->PoisonTimerWidgetClass.IsNull())
+	{
+		APlayerController* PC = World->GetFirstPlayerController();
+		if (PC)
+		{
+			UClass* WidgetClass = Settings->PoisonTimerWidgetClass.LoadSynchronous();
+			if (WidgetClass)
+			{
+				PoisonTimerWidget = CreateWidget<UW_PoisonTimerUI>(PC, WidgetClass);
+				if (PoisonTimerWidget)
+					PoisonTimerWidget->AddToViewport();
+			}
+		}
+	}
 }
 
 void UBossGimmick_Poison::OnPlayerTurnStart(ABossActor* Boss)
 {
-	if (!Boss || PoisonedCoins.Num() == 0) return;
+	if (!IsValid(Boss) || PoisonedCoins.Num() == 0) return;
 
 	UWorld* World = Boss->GetWorld();
 	if (!World) return;
@@ -64,9 +85,19 @@ void UBossGimmick_Poison::OnPlayerTurnStart(ABossActor* Boss)
 	const int32 PoisonDamage = GimmickData.ParamFloatA > 0.f ? static_cast<int32>(GimmickData.ParamFloatA) : 1;
 	UE_LOG(LogTemp, Warning, TEXT("[Poison] 독 타이머 시작 - 대상=%d명, 데미지=%d / 5초"), PoisonedCoins.Num(), PoisonDamage);
 
-	World->GetTimerManager().SetTimer(PoisonTimerHandle, [this, Boss, PoisonDamage]()
+	if (PoisonTimerWidget)
+		PoisonTimerWidget->ShowPoisonTimer(5.f);
+
+	TWeakObjectPtr<UBossGimmick_Poison> WeakSelf(this);
+	TWeakObjectPtr<ABossActor> WeakBoss(Boss);
+
+	World->GetTimerManager().SetTimer(PoisonTimerHandle, [WeakSelf, WeakBoss, PoisonDamage]()
 	{
-		for (TWeakObjectPtr<ACoinActor> WeakCoin : PoisonedCoins)
+		if (!WeakSelf.IsValid()) return;
+		UBossGimmick_Poison* Self = WeakSelf.Get();
+		ABossActor* ValidBoss = WeakBoss.IsValid() ? WeakBoss.Get() : nullptr;
+
+		for (TWeakObjectPtr<ACoinActor> WeakCoin : Self->PoisonedCoins)
 		{
 			if (!WeakCoin.IsValid()) continue;
 
@@ -74,11 +105,14 @@ void UBossGimmick_Poison::OnPlayerTurnStart(ABossActor* Boss)
 			if (StatusComp)
 			{
 				const int32 PrevHP = StatusComp->GetHP();
-				StatusComp->ApplyDamage(PoisonDamage, Boss);
+				StatusComp->ApplyDamage(PoisonDamage, ValidBoss);
 				UE_LOG(LogTemp, Warning, TEXT("[Poison] CoinID=%d 독 데미지 %d — HP %d -> %d"),
 					WeakCoin->GetCoinID(), PoisonDamage, PrevHP, StatusComp->GetHP());
 			}
 		}
+
+		if (Self->PoisonTimerWidget)
+			Self->PoisonTimerWidget->ResetPoisonTimer();
 	},
 	5.f, true);
 }
@@ -92,4 +126,11 @@ void UBossGimmick_Poison::OnPlayerTurnEnd(ABossActor* Boss)
 
 	World->GetTimerManager().ClearTimer(PoisonTimerHandle);
 	PoisonedCoins.Reset();
+
+	if (PoisonTimerWidget)
+	{
+		PoisonTimerWidget->HidePoisonTimer();
+		PoisonTimerWidget->RemoveFromParent();
+		PoisonTimerWidget = nullptr;
+	}
 }

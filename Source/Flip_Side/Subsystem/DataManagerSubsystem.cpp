@@ -179,27 +179,37 @@ bool UDataManagerSubsystem::TryGetStageReward(int32 StageID, FStageRewardData& O
 void UDataManagerSubsystem::ClearCache()
 {
     WeaponByID.Reset();
+    WeaponByTypeID.Reset();
     WeaponIDsByClass.Reset();
+    WeaponTypes.Reset();
     BossByID.Reset();
     BossIDByStage.Reset();
     BossPatternDisplayByBossID.Reset();
     ItemByID.Reset();
-    WeaponTypes.Reset();
+    Items.Reset();
+    CardByID.Reset();
+    Cards.Reset();
     StageRewardByStageID.Reset();
     GameConfig = FGameConfigData();
 }
 
 bool UDataManagerSubsystem::OpenDbReadOnly()
 {
-    const FString ContentDbPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Database/DB.db"));
-
-    if (!FPaths::FileExists(ContentDbPath))
+    // 에디터: Content/Database/DB.db
+    // 패키징(NonUFS): ProjectDir/Database/DB.db
+    FString DbPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Database/DB.db"));
+    if (!FPaths::FileExists(DbPath))
     {
-        UE_LOG(LogTemp, Error, TEXT("[DB] DB file not found: %s"), *ContentDbPath);
+        DbPath = FPaths::Combine(FPaths::ProjectDir(), TEXT("Database/DB.db"));
+    }
+
+    if (!FPaths::FileExists(DbPath))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[DB] DB file not found: %s"), *DbPath);
         return false;
     }
 
-    return Db.Open(*ContentDbPath, ESQLiteDatabaseOpenMode::ReadOnly);
+    return Db.Open(*DbPath, ESQLiteDatabaseOpenMode::ReadOnly);
 }
 
 void UDataManagerSubsystem::CloseDb()

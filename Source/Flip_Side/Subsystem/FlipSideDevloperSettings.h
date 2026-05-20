@@ -21,6 +21,7 @@ class UW_BattleTutorialOverlay;
 class UBattleTutorialSequenceData;
 class AUseableItemActor;
 class UNiagaraSystem;
+class UW_PoisonTimerUI;
 
 UCLASS(Config=Game, meta=(DisplayName="My Manager Settings"))
 class FLIP_SIDE_API UFlipSideDevloperSettings : public UDeveloperSettings
@@ -64,6 +65,9 @@ public:
 
 	UPROPERTY(EditAnywhere, config, Category = "Battle | UI")
 	TSoftClassPtr<UW_BattlePhaseAndTurnDisplayUI> BattlePhaseAndTurnDisplayWidgetClass;
+
+	UPROPERTY(EditAnywhere, config, Category = "Battle | UI")
+	TSoftClassPtr<UW_PoisonTimerUI> PoisonTimerWidgetClass;
 
 	UPROPERTY(EditAnywhere, config, Category = "Battle | Tutorial")
 	TSoftObjectPtr<UBattleTutorialSequenceData> BattleTutorialSequenceData;

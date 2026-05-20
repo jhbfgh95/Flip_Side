@@ -7,6 +7,7 @@
 #include "FlipSide_Enum.h"
 #include "GridTypes.h"
 #include "Base_OtherActor.h"
+#include "Subsystem/StageCardWSubsystem.h"
 
 AGridActor::AGridActor()
 {
@@ -29,6 +30,12 @@ void AGridActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (!bIsPromotionHighlight) return;
+
+	UStageCardWSubsystem* CardSys = GetWorld()->GetSubsystem<UStageCardWSubsystem>();
+	if (!CardSys) return;
+
+	CardSys->CheckPromotionOnTick(Cast<ACoinActor>(CurrentObject));
 }
 
 void AGridActor::SetGridXY(int32 GridX, int32 GridY)

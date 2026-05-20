@@ -234,6 +234,20 @@ void UComponent_Status::ClearTurnBasedBuffs()
 	}
 }
 
+void UComponent_Status::RemoveBuffByName(const FString& Name)
+{
+    for (int32 i = ActiveBuffs.Num() - 1; i >= 0; --i)
+    {
+        if (ActiveBuffs[i].BuffName != Name) continue;
+
+        if (ActiveBuffs[i].StatHandle.IsValid())     OnCalculateStats.Remove(ActiveBuffs[i].StatHandle);
+        if (ActiveBuffs[i].DamageHandle.IsValid())   OnPreTakeDamage.Remove(ActiveBuffs[i].DamageHandle);
+        if (ActiveBuffs[i].PreGiveHandle.IsValid())  OnPreGiveDamage.Remove(ActiveBuffs[i].PreGiveHandle);
+        if (ActiveBuffs[i].PostGiveHandle.IsValid()) OnPostGiveDamage.Remove(ActiveBuffs[i].PostGiveHandle);
+        ActiveBuffs.RemoveAt(i);
+    }
+}
+
 void UComponent_Status::ApplyHeal(int32 Heal, AActor* HealCauser)
 {
 	if(HP <= 0) return;

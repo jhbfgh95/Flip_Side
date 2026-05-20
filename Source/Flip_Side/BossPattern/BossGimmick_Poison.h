@@ -4,6 +4,8 @@
 #include "BossGimmickBase.h"
 #include "BossGimmick_Poison.generated.h"
 
+class UW_PoisonTimerUI;
+
 UCLASS()
 class FLIP_SIDE_API UBossGimmick_Poison : public UBossGimmickBase
 {
@@ -17,4 +19,7 @@ public:
 private:
 	FTimerHandle PoisonTimerHandle;
 	TArray<TWeakObjectPtr<ACoinActor>> PoisonedCoins;
+
+	UPROPERTY()
+	UW_PoisonTimerUI* PoisonTimerWidget = nullptr;
 };

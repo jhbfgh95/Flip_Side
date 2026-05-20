@@ -148,6 +148,8 @@ public:
 
 	void ClearTurnBasedBuffs();
 
+	void RemoveBuffByName(const FString& Name);
+
 	//보호막 추가 데미지 등
 	void CheckAttackerPreBuff(AActor* Target, int32 InDmg, int32& OutDmg);
 	//피흡 등

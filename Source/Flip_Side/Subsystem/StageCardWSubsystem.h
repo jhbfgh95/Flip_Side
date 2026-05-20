@@ -74,6 +74,8 @@ public:
 
     void SettingDoSettingTurn();
 
+    void CheckPromotionOnTick(ACoinActor* Coin);
+
     //Park 추가
     int32 GetCardPrice() { return static_cast<int32>(CardPrice / 2); }
     int32 GetCardCount() const;
@@ -105,6 +107,8 @@ private:
     // ���κ� ī�� ȿ�� ��� ĳ��(�ϸ��� �ʱ�ȭ ����)
     UPROPERTY()
     TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers> CoinMods;
+
+    TWeakObjectPtr<ACoinActor> PromotedCoin;
 
 private:
     // ===== [카드 효과 내부 루틴] =====

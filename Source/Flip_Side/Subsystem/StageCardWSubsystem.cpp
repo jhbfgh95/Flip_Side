@@ -259,10 +259,22 @@ void UStageCardWSubsystem::SettingDoSettingTurn()
 
 void UStageCardWSubsystem::ClearPromotionHighlight()
 {
-    if (ActingManager)
+    if (ACoinActor* PrevCoin = PromotedCoin.Get())
     {
-        ActingManager->HidePromotionVFX();
+        if (UComponent_Status* Status = PrevCoin->FindComponentByClass<UComponent_Status>())
+            Status->RemoveBuffByName(TEXT("PromotionBuff"));
+        CoinMods.Remove(PrevCoin);
+        PromotedCoin = nullptr;
     }
+
+    if (GridSubsys && PromotionHighlightedGrid.GridX >= 0)
+    {
+        if (AGridActor* HighlightGrid = GridSubsys->GetGridActor(PromotionHighlightedGrid))
+            HighlightGrid->SetPromotionHighlight(false);
+    }
+
+    if (ActingManager)
+        ActingManager->HidePromotionVFX();
 
     PromotionHighlightedGrid.GridX = -1;
     PromotionHighlightedGrid.GridY = -1;
@@ -333,6 +345,7 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
             {
                 ActingManager->ShowPromotionVFX(HighlightGrid->GetActorLocation());
             }
+            HighlightGrid->SetPromotionHighlight(true);
             PromotionHighlightedGrid = RandPoint;
         }
     }
@@ -353,14 +366,8 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
 
         if (Card.CardID == 3)
         {
-            // 프로모션: 빛나는 칸에 쇠파이프(WeaponID==3) 코인이 있을 때만 버프
-            if (PromotionHighlightedGrid.GridX >= 0)
-            {
-                if(FCardLogicLibrary::ApplyPromotion(Card, FieldCoins, LocalMods, DM, PromotionHighlightedGrid))
-                    OnStageHandCardActive.Broadcast(Slot, true);
-                else
-                    OnStageHandCardActive.Broadcast(Slot, false);
-            }
+            // 프로모션: GridActor 틱에서 조건 체크 후 버프 적용
+            OnStageHandCardActive.Broadcast(Slot, false);
         }
         else if (const FCardLogicFn* Logic = CardLogicTable.Find(Card.CardID))
         {
@@ -414,6 +421,80 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
     UE_LOG(LogTemp, Log, TEXT("[StageCard] ExecuteCardsEffect done. BuffAppliedCoins=%d"), LocalMods.Num());
 }
 
+
+void UStageCardWSubsystem::CheckPromotionOnTick(ACoinActor* Coin)
+{
+    if (PromotionHighlightedGrid.GridX < 0) return;
+
+    int32 PromoSlot = -1;
+    for (int32 Slot = 0; Slot < HandCount; ++Slot)
+    {
+        if (bHasCard.IsValidIndex(Slot) && bHasCard[Slot] && HandCards[Slot].CardID == 3)
+        {
+            PromoSlot = Slot;
+            break;
+        }
+    }
+    if (PromoSlot < 0) return;
+
+    const bool bConditionMet = IsValid(Coin) && (Coin->GetCoinFaceID() == 1);
+
+    if (bConditionMet)
+    {
+        if (PromotedCoin.Get() == Coin) return;
+
+        // 이전 코인 버프 제거
+        if (ACoinActor* PrevCoin = PromotedCoin.Get())
+        {
+            if (UComponent_Status* PrevStatus = PrevCoin->FindComponentByClass<UComponent_Status>())
+                PrevStatus->RemoveBuffByName(TEXT("PromotionBuff"));
+            CoinMods.Remove(PrevCoin);
+        }
+
+        // 새 코인에 버프 적용
+        UComponent_Status* StatusComp = Coin->FindComponentByClass<UComponent_Status>();
+        if (!IsValid(StatusComp)) return;
+
+        const FCardData& Card = HandCards[PromoSlot];
+        const int32 AttackAdd   = Card.AttackAdd;
+        const int32 BehaviorAdd = Card.BehaviorAdd;
+        const int32 RangeAdd    = Card.RangeAdd;
+
+        FBuffInfo BuffInfo;
+        BuffInfo.BuffName = TEXT("PromotionBuff");
+        BuffInfo.StatDelegate = FOnCalculateStats::FDelegate::CreateWeakLambda(
+            StatusComp,
+            [AttackAdd, BehaviorAdd, RangeAdd](FActionTask& Task)
+            {
+                Task.ModifiedAttackPoint   += AttackAdd;
+                Task.ModifiedBehaviorPoint += BehaviorAdd;
+                Task.ModifiedRange.GridX   += RangeAdd;
+                Task.ModifiedRange.GridY   += RangeAdd;
+            });
+
+        StatusComp->AddBuffs(BuffInfo);
+
+        FCoinCardModifiers& M = CoinMods.FindOrAdd(Coin);
+        M.AttackAdd   += AttackAdd;
+        M.BehaviorAdd += BehaviorAdd;
+        M.RangeAdd    += RangeAdd;
+        if (Card.bLifeSteal) M.bLifeSteal = true;
+
+        PromotedCoin = Coin;
+        OnStageHandCardActive.Broadcast(PromoSlot, true);
+    }
+    else
+    {
+        if (ACoinActor* PrevCoin = PromotedCoin.Get())
+        {
+            if (UComponent_Status* PrevStatus = PrevCoin->FindComponentByClass<UComponent_Status>())
+                PrevStatus->RemoveBuffByName(TEXT("PromotionBuff"));
+            CoinMods.Remove(PrevCoin);
+            PromotedCoin = nullptr;
+            OnStageHandCardActive.Broadcast(PromoSlot, false);
+        }
+    }
+}
 
 void UStageCardWSubsystem::UnActiveCardUI()
 {
