@@ -32,7 +32,8 @@ void UBossSetupGISubsystem::AssignBossesToStages()
     TArray<int32> BossIDs;
     for (const FBossDisplayData& Data : AllBossData)
     {
-        if (Data.BossID >= 2)
+        //임시수정
+        if (Data.BossID == 2 || Data.BossID == 4)
             BossIDs.Add(Data.BossID);
     }
 
