@@ -2,6 +2,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
 #include "W_BossHP.h"
@@ -46,6 +47,12 @@ ABossActor::ABossActor()
 	ShieldEffectComponent->SetupAttachment(BossMesh);
 	ShieldEffectComponent->SetAutoActivate(false);
 	ShieldEffectComponent->SetVisibility(true);
+
+	BossFractureComponent = CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("BossFracture"));
+	BossFractureComponent->SetupAttachment(RootComponent);
+	BossFractureComponent->SetVisibility(false);
+	BossFractureComponent->SetSimulatePhysics(false);
+	BossFractureComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	BossSelfEffectLoc = CreateDefaultSubobject<USceneComponent>(TEXT("SelfEffectLocation"));
 	BossSelfEffectLoc->SetupAttachment(RootComponent);
@@ -165,11 +172,15 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 
 	if(CurrentHP <= 0 && !bIsDying)
 	{
-		if(AnimInstance && BossClearAnim)
+		bIsDying = true;
+		if(OnBossDeathStarted.IsBound()) OnBossDeathStarted.Broadcast();
+
+		const bool bCanPlayClearAnim = AnimInstance && BossClearAnim;
+		const float PlayedLength = bCanPlayClearAnim ? AnimInstance->Montage_Play(BossClearAnim) : 0.0f;
+		if(!bCanPlayClearAnim || PlayedLength <= 0.0f)
 		{
-			bIsDying = true;
-			if(OnBossDeathStarted.IsBound()) OnBossDeathStarted.Broadcast();
-			AnimInstance->Montage_Play(BossClearAnim);
+			UE_LOG(LogTemp, Warning, TEXT("[Boss] Clear montage unavailable or failed to play. Finishing death sequence immediately."));
+			FinishBossClearAnimation();
 		}
 	}
 	else if(CurrentHP > 0)
@@ -409,8 +420,6 @@ void ABossActor::BossMontageEnded(UAnimMontage * TargetMontage, bool bInterrupte
 	{
 
 		UE_LOG(LogTemp, Warning, TEXT("[Boss] BossClearAnim ended. Interrupted=%d"), bInterrupted);
-		if(bInterrupted) return;
-
 		FinishBossClearAnimation();
 	}
 }
@@ -426,6 +435,7 @@ void ABossActor::FinishBossClearAnimation()
 		BossMesh->bPauseAnims = true;
 	}
 
+	PlayDefaultBossDeathFracture();
 	BossDeadEffect();
 
 	if(BossDeadEffectDelay <= 0.0f)
@@ -452,6 +462,108 @@ void ABossActor::FinishBossClearAnimation()
 void ABossActor::BroadcastBossDeadAfterEffect()
 {
 	if(OnBossDead.IsBound()) OnBossDead.Broadcast();
+}
+
+void ABossActor::PlayDefaultBossDeathFracture()
+{
+	if (bBossFractureTriggered)
+	{
+		return;
+	}
+
+	bBossFractureTriggered = true;
+	SetActorEnableCollision(false);
+
+	if (ShieldEffectComponent)
+	{
+		ShieldEffectComponent->Deactivate();
+		ShieldEffectComponent->SetVisibility(false);
+	}
+
+	if (BossHpWidget)
+	{
+		BossHpWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
+
+	if (BossMesh)
+	{
+		BossMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	if (BossFractureComponent)
+	{
+		SyncBossFractureToCurrentPose();
+		BossFractureComponent->SetHiddenInGame(false);
+		BossFractureComponent->SetVisibility(true, true);
+		BossFractureComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		BossFractureComponent->SetSimulatePhysics(true);
+
+		const FVector ImpulseCenter = (BossSelfEffectLoc ? BossSelfEffectLoc->GetComponentLocation() : GetActorLocation()) + BossFractureImpulseOffset;
+		BossFractureComponent->ApplyExternalStrain(
+			0,
+			ImpulseCenter,
+			BossFractureImpulseRadius,
+			BossFracturePropagationDepth,
+			1.0f,
+			BossFractureStrain
+		);
+		BossFractureComponent->AddRadialImpulse(
+			ImpulseCenter,
+			BossFractureImpulseRadius,
+			BossFractureImpulseStrength,
+			ERadialImpulseFalloff::RIF_Constant,
+			true
+		);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Boss] BossFractureComponent is missing on %s"), *GetName());
+	}
+
+	if (BossFractureMeshHideDelay <= 0.0f)
+	{
+		HideBossVisualForFracture();
+	}
+	else if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(BossFractureHideMeshTimerHandle);
+		World->GetTimerManager().SetTimer(
+			BossFractureHideMeshTimerHandle,
+			this,
+			&ABossActor::HideBossVisualForFracture,
+			BossFractureMeshHideDelay,
+			false
+		);
+	}
+	else
+	{
+		HideBossVisualForFracture();
+	}
+
+	if (BossFractureLifeSpan > 0.0f)
+	{
+		SetLifeSpan(FMath::Max(BossFractureLifeSpan, BossDeadEffectDelay + 0.25f));
+	}
+}
+
+void ABossActor::SyncBossFractureToCurrentPose()
+{
+	if (!BossFractureComponent || !BossMesh)
+	{
+		return;
+	}
+
+	const FTransform TargetTransform = BossFracturePoseOffset * BossMesh->GetComponentTransform();
+	BossFractureComponent->SetWorldTransform(TargetTransform);
+}
+
+void ABossActor::HideBossVisualForFracture()
+{
+	if (BossMesh)
+	{
+		BossMesh->SetVisibility(false, true);
+		BossMesh->SetHiddenInGame(true, true);
+	}
 }
 
 void ABossActor::UpdateShieldEffect()

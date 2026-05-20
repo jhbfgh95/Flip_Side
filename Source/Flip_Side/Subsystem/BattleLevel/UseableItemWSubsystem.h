@@ -142,6 +142,10 @@ protected:
 public:
 	void SetItemInfo(AUseableItemActor* TargetItem);
 
+	bool HasPendingItemSelection() const;
+
+	bool TryCancelCurrentItemSelection();
+
 	void CancelWantUseItem();
 
 	void BuildEverywhereValidTargetGrids(class ACoinActor* TargetCoin);

@@ -6,6 +6,7 @@
 #include "W_ShopWidget.h"
 #include "ShopPlayerPawn_FlipSide.h"
 #include "Player/GameMode_Shop.h"
+#include "Subsystem/LevelGISubsystem.h"
 #include "Subsystem/MoneyGISubsystem.h"
 
 #include "Interface/ShopMouseInterface.h"
@@ -23,6 +24,15 @@ void AShopController_FlipSide::BeginPlay()
     ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
     this->bShowMouseCursor = true;
     this->bEnableMouseOverEvents = true;
+    this->bEnableClickEvents = true;
+
+    // Battle stage end can leave the viewport in UI-only mode.
+    // Reset to a mode that still allows UI buttons but also restores world clicks.
+    FInputModeGameAndUI InputMode;
+    InputMode.SetHideCursorDuringCapture(false);
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+    SetInputMode(InputMode);
+
     if(ShopGameMode)
     {
         ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopController_FlipSide::SetShopMainModeWidget);
@@ -73,6 +83,7 @@ void AShopController_FlipSide::SetupInputComponent()
     }
 
     InputComponent->BindKey(EKeys::LeftMouseButton, IE_Pressed, this, &AShopController_FlipSide::OnLeftClick);
+    InputComponent->BindKey(EKeys::R, IE_Pressed, this, &AShopController_FlipSide::OnResetToStartLevel);
     //InputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnRightClick);
 }
 
@@ -161,6 +172,14 @@ void AShopController_FlipSide::OnRightClick()
 
     }
     //ReturnToDefaultCamera();
+}
+
+void AShopController_FlipSide::OnResetToStartLevel()
+{
+    if (ULevelGISubsystem* LevelSubsystem = GetGameInstance()->GetSubsystem<ULevelGISubsystem>())
+    {
+        LevelSubsystem->MoveStartLevel();
+    }
 }
 
 void AShopController_FlipSide::CheckMouseHover()

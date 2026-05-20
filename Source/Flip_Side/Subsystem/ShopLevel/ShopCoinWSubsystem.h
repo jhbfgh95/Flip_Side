@@ -30,7 +30,7 @@ struct FShopCoinSlotData
     FCoinTypeStructure CoinData;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	EWeaponClass CoinClass;
+	EWeaponClass CoinClass = EWeaponClass::None;
 };
 
 /*코인 개수가 변경됬을 떄 델리게이트*/
@@ -71,11 +71,11 @@ private:
 	class UCrossingLevelGISubsystem* CrossLevelSubsystem;
 private:
 	//총 코인 개수
-	int32 TotalCoinCount;
+	int32 TotalCoinCount = 0;
 	/*10개의 코인슬롯 정보*/
 	TArray<FShopCoinSlotData> ShopCoinSlotArray;
 	/*현재 선택 중인 코인 슬롯 번호*/
-	int32 CurrentCoinSlotNum;
+	int32 CurrentCoinSlotNum = 0;
 
 /*델리게이트들*/
 public:
@@ -161,7 +161,7 @@ public:
 	void SelectCoin(int32 SlotNum);
 	
 private:
-	bool IsCreateCoinFront;
+	bool IsCreateCoinFront = true;
 public:	
 
 	//코인에 무기 장착

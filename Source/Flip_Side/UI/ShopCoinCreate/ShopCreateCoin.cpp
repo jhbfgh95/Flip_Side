@@ -21,9 +21,19 @@ AShopCreateCoin::AShopCreateCoin()
 
 	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
 	SphereCollision->SetupAttachment(RootComponent);
+	SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	SphereCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+	SphereCollision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	SphereCollision->ComponentTags.Add(TEXT("LClickAble"));
+	SphereCollision->ComponentTags.Add(TEXT("HoverAble"));
 	
 	CoinMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
 	CoinMesh->SetupAttachment(RootComponent);
+	CoinMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CoinMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+	CoinMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	CoinMesh->ComponentTags.Add(TEXT("LClickAble"));
+	CoinMesh->ComponentTags.Add(TEXT("HoverAble"));
 
 	Timeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("PannelTimeline"));
 }

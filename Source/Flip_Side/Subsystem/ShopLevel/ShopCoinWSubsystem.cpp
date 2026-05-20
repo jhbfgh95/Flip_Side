@@ -25,6 +25,10 @@ void UShopCoinWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
     MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
     CrossLevelSubsystem =GetWorld()->GetGameInstance()->GetSubsystem<UCrossingLevelGISubsystem>();
+    TotalCoinCount = 0;
+    CurrentCoinSlotNum = 0;
+    ShopCoinSlotArray.Reset();
+
     FCoinTypeStructure DefaultCoin;
     DefaultCoin.BackWeaponID = -1;
     DefaultCoin.FrontWeaponID = -1;

@@ -411,6 +411,24 @@ void UUseableItemWSubsystem::CancelWantUseItem()
     }
 }
 
+bool UUseableItemWSubsystem::HasPendingItemSelection() const
+{
+    return CurrentTargetMode != EUseableItemTargetMode::None
+        || IsValid(SelectedItemActor)
+        || SelectedTargetCoin != nullptr;
+}
+
+bool UUseableItemWSubsystem::TryCancelCurrentItemSelection()
+{
+    if(!HasPendingItemSelection())
+    {
+        return false;
+    }
+
+    CancelWantUseItem();
+    return true;
+}
+
 void UUseableItemWSubsystem::BuildEverywhereValidTargetGrids(ACoinActor* TargetCoin)
 {
     ValidTargetGrids.Empty();

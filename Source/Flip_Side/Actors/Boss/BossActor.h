@@ -97,6 +97,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Shield")
 	class UNiagaraComponent* ShieldEffectComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Death")
+	TObjectPtr<class UGeometryCollectionComponent> BossFractureComponent = nullptr;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Boss", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class UUserWidget> BossHPWidgetClass;
 
@@ -134,17 +137,53 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Death")
 	float BossDeadEffectDelay = 1.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Death", meta = (ClampMin = "0.0"))
+	float BossFractureImpulseRadius = 300.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Death")
+	float BossFractureImpulseStrength = 1000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Death", meta = (ClampMin = "0.0"))
+	float BossFractureStrain = 1000000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Death", meta = (ClampMin = "0"))
+	int32 BossFracturePropagationDepth = 8;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Death")
+	FVector BossFractureImpulseOffset = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Death", meta = (ClampMin = "0.0"))
+	float BossFractureLifeSpan = 2.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Death", meta = (ClampMin = "0.0"))
+	float BossFractureMeshHideDelay = 0.05f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Death")
+	FName BossFracturePoseSocketName = NAME_None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Death")
+	FTransform BossFracturePoseOffset = FTransform::Identity;
+
 	bool bIsDying = false;
 
 	bool bBossDeathFinished = false;
 
+	bool bBossFractureTriggered = false;
+
 	FTimerHandle BossDeadEffectTimerHandle;
+	FTimerHandle BossFractureHideMeshTimerHandle;
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	void BossMontageEnded(class UAnimMontage* TargetMontage, bool bInterrupted);
 
 	UFUNCTION()
 	void BroadcastBossDeadAfterEffect();
+
+	UFUNCTION(BlueprintCallable, Category = "Boss|Death")
+	void PlayDefaultBossDeathFracture();
+
+	void SyncBossFractureToCurrentPose();
+	void HideBossVisualForFracture();
 
 	void UpdateShieldEffect();
 	void ApplyCachedPatternInfoToWidget();

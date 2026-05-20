@@ -11,7 +11,7 @@ void UCrossingLevelGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
-    InitSlots();
+    ResetRunData();
 
     //GenerateTestCoin();
 }
@@ -46,6 +46,16 @@ void UCrossingLevelGISubsystem::InitSlots()
     {
         SelectedUseableItemArray.Add(DefaultItem);
     }
+}
+
+void UCrossingLevelGISubsystem::ResetRunData()
+{
+    SlotCoinArray.Reset();
+    CardIDArray.Reset();
+    SelectedUseableItemArray.Reset();
+    IsCoinEmpty = false;
+
+    InitSlots();
 }
 
 //코인슬롯에 코인 할당

@@ -88,15 +88,17 @@ private:
 
 protected:
 
-    void OnLeftClick();
+	void OnLeftClick();
 
 	void OnRightClick();
+
+	void OnResetToStartLevel();
 
     void CheckMouseHover();
 
 private:
 	AActor* CurrentHoverActor;
 
-	bool CanClick;
+	bool CanClick = true;
 
 };

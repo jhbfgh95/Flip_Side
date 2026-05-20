@@ -69,7 +69,7 @@ struct FFaceData
     EWeaponVFXTarget WeaponVFXTarget = EWeaponVFXTarget::None;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FLinearColor TypeColor;
+    FLinearColor TypeColor = FLinearColor::White;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FAttackAreaSpec AttackAreaSpec;
@@ -109,7 +109,7 @@ struct FWeaponType
     int32 HP = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FLinearColor TypeColor;
+    FLinearColor TypeColor = FLinearColor::White;
 };
 
 USTRUCT(BlueprintType)

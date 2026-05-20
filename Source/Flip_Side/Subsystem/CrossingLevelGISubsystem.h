@@ -66,6 +66,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int32 GetMakedItemNum() const;
 
+	//런 데이터를 초기화함
+	UFUNCTION(BlueprintCallable)
+	void ResetRunData();
+
 	//테스트용 코인슬롯에 코인들을 채움 카드 및 소모품도 넣겠음.
 	void GenerateTestCoin();
 

@@ -16,6 +16,8 @@
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
 #include "Subsystem/BattleLevel/CoinManagementWSubsystem.h"
 #include "Subsystem/BattleLevel/BattleLevelActingWSubsystem.h"
+#include "Subsystem/BattleLevel/UseableItemWSubsystem.h"
+#include "Subsystem/LevelGISubsystem.h"
 #include "Subsystem/CursorGISubsystem.h"
 
 ABattlePlayerController_FlipSide::ABattlePlayerController_FlipSide()
@@ -34,6 +36,7 @@ void ABattlePlayerController_FlipSide::SetupInputComponent()
 
     InputComponent->BindKey(EKeys::LeftMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnLeftClick);
     InputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnRightClick);
+    InputComponent->BindKey(EKeys::R, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnResetToStartLevel);
 }
 
 void ABattlePlayerController_FlipSide::PlayerTick(float DeltaTime)
@@ -226,9 +229,25 @@ void ABattlePlayerController_FlipSide::OnRightClick()
         }, 0.15f, false);
     }
 
+    if (UUseableItemWSubsystem* UseableItemSubsystem = GetWorld()->GetSubsystem<UUseableItemWSubsystem>())
+    {
+        if (UseableItemSubsystem->TryCancelCurrentItemSelection())
+        {
+            return;
+        }
+    }
+
     if (UCoinActionManagementWSubsystem* CoinActionManager = GetWorld()->GetSubsystem<UCoinActionManagementWSubsystem>())
     {
         CoinActionManager->TryCancelCurrentAction();
+    }
+}
+
+void ABattlePlayerController_FlipSide::OnResetToStartLevel()
+{
+    if (ULevelGISubsystem* LevelSubsystem = GetGameInstance()->GetSubsystem<ULevelGISubsystem>())
+    {
+        LevelSubsystem->MoveStartLevel();
     }
 }
 

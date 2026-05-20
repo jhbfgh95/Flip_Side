@@ -43,7 +43,7 @@ struct FItemData
     UTexture2D* ItemIcon=nullptr;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FLinearColor TypeColor;
+    FLinearColor TypeColor = FLinearColor::White;
 
     // DB���� ���� �ڵ� ���ڿ�
     UPROPERTY(EditAnywhere, BlueprintReadOnly)

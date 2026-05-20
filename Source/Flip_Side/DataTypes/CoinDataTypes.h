@@ -55,7 +55,7 @@ struct FRandomState
     GENERATED_BODY()
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    EFaceState RandomFace;
+    EFaceState RandomFace = EFaceState::None;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FGridPoint RandomGrid;

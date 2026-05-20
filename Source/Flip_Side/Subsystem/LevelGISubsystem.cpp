@@ -1,5 +1,6 @@
 #include "LevelGISubsystem.h"
 #include "BossSetupGISubsystem.h"
+#include "CrossingLevelGISubsystem.h"
 #include "MoneyGISubsystem.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -84,6 +85,10 @@ int32 ULevelGISubsystem::GetBattleLevelIndex()
 
 void ULevelGISubsystem::MoveStartLevel()
 {
+    if (UCrossingLevelGISubsystem* CrossingLevel = GetGameInstance()->GetSubsystem<UCrossingLevelGISubsystem>())
+    {
+        CrossingLevel->ResetRunData();
+    }
     if (UBossSetupGISubsystem* BossSetup = GetGameInstance()->GetSubsystem<UBossSetupGISubsystem>())
     {
         BossSetup->ResetBossStageAssignments();
