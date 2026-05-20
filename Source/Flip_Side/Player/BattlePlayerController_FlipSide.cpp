@@ -287,17 +287,10 @@ void ABattlePlayerController_FlipSide::SetInputForTutorial(bool bEnable)
 {
     bIsUIOnly = bEnable;
 
-    if (bEnable)
-    {
-        SetInputMode(FInputModeUIOnly());
-    }
-    else
-    {
-        FInputModeGameAndUI InputMode;
-        InputMode.SetHideCursorDuringCapture(false);
-        InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-        SetInputMode(InputMode);
-    }
+    FInputModeGameAndUI InputMode;
+    InputMode.SetHideCursorDuringCapture(false);
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+    SetInputMode(InputMode);
 }
 
 void ABattlePlayerController_FlipSide::OnStageEnded(int32 StageEndFlag)
