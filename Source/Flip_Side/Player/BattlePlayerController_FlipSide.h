@@ -49,6 +49,9 @@ private:
     UFUNCTION()
     void OnTurnChanged(ETurnState NewTurn);
 
+    UFUNCTION()
+    void OnStageEnded(int32 StageEndFlag);
+
     void MoveCameraForBossDead();
 
 protected:
@@ -73,7 +76,7 @@ protected:
 	UPROPERTY()
     AActor* LastHoveredActor;
 
-	bool bIsTutorialUIOnly = false;
+	bool bIsUIOnly = false;
 
 public:
 	ABattlePlayerController_FlipSide();
@@ -87,5 +90,5 @@ public:
 	bool GetCursorWorldLocationOnPlane(float PlaneZ, FVector& OutWorldLocation) const;
 
 	UFUNCTION(BlueprintCallable)
-	void SetInputForTutorial(bool bIsUIOnly);
+	void SetInputForTutorial(bool bEnable);
 };
