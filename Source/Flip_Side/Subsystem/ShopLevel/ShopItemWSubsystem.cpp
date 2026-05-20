@@ -4,6 +4,7 @@
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/MoneyGISubsystem.h"
+#include "Kismet/GameplayStatics.h"
 bool UShopItemWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     Super::ShouldCreateSubsystem(Outer);
@@ -43,6 +44,25 @@ void UShopItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     PlayerItemArray.Reset();
     for(int i =0; i <3 ;i++)
         PlayerItemArray.Add(DefaultSelecttemData);
+}
+
+void UShopItemWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
+{
+    Super::OnWorldBeginPlay(InWorld);
+    
+    FString LevelName = UGameplayStatics::GetCurrentLevelName(&InWorld);
+    // 레벨 이름으로 조건 검사
+    if(LevelName.Equals(TEXT("L_ShopLevel"), ESearchCase::IgnoreCase))
+    {
+        for(int i =0; i <3 ;i++)
+        {
+            if(PlayerItemArray.IsValidIndex(i))
+            {
+                PlayerItemArray[i].ItemID = -1;
+                PlayerItemArray[i].SameItemNum = 0;
+            }
+        }
+    }
 }
 
 void UShopItemWSubsystem::HoverItem(FItemData ItemData)
