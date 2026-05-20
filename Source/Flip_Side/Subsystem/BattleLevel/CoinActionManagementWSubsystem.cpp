@@ -60,6 +60,31 @@ void UCoinActionManagementWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
     }
 }
 
+void UCoinActionManagementWSubsystem::Deinitialize()
+{
+    if(UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(AutoActionHandler);
+        World->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+    }
+
+    if(GridManager)
+    {
+        GridManager->OnGridClickedForCoin.Unbind();
+    }
+
+    ++ActionSequenceSerial;
+    PendingCommonVFXActionSequenceSerial = 0;
+    PendingCommonVFXResult = FWeaponActionResolveResult();
+    bActionSequenceActive = false;
+    bCurrentStepTargetValid = true;
+    bPendingFailedVFX = false;
+    BattleCoinInfoWidgetInstance = nullptr;
+    GridManager = nullptr;
+
+    Super::Deinitialize();
+}
+
 bool UCoinActionManagementWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     UWorld* World = Cast<UWorld>(Outer);
@@ -79,8 +104,14 @@ bool UCoinActionManagementWSubsystem::ShouldCreateSubsystem(UObject* Outer) cons
 void UCoinActionManagementWSubsystem::CancelSelectWeapon()
 {
     //초기화, UI 빼기 등을 구현
-    GetWorld()->GetTimerManager().ClearTimer(AutoActionHandler);
-    GetWorld()->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+    if(UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(AutoActionHandler);
+        World->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+    }
+    ++ActionSequenceSerial;
+    PendingCommonVFXActionSequenceSerial = 0;
+    PendingCommonVFXResult = FWeaponActionResolveResult();
     bActionSequenceActive = false;
     bCurrentStepTargetValid = true;
     InitWeaponAction();
@@ -92,8 +123,14 @@ void UCoinActionManagementWSubsystem::SetTurn(const bool bIsTurn)
 
     if(!bIsTurn)
     {
-        GetWorld()->GetTimerManager().ClearTimer(AutoActionHandler);
-        GetWorld()->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+        if(UWorld* World = GetWorld())
+        {
+            World->GetTimerManager().ClearTimer(AutoActionHandler);
+            World->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+        }
+        ++ActionSequenceSerial;
+        PendingCommonVFXActionSequenceSerial = 0;
+        PendingCommonVFXResult = FWeaponActionResolveResult();
         bActionSequenceActive = false;
         bCurrentStepTargetValid = true;
         InitWeaponAction();
@@ -107,6 +144,9 @@ void UCoinActionManagementWSubsystem::StopActionSequenceForStageEnd()
         World->GetTimerManager().ClearTimer(AutoActionHandler);
         World->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
     }
+    ++ActionSequenceSerial;
+    PendingCommonVFXActionSequenceSerial = 0;
+    PendingCommonVFXResult = FWeaponActionResolveResult();
 
     if(SelectedAction)
     {
@@ -210,14 +250,19 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
 {
     if(!bIsCorrectTurn) return;
     if(!IsValid(HoveredCoin)) return;
+    if(!HoveredCoin->StatComponent) return;
     if(bActionSequenceActive) return;
 
     FActionTask ActionTask = HoveredCoin->StatComponent->GetModifiedStats();
     FGridPoint CoinGrid =  HoveredCoin->GetDecidedGrid();
 
-    if (UGameInstance* GI = GetWorld()->GetGameInstance())
+    UWorld* World = GetWorld();
+    if(!World) return;
+
+    if (UGameInstance* GI = World->GetGameInstance())
     {
         UDataManagerSubsystem* DM = GI->GetSubsystem<UDataManagerSubsystem>();
+        if(!DM) return;
 
         FFaceData SelectWeapon;
         FGridPoint LastGridPoint;
@@ -456,13 +501,17 @@ void UCoinActionManagementWSubsystem::StartCoinActionSequence(ACoinActor* Caster
     if(!bIsCorrectTurn || !SelectedAction || !IsValid(CasterCoin)) return;
     if(bActionSequenceActive) return;
 
-    if (USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>())
+    UWorld* World = GetWorld();
+    if(!World) return;
+
+    if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
     {
         SoundManager->PlayCoinClickSound();
     }
 
     bActionSequenceActive = true;
     bCurrentStepTargetValid = true;
+    ++ActionSequenceSerial;
     CasterCoin->SetCoinIsActed(true);
 
     if(UBattleLevelActingWSubsystem* ActingManager = GetActingManager())
@@ -568,17 +617,16 @@ void UCoinActionManagementWSubsystem::ResolveCurrentActionStep()
     const float Delay = Settings ? Settings->CommonVFXDelayAfterCoinVFX : 0.0f;
     if(Delay > 0.0f)
     {
-        GetWorld()->GetTimerManager().SetTimer(CommonVFXTimerHandle, FTimerDelegate::CreateWeakLambda(this, [this, Result]()
+        UWorld* World = GetWorld();
+        if(!World)
         {
-            PlayCommonVFX(Result);
-            if(SelectedAction)
-            {
-                SelectedAction->ExecuteAction();
-            }
-            RepeatActionCnt--;
-            bCurrentStepTargetValid = true;
-            RunCoinActionStep();
-        }), Delay, false);
+            FinishCoinActionSequence();
+            return;
+        }
+
+        PendingCommonVFXActionSequenceSerial = ActionSequenceSerial;
+        PendingCommonVFXResult = Result;
+        World->GetTimerManager().SetTimer(CommonVFXTimerHandle, this, &UCoinActionManagementWSubsystem::ExecuteDelayedCommonVFXAndAction, Delay, false);
     }
     else
     {
@@ -590,9 +638,38 @@ void UCoinActionManagementWSubsystem::ResolveCurrentActionStep()
     }
 }
 
+void UCoinActionManagementWSubsystem::ExecuteDelayedCommonVFXAndAction()
+{
+    if(!bActionSequenceActive || PendingCommonVFXActionSequenceSerial != ActionSequenceSerial || !SelectedAction)
+    {
+        return;
+    }
+
+    const FWeaponActionResolveResult Result = PendingCommonVFXResult;
+    PendingCommonVFXActionSequenceSerial = 0;
+    PendingCommonVFXResult = FWeaponActionResolveResult();
+
+    PlayCommonVFX(Result);
+
+    if(!bActionSequenceActive || !SelectedAction)
+    {
+        return;
+    }
+
+    SelectedAction->ExecuteAction();
+    RepeatActionCnt--;
+    bCurrentStepTargetValid = true;
+    RunCoinActionStep();
+}
+
 void UCoinActionManagementWSubsystem::FinishCoinActionSequence()
 {
-    GetWorld()->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+    if(UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+    }
+    PendingCommonVFXActionSequenceSerial = 0;
+    PendingCommonVFXResult = FWeaponActionResolveResult();
 
     ACoinActor* CasterCoin = SelectedAction ? SelectedAction->GetCasterCoin() : nullptr;
     if(UBattleLevelActingWSubsystem* ActingManager = GetActingManager())
@@ -637,8 +714,14 @@ void UCoinActionManagementWSubsystem::TryCancelCurrentAction()
         return;
     }
 
-    GetWorld()->GetTimerManager().ClearTimer(AutoActionHandler);
-    GetWorld()->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+    if(UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(AutoActionHandler);
+        World->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+    }
+    ++ActionSequenceSerial;
+    PendingCommonVFXActionSequenceSerial = 0;
+    PendingCommonVFXResult = FWeaponActionResolveResult();
 
     bPendingFailedVFX = false;
     bCurrentStepTargetValid = true;
@@ -659,8 +742,14 @@ void UCoinActionManagementWSubsystem::CancelSingleCellAction(ACoinActor* Clicked
     ACoinActor* CasterCoin = SelectedAction->GetCasterCoin();
     if(!IsValid(CasterCoin) || ClickedCoin != CasterCoin) return;
 
-    GetWorld()->GetTimerManager().ClearTimer(AutoActionHandler);
-    GetWorld()->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+    if(UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(AutoActionHandler);
+        World->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+    }
+    ++ActionSequenceSerial;
+    PendingCommonVFXActionSequenceSerial = 0;
+    PendingCommonVFXResult = FWeaponActionResolveResult();
 
     bPendingFailedVFX = false;
     bCurrentStepTargetValid = true;
@@ -676,9 +765,12 @@ void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
 
     if (WeaponData.WeaponSFX)
     {
-        if (USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>())
+        if (UWorld* World = GetWorld())
         {
-            SoundManager->PlayCoinActionSound(WeaponData.WeaponSFX);
+            if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+            {
+                SoundManager->PlayCoinActionSound(WeaponData.WeaponSFX);
+            }
         }
     }
 
@@ -689,13 +781,19 @@ void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
     case EWeaponVFXTarget::Caster:
         if(ACoinActor* CasterCoin = SelectedAction->GetCasterCoin())
         {
-            SpawnVFXAtLocation(WeaponData.WeaponVFX, CasterCoin->GetActorLocation());
+            if(IsValid(CasterCoin))
+            {
+                SpawnVFXAtLocation(WeaponData.WeaponVFX, CasterCoin->GetActorLocation());
+            }
         }
         break;
     case EWeaponVFXTarget::TargetGrid:
         if(AGridActor* TargetGrid = SelectedAction->GetTargetGrid())
         {
-            SpawnVFXAtLocation(WeaponData.WeaponVFX, FVector(TargetGrid->GetGridWorldXY().X, TargetGrid->GetGridWorldXY().Y, -80.0f));
+            if(IsValid(TargetGrid))
+            {
+                SpawnVFXAtLocation(WeaponData.WeaponVFX, FVector(TargetGrid->GetGridWorldXY().X, TargetGrid->GetGridWorldXY().Y, -80.0f));
+            }
         }
         break;
     case EWeaponVFXTarget::TargetCoin:
@@ -711,7 +809,10 @@ void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
     case EWeaponVFXTarget::TargetOther:
         if(ABase_OtherActor* TargetOther = SelectedAction->GetTargetOther())
         {
-            SpawnVFXAtLocation(WeaponData.WeaponVFX, TargetOther->GetActorLocation());
+            if(IsValid(TargetOther))
+            {
+                SpawnVFXAtLocation(WeaponData.WeaponVFX, TargetOther->GetActorLocation());
+            }
         }
         break;
     case EWeaponVFXTarget::Boss:
@@ -730,7 +831,10 @@ void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
             {
                 if(AGridActor* Grid = GridManager->GetGridActor(Cell))
                 {
-                    SpawnVFXAtLocation(WeaponData.WeaponVFX, FVector(Grid->GetGridWorldXY().X, Grid->GetGridWorldXY().Y, -80.0f));
+                    if(IsValid(Grid))
+                    {
+                        SpawnVFXAtLocation(WeaponData.WeaponVFX, FVector(Grid->GetGridWorldXY().X, Grid->GetGridWorldXY().Y, -80.0f));
+                    }
                 }
             }
         }
@@ -751,18 +855,19 @@ void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
 
 void UCoinActionManagementWSubsystem::PlayCommonVFX(const FWeaponActionResolveResult& Result)
 {
-    if(!Result.Boss) return;
+    ABossActor* Boss = Result.Boss.Get();
+    if(!IsValid(Boss)) return;
 
     const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
     if(!Settings) return;
 
     if(Result.bAppliesBossCC)
     {
-        SpawnVFXAtLocation(Settings->Boss_CC_VFX.LoadSynchronous(), Result.Boss->GetActorLocation());
+        SpawnVFXAtLocation(Settings->Boss_CC_VFX.LoadSynchronous(), Boss->GetActorLocation());
     }
     else if(Result.bDamagesBoss)
     {
-        SpawnVFXAtLocation(Settings->Boss_Hit_VFX.LoadSynchronous(), Result.Boss->GetActorLocation());
+        SpawnVFXAtLocation(Settings->Boss_Hit_VFX.LoadSynchronous(), Boss->GetActorLocation());
     }
 }
 
@@ -778,9 +883,12 @@ void UCoinActionManagementWSubsystem::PlayFailedVFX()
 
     SpawnVFXAtLocation(Settings->Coin_Logic_Failed_VFX.LoadSynchronous(), CasterCoin->GetActorLocation());
 
-    if (USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>())
+    if (UWorld* World = GetWorld())
     {
-        SoundManager->PlayCoinActionFailedSound();
+        if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+        {
+            SoundManager->PlayCoinActionFailedSound();
+        }
     }
 }
 

@@ -17,6 +17,15 @@
 
 #include "DataManagerSubsystem.generated.h"
 
+USTRUCT(BlueprintType)
+struct FBossPatternDisplayDataArray
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadOnly)
+    TArray<FBossPatternDisplayData> PatternDataList;
+};
+
 UCLASS()
 class FLIP_SIDE_API UDataManagerSubsystem : public UGameInstanceSubsystem
 {
@@ -42,7 +51,8 @@ public:
 
     // stage_id → (boss_id, encounter)
 
-    TMap<int32, TArray<FBossPatternDisplayData>> BossPatternDisplayByBossID;
+    UPROPERTY(BlueprintReadOnly)
+    TMap<int32, FBossPatternDisplayDataArray> BossPatternDisplayByBossID;
 
     UPROPERTY(BlueprintReadOnly)
     TMap<int32, FItemData> ItemByID;
@@ -108,7 +118,7 @@ private:
     void ClearCache();
 
     // DB ���� ���: Content/Database/DB.sqlite �� Saved�� �����ؼ� ���� ���
-    bool OpenDbReadWrite();
+    bool OpenDbReadOnly();
     void CloseDb();
 
     bool LoadWeapons();

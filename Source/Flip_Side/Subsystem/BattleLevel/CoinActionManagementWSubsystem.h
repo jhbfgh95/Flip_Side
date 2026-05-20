@@ -51,6 +51,12 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 
 	bool bPendingFailedVFX = false;
 
+	int32 ActionSequenceSerial = 0;
+
+	int32 PendingCommonVFXActionSequenceSerial = 0;
+
+	FWeaponActionResolveResult PendingCommonVFXResult;
+
 	UPROPERTY()
     class UGridManagerSubsystem* GridManager;
 
@@ -121,6 +127,8 @@ protected:
 
 	void ResolveCurrentActionStep();
 
+	void ExecuteDelayedCommonVFXAndAction();
+
 	void FinishCoinActionSequence();
 
 	void HandleCoinActionLowerFinished();
@@ -145,4 +153,6 @@ protected:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
+
+	virtual void Deinitialize() override;
 };

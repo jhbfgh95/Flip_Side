@@ -339,8 +339,8 @@ void UBattleManagerWSubsystem::DoBossTurn()
     CoinActionManager->SetTurn(false);
     ItemManager->SetTurn(false);
     ActingManager->PlayBossPatternAct();
-    BossManager->ExecuteCurrentPattern();
     TurnStackInit();
+    BossManager->ExecuteCurrentPattern();
 }
 
 void UBattleManagerWSubsystem::DoSettingTurn()

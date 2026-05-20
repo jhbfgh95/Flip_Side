@@ -18,7 +18,7 @@ struct FWeaponActionResolveResult
     bool bDamagesBoss = false;
     bool bAppliesBossCC = false;
 
-    class ABossActor* Boss = nullptr;
+    TWeakObjectPtr<class ABossActor> Boss = nullptr;
 };
 
 USTRUCT(BlueprintType)

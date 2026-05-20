@@ -54,7 +54,7 @@ void UActionBase::SetInRangeOthers(ABase_OtherActor* TargetOthers)
 
 void UActionBase::InitInRangeBoss()
 {
-	if(InRangeBoss)
+	if(IsValid(InRangeBoss))
 	{
 		InRangeBoss->UnDisPlayOutline();
 	}
@@ -74,7 +74,7 @@ TArray<ABase_OtherActor*> UActionBase::GetInRangeOthers()
 
 bool UActionBase::GetInRangeBoss(ABossActor*& OutBoss) const
 {
-    if(InRangeBoss)
+    if(IsValid(InRangeBoss))
     {
         OutBoss = InRangeBoss;
         return true;

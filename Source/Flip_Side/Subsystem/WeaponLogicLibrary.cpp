@@ -26,7 +26,7 @@ namespace
 
     int32 ApplyBossDamageWithAttackerBuff(UWeapon_Action* WeaponContext, ABossActor* Boss, int32 FinalAttackPoint, int32 Damage)
     {
-        if(!WeaponContext || !Boss || !WeaponContext->GetCasterCoin()) return 0;
+        if(!WeaponContext || !IsValid(Boss) || !IsValid(WeaponContext->GetCasterCoin())) return 0;
 
         ACoinActor* CasterCoin = WeaponContext->GetCasterCoin();
         UComponent_Status* CasterStat = CasterCoin->StatComponent;
@@ -151,9 +151,9 @@ void UWeaponLogicLibrary::SteelPipe_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
 
-    ABossActor* Boss;
+    ABossActor* Boss = nullptr;
 
-    if(!WeaponContext->GetInRangeBoss(Boss) || !WeaponContext->GetCasterCoin()) return;
+    if(!WeaponContext->GetInRangeBoss(Boss) || !IsValid(Boss) || !IsValid(WeaponContext->GetCasterCoin())) return;
 
     int32 AP = WeaponContext->GetFinalAttackPoint();
     int32 BP = WeaponContext->GetFinalBehaviorPoint();
@@ -170,9 +170,9 @@ void UWeaponLogicLibrary::SteamChainSaw_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
 
-    ABossActor* Boss;
+    ABossActor* Boss = nullptr;
 
-    if(!WeaponContext->GetInRangeBoss(Boss) || !WeaponContext->GetCasterCoin()) return;
+    if(!WeaponContext->GetInRangeBoss(Boss) || !IsValid(Boss) || !IsValid(WeaponContext->GetCasterCoin())) return;
 
     int32 AP = WeaponContext->GetFinalAttackPoint();
 
@@ -192,9 +192,9 @@ void UWeaponLogicLibrary::BloodCanon_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
 
-    ABossActor* Boss;
+    ABossActor* Boss = nullptr;
 
-    if(!WeaponContext->GetInRangeBoss(Boss) || !WeaponContext->GetCasterCoin()) return;
+    if(!WeaponContext->GetInRangeBoss(Boss) || !IsValid(Boss) || !IsValid(WeaponContext->GetCasterCoin())) return;
 
     TArray<ACoinActor*> RangedCoins = WeaponContext->GetInRangeCoins();
     if(RangedCoins.IsEmpty()) return;
@@ -258,7 +258,7 @@ void UWeaponLogicLibrary::AutoTurretSet_Logic(UWeapon_Action* WeaponContext)
     AGridActor* TargetGrid = WeaponContext->GetTargetGrid();
     ACoinActor* CasterCoin = WeaponContext->GetCasterCoin();
 
-    if (!TargetGrid) return;
+    if (!IsValid(TargetGrid) || !IsValid(CasterCoin)) return;
     
     FString TurretPath = TEXT("/Game/Others/BP_Turret_OtherActor.BP_Turret_OtherActor_C");
     UClass* TurretClass = StaticLoadClass(ATurret_OtherActor::StaticClass(), nullptr, *TurretPath);
@@ -290,9 +290,9 @@ void UWeaponLogicLibrary::SniperRifle_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
 
-    ABossActor* Boss;
+    ABossActor* Boss = nullptr;
 
-    if(!WeaponContext->GetInRangeBoss(Boss) || !WeaponContext->GetCasterCoin()) return;
+    if(!WeaponContext->GetInRangeBoss(Boss) || !IsValid(Boss) || !IsValid(WeaponContext->GetCasterCoin())) return;
     bool bIsSideOfWall = false;
 
     int32 AP = WeaponContext->GetFinalAttackPoint();
@@ -328,6 +328,7 @@ void UWeaponLogicLibrary::SniperRifle_Logic(UWeapon_Action* WeaponContext)
     for(AActor* Other : Info.Others)
     {
         ABase_OtherActor* Wall = Cast<ABase_OtherActor>(Other);
+        if(!IsValid(Wall)) continue;
         if(Wall->GetOtherType() == EOthersType::Wall)
         {
             bIsSideOfWall = true;
@@ -335,11 +336,11 @@ void UWeaponLogicLibrary::SniperRifle_Logic(UWeapon_Action* WeaponContext)
         }
     }
 
-    if(Boss && !bIsSideOfWall)
+    if(IsValid(Boss) && !bIsSideOfWall)
     {
         ApplyBossDamageWithAttackerBuff(WeaponContext, Boss, AP, AP);
     }
-    else if(Boss && bIsSideOfWall)
+    else if(IsValid(Boss) && bIsSideOfWall)
     {
         ApplyBossDamageWithAttackerBuff(WeaponContext, Boss, AP, AP * Range);
     }
@@ -352,7 +353,7 @@ void UWeaponLogicLibrary::Freezer_Logic(UWeapon_Action* WeaponContext)
     if(!WeaponContext) return;
 
     ABossActor* Boss = nullptr;
-    if(!WeaponContext->GetInRangeBoss(Boss) || !Boss) return;
+    if(!WeaponContext->GetInRangeBoss(Boss) || !IsValid(Boss)) return;
 
     const int32 AP = WeaponContext->GetFinalAttackPoint();
     const int32 BP = WeaponContext->GetFinalBehaviorPoint();
@@ -387,6 +388,7 @@ void UWeaponLogicLibrary::SmokeSuit_Logic(UWeapon_Action* WeaponContext)
 
     for(ACoinActor* Coin : RangedCoins)
     {
+        if(!IsValid(Coin) || !Coin->StatComponent) continue;
         TargetStat = Coin->StatComponent;
 
         FBuffInfo Info;
@@ -424,6 +426,7 @@ void UWeaponLogicLibrary::ArmorSuit_Logic(UWeapon_Action* WeaponContext)
 
     for(ACoinActor* Coin : RangedCoins)
     {
+        if(!IsValid(Coin) || !Coin->StatComponent) continue;
         TargetStat = Coin->StatComponent;
 
         FBuffInfo Info;
@@ -452,7 +455,7 @@ void UWeaponLogicLibrary::EnemyOfSpear_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
 
-    if(!WeaponContext->GetCasterCoin()) return;
+    if(!IsValid(WeaponContext->GetCasterCoin())) return;
 
     TArray<ACoinActor*> RangedCoins = WeaponContext->GetInRangeCoins();
     if(RangedCoins.IsEmpty()) return;
@@ -461,6 +464,7 @@ void UWeaponLogicLibrary::EnemyOfSpear_Logic(UWeapon_Action* WeaponContext)
     UComponent_Status* TargetStat = nullptr;
     //자신 데미지
     UComponent_Status* MyStat = WeaponContext->GetCasterCoin()->StatComponent;
+    if(!MyStat) return;
     int32 AP = WeaponContext->GetFinalAttackPoint();
     int32 BP = WeaponContext->GetFinalBehaviorPoint();
 
@@ -487,8 +491,8 @@ void UWeaponLogicLibrary::EnemyOfSpear_Logic(UWeapon_Action* WeaponContext)
     for(ACoinActor* Coin : RangedCoins)
     {
         if(i >= BuffCoinNum) break;
+        if(!IsValid(Coin) || Coin == WeaponContext->GetCasterCoin() || !Coin->StatComponent) continue;
         TargetStat = Coin->StatComponent;
-        if(Coin == WeaponContext->GetCasterCoin()) continue;
 
         FBuffInfo Info;
         Info.BuffName = TEXT("창의 적");
@@ -516,8 +520,8 @@ void UWeaponLogicLibrary::Gauntlet_Logic(UWeapon_Action* WeaponContext)
 {
     if(!WeaponContext) return;
 
-    ABossActor* Boss;
-    if(!WeaponContext->GetInRangeBoss(Boss) || !WeaponContext->GetCasterCoin()) return;
+    ABossActor* Boss = nullptr;
+    if(!WeaponContext->GetInRangeBoss(Boss) || !IsValid(Boss) || !IsValid(WeaponContext->GetCasterCoin())) return;
 
     int32 AP = WeaponContext->GetFinalAttackPoint();
     int32 BP = WeaponContext->GetFinalBehaviorPoint();
@@ -533,6 +537,7 @@ void UWeaponLogicLibrary::Gauntlet_Logic(UWeapon_Action* WeaponContext)
     
     if(FMath::RandRange(1, 100) <= Death)
     {
+        if(!WeaponContext->GetCasterCoin()->StatComponent) return;
         WeaponContext->GetCasterCoin()->StatComponent->ApplyDamage(TNumericLimits<int32>::Max(), WeaponContext->GetCasterCoin());
     }
 }
@@ -549,6 +554,7 @@ void UWeaponLogicLibrary::Medikit_Logic(UWeapon_Action* WeaponContext)
     UComponent_Status* TargetStat = nullptr;
     int32 AP = WeaponContext->GetFinalAttackPoint();
 
+    if(!IsValid(RangedCoins[0]) || !RangedCoins[0]->StatComponent) return;
     TargetStat = RangedCoins[0]->StatComponent;
 
     //이거 nullptr 나중에 WeaponAction에서 BatttleManager에서 Coinactionmanager에 넣어줘야해
@@ -560,7 +566,7 @@ void UWeaponLogicLibrary::CrossShiled_Logic(UWeapon_Action* WeaponContext)
     if(!WeaponContext) return;
 
     TArray<ACoinActor*> RangedCoins = WeaponContext->GetInRangeCoins();
-    if(RangedCoins.IsEmpty() || !WeaponContext->GetCasterCoin()) return;
+    if(RangedCoins.IsEmpty() || !IsValid(WeaponContext->GetCasterCoin())) return;
 
     UComponent_Status* TargetStat = nullptr;
     int32 AP = WeaponContext->GetFinalAttackPoint();
@@ -568,6 +574,7 @@ void UWeaponLogicLibrary::CrossShiled_Logic(UWeapon_Action* WeaponContext)
 
     for(ACoinActor* Coin : RangedCoins)
     {
+        if(!IsValid(Coin) || !Coin->StatComponent) continue;
         TargetStat = Coin->StatComponent;
 
         TargetStat->ApplyShield(AP, WeaponContext->GetCasterCoin());
@@ -585,6 +592,7 @@ void UWeaponLogicLibrary::Adrenaline_Logic(UWeapon_Action* WeaponContext)
     UComponent_Status* TargetStat = nullptr;
     int32 AP = WeaponContext->GetFinalAttackPoint();
 
+    if(!IsValid(RangedCoins[0]) || !RangedCoins[0]->StatComponent) return;
     TargetStat = RangedCoins[0]->StatComponent;
 
     FBuffInfo Info;
@@ -611,6 +619,7 @@ void UWeaponLogicLibrary::LockOnLenz_Logic(UWeapon_Action* WeaponContext)
     UComponent_Status* TargetStat = nullptr;
     int32 AP = WeaponContext->GetFinalAttackPoint();
 
+    if(!IsValid(RangedCoins[0]) || !RangedCoins[0]->StatComponent) return;
     TargetStat = RangedCoins[0]->StatComponent;
 
     FBuffInfo Info;
@@ -638,14 +647,19 @@ void UWeaponLogicLibrary::Emergencylifer_Logic(UWeapon_Action* WeaponContext)
     UComponent_Status* TargetStat = nullptr;
     int32 AP = WeaponContext->GetFinalAttackPoint();
 
+    if(!IsValid(RangedCoins[0]) || !RangedCoins[0]->StatComponent) return;
     TargetStat = RangedCoins[0]->StatComponent;
 
     FBuffInfo Info;
     Info.BuffName = TEXT("긴급소생장치");
     SetBuffIconFromWeapon(WeaponContext, Info);
 
-    Info.DamageDelegate = FOnPreTakeDamage::FDelegate::CreateLambda([TargetStat, AP](int32 InDmg, int32& OutDmg, bool& bIsIgnore)
+    TWeakObjectPtr<UComponent_Status> WeakTargetStat = TargetStat;
+    Info.DamageDelegate = FOnPreTakeDamage::FDelegate::CreateLambda([WeakTargetStat, AP](int32 InDmg, int32& OutDmg, bool& bIsIgnore)
     {
+        UComponent_Status* TargetStat = WeakTargetStat.Get();
+        if(!TargetStat) return;
+
         if(OutDmg >= TargetStat->GetHP())
         {
             bIsIgnore = true;
@@ -667,7 +681,7 @@ void UWeaponLogicLibrary::Drill_Logic(UWeapon_Action* WeaponContext)
 
     ABase_OtherActor* TargetOther = WeaponContext->GetTargetOther();
     ACoinActor* CasterCoin = WeaponContext->GetCasterCoin();
-    if(!TargetOther || !CasterCoin) return;
+    if(!IsValid(TargetOther) || !IsValid(CasterCoin)) return;
 
     TargetOther->ApplyDamage(WeaponContext->GetFinalAttackPoint(), CasterCoin);
 
@@ -680,7 +694,7 @@ void UWeaponLogicLibrary::Fixkit_Logic(UWeapon_Action* WeaponContext)
 
     ABase_OtherActor* TargetOther = WeaponContext->GetTargetOther();
     ACoinActor* CasterCoin = WeaponContext->GetCasterCoin();
-    if(!TargetOther || !CasterCoin) return;
+    if(!IsValid(TargetOther) || !IsValid(CasterCoin)) return;
 
     TargetOther->ApplyHeal(WeaponContext->GetFinalAttackPoint(), CasterCoin);
 

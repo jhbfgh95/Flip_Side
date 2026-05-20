@@ -63,9 +63,9 @@ bool UDataManagerSubsystem::ReloadCache()
     ClearCache();
     CloseDb();
 
-    if (!OpenDbReadWrite())
+    if (!OpenDbReadOnly())
     {
-        UE_LOG(LogTemp, Error, TEXT("[DB] OpenDbReadWrite failed"));
+        UE_LOG(LogTemp, Error, TEXT("[DB] OpenDbReadOnly failed"));
         return false;
     }
 
@@ -189,9 +189,9 @@ void UDataManagerSubsystem::ClearCache()
     GameConfig = FGameConfigData();
 }
 
-bool UDataManagerSubsystem::OpenDbReadWrite()
+bool UDataManagerSubsystem::OpenDbReadOnly()
 {
-    const FString ContentDbPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("DB.db"));
+    const FString ContentDbPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Database/DB.db"));
 
     if (!FPaths::FileExists(ContentDbPath))
     {
@@ -199,7 +199,7 @@ bool UDataManagerSubsystem::OpenDbReadWrite()
         return false;
     }
 
-    return Db.Open(*ContentDbPath, ESQLiteDatabaseOpenMode::ReadWrite);
+    return Db.Open(*ContentDbPath, ESQLiteDatabaseOpenMode::ReadOnly);
 }
 
 void UDataManagerSubsystem::CloseDb()
@@ -545,7 +545,7 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
             Pattern.GimmickParamB = PatternParamB;
         }
 
-        BossPatternDisplayByBossID.FindOrAdd(BossID).Add(Pattern);
+        BossPatternDisplayByBossID.FindOrAdd(BossID).PatternDataList.Add(Pattern);
     }
 
     Stmt.Destroy();
@@ -554,9 +554,9 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
 
 bool UDataManagerSubsystem::TryGetBossPatternDisplay(int32 BossID, TArray<FBossPatternDisplayData>& Out) const
 {
-    if (const TArray<FBossPatternDisplayData>* Found = BossPatternDisplayByBossID.Find(BossID))
+    if (const FBossPatternDisplayDataArray* Found = BossPatternDisplayByBossID.Find(BossID))
     {
-        Out = *Found;
+        Out = Found->PatternDataList;
         return true;
     }
     return false;
@@ -566,7 +566,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
 {
     if (!Db.IsValid())
     {
-        if (!OpenDbReadWrite()) return false;
+        if (!OpenDbReadOnly()) return false;
     }
 
     // boss_def
@@ -804,7 +804,7 @@ bool UDataManagerSubsystem::TryGetStageMultiplier(int32 BossID, int32 Stage, flo
 {
     if (!Db.IsValid())
     {
-        if (!OpenDbReadWrite()) return false;
+        if (!OpenDbReadOnly()) return false;
     }
 
     const TCHAR* Sql = TEXT(
