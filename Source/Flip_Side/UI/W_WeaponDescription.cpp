@@ -10,12 +10,12 @@ void UW_WeaponDescription::SetExplainText(const FString & WeaponName, const FStr
 
     if(DefaultBP != -1)
     {
-        FString BPString = FString::Printf(TEXT("<White>%d</>"), DefaultBP);
+        FString BPString = FString::Printf(TEXT("<BPColor>[BP] %d</>"), DefaultBP);
         Args.Add(TEXT("BP"), FText::FromString(BPString));
     }
     if(DefaultAP != -1)
     {
-        FString APString = FString::Printf(TEXT("<White>%d</>"), DefaultAP);
+        FString APString = FString::Printf(TEXT("<APColor>[AP] %d</>"), DefaultAP);
         Args.Add(TEXT("AP"), FText::FromString(APString));
     }
     
