@@ -146,6 +146,42 @@ void UWeaponLogicLibrary::Test_Logic(UWeapon_Action* WeaponContext)
 }
 
 /* -- 딜러 -- */
+//빈 코인 앞면↓
+void UWeaponLogicLibrary::EmptyFallbackFront_Logic(UWeapon_Action* WeaponContext)
+{
+    if(!WeaponContext) return;
+
+    ABossActor* Boss = nullptr;
+
+    if(!WeaponContext->GetInRangeBoss(Boss) || !IsValid(Boss) || !IsValid(WeaponContext->GetCasterCoin())) return;
+
+    int32 AP = WeaponContext->GetFinalAttackPoint();
+    int32 BP = WeaponContext->GetFinalBehaviorPoint();
+
+    int32 FinalDmg = AP * BP;
+
+    ApplyBossDamageWithAttackerBuff(WeaponContext, Boss, AP, FinalDmg);
+
+    UE_LOG(LogTemp, Warning, TEXT("EmptyFallbackFront ON"));
+}
+//빈 코인 뒷면↓
+void UWeaponLogicLibrary::EmptyFallbackBack_Logic(UWeapon_Action* WeaponContext)
+{
+    if(!WeaponContext) return;
+
+    ABossActor* Boss = nullptr;
+
+    if(!WeaponContext->GetInRangeBoss(Boss) || !IsValid(Boss) || !IsValid(WeaponContext->GetCasterCoin())) return;
+
+    int32 AP = WeaponContext->GetFinalAttackPoint();
+    int32 BP = WeaponContext->GetFinalBehaviorPoint();
+
+    int32 FinalDmg = AP * BP;
+
+    ApplyBossDamageWithAttackerBuff(WeaponContext, Boss, AP, FinalDmg);
+
+    UE_LOG(LogTemp, Warning, TEXT("EmptyFallbackBack ON"));
+}
 //쇠파이프↓
 void UWeaponLogicLibrary::SteelPipe_Logic(UWeapon_Action* WeaponContext)
 {

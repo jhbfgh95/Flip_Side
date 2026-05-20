@@ -65,7 +65,8 @@ public:
 		int32 DefaultAP, int32 ModifiedAP,
 		int32 CurrentHP, int32 MaxHP,
 		FLinearColor WeaponColor,
-		const TArray<FBuffInfo>& ActiveBuffs
+		const TArray<FBuffInfo>& ActiveBuffs,
+		int32 AbsorbedBP
 		/*int32 DefaultRange, int32 ModifiedRange */
 	);
 };

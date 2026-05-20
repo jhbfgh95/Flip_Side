@@ -15,6 +15,20 @@ void UActionLogicRegistryGISubsystem::Initialize(FSubsystemCollectionBase& Colle
 void UActionLogicRegistryGISubsystem::RegisterWeaponLogic()
 {
     /*모든 함수를 이렇게 매칭시킴*/
+    WeaponMap.Add(-3, [](UActionBase* Context) {
+        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
+            UWeaponLogicLibrary::EmptyFallbackFront_Logic(WeaponAction);
+        }
+    });
+    WeaponResolveMap.Add(-3, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveBossDamage(Cast<UWeapon_Action>(Context)); });
+
+    WeaponMap.Add(-2, [](UActionBase* Context) {
+        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
+            UWeaponLogicLibrary::EmptyFallbackBack_Logic(WeaponAction);
+        }
+    });
+    WeaponResolveMap.Add(-2, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveBossDamage(Cast<UWeapon_Action>(Context)); });
+
     WeaponMap.Add(1, [](UActionBase* Context) {
         if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
             UWeaponLogicLibrary::SteelPipe_Logic(WeaponAction);

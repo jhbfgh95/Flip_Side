@@ -25,6 +25,10 @@ public:
 
 	static void Test_Logic(UWeapon_Action* WeaponContext);
 
+	static void EmptyFallbackFront_Logic(UWeapon_Action* WeaponContext);
+
+	static void EmptyFallbackBack_Logic(UWeapon_Action* WeaponContext);
+
 	static void SteelPipe_Logic(UWeapon_Action* WeaponContext);
 
 	static void SteamChainSaw_Logic(UWeapon_Action* WeaponContext);

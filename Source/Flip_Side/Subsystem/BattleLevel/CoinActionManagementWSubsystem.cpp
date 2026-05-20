@@ -17,6 +17,11 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 
+namespace
+{
+    constexpr int32 BloodCanonWeaponID = 4;
+}
+
 void UCoinActionManagementWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
@@ -302,14 +307,6 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
                 AreaSpec.ParamB += ActionTask.ModifiedRange.GridY;
             }
 
-            SetBattleCoinInfo(
-                SelectWeapon.WeaponIcon, FText::FromString(SelectWeapon.WeaponName), FText::FromString(SelectWeapon.KOR_DES), 
-                SelectWeapon.BehaviorPoint, ActionTask.ModifiedBehaviorPoint, 
-                SelectWeapon.AttackPoint, ActionTask.ModifiedAttackPoint, SelectWeapon.TypeColor,
-                HoveredCoin->StatComponent->GetHP(), HoveredCoin->StatComponent->GetMaxHP(),
-                HoveredCoin->StatComponent->ActiveBuffs
-            );
-
             SetCasterCoin(HoveredCoin);
 
             if(AreaSpec.Pattern == EAttackAreaPattern::SingleCell)
@@ -321,6 +318,19 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
             {
                 ApplyRangedThings(CoinGrid);
             }
+
+            const int32 AbsorbedBP = SelectWeapon.WeaponID == BloodCanonWeaponID
+                ? CalculateBloodCanonAbsorbedBP(HoveredCoin)
+                : 0;
+
+            SetBattleCoinInfo(
+                SelectWeapon.WeaponIcon, FText::FromString(SelectWeapon.WeaponName), FText::FromString(SelectWeapon.KOR_DES),
+                SelectWeapon.BehaviorPoint, ActionTask.ModifiedBehaviorPoint,
+                SelectWeapon.AttackPoint, ActionTask.ModifiedAttackPoint, SelectWeapon.TypeColor,
+                HoveredCoin->StatComponent->GetHP(), HoveredCoin->StatComponent->GetMaxHP(),
+                HoveredCoin->StatComponent->ActiveBuffs,
+                AbsorbedBP
+            );
 
             const FGridPoint PreviewFinalRange = (AreaSpec.AnchorMode == EAreaAnchor::UseAnchorCell)
                 ? FGridPoint{0, 0}
@@ -460,7 +470,8 @@ void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
 		int32 DefaultBP, int32 ModifiedBP, 
 		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor,
         int32 CurrentHP, int32 MaxHP,
-        const TArray<FBuffInfo>& ActiveBuffs)
+        const TArray<FBuffInfo>& ActiveBuffs,
+        int32 AbsorbedBP)
 {
     if(BattleCoinInfoWidgetInstance)
     {
@@ -469,10 +480,33 @@ void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
             DefaultBP, ModifiedBP,
             DefaultAP, ModifiedAP,
             CurrentHP, MaxHP, WeaponColor,
-            ActiveBuffs
+            ActiveBuffs,
+            AbsorbedBP
         );
         BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);
     }
+}
+
+int32 UCoinActionManagementWSubsystem::CalculateBloodCanonAbsorbedBP(const ACoinActor* CasterCoin) const
+{
+    if(!IsValid(CasterCoin) || !SelectedAction)
+    {
+        return 0;
+    }
+
+    int32 AbsorbedBP = 0;
+    for(ACoinActor* Coin : SelectedAction->GetInRangeCoins())
+    {
+        if(!IsValid(Coin) || Coin == CasterCoin || !Coin->StatComponent)
+        {
+            continue;
+        }
+
+        const FActionTask CoinTask = Coin->StatComponent->GetModifiedStats();
+        AbsorbedBP += Coin->StatComponent->GetWeaponBP() + CoinTask.ModifiedBehaviorPoint;
+    }
+
+    return AbsorbedBP;
 }
 
 void UCoinActionManagementWSubsystem::HideBattleCoinInfo()

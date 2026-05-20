@@ -118,10 +118,13 @@ protected:
 		int32 DefaultBP, int32 ModifiedBP, 
 		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor,
 		int32 CurrentHP, int32 MaxHP,
-		const TArray<struct FBuffInfo>& ActiveBuffs
+		const TArray<struct FBuffInfo>& ActiveBuffs,
+		int32 AbsorbedBP
 	);
 
 	void HideBattleCoinInfo();
+
+	int32 CalculateBloodCanonAbsorbedBP(const class ACoinActor* CasterCoin) const;
 
 	void StartCoinActionSequence(ACoinActor* CasterCoin);
 

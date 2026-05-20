@@ -22,7 +22,8 @@ void UW_BattleCoinInfo::UpdateBattleCoinInfo(
 	UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
 	int32 DefaultBP, int32 ModifiedBP, 
 	int32 DefaultAP, int32 ModifiedAP, int32 CurrentHP, int32 MaxHP, FLinearColor WeaponColor,
-	const TArray<FBuffInfo>& ActiveBuffs
+	const TArray<FBuffInfo>& ActiveBuffs,
+	int32 AbsorbedBP
     )
 {
 	if (HoveredWeaponIcon && Icon && DynamicMaterial)
@@ -67,9 +68,25 @@ void UW_BattleCoinInfo::UpdateBattleCoinInfo(
         //사용 : {BP} 만큼 데미지를 줍니다
 		FFormatNamedArguments Args;
         Args.Add(TEXT("BP"), FormatStatWithDiff(DefaultBP, ModifiedBP, TEXT("BPColor"), TEXT("BP")));
-		Args.Add(TEXT("AP"), FormatStatWithDiff(DefaultAP, ModifiedAP, TEXT("APColor"), TEXT("AP")));
+		Args.Add(TEXT("AP"), FormatStatWithDiff(DefaultAP, ModifiedAP + AbsorbedBP, TEXT("APColor"), TEXT("AP")));
+		Args.Add(TEXT("AbsorbedBP"), FText::AsNumber(AbsorbedBP));
 
-		HoveredWeaponDes->SetText(FText::Format(RawDescription, Args));
+		FText FormattedDescription = FText::Format(RawDescription, Args);
+		if(AbsorbedBP != 0)
+		{
+			const TCHAR* AbsorbColorTag = AbsorbedBP > 0 ? TEXT("Green") : TEXT("Red");
+			const FString AbsorbSign = AbsorbedBP > 0 ? TEXT("+") : TEXT("");
+			const FString DescriptionWithAbsorb = FString::Printf(
+				TEXT("%s\n<BPColor>[BP 흡수]</> <%s>%s%d</>"),
+				*FormattedDescription.ToString(),
+				AbsorbColorTag,
+				*AbsorbSign,
+				AbsorbedBP
+			);
+			FormattedDescription = FText::FromString(DescriptionWithAbsorb);
+		}
+
+		HoveredWeaponDes->SetText(FormattedDescription);
 	}
 
 	UpdateBuffIcons(ActiveBuffs);
