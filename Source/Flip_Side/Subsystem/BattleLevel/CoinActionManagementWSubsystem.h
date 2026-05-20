@@ -51,6 +51,8 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 
 	bool bPendingFailedVFX = false;
 
+	bool bCurrentActionExecuted = false;
+
 	int32 ActionSequenceSerial = 0;
 
 	int32 PendingCommonVFXActionSequenceSerial = 0;

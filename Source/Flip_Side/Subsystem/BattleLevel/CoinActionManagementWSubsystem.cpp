@@ -79,6 +79,7 @@ void UCoinActionManagementWSubsystem::Deinitialize()
     bActionSequenceActive = false;
     bCurrentStepTargetValid = true;
     bPendingFailedVFX = false;
+    bCurrentActionExecuted = false;
     BattleCoinInfoWidgetInstance = nullptr;
     GridManager = nullptr;
 
@@ -114,6 +115,7 @@ void UCoinActionManagementWSubsystem::CancelSelectWeapon()
     PendingCommonVFXResult = FWeaponActionResolveResult();
     bActionSequenceActive = false;
     bCurrentStepTargetValid = true;
+    bCurrentActionExecuted = false;
     InitWeaponAction();
 }
 
@@ -133,6 +135,7 @@ void UCoinActionManagementWSubsystem::SetTurn(const bool bIsTurn)
         PendingCommonVFXResult = FWeaponActionResolveResult();
         bActionSequenceActive = false;
         bCurrentStepTargetValid = true;
+        bCurrentActionExecuted = false;
         InitWeaponAction();
     }
 }
@@ -160,6 +163,7 @@ void UCoinActionManagementWSubsystem::StopActionSequenceForStageEnd()
     bActionSequenceActive = false;
     bCurrentStepTargetValid = true;
     bPendingFailedVFX = false;
+    bCurrentActionExecuted = false;
     RepeatActionCnt = 0;
 
     InitWeaponAction();
@@ -181,6 +185,7 @@ void UCoinActionManagementWSubsystem::InitWeaponAction()
     SelectedAction->SetOtherForAction(nullptr);
     RepeatActionCnt = 1;
     bPendingFailedVFX = false;
+    bCurrentActionExecuted = false;
     CurrentInputState = EActionInputState::None;
     ClearValidSingleCellTargets();
     if (GridManager)
@@ -511,6 +516,7 @@ void UCoinActionManagementWSubsystem::StartCoinActionSequence(ACoinActor* Caster
 
     bActionSequenceActive = true;
     bCurrentStepTargetValid = true;
+    bCurrentActionExecuted = false;
     ++ActionSequenceSerial;
     CasterCoin->SetCoinIsActed(true);
 
@@ -631,6 +637,7 @@ void UCoinActionManagementWSubsystem::ResolveCurrentActionStep()
     else
     {
         PlayCommonVFX(Result);
+        bCurrentActionExecuted = true;
         SelectedAction->ExecuteAction();
         RepeatActionCnt--;
         bCurrentStepTargetValid = true;
@@ -656,6 +663,7 @@ void UCoinActionManagementWSubsystem::ExecuteDelayedCommonVFXAndAction()
         return;
     }
 
+    bCurrentActionExecuted = true;
     SelectedAction->ExecuteAction();
     RepeatActionCnt--;
     bCurrentStepTargetValid = true;
@@ -726,6 +734,13 @@ void UCoinActionManagementWSubsystem::TryCancelCurrentAction()
     bPendingFailedVFX = false;
     bCurrentStepTargetValid = true;
     RepeatActionCnt = 0;
+    if(!bCurrentActionExecuted)
+    {
+        if(ACoinActor* CasterCoin = SelectedAction->GetCasterCoin())
+        {
+            CasterCoin->SetCoinIsActed(false);
+        }
+    }
     FinishCoinActionSequence();
 }
 
@@ -754,6 +769,10 @@ void UCoinActionManagementWSubsystem::CancelSingleCellAction(ACoinActor* Clicked
     bPendingFailedVFX = false;
     bCurrentStepTargetValid = true;
     RepeatActionCnt = 0;
+    if(!bCurrentActionExecuted)
+    {
+        CasterCoin->SetCoinIsActed(false);
+    }
     FinishCoinActionSequence();
 }
 
