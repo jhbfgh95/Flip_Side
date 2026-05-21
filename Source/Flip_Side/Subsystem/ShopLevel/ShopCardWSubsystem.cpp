@@ -3,6 +3,7 @@
 
 #include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 #include "SubSystem/UnlockGISubsystem.h"
 #include "Subsystem/MoneyGISubsystem.h"
 bool UShopCardWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -66,12 +67,14 @@ void UShopCardWSubsystem::SelectCard(FCardData CardData)
     }*/
     
     CurrentSelectCard = CardData;
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     OnSelectCard.Broadcast(CurrentSelectCard);
 }
 	
 void UShopCardWSubsystem::UnSelectCard()
 {
     CurrentSelectCard = DefaultCard;
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     OnUnSelectCard.Broadcast();
 }
 
@@ -82,6 +85,7 @@ void UShopCardWSubsystem::UnlockCard()
         if(MoneySubsystem->SpendMoney(EMoneyRecordType::Card, CurrentSelectCard.Price))
         {
             UnlockSubsystem->UnlockCard(CurrentSelectCard.CardID);
+            FFlipSideSoundUtils::PlayShopBuyClickSound(this);
             OnUnlockCard.Broadcast(CurrentSelectCard.CardID);
         }
     }
@@ -171,6 +175,7 @@ void UShopCardWSubsystem::SelectPlayerCard(FCardData CardData)
         if(PlayerCardList.IsValidIndex(SelectIndex))
         {
             PlayerCardList[SelectIndex] = (CurrentSelectCard);
+            FFlipSideSoundUtils::PlayDefaultClickSound(this);
             OnSelectPlayerCard.Broadcast(CardData);
         }
         
@@ -184,6 +189,7 @@ void UShopCardWSubsystem::UnSelectPlayerCard(FCardData CardData)
         if(CardData.CardID == PlayerCardList[i].CardID)
         {
             PlayerCardList[i] = DefaultCard;
+            FFlipSideSoundUtils::PlayDefaultClickSound(this);
             OnUnSelectPlayerCard.Broadcast(CardData, i);
             return;
         }

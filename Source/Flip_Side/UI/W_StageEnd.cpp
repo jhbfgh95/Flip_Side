@@ -3,6 +3,7 @@
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/Widget.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 
 void UW_StageEnd::NativeConstruct()
 {
@@ -128,6 +129,8 @@ void UW_StageEnd::SetOptionalTextVisibility(UTextBlock* TextBlock, bool bVisible
 
 void UW_StageEnd::StageClearedClicked()
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
+
     UGameInstance* GameInstance = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
     ULevelGISubsystem* LevelMan = GameInstance ? GameInstance->GetSubsystem<ULevelGISubsystem>() : nullptr;
     if (!LevelMan) return;
@@ -148,6 +151,8 @@ void UW_StageEnd::StageClearedClicked()
 
 void UW_StageEnd::GameOverClicked()
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
+
     UGameInstance* GameInstance = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
     ULevelGISubsystem* LevelMan = GameInstance ? GameInstance->GetSubsystem<ULevelGISubsystem>() : nullptr;
     if (!LevelMan) return;
@@ -157,6 +162,8 @@ void UW_StageEnd::GameOverClicked()
 
 void UW_StageEnd::GameClearClicked()
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
+
     UGameInstance* GameInstance = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
     ULevelGISubsystem* LevelMan = GameInstance ? GameInstance->GetSubsystem<ULevelGISubsystem>() : nullptr;
     if (!LevelMan) return;

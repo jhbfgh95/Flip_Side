@@ -7,6 +7,7 @@
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 #include "DataTypes/CoinDataTypes.h"
 #include "Subsystem/CrossingLevelGISubsystem.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 #include "Subsystem/LevelGISubsystem.h"
 #include "Subsystem/MoneyGISubsystem.h"
 
@@ -22,6 +23,8 @@ void AGameMode_Shop::BeginPlay()
 
 void AGameMode_Shop::ChangeBattleLevel()
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
+
     UCrossingLevelGISubsystem* CrossSubsystem = GetGameInstance()->GetSubsystem<UCrossingLevelGISubsystem>();
     UShopCoinWSubsystem* ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     UShopCardWSubsystem* ShopCardSubsystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
@@ -70,33 +73,39 @@ void AGameMode_Shop::ChangeBattleLevel()
 
 void AGameMode_Shop::SetShopMainMode()
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     OnShopMainMode.Broadcast();
 }
 
 void AGameMode_Shop::SetCoinManageMode()
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     OnCoinManageMode.Broadcast();
 }
 
 
 void AGameMode_Shop::SetShopItemMode()
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     OnShopItemMode.Broadcast();
 }
 
 void AGameMode_Shop::SetCardSelectMode()
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     OnSelectCardMode.Broadcast();
 }
 
 
 void AGameMode_Shop::SetUnlockWeaponMode()
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     OnUnlockWeaponMode.Broadcast();
 }
 
 
 void AGameMode_Shop::SetCheckBossMode()
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     OnCheckBossMode.Broadcast();
 }

@@ -2,6 +2,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 
 ABase_OtherActor::ABase_OtherActor()
 {
@@ -57,6 +58,8 @@ void ABase_OtherActor::OnDead()
 
 void ABase_OtherActor::OnClicked_Implementation()
 {
+	FFlipSideSoundUtils::PlayDefaultClickSound(this);
+
 	if(TryBroadcastOtherClicked())
 	{
 		return;

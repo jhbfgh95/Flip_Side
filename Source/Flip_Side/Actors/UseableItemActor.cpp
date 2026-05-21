@@ -3,6 +3,7 @@
 #include "Components/SceneComponent.h"
 #include "FlipSide_Enum.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 
 AUseableItemActor::AUseableItemActor()
 {
@@ -68,6 +69,8 @@ void AUseableItemActor::OnUnhover_Implementation()
 
 void AUseableItemActor::OnClicked_Implementation()
 {
+	FFlipSideSoundUtils::PlayBattleItemClickSound(this);
+
 	if(ItemType == EItemType::CoinBuff)
 	{
 		OnCoinClickItem.Broadcast(this);

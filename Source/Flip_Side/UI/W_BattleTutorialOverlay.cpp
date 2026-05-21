@@ -9,6 +9,7 @@
 #include "Components/Widget.h"
 #include "GameFramework/PlayerController.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 
 void UW_BattleTutorialOverlay::NativeConstruct()
 {
@@ -188,5 +189,6 @@ void UW_BattleTutorialOverlay::SetNextButtonEnabled(bool bEnabled)
 
 void UW_BattleTutorialOverlay::HandleNextButtonClicked()
 {
+	FFlipSideSoundUtils::PlayDefaultClickSound(this);
 	OnBattleTutorialOverlayClicked.Broadcast();
 }

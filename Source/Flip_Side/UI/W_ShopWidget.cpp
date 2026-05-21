@@ -1,6 +1,7 @@
 #include "W_ShopWidget.h"
 #include "Components/Button.h"
 #include "LevelGISubsystem.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 
 void UW_ShopWidget::NativeOnInitialized()
 {
@@ -9,6 +10,8 @@ void UW_ShopWidget::NativeOnInitialized()
 
 void UW_ShopWidget::HandleNextClicked()
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
+
     UGameInstance* GI = GetGameInstance();
     if(!GI) return;
 

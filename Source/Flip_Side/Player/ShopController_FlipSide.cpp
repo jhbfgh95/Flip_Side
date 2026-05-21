@@ -8,8 +8,10 @@
 #include "Player/GameMode_Shop.h"
 #include "Subsystem/LevelGISubsystem.h"
 #include "Subsystem/MoneyGISubsystem.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 
 #include "Interface/ShopMouseInterface.h"
+#include "UI/ShopItem/ShopUseableItemActor.h"
 
 AShopController_FlipSide::AShopController_FlipSide()
 {
@@ -158,6 +160,10 @@ void AShopController_FlipSide::OnLeftClick()
         {
             if (Hit.Component->ComponentHasTag("LClickAble") && Hit.GetActor()->Implements<UShopMouseInterface>())
             {
+                if (!Hit.GetActor()->IsA<AShopUseableItemActor>())
+                {
+                    FFlipSideSoundUtils::PlayDefaultClickSound(this);
+                }
                 IShopMouseInterface::Execute_InteractLeftClick(Hit.GetActor());
             }
         }

@@ -21,6 +21,7 @@ class UW_BattleTutorialOverlay;
 class UBattleTutorialSequenceData;
 class AUseableItemActor;
 class UNiagaraSystem;
+class USoundBase;
 class UW_PoisonTimerUI;
 
 UCLASS(Config=Game, meta=(DisplayName="My Manager Settings"))
@@ -89,6 +90,9 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | BGM")
 	TSoftObjectPtr<USoundBase> BattleBGM;
 
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | BGM")
+	TSoftObjectPtr<USoundBase> ShopBGM;
+
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
 	TSoftObjectPtr<USoundBase> LeverPullSFX;
 
@@ -115,6 +119,18 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
 	TSoftObjectPtr<USoundBase> CoinClickSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> ShopBuyClickSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> ShopSellClickSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> BattleItemClickSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> DefaultClickSFX;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Battle VFX")
 	TSoftObjectPtr<UNiagaraSystem> Boss_Hit_VFX;

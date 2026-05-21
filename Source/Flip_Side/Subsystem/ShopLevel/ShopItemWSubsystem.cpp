@@ -3,6 +3,7 @@
 
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 #include "Subsystem/MoneyGISubsystem.h"
 #include "Kismet/GameplayStatics.h"
 bool UShopItemWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -99,7 +100,8 @@ void UShopItemWSubsystem::BuyItem(FItemData ItemData)
                 SelectItemData.ItemID = ItemData.ItemID;
                 SelectItemData.SameItemNum = 1;
                 PlayerItemArray[EmptyIvenNum] = SelectItemData;
-                
+
+                FFlipSideSoundUtils::PlayShopBuyClickSound(this);
                 OnItemBuy.Broadcast(EmptyIvenNum);
             }
         }
@@ -109,6 +111,7 @@ void UShopItemWSubsystem::BuyItem(FItemData ItemData)
         if(MoneySubsystem->SpendMoney(EMoneyRecordType::Item, ItemData.Price))
         {
             PlayerItemArray[InvenIndex].SameItemNum++;
+            FFlipSideSoundUtils::PlayShopBuyClickSound(this);
             OnItemBuy.Broadcast(InvenIndex);
         }
     }
@@ -192,6 +195,7 @@ void UShopItemWSubsystem::SellItem(FItemData ItemData)
                 PlayerItemArray[i].SameItemNum= 0;
             }
             MoneySubsystem->AddSaleMoney(EMoneyRecordType::Item, ItemData.Price);
+            FFlipSideSoundUtils::PlayShopSellClickSound(this);
             OnItemSell.Broadcast(i);
             return;
         }

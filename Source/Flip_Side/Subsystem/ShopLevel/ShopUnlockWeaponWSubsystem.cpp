@@ -4,6 +4,7 @@
 #include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
 #include "Subsystem/UnlockGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 #include "Subsystem/MoneyGISubsystem.h"
 
 bool UShopUnlockWeaponWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -43,6 +44,7 @@ void UShopUnlockWeaponWSubsystem::SelectUnlockWeapon(EWeaponClass WeaponClass, i
     CurrentUnlockWeaponID = WeaponID;
     CurrentUnlockWeaponClass = WeaponClass;
 
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     OnSelectUnlockWeapon.Broadcast(WeaponClass, WeaponID, IsWeaponUnlock);
 
 }
@@ -64,6 +66,7 @@ void UShopUnlockWeaponWSubsystem::UnlockCurrentWeapon()
         if(MoneySubsystem->SpendMoney(EMoneyRecordType::Weapon, WeaponFaceData.Price))
         {
             UnlockSubsystem->UnlockWeapon(CurrentUnlockWeaponClass, CurrentUnlockWeaponID);
+            FFlipSideSoundUtils::PlayShopBuyClickSound(this);
             OnSelectUnlockWeapon.Broadcast(CurrentUnlockWeaponClass,CurrentUnlockWeaponID,true);
         }
        
@@ -78,6 +81,7 @@ EWeaponClass UShopUnlockWeaponWSubsystem::GetCurrentWeaponClass()
 
 void UShopUnlockWeaponWSubsystem::ChangeUnlockWeaponClass(EWeaponClass WeaponClass)
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     OnChangeUnlockWaeponClass.Broadcast(WeaponClass);
 }
 	

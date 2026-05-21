@@ -2,6 +2,7 @@
 
 
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 #include "Subsystem/MoneyGISubsystem.h"
 #include "Subsystem/CrossingLevelGISubsystem.h"
 bool UShopCoinWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -173,6 +174,7 @@ void UShopCoinWSubsystem::IncreaseSlotCoinCount()
         {
             TotalCoinCount++;
             ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum++;
+            FFlipSideSoundUtils::PlayShopBuyClickSound(this);
             OnCoinCountUpdate.Broadcast(CurrentCoinSlotNum,ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
         }
         
@@ -187,6 +189,7 @@ void UShopCoinWSubsystem::DecreaseSlotCoinCount()
         TotalCoinCount--;
         ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum--;
         MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 50);
+        FFlipSideSoundUtils::PlayShopSellClickSound(this);
         OnCoinCountUpdate.Broadcast(CurrentCoinSlotNum,ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.SameTypeCoinNum);
             
     }
@@ -200,6 +203,7 @@ void UShopCoinWSubsystem::IncreaseSlotCoinCount(int32 SlotNum)
         {
             TotalCoinCount++;
             ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum++;
+            FFlipSideSoundUtils::PlayShopBuyClickSound(this);
             OnCoinCountUpdate.Broadcast(SlotNum,ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum);
         }
         
@@ -212,6 +216,7 @@ void UShopCoinWSubsystem::DecreaseSlotCoinCount(int32 SlotNum)
         TotalCoinCount--;
         ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum--;
         MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 50);
+        FFlipSideSoundUtils::PlayShopSellClickSound(this);
         OnCoinCountUpdate.Broadcast(SlotNum,ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum);
     }
 }
@@ -291,6 +296,7 @@ void UShopCoinWSubsystem::ResetCoin(int32 SlotNum)
     ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum = 0;
 
     MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 50, CoinCount);
+    FFlipSideSoundUtils::PlayShopSellClickSound(this);
 
     OnCoinCountUpdate.Broadcast(SlotNum, 0);
     OnSetWeapon.Broadcast(-1);
@@ -313,6 +319,7 @@ void UShopCoinWSubsystem::ResetCoinSide(int32 SlotNum, bool IsFront)
     ShopCoinSlotArray[SlotNum].CoinData.SameTypeCoinNum = 0;
 
     MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 50, CoinCount);
+    FFlipSideSoundUtils::PlayShopSellClickSound(this);
     
     OnCoinCountUpdate.Broadcast(SlotNum, 0);
     OnSetWeapon.Broadcast(-1);
@@ -324,6 +331,7 @@ void UShopCoinWSubsystem::ChangeCoinSlotByIndex(int32 SlotNum)
     if(SlotNum< ShopCoinSlotArray.Num())
     {
         CurrentCoinSlotNum = SlotNum;
+        FFlipSideSoundUtils::PlayDefaultClickSound(this);
         OnCoinSlotChange.Broadcast();
     }
 }
@@ -346,6 +354,7 @@ bool UShopCoinWSubsystem::UnlockCoinSlot(int32 SlotNum)
     if(MoneySubsystem->SpendMoney(EMoneyRecordType::CoinSlot, 100))
     {
         ShopCoinSlotArray[SlotNum].IsUnlock = true;
+        FFlipSideSoundUtils::PlayShopBuyClickSound(this);
         OnChangeCoinSlotCount.Broadcast(true);
         return true;
     }
@@ -362,6 +371,7 @@ bool UShopCoinWSubsystem::IncreaseCoinSlot(int32 SlotNum)
     if(MoneySubsystem->SpendMoney(EMoneyRecordType::CoinSlot, 100))
     {
         ShopCoinSlotArray[SlotNum].IsUnlock = true;
+        FFlipSideSoundUtils::PlayShopBuyClickSound(this);
         OnChangeCoinSlotCount.Broadcast(true);
         if(SlotNum==0)
         {
@@ -392,6 +402,7 @@ bool UShopCoinWSubsystem::DecreaseCoinSlot(int32 SlotNum)
 
     MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 50, CoinCount);
     MoneySubsystem->AddSaleMoney(EMoneyRecordType::CoinSlot, 100);
+    FFlipSideSoundUtils::PlayShopSellClickSound(this);
 
     if(CurrentCoinSlotNum == SlotNum)
     {
@@ -414,6 +425,7 @@ int32 UShopCoinWSubsystem::GetCurrentCoinCount()
 
 void UShopCoinWSubsystem::ChangeSlotCoinSide(bool IsChangedSideFront)
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     OnChangeSlotCoinSide.Broadcast(IsChangedSideFront);
 }
 	
@@ -435,7 +447,10 @@ void UShopCoinWSubsystem::SelectCoin(int32 SlotNum)
 {
     
     if(ShopCoinSlotArray.IsValidIndex(SlotNum))
+    {
         CurrentCoinSlotNum = SlotNum;
+        FFlipSideSoundUtils::PlayDefaultClickSound(this);
+    }
 
     OnCoinSlotChange.Broadcast();
     
@@ -443,6 +458,7 @@ void UShopCoinWSubsystem::SelectCoin(int32 SlotNum)
 	
 void UShopCoinWSubsystem::ChangeCoinSide()
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     if(IsCreateCoinFront)
         IsCreateCoinFront = false;
     else
@@ -492,6 +508,7 @@ void UShopCoinWSubsystem::SetWeaponToCoinSide(int32 WeaponID, EWeaponClass Weapo
     {
         ShopCoinSlotArray[CurrentCoinSlotNum].CoinData.BackWeaponID = WeaponID;
     }
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     OnSetWeapon.Broadcast(WeaponID);
 }
 	
@@ -550,6 +567,7 @@ int32 UShopCoinWSubsystem::GetCurrentSlotCount()
 	
 void UShopCoinWSubsystem::ChangeCoinClass(EWeaponClass WeaponClass)
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     OnChangeCoinClass.Broadcast(WeaponClass);   
 }	
 

@@ -4,6 +4,7 @@
 #include "Components/VerticalBox.h"
 #include "Components/Button.h"
 #include "UI/W_CardWidget.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 
 void UW_StageHUDWidget::NativeConstruct()
 {
@@ -65,6 +66,7 @@ void UW_StageHUDWidget::NativeDestruct()
 
 void UW_StageHUDWidget::OnClickToggleHandButton()
 {
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
     bHandVisible = !bHandVisible;
 
     if (!HandCardPanel)

@@ -1,6 +1,7 @@
 #include "CoinSlotActor.h"
 #include "CoinActor.h"
 #include "Components/StaticMeshComponent.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 
 ACoinSlotActor::ACoinSlotActor()
 {
@@ -45,6 +46,7 @@ void ACoinSlotActor::OnClicked_Implementation()
     {
         if (Coin && !Coin->GetCoinIsReady() && Coin->SameTypeIndex == 0)
         {
+            FFlipSideSoundUtils::PlayDefaultClickSound(this);
             OnCoinSlotClicked.Broadcast(Coin);
             return;
         }

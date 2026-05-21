@@ -19,6 +19,7 @@
 #include "Subsystem/BattleLevel/UseableItemWSubsystem.h"
 #include "Subsystem/LevelGISubsystem.h"
 #include "Subsystem/CursorGISubsystem.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 
 ABattlePlayerController_FlipSide::ABattlePlayerController_FlipSide()
 {
@@ -121,6 +122,7 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
         // CurrentHoveredArea는 CheckMouseHover에서 실시간으로 업데이트됨
         if (CurrentHoveredArea && ControlledPawn)
         {
+            FFlipSideSoundUtils::PlayDefaultClickSound(this);
             ControlledPawn->MoveCameraToArea(
                 CurrentHoveredArea->TargetLocation,
                 CurrentHoveredArea->TargetRotation,

@@ -5,13 +5,14 @@
 #include "Player/GameMode_Shop.h"
 #include "Components/Button.h"
 #include "Styling/SlateBrush.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 
 void UW_ShopModeChangeWidget::NativeConstruct()
 {
     Super::NativeConstruct();
     ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
 
-    WidgetOpenButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::OpenWidget);
+    WidgetOpenButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ToggleWidgetPanel);
 	CoinCreateModeButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickCoinCreateMode);
 	CardSelectModeButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickCardSelecrMode);
 	ShopItemModeButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickShopItemMode);
@@ -69,6 +70,13 @@ void UW_ShopModeChangeWidget::ClickCheckBossMode()
         ShopGameMode->SetCheckBossMode();
     }
 }
+
+void UW_ShopModeChangeWidget::ToggleWidgetPanel()
+{
+    FFlipSideSoundUtils::PlayDefaultClickSound(this);
+    OpenWidget();
+}
+
 void UW_ShopModeChangeWidget::OpenWidget()
 {
     if(IsSlidePanelOpen)

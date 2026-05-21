@@ -7,6 +7,7 @@
 #include "FlipSide_Enum.h"
 #include "GridTypes.h"
 #include "Base_OtherActor.h"
+#include "Subsystem/FlipSideSoundUtils.h"
 #include "Subsystem/StageCardWSubsystem.h"
 
 AGridActor::AGridActor()
@@ -297,6 +298,7 @@ void AGridActor::SetItemTargetHighlight(bool bOn)
 void AGridActor::OnClicked_Implementation()
 {
 	if(bIsOccupied) return;
+	FFlipSideSoundUtils::PlayDefaultClickSound(this);
 	OnGridClicked.Broadcast(this);
 }
 

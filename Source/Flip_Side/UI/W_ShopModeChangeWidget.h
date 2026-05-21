@@ -58,6 +58,8 @@ protected:
 	UFUNCTION()
 	void ClickCheckBossMode();
 	UFUNCTION()
+	void ToggleWidgetPanel();
+	UFUNCTION()
 	void OpenWidget();
 	UFUNCTION()
 	void ClickShopMainModeButton();
