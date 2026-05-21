@@ -36,16 +36,28 @@ void UW_UnlockWeaponGrid::InitWeaponGrid()
         if(WeaponID == -3 || WeaponID==-2)
             continue;
         //버거 제외
-        if(WeaponID != 3 && WeaponID != 13 && WeaponID!=19)
+
+        if(GridWeaponClass == EWeaponClass::Deal)
         {
-            UE_LOG(LogTemp, Warning, TEXT("추가된 번호 %d"), WeaponID);
-            AddButton(WeaponID);
+            if(WeaponID != 3 && WeaponID != 5)
+            {
+                AddButton(WeaponID);
+            }
         }
-        else
+        else if(GridWeaponClass == EWeaponClass::Tank)
         {
-            UE_LOG(LogTemp, Warning, TEXT("sssssssssssssss"));
+            if(WeaponID == 7 || WeaponID == 9)
+            {
+                AddButton(WeaponID);
+            }
         }
-        
+        else if(GridWeaponClass == EWeaponClass::Heal)
+        {
+            if(WeaponID == 14 || WeaponID == 15)
+            {
+                AddButton(WeaponID);
+            }
+        }
     }
 }
 
