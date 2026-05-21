@@ -13,6 +13,7 @@ void UW_CoinHPWidget::NativeConstruct()
     MID = UMaterialInstanceDynamic::Create(Mat, this);
     HpImage->SetBrushFromMaterial(MID);
 
+    RefreshHpDisplay();
 }
 void UW_CoinHPWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
@@ -40,6 +41,15 @@ void UW_CoinHPWidget::InitHpWidget(int32 MaxHpValue)
 {
     SetMaxHp(MaxHpValue);
     SetCurrentHp(MaxHpValue);
+    RefreshHpDisplay();
+}
+
+void UW_CoinHPWidget::RefreshHpDisplay()
+{
+    if (MaxHp > 0)
+    {
+        SetHpPrgressBar(static_cast<float>(CurrentHp) / MaxHp);
+    }
 }
 	
 void UW_CoinHPWidget::SetMaxHp(int32 MaxHpValue)

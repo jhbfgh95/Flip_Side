@@ -31,6 +31,9 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* CoinMaxHPText;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* CoinSlotIndexText;
+
 	UPROPERTY()
 	class UMaterialInstanceDynamic* DynamicMaterial;
 
@@ -58,15 +61,16 @@ private:
 
 public:
 	void UpdateBattleCoinInfo(
-		class UTexture2D* Icon, 
-		const FText& WeaponName, 
-		const FText& RawDescription, 
-		int32 DefaultBP, int32 ModifiedBP, 
+		class UTexture2D* Icon,
+		const FText& WeaponName,
+		const FText& RawDescription,
+		int32 DefaultBP, int32 ModifiedBP,
 		int32 DefaultAP, int32 ModifiedAP,
 		int32 CurrentHP, int32 MaxHP,
 		FLinearColor WeaponColor,
 		const TArray<FBuffInfo>& ActiveBuffs,
-		int32 AbsorbedBP
+		int32 AbsorbedBP,
+		int32 SlotIndex
 		/*int32 DefaultRange, int32 ModifiedRange */
 	);
 };

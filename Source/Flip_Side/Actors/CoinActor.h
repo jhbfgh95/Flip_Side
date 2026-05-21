@@ -241,6 +241,8 @@ public:
 
 	void SetUIVisibility(const bool bUIVisibile);
 
+	void SyncHPDisplay();
+
 protected:
 	/* 레디 코인 튀어 오름 */
 	FTimerHandle JumpTimerHandle;

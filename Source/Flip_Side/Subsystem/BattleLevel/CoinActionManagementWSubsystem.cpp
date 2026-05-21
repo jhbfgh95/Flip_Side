@@ -329,7 +329,8 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
                 SelectWeapon.AttackPoint, ActionTask.ModifiedAttackPoint, SelectWeapon.TypeColor,
                 HoveredCoin->StatComponent->GetHP(), HoveredCoin->StatComponent->GetMaxHP(),
                 HoveredCoin->StatComponent->ActiveBuffs,
-                AbsorbedBP
+                AbsorbedBP,
+                HoveredCoin->GetSlotNum() + 1
             );
 
             const FGridPoint PreviewFinalRange = (AreaSpec.AnchorMode == EAreaAnchor::UseAnchorCell)
@@ -466,12 +467,13 @@ void UCoinActionManagementWSubsystem::ExecuteGridAction(AGridActor* targetGrid)
 
 //호버링 시 UI세팅
 void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
-        UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
-		int32 DefaultBP, int32 ModifiedBP, 
+        UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription,
+		int32 DefaultBP, int32 ModifiedBP,
 		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor,
         int32 CurrentHP, int32 MaxHP,
         const TArray<FBuffInfo>& ActiveBuffs,
-        int32 AbsorbedBP)
+        int32 AbsorbedBP,
+        int32 SlotIndex)
 {
     if(BattleCoinInfoWidgetInstance)
     {
@@ -481,7 +483,8 @@ void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
             DefaultAP, ModifiedAP,
             CurrentHP, MaxHP, WeaponColor,
             ActiveBuffs,
-            AbsorbedBP
+            AbsorbedBP,
+            SlotIndex
         );
         BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);
     }

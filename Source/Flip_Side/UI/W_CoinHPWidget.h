@@ -52,6 +52,7 @@ private:
 public:
 	void InitHpWidget(int32 MaxHpValue);
 	void ChangeMaxHp(int32 HPModifier);
+	void RefreshHpDisplay();
 
 	UFUNCTION()
 	void ChangeCurrentHp(int32 Hpvalue);

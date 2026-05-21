@@ -230,6 +230,14 @@ void ACoinActor::SetUIVisibility(const bool bUIVisibile)
 	CoinHPUI->SetVisibility(bUIVisibile);
 }
 
+void ACoinActor::SyncHPDisplay()
+{
+	if (HPWidget)
+	{
+		HPWidget->RefreshHpDisplay();
+	}
+}
+
 void ACoinActor::DoCoinActAtBattleStartLeverDown()
 {
 	StartX = GetActorLocation().X;

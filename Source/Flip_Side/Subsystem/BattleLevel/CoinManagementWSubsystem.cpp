@@ -154,6 +154,7 @@ void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
                 Coin->SetActorScale3D(FVector(1.f, 1.f, 1.f));
                 Coin->CoinMesh->SetVisibility(true);
                 Coin->CoinHPUI->SetVisibility(true);
+                Coin->SyncHPDisplay();
                 Coin->StatComponent->ClearTurnBasedBuffs();
                 AddBattleReadyCoins(Coin, false);
                 Coin->SetCanCancelFromReady(false);

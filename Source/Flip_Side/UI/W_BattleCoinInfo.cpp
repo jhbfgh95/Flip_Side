@@ -19,11 +19,12 @@ void UW_BattleCoinInfo::NativeConstruct()
 }
 
 void UW_BattleCoinInfo::UpdateBattleCoinInfo(
-	UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
-	int32 DefaultBP, int32 ModifiedBP, 
+	UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription,
+	int32 DefaultBP, int32 ModifiedBP,
 	int32 DefaultAP, int32 ModifiedAP, int32 CurrentHP, int32 MaxHP, FLinearColor WeaponColor,
 	const TArray<FBuffInfo>& ActiveBuffs,
-	int32 AbsorbedBP
+	int32 AbsorbedBP,
+	int32 SlotIndex
     )
 {
 	if (HoveredWeaponIcon && Icon && DynamicMaterial)
@@ -42,6 +43,10 @@ void UW_BattleCoinInfo::UpdateBattleCoinInfo(
 	if (CoinMaxHPText)
 	{
 		CoinMaxHPText->SetText(FText::AsNumber(MaxHP));
+	}
+	if (CoinSlotIndexText)
+	{
+		CoinSlotIndexText->SetText(FText::Format(INVTEXT("{0}번"), FText::AsNumber(SlotIndex)));
 	}
 
 	auto FormatStatWithDiff = [](int32 DefaultVal, int32 ModifiedVal, const TCHAR* DefaultColorTag, const TCHAR* StatLabel) -> FText
