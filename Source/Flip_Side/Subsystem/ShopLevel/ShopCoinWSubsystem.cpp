@@ -357,9 +357,12 @@ bool UShopCoinWSubsystem::IncreaseCoinSlot(int32 SlotNum)
 
     if(MoneySubsystem->SpendMoney(EMoneyRecordType::CoinSlot, 100))
     {
+        
         ShopCoinSlotArray[SlotNum].IsUnlock = true;
+        CurrentCoinSlotNum = GetCurrentSlotCount()-1;
         OnChangeCoinSlotCount.Broadcast(true);
-        if(SlotNum==0)
+        OnCoinSlotChange.Broadcast();
+        if(SlotNum<=0)
         {
             CurrentCoinSlotNum = 0;
             OnCoinSlotChange.Broadcast();
