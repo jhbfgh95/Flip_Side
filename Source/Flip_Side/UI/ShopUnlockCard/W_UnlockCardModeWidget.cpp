@@ -42,7 +42,9 @@ void UW_UnlockCardModeWidget::NativeConstruct()
     //더 많은 황금 제거
     if(CardData.IsValidIndex(4))
     {
-        CardData.RemoveAt(3);
+        CardData.RemoveAt(0);
+        CardData.RemoveAt(0);
+        CardData.RemoveAt(1);
     }
       
     int32 CardListNum = CardData.Num();
