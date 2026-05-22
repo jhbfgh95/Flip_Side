@@ -16,6 +16,7 @@
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
 #include "Subsystem/BattleLevel/CoinManagementWSubsystem.h"
 #include "Subsystem/BattleLevel/BattleLevelActingWSubsystem.h"
+#include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
 #include "Subsystem/BattleLevel/UseableItemWSubsystem.h"
 #include "Subsystem/LevelGISubsystem.h"
 #include "Subsystem/CursorGISubsystem.h"
@@ -94,10 +95,21 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
     if (UCursorGISubsystem* CursorSys = GetGameInstance()->GetSubsystem<UCursorGISubsystem>())
     {
         CursorSys->SetCursorState(2);
-        GetWorldTimerManager().SetTimer(CursorClickResetHandle, [this]()
+        TWeakObjectPtr<ABattlePlayerController_FlipSide> WeakThis(this);
+        GetWorldTimerManager().SetTimer(CursorClickResetHandle, [WeakThis]()
         {
-            if (UCursorGISubsystem* CS = GetGameInstance()->GetSubsystem<UCursorGISubsystem>())
-                CS->SetCursorState(0);
+            if (!WeakThis.IsValid())
+            {
+                return;
+            }
+
+            if (UGameInstance* GI = WeakThis->GetGameInstance())
+            {
+                if (UCursorGISubsystem* CS = GI->GetSubsystem<UCursorGISubsystem>())
+                {
+                    CS->SetCursorState(0);
+                }
+            }
         }, 0.15f, false);
     }
 
@@ -224,10 +236,21 @@ void ABattlePlayerController_FlipSide::OnRightClick()
     if (UCursorGISubsystem* CursorSys = GetGameInstance()->GetSubsystem<UCursorGISubsystem>())
     {
         CursorSys->SetCursorState(2);
-        GetWorldTimerManager().SetTimer(CursorClickResetHandle, [this]()
+        TWeakObjectPtr<ABattlePlayerController_FlipSide> WeakThis(this);
+        GetWorldTimerManager().SetTimer(CursorClickResetHandle, [WeakThis]()
         {
-            if (UCursorGISubsystem* CS = GetGameInstance()->GetSubsystem<UCursorGISubsystem>())
-                CS->SetCursorState(0);
+            if (!WeakThis.IsValid())
+            {
+                return;
+            }
+
+            if (UGameInstance* GI = WeakThis->GetGameInstance())
+            {
+                if (UCursorGISubsystem* CS = GI->GetSubsystem<UCursorGISubsystem>())
+                {
+                    CS->SetCursorState(0);
+                }
+            }
         }, 0.15f, false);
     }
 
@@ -245,9 +268,68 @@ void ABattlePlayerController_FlipSide::OnRightClick()
     }
 }
 
+void ABattlePlayerController_FlipSide::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    GetWorldTimerManager().ClearTimer(CoinSelectCameraDelayHandle);
+    GetWorldTimerManager().ClearTimer(CursorClickResetHandle);
+    GetWorldTimerManager().ClearTimer(ResetToStartLevelHandle);
+
+    if (UWorld* World = GetWorld())
+    {
+        if (UBattleManagerWSubsystem* BattleManager = World->GetSubsystem<UBattleManagerWSubsystem>())
+        {
+            BattleManager->OnTurnChanged.RemoveDynamic(this, &ABattlePlayerController_FlipSide::OnTurnChanged);
+            BattleManager->OnStageEnded.RemoveDynamic(this, &ABattlePlayerController_FlipSide::OnStageEnded);
+        }
+
+        if (UBattleLevelActingWSubsystem* Acting = World->GetSubsystem<UBattleLevelActingWSubsystem>())
+        {
+            Acting->OnBossDeadAct.Unbind();
+        }
+    }
+
+    Super::EndPlay(EndPlayReason);
+}
+
 void ABattlePlayerController_FlipSide::OnResetToStartLevel()
 {
-    if (ULevelGISubsystem* LevelSubsystem = GetGameInstance()->GetSubsystem<ULevelGISubsystem>())
+    if (bPendingResetToStartLevel)
+    {
+        return;
+    }
+
+    bPendingResetToStartLevel = true;
+    SetInputForTutorial(true);
+
+    if (UWorld* World = GetWorld())
+    {
+        if (UBattleManagerWSubsystem* BattleManager = World->GetSubsystem<UBattleManagerWSubsystem>())
+        {
+            BattleManager->AbortBattleForLevelTransition();
+        }
+
+        if (PlayerCameraManager)
+        {
+            PlayerCameraManager->StartCameraFade(0.0f, 1.0f, ResetFadeOutDuration, FLinearColor::Black, false, true);
+        }
+
+        World->GetTimerManager().SetTimer(
+            ResetToStartLevelHandle,
+            this,
+            &ABattlePlayerController_FlipSide::MoveToStartLevelNow,
+            ResetLevelDelay,
+            false
+        );
+    }
+    else
+    {
+        MoveToStartLevelNow();
+    }
+}
+
+void ABattlePlayerController_FlipSide::MoveToStartLevelNow()
+{
+    if (ULevelGISubsystem* LevelSubsystem = GetGameInstance() ? GetGameInstance()->GetSubsystem<ULevelGISubsystem>() : nullptr)
     {
         LevelSubsystem->MoveStartLevel();
     }
@@ -273,10 +355,18 @@ void ABattlePlayerController_FlipSide::OnTurnChanged(ETurnState NewTurn)
 
     if (NewTurn == ETurnState::CoinSelectTurn)
     {
-        GetWorldTimerManager().SetTimer(CoinSelectCameraDelayHandle, [this]()
+        TWeakObjectPtr<ABattlePlayerController_FlipSide> WeakThis(this);
+        GetWorldTimerManager().SetTimer(CoinSelectCameraDelayHandle, [WeakThis]()
         {
-            if (ControlledPawn)
-                ControlledPawn->MoveCameraToArea(CoinSelectCameraLocation, CoinSelectCameraRotation, CoinSelectCameraArmLength);
+            if (!WeakThis.IsValid() || !WeakThis->ControlledPawn)
+            {
+                return;
+            }
+
+            WeakThis->ControlledPawn->MoveCameraToArea(
+                WeakThis->CoinSelectCameraLocation,
+                WeakThis->CoinSelectCameraRotation,
+                WeakThis->CoinSelectCameraArmLength);
         }, CoinSelectCameraDelay, false);
     }
     else if (NewTurn == ETurnState::CoinReadyTurn)

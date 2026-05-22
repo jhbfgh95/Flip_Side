@@ -8,6 +8,7 @@
 #include "Objects/Weapon_Action.h"
 #include "CoinActionManagementWSubsystem.generated.h"
 
+struct FBattleCoinAlternateFaceInfo;
 
 UCLASS()
 class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
@@ -65,6 +66,9 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 	UPROPERTY()
     class UW_BattleCoinInfo* BattleCoinInfoWidgetInstance = nullptr;
 
+	UPROPERTY()
+	class UW_BattleCoinInfo* AlternateBattleCoinInfoWidgetInstance = nullptr;
+
 public:
 	//이거로 코인 선택하는거 잠궜습니다.
 	void SetTurn(const bool bIsTurn);
@@ -92,6 +96,10 @@ public:
 	void CancelSingleCellAction(class ACoinActor* ClickedCoin);
 
 	void TryCancelCurrentAction();
+
+	void PreviewCoinInfoForItemTarget(class ACoinActor* HoveredCoin, bool bShowAlternateFacePreview);
+
+	void HideCoinInfoForItemTarget();
 public:
 	EActionInputState CurrentInputState = EActionInputState::None;
 
@@ -120,6 +128,16 @@ protected:
 		int32 CurrentHP, int32 MaxHP,
 		const TArray<struct FBuffInfo>& ActiveBuffs,
 		int32 AbsorbedBP,
+		int32 SlotIndex,
+		const FBattleCoinAlternateFaceInfo& AlternateFaceInfo
+	);
+
+	void SetAlternateBattleCoinInfo(
+		UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription,
+		int32 DefaultBP, int32 ModifiedBP,
+		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor,
+		int32 CurrentHP, int32 MaxHP,
+		const TArray<struct FBuffInfo>& ActiveBuffs,
 		int32 SlotIndex
 	);
 

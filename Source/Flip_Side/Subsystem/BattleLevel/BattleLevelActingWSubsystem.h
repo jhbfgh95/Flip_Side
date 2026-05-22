@@ -97,6 +97,8 @@ protected:
 public:
 	void WaitTeleportUntilLeverDown();
 
+    void AbortForLevelTransition();
+
 	void RaiseCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished);
 
 	void ShakeCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished);
@@ -148,6 +150,8 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+
+    virtual void Deinitialize() override;
 
 	void UpdateCoinActionRaise();
 

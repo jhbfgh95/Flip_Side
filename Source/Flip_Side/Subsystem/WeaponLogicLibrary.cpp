@@ -594,7 +594,8 @@ void UWeaponLogicLibrary::Medikit_Logic(UWeapon_Action* WeaponContext)
     TargetStat = RangedCoins[0]->StatComponent;
 
     //이거 nullptr 나중에 WeaponAction에서 BatttleManager에서 Coinactionmanager에 넣어줘야해
-    TargetStat->ApplyHeal(AP, nullptr);
+    ACoinActor* CasterCoin = WeaponContext->GetCasterCoin();
+    TargetStat->ApplyHeal(AP, CasterCoin);
 }
 //십자보호막↓
 void UWeaponLogicLibrary::CrossShiled_Logic(UWeapon_Action* WeaponContext)

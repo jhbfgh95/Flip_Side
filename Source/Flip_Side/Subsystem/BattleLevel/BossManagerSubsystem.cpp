@@ -36,6 +36,12 @@ void UBossManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     }
 }
 
+void UBossManagerSubsystem::Deinitialize()
+{
+    AbortForLevelTransition();
+    Super::Deinitialize();
+}
+
 bool UBossManagerSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     if (!Super::ShouldCreateSubsystem(Outer))
@@ -406,11 +412,11 @@ void UBossManagerSubsystem::ApplyCurrentPattern()
     TArray<ABase_OtherActor*> ValidLockedOthers;
     for (const FLockedBossTarget& LockedTarget : TurnContext.LockedTargets)
     {
-        if (IsValid(LockedTarget.CoinActor) && IsStillOnLockedCell(LockedTarget))
+        if (IsStillOnLockedCell(LockedTarget) && IsValid(LockedTarget.CoinActor))
         {
             ValidLockedTargets.Add(LockedTarget.CoinActor);
         }
-        else if (IsValid(LockedTarget.OtherActor))
+        else if (IsStillOnLockedCell(LockedTarget) && IsValid(LockedTarget.OtherActor))
         {
             ValidLockedOthers.Add(LockedTarget.OtherActor);
         }
@@ -594,6 +600,29 @@ void UBossManagerSubsystem::BroadcastCoinLanded()
     }
 }
 
+void UBossManagerSubsystem::AbortForLevelTransition()
+{
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(TelegraphTimerHandle);
+        World->GetTimerManager().ClearTimer(ApplyPatternTimerHandle);
+    }
+
+    if (TurnContext.LockedCells.Num() > 0)
+    {
+        ClearTelegraphPreview(TurnContext.LockedCells);
+    }
+    TurnContext.Reset();
+
+    if (IsValid(CurrentBoss))
+    {
+        CurrentBoss->OnBossAttackEnded.Clear();
+        CurrentBoss->OnBossDeathStarted.Clear();
+        CurrentBoss->OnBossDead.Clear();
+        CurrentBoss->PrepareForLevelTransition();
+    }
+}
+
 void UBossManagerSubsystem::RecalculateTelegraphForRoleTarget()
 {
     if (!TurnContext.CurrentPattern) return;
@@ -605,14 +634,28 @@ void UBossManagerSubsystem::RecalculateTelegraphForRoleTarget()
 
 bool UBossManagerSubsystem::IsStillOnLockedCell(const FLockedBossTarget& LockedTarget) const
 {
-    if (!IsValid(LockedTarget.CoinActor))
+    if (IsValid(LockedTarget.CoinActor))
     {
-        return false;
+        const FGridPoint CurrentGrid = LockedTarget.CoinActor->GetDecidedGrid();
+
+        return CurrentGrid.GridX == LockedTarget.LockedGrid.GridX
+            && CurrentGrid.GridY == LockedTarget.LockedGrid.GridY;
     }
 
-    const FGridPoint CurrentGrid = LockedTarget.CoinActor->GetDecidedGrid();
+    if (IsValid(LockedTarget.OtherActor))
+    {
+        const AGridActor* OccupiedGrid = LockedTarget.OtherActor->GetOccupiedGrid();
+        if (!IsValid(OccupiedGrid))
+        {
+            return false;
+        }
 
-    return CurrentGrid.GridX == LockedTarget.LockedGrid.GridX
-        && CurrentGrid.GridY == LockedTarget.LockedGrid.GridY;
+        const FGridPoint CurrentGrid = OccupiedGrid->GetGridPoint();
+
+        return CurrentGrid.GridX == LockedTarget.LockedGrid.GridX
+            && CurrentGrid.GridY == LockedTarget.LockedGrid.GridY;
+    }
+
+    return false;
 }
 

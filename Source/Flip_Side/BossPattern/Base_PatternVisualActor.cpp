@@ -36,6 +36,21 @@ void ABase_PatternVisualActor::BeginPlay()
     }
 }
 
+void ABase_PatternVisualActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(WaitTimerHandle);
+    }
+
+    if (MovementTimeline)
+    {
+        MovementTimeline->Stop();
+    }
+
+    Super::EndPlay(EndPlayReason);
+}
+
 void ABase_PatternVisualActor::PlayBossPatternAct()
 {
     if (TimeBeforeAct > 0.f)

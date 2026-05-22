@@ -35,6 +35,7 @@ class FLIP_SIDE_API UBossManagerSubsystem : public UWorldSubsystem
 
 public:
     virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+    virtual void Deinitialize() override;
 
 protected:
     UPROPERTY()
@@ -83,6 +84,8 @@ public:
     void ClearCurrentTurn();
 
     void BroadcastCoinLanded();
+
+    void AbortForLevelTransition();
 
 private:
     bool Internal_SpawnBoss(const FBossBattleData& InBossData);

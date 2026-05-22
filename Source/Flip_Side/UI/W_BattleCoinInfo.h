@@ -7,6 +7,18 @@
 #include "Blueprint/UserWidget.h"
 #include "W_BattleCoinInfo.generated.h"
 
+struct FBattleCoinAlternateFaceInfo
+{
+	bool bIsValid = false;
+	class UTexture2D* Icon = nullptr;
+	FText WeaponName;
+	FText RawDescription;
+	int32 DefaultBP = 0;
+	int32 ModifiedBP = 0;
+	int32 DefaultAP = 0;
+	int32 ModifiedAP = 0;
+};
+
 UCLASS()
 class FLIP_SIDE_API UW_BattleCoinInfo : public UUserWidget
 {
@@ -70,7 +82,8 @@ public:
 		FLinearColor WeaponColor,
 		const TArray<FBuffInfo>& ActiveBuffs,
 		int32 AbsorbedBP,
-		int32 SlotIndex
+		int32 SlotIndex,
+		const FBattleCoinAlternateFaceInfo& AlternateFaceInfo
 		/*int32 DefaultRange, int32 ModifiedRange */
 	);
 };

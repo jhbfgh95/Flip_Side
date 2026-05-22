@@ -92,6 +92,12 @@ void ABossActor::BeginPlay()
     }
 }
 
+void ABossActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    PrepareForLevelTransition();
+    Super::EndPlay(EndPlayReason);
+}
+
 void ABossActor::InitializeFromBossData(const FBossBattleData& InData)
 {
 	ThemeID = InData.ThemeID;
@@ -462,6 +468,27 @@ void ABossActor::FinishBossClearAnimation()
 void ABossActor::BroadcastBossDeadAfterEffect()
 {
 	if(OnBossDead.IsBound()) OnBossDead.Broadcast();
+}
+
+void ABossActor::PrepareForLevelTransition()
+{
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(BossDeadEffectTimerHandle);
+        World->GetTimerManager().ClearTimer(BossFractureHideMeshTimerHandle);
+    }
+
+    if (AnimInstance)
+    {
+        AnimInstance->OnMontageEnded.RemoveDynamic(this, &ABossActor::BossMontageEnded);
+        AnimInstance->StopAllMontages(0.0f);
+    }
+
+    if (BossHpWidget)
+    {
+        BossHpWidget->RemoveFromParent();
+        BossHpWidget = nullptr;
+    }
 }
 
 void ABossActor::PlayDefaultBossDeathFracture()

@@ -72,6 +72,7 @@ class FLIP_SIDE_API UGridManagerSubsystem : public UWorldSubsystem
 public:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
+    virtual void Deinitialize() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")
 	FVector GridOrigin = FVector(1340.f, -2560.f, -100.f);

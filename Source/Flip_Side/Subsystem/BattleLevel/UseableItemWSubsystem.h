@@ -131,6 +131,12 @@ protected:
 
 	UFUNCTION() //RightClick
 	void HandleItemRightClicked(AUseableItemActor* TargetItem);
+
+	UFUNCTION()
+	void HandleBattleCoinHoveredForItem(class ACoinActor* HoveredCoin);
+
+	UFUNCTION()
+	void HandleBattleCoinUnhoveredForItem();
 /* Execution */
 protected:
 	UFUNCTION()

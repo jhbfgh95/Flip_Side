@@ -42,7 +42,14 @@ void UW_ShopCoinManage::NativeDestruct()
 void UW_ShopCoinManage::SetDes(int32 WeaponID)
 {
     FFaceData FaceData;
-    DataSubsystem->TryGetWeapon(WeaponID, FaceData);
+    FaceData.WeaponID = -1;
+    FaceData.TypeID = -1;
+
+    if (DataSubsystem && WeaponID != -1)
+    {
+        DataSubsystem->TryGetWeapon(WeaponID, FaceData);
+    }
+
 	SetDesText(FaceData);
 }
 
@@ -73,12 +80,10 @@ void UW_ShopCoinManage::SetWeaponAdaptor(int32 WeaponID)
 
 void UW_ShopCoinManage::SetDesText(FFaceData FaceData)
 {
-    if(FaceData.WeaponID != -1)
+	if(FaceData.WeaponID != -1)
 		WeaponDes->SetExplainText(FaceData.WeaponName, FaceData.KOR_DES, FaceData.BehaviorPoint, FaceData.AttackPoint);
 	else
 		WeaponDes->SetExplainTextEmpty();
-
-	UE_LOG(LogTemp, Error, TEXT("%d"), FaceData.TypeID);
 }
 	
 void UW_ShopCoinManage::ShowDesPanel(int32 WeaponID)

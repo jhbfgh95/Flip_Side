@@ -20,6 +20,8 @@
 namespace
 {
     constexpr int32 BloodCanonWeaponID = 4;
+    const FVector2D AlternateCoinInfoOffset(555.f, 72.f);
+    const FVector2D AlternateCoinInfoScale(0.82f, 0.82f);
 }
 
 void UCoinActionManagementWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -55,6 +57,16 @@ void UCoinActionManagementWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
                     BattleCoinInfoWidgetInstance->AddToViewport();
                     BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
                 }
+
+                AlternateBattleCoinInfoWidgetInstance = CreateWidget<UW_BattleCoinInfo>(GetWorld(), BattleCoinWidgetClass);
+                if (AlternateBattleCoinInfoWidgetInstance)
+                {
+                    AlternateBattleCoinInfoWidgetInstance->AddToViewport();
+                    AlternateBattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+                    AlternateBattleCoinInfoWidgetInstance->SetRenderTransformPivot(FVector2D(0.f, 0.f));
+                    AlternateBattleCoinInfoWidgetInstance->SetRenderTranslation(AlternateCoinInfoOffset);
+                    AlternateBattleCoinInfoWidgetInstance->SetRenderScale(AlternateCoinInfoScale);
+                }
             }
         }
     }
@@ -86,6 +98,7 @@ void UCoinActionManagementWSubsystem::Deinitialize()
     bPendingFailedVFX = false;
     bCurrentActionExecuted = false;
     BattleCoinInfoWidgetInstance = nullptr;
+    AlternateBattleCoinInfoWidgetInstance = nullptr;
     GridManager = nullptr;
 
     Super::Deinitialize();
@@ -330,8 +343,14 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
                 HoveredCoin->StatComponent->GetHP(), HoveredCoin->StatComponent->GetMaxHP(),
                 HoveredCoin->StatComponent->ActiveBuffs,
                 AbsorbedBP,
-                HoveredCoin->GetSlotNum() + 1
+                HoveredCoin->GetSlotNum() + 1,
+                FBattleCoinAlternateFaceInfo()
             );
+
+            if (AlternateBattleCoinInfoWidgetInstance)
+            {
+                AlternateBattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+            }
 
             const FGridPoint PreviewFinalRange = (AreaSpec.AnchorMode == EAreaAnchor::UseAnchorCell)
                 ? FGridPoint{0, 0}
@@ -355,6 +374,96 @@ void UCoinActionManagementWSubsystem::SetCasterCoin(ACoinActor* CasterCoin)
     {
         SelectedAction->SetCasterCoin(CasterCoin);
     }
+}
+
+void UCoinActionManagementWSubsystem::PreviewCoinInfoForItemTarget(ACoinActor* HoveredCoin, bool bShowAlternateFacePreview)
+{
+    if(!IsValid(HoveredCoin) || !HoveredCoin->StatComponent)
+    {
+        return;
+    }
+
+    UWorld* World = GetWorld();
+    if(!World) return;
+
+    UGameInstance* GI = World->GetGameInstance();
+    if(!GI) return;
+
+    UDataManagerSubsystem* DM = GI->GetSubsystem<UDataManagerSubsystem>();
+    if(!DM) return;
+
+    FFaceData CurrentWeapon;
+    if(!DM->TryGetWeapon(HoveredCoin->GetCoinFaceID(), CurrentWeapon))
+    {
+        return;
+    }
+
+    const FActionTask ActionTask = HoveredCoin->StatComponent->GetModifiedStats();
+
+    FBattleCoinAlternateFaceInfo AlternateFaceInfo;
+    if (bShowAlternateFacePreview)
+    {
+        const int32 AlternateWeaponID = HoveredCoin->GetCoinDecidedFace() == EFaceState::Front
+            ? HoveredCoin->GetCoinBackID()
+            : HoveredCoin->GetCoinFrontID();
+
+        FFaceData AlternateWeapon;
+        if (DM->TryGetWeapon(AlternateWeaponID, AlternateWeapon))
+        {
+            AlternateFaceInfo.bIsValid = true;
+            AlternateFaceInfo.Icon = AlternateWeapon.WeaponIcon;
+            AlternateFaceInfo.WeaponName = FText::FromString(AlternateWeapon.WeaponName);
+            AlternateFaceInfo.RawDescription = FText::FromString(AlternateWeapon.KOR_DES);
+            AlternateFaceInfo.DefaultBP = AlternateWeapon.BehaviorPoint;
+            AlternateFaceInfo.ModifiedBP = ActionTask.ModifiedBehaviorPoint;
+            AlternateFaceInfo.DefaultAP = AlternateWeapon.AttackPoint;
+            AlternateFaceInfo.ModifiedAP = ActionTask.ModifiedAttackPoint;
+        }
+    }
+
+    SetBattleCoinInfo(
+        CurrentWeapon.WeaponIcon,
+        FText::Format(INVTEXT("[현재 면] {0}"), FText::FromString(CurrentWeapon.WeaponName)),
+        FText::FromString(CurrentWeapon.KOR_DES),
+        CurrentWeapon.BehaviorPoint,
+        ActionTask.ModifiedBehaviorPoint,
+        CurrentWeapon.AttackPoint,
+        ActionTask.ModifiedAttackPoint,
+        CurrentWeapon.TypeColor,
+        HoveredCoin->StatComponent->GetHP(),
+        HoveredCoin->StatComponent->GetMaxHP(),
+        HoveredCoin->StatComponent->ActiveBuffs,
+        0,
+        HoveredCoin->GetSlotNum() + 1,
+        AlternateFaceInfo
+    );
+
+    if (AlternateFaceInfo.bIsValid)
+    {
+        SetAlternateBattleCoinInfo(
+            AlternateFaceInfo.Icon,
+            FText::Format(INVTEXT("[뒤집은 뒤] {0}"), AlternateFaceInfo.WeaponName),
+            AlternateFaceInfo.RawDescription,
+            AlternateFaceInfo.DefaultBP,
+            AlternateFaceInfo.ModifiedBP,
+            AlternateFaceInfo.DefaultAP,
+            AlternateFaceInfo.ModifiedAP,
+            CurrentWeapon.TypeColor,
+            HoveredCoin->StatComponent->GetHP(),
+            HoveredCoin->StatComponent->GetMaxHP(),
+            HoveredCoin->StatComponent->ActiveBuffs,
+            HoveredCoin->GetSlotNum() + 1
+        );
+    }
+    else if (AlternateBattleCoinInfoWidgetInstance)
+    {
+        AlternateBattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+    }
+}
+
+void UCoinActionManagementWSubsystem::HideCoinInfoForItemTarget()
+{
+    HideBattleCoinInfo();
 }
 
 
@@ -473,7 +582,8 @@ void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
         int32 CurrentHP, int32 MaxHP,
         const TArray<FBuffInfo>& ActiveBuffs,
         int32 AbsorbedBP,
-        int32 SlotIndex)
+        int32 SlotIndex,
+        const FBattleCoinAlternateFaceInfo& AlternateFaceInfo)
 {
     if(BattleCoinInfoWidgetInstance)
     {
@@ -484,9 +594,34 @@ void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
             CurrentHP, MaxHP, WeaponColor,
             ActiveBuffs,
             AbsorbedBP,
-            SlotIndex
+            SlotIndex,
+            AlternateFaceInfo
         );
         BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void UCoinActionManagementWSubsystem::SetAlternateBattleCoinInfo(
+        UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription,
+		int32 DefaultBP, int32 ModifiedBP,
+		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor,
+        int32 CurrentHP, int32 MaxHP,
+        const TArray<FBuffInfo>& ActiveBuffs,
+        int32 SlotIndex)
+{
+    if(AlternateBattleCoinInfoWidgetInstance)
+    {
+        AlternateBattleCoinInfoWidgetInstance->UpdateBattleCoinInfo(
+            Icon, WeaponName, RawDescription,
+            DefaultBP, ModifiedBP,
+            DefaultAP, ModifiedAP,
+            CurrentHP, MaxHP, WeaponColor,
+            ActiveBuffs,
+            0,
+            SlotIndex,
+            FBattleCoinAlternateFaceInfo()
+        );
+        AlternateBattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);
     }
 }
 
@@ -517,6 +652,11 @@ void UCoinActionManagementWSubsystem::HideBattleCoinInfo()
     if (BattleCoinInfoWidgetInstance)
     {
         BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
+    }
+
+    if (AlternateBattleCoinInfoWidgetInstance)
+    {
+        AlternateBattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
     }
 }
 

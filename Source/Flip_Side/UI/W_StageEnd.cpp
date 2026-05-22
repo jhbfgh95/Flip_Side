@@ -135,9 +135,10 @@ void UW_StageEnd::StageClearedClicked()
     ULevelGISubsystem* LevelMan = GameInstance ? GameInstance->GetSubsystem<ULevelGISubsystem>() : nullptr;
     if (!LevelMan) return;
 
-    if (LevelMan->GetBattleLevelIndex() == 0)
+    const FString CurrentMapName = GetWorld() ? GetWorld()->GetMapName() : FString();
+    if (CurrentMapName.Contains(TEXT("L_Stage_Battle_Tutorial")))
     {
-        LevelMan->MoveStartLevel();
+        LevelMan->MovingTutorialLevel(2);
         return;
     }
 

@@ -45,6 +45,13 @@ private:
 
     FTimerHandle CoinSelectCameraDelayHandle;
     FTimerHandle CursorClickResetHandle;
+    FTimerHandle ResetToStartLevelHandle;
+
+    UPROPERTY(EditAnywhere, Category = "Transition")
+    float ResetFadeOutDuration = 0.03f;
+
+    UPROPERTY(EditAnywhere, Category = "Transition")
+    float ResetLevelDelay = 0.05f;
 
     UFUNCTION()
     void OnTurnChanged(ETurnState NewTurn);
@@ -62,6 +69,8 @@ protected:
 
 	virtual void BeginPlay() override;
 
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	void ReturnToDefaultCamera();
 
 	void OnLeftClick();
@@ -69,6 +78,8 @@ protected:
 	void OnRightClick();
 
 	void OnResetToStartLevel();
+
+    void MoveToStartLevelNow();
 
     void CheckMouseHover();
 
@@ -79,6 +90,8 @@ protected:
     AActor* LastHoveredActor;
 
 	bool bIsUIOnly = false;
+
+    bool bPendingResetToStartLevel = false;
 
 public:
 	ABattlePlayerController_FlipSide();

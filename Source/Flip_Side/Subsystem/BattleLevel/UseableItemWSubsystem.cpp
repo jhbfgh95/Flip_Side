@@ -404,6 +404,10 @@ void UUseableItemWSubsystem::CancelWantUseItem()
     {
         ItemInfoWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
     }
+    if(CoinActionManager)
+    {
+        CoinActionManager->HideCoinInfoForItemTarget();
+    }
     InitSelectedItem();
     if(CoinActionManager)
     {
@@ -666,6 +670,47 @@ void UUseableItemWSubsystem::HandleItemRightClicked(AUseableItemActor* TargetIte
     PlayItemFailedFeedback();
 }
 
+void UUseableItemWSubsystem::HandleBattleCoinHoveredForItem(ACoinActor* HoveredCoin)
+{
+    if(!bIsCoinSelectTurn || !IsValid(HoveredCoin) || !IsValid(SelectedItemActor))
+    {
+        return;
+    }
+
+    if(CurrentTargetMode == EUseableItemTargetMode::None || SelectedItemActor->GetItemID() != PhaseChangePotionItemID)
+    {
+        return;
+    }
+
+    if(ItemInfoWidgetInstance)
+    {
+        ItemInfoWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+    }
+
+    if(CoinActionManager)
+    {
+        CoinActionManager->PreviewCoinInfoForItemTarget(HoveredCoin, true);
+    }
+}
+
+void UUseableItemWSubsystem::HandleBattleCoinUnhoveredForItem()
+{
+    if(CurrentTargetMode == EUseableItemTargetMode::None)
+    {
+        return;
+    }
+
+    if(CoinActionManager)
+    {
+        CoinActionManager->HideCoinInfoForItemTarget();
+    }
+
+    if(IsValid(SelectedItemActor) && SelectedItemActor->GetItemID() == PhaseChangePotionItemID)
+    {
+        VisibleItemInfoUI(SelectedItemActor);
+    }
+}
+
 void UUseableItemWSubsystem::CoinBindsToItemMan()
 {
     if(!CoinManager) return;
@@ -676,6 +721,8 @@ void UUseableItemWSubsystem::CoinBindsToItemMan()
         if(IsValid(Coin))
         {
             Coin->OnCoinClickForItemExcute.AddUniqueDynamic(this, &UUseableItemWSubsystem::ExecuteItemForCoin);
+            Coin->OnHoverBattleCoin.AddUniqueDynamic(this, &UUseableItemWSubsystem::HandleBattleCoinHoveredForItem);
+            Coin->OnUnhoverCoin.AddUniqueDynamic(this, &UUseableItemWSubsystem::HandleBattleCoinUnhoveredForItem);
         }
     }
 }

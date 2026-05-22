@@ -151,6 +151,51 @@ bool UBattleManagerWSubsystem::StartBattleFromLever(float BattleLeverEndTime) {
     return true;
 }
 
+void UBattleManagerWSubsystem::AbortBattleForLevelTransition()
+{
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(LeverUnlockTimer);
+        World->GetTimerManager().ClearTimer(LockLeverWhenCanInteractTimer);
+    }
+
+    if (CoinActionManager)
+    {
+        CoinActionManager->StopActionSequenceForStageEnd();
+    }
+
+    if (ItemManager)
+    {
+        ItemManager->SetTurn(false);
+    }
+
+    if (ActingManager)
+    {
+        ActingManager->AbortForLevelTransition();
+    }
+
+    if (BossManager)
+    {
+        BossManager->AbortForLevelTransition();
+    }
+
+    if (BattlePhaseAndTurnDisplayWidgetInstance)
+    {
+        BattlePhaseAndTurnDisplayWidgetInstance->RemoveFromParent();
+        BattlePhaseAndTurnDisplayWidgetInstance = nullptr;
+    }
+
+    if (StageEndWidgetInstance)
+    {
+        StageEndWidgetInstance->RemoveFromParent();
+        StageEndWidgetInstance = nullptr;
+    }
+
+    LeverGateState = EBattleLeverGateState::Locked;
+    LeverLockReason = EBattleLeverLockReason::None;
+    OnBattleTutorialLeverTriggered.Clear();
+}
+
 void UBattleManagerWSubsystem::LockLever(EBattleLeverLockReason Reason)
 {
     LeverGateState = EBattleLeverGateState::Locked;

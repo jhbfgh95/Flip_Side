@@ -1,97 +1,130 @@
 #include "UI/W_BattleCoinInfo.h"
+
 #include "Blueprint/WidgetTree.h"
 #include "Components/Image.h"
 #include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
 #include "Components/Widget.h"
-#include "Internationalization/TextFormatter.h"
 
-void UW_BattleCoinInfo::NativeConstruct()
+namespace
 {
-	Super::NativeConstruct();
-
-	if (HoveredWeaponIcon)
-    {
-        DynamicMaterial = HoveredWeaponIcon->GetDynamicMaterial();
-    }
-
-	CacheBuffIconImages();
-}
-
-void UW_BattleCoinInfo::UpdateBattleCoinInfo(
-	UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription,
-	int32 DefaultBP, int32 ModifiedBP,
-	int32 DefaultAP, int32 ModifiedAP, int32 CurrentHP, int32 MaxHP, FLinearColor WeaponColor,
-	const TArray<FBuffInfo>& ActiveBuffs,
-	int32 AbsorbedBP,
-	int32 SlotIndex
-    )
-{
-	if (HoveredWeaponIcon && Icon && DynamicMaterial)
-    {
-        DynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), Icon);
-        DynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), WeaponColor);
-    }
-	if (HoveredWeaponName)
-	{
-		HoveredWeaponName->SetText(WeaponName);
-	}
-	if (CoinCurrentHPText)
-	{
-		CoinCurrentHPText->SetText(FText::AsNumber(CurrentHP));
-	}
-	if (CoinMaxHPText)
-	{
-		CoinMaxHPText->SetText(FText::AsNumber(MaxHP));
-	}
-	if (CoinSlotIndexText)
-	{
-		CoinSlotIndexText->SetText(FText::Format(INVTEXT("{0}번"), FText::AsNumber(SlotIndex)));
-	}
-
-	auto FormatStatWithDiff = [](int32 DefaultVal, int32 ModifiedVal, const TCHAR* DefaultColorTag, const TCHAR* StatLabel) -> FText
+	FText FormatStatWithDiff(int32 DefaultVal, int32 ModifiedVal, const TCHAR* DefaultColorTag, const TCHAR* StatLabel)
 	{
 		FString StatStr = FString::Printf(TEXT("<%s>[%s] %d</>"), DefaultColorTag, StatLabel, DefaultVal);
-		
+
 		if (ModifiedVal > 0)
 		{
 			StatStr += FString::Printf(TEXT(" <Green>(+%d)</>"), ModifiedVal);
 		}
 		else if (ModifiedVal < 0)
 		{
-            //Diff가 이미 음수라서 %d하면 알아서 붙음
 			StatStr += FString::Printf(TEXT(" <Red>(%d)</>"), ModifiedVal);
 		}
-		
-		return FText::FromString(StatStr);
-	};
 
-    //동적으로 포맷 정해줌
-	if (HoveredWeaponDes)
+		return FText::FromString(StatStr);
+	}
+
+	FText BuildWeaponDescription(
+		const FText& DescriptionSource,
+		int32 DefaultBP,
+		int32 ModifiedBP,
+		int32 DefaultAP,
+		int32 ModifiedAP,
+		int32 AbsorbedBP,
+		bool bAppendAbsorbedBP
+	)
 	{
-        //언리얼 기본 포맷 
-        //사용 : {BP} 만큼 데미지를 줍니다
 		FFormatNamedArguments Args;
-        Args.Add(TEXT("BP"), FormatStatWithDiff(DefaultBP, ModifiedBP, TEXT("BPColor"), TEXT("BP")));
+		Args.Add(TEXT("BP"), FormatStatWithDiff(DefaultBP, ModifiedBP, TEXT("BPColor"), TEXT("BP")));
 		Args.Add(TEXT("AP"), FormatStatWithDiff(DefaultAP, ModifiedAP + AbsorbedBP, TEXT("APColor"), TEXT("AP")));
 		Args.Add(TEXT("AbsorbedBP"), FText::AsNumber(AbsorbedBP));
 
-		FText FormattedDescription = FText::Format(RawDescription, Args);
-		if(AbsorbedBP != 0)
+		FText DescriptionText = FText::Format(DescriptionSource, Args);
+		if (bAppendAbsorbedBP && AbsorbedBP != 0)
 		{
 			const TCHAR* AbsorbColorTag = AbsorbedBP > 0 ? TEXT("Green") : TEXT("Red");
 			const FString AbsorbSign = AbsorbedBP > 0 ? TEXT("+") : TEXT("");
-			const FString DescriptionWithAbsorb = FString::Printf(
-				TEXT("%s\n<BPColor>[BP 흡수]</> <%s>%s%d</>"),
-				*FormattedDescription.ToString(),
+			DescriptionText = FText::FromString(FString::Printf(
+				TEXT("%s\n<BPColor>[BP Absorb]</> <%s>%s%d</>"),
+				*DescriptionText.ToString(),
 				AbsorbColorTag,
 				*AbsorbSign,
 				AbsorbedBP
-			);
-			FormattedDescription = FText::FromString(DescriptionWithAbsorb);
+			));
 		}
 
-		HoveredWeaponDes->SetText(FormattedDescription);
+		return DescriptionText;
+	}
+}
+
+void UW_BattleCoinInfo::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	if (HoveredWeaponIcon)
+	{
+		DynamicMaterial = HoveredWeaponIcon->GetDynamicMaterial();
+	}
+
+	CacheBuffIconImages();
+}
+
+void UW_BattleCoinInfo::UpdateBattleCoinInfo(
+	UTexture2D* Icon,
+	const FText& WeaponName,
+	const FText& RawDescription,
+	int32 DefaultBP,
+	int32 ModifiedBP,
+	int32 DefaultAP,
+	int32 ModifiedAP,
+	int32 CurrentHP,
+	int32 MaxHP,
+	FLinearColor WeaponColor,
+	const TArray<FBuffInfo>& ActiveBuffs,
+	int32 AbsorbedBP,
+	int32 SlotIndex,
+	const FBattleCoinAlternateFaceInfo& AlternateFaceInfo
+)
+{
+	(void)AlternateFaceInfo;
+
+	if (HoveredWeaponIcon && Icon && DynamicMaterial)
+	{
+		DynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), Icon);
+		DynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), WeaponColor);
+	}
+
+	if (HoveredWeaponName)
+	{
+		HoveredWeaponName->SetText(WeaponName);
+	}
+
+	if (CoinCurrentHPText)
+	{
+		CoinCurrentHPText->SetText(FText::AsNumber(CurrentHP));
+	}
+
+	if (CoinMaxHPText)
+	{
+		CoinMaxHPText->SetText(FText::AsNumber(MaxHP));
+	}
+
+	if (CoinSlotIndexText)
+	{
+		CoinSlotIndexText->SetText(FText::FromString(FString::Printf(TEXT("#%d"), SlotIndex)));
+	}
+
+	if (HoveredWeaponDes)
+	{
+		HoveredWeaponDes->SetText(BuildWeaponDescription(
+			RawDescription,
+			DefaultBP,
+			ModifiedBP,
+			DefaultAP,
+			ModifiedAP,
+			AbsorbedBP,
+			true
+		));
 	}
 
 	UpdateBuffIcons(ActiveBuffs);

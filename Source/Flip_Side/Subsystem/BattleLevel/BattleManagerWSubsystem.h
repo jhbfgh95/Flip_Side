@@ -165,4 +165,6 @@ public:
 
 	bool StartBattleFromLever(float BattleLeverEndTime);
 
+    void AbortBattleForLevelTransition();
+
 };

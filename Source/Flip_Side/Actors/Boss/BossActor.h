@@ -315,6 +315,8 @@ public:
 
 	virtual void BeginPlay() override;
 
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Boss")
 	FOnBossAttackEndedDelegate OnBossAttackEnded;
@@ -326,6 +328,8 @@ public:
 	FOnBossDead OnBossDead;
 
 	void FinishBossClearAnimation();
+
+    void PrepareForLevelTransition();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Boss")
 	void BossDeadEffect();

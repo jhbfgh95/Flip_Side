@@ -36,6 +36,26 @@ void UGridManagerSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	InstanceGrid();
 }
 
+void UGridManagerSubsystem::Deinitialize()
+{
+    if (UWorld* World = GetWorld())
+    {
+        for (auto& Pair : DoorFxByCell)
+        {
+            World->GetTimerManager().ClearTimer(Pair.Value.Phase1Tick);
+            World->GetTimerManager().ClearTimer(Pair.Value.Phase2Tick);
+        }
+    }
+
+    DoorFxByCell.Reset();
+    OnGridClickedForCoin.Unbind();
+    OnGridClickedForItem.Unbind();
+    ResetBattleCoinPreview();
+    ClearGrid();
+
+    Super::Deinitialize();
+}
+
 void UGridManagerSubsystem::InitGrid(int32 InGridXSize, int32 InGridYSize)
 {
 	GridXSize = FMath::Max(0, InGridXSize);
@@ -288,6 +308,7 @@ void UGridManagerSubsystem::GetObjectsAtRange(
         }
 
         case EGridOccupyingType::Wall:
+        case EGridOccupyingType::Turret:
         {
             Infos.Others.Add(TargetGrid->GetCurrentOccupied());
             break;

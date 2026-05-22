@@ -24,6 +24,12 @@ void UBattleLevelActingWSubsystem::Initialize(FSubsystemCollectionBase& Collecti
     GridManager = Collection.InitializeDependency<UGridManagerSubsystem>();
 }
 
+void UBattleLevelActingWSubsystem::Deinitialize()
+{
+    AbortForLevelTransition();
+    Super::Deinitialize();
+}
+
 bool UBattleLevelActingWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     UWorld* World = Cast<UWorld>(Outer);
@@ -38,6 +44,42 @@ bool UBattleLevelActingWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
     }
 
     return false;
+}
+
+void UBattleLevelActingWSubsystem::AbortForLevelTransition()
+{
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(LeverWaitTimer);
+        World->GetTimerManager().ClearTimer(LeverDownTimer);
+        World->GetTimerManager().ClearTimer(CoinTeleportTimer);
+        World->GetTimerManager().ClearTimer(CoinActionRaiseTimer);
+        World->GetTimerManager().ClearTimer(CoinActionShakeTimer);
+        World->GetTimerManager().ClearTimer(CoinActionLowerTimer);
+    }
+
+    CoinActionActor.Reset();
+    CoinActionRaiseFinished.Unbind();
+    CoinActionShakeFinished.Unbind();
+    CoinActionLowerFinished.Unbind();
+    CoinActionElapsedTime = 0.0f;
+
+    if (IsValid(CurrentVisualActor))
+    {
+        CurrentVisualActor->Destroy();
+        CurrentVisualActor = nullptr;
+    }
+
+    if (IsValid(PromotionVFXComponent))
+    {
+        PromotionVFXComponent->DeactivateImmediate();
+        PromotionVFXComponent = nullptr;
+    }
+
+    DoDrawMove.Unbind();
+    DoGearMove.Unbind();
+    OnCoinLanded.Unbind();
+    OnBossDeadAct.Unbind();
 }
 
 void UBattleLevelActingWSubsystem::WaitTeleportUntilLeverDown()

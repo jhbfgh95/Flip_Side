@@ -60,6 +60,27 @@ bool UBossSetupGISubsystem::PrepareBossForStage(int32 StageIndex)
 {
     ClearPreparedBoss();
 
+    if (StageIndex <= 0)
+    {
+        const FBossDisplayData* TutorialBoss = AllBossData.FindByPredicate([](const FBossDisplayData& D)
+        {
+            return D.BossID == 1;
+        });
+
+        if (!TutorialBoss)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[BossSetupGI] PrepareBossForStage failed: tutorial BossID 1 not found"));
+            return false;
+        }
+
+        PreparedBossData = *TutorialBoss;
+        PreparedContext.StageIndex = StageIndex;
+        PreparedContext.PickedBossID = TutorialBoss->BossID;
+        PreparedContext.PickedBossName = TutorialBoss->BossName;
+        PreparedContext.bPrepared = true;
+        return true;
+    }
+
     const int32* BossIDPtr = StageBossAssignment.Find(StageIndex);
     if (!BossIDPtr)
     {
