@@ -60,8 +60,8 @@ void ATuto_ShopModeChanger::ExecuteTutorialEvent_Implementation()
 		TutoGameMode->SetShopMainMode();
 		break;
 	case 6:
-		UnlockSubsystem->ResetUnlockData();
-		LevelSubsystem->MovingTutorialLevel(2);
+		LevelSubsystem->MoveStartLevel();
+		break;
 	default:
 		break;
 	}

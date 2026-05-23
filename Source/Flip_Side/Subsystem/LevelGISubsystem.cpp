@@ -132,7 +132,7 @@ void ULevelGISubsystem::MovingTutorialLevel(int32 tutorialflag)
                 BossSetupGI->PrepareBossForStage(BattleLevelIndex);
             }
         }
-        UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_Tutorial_Shop_Level")));
+        UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_Tutorial_TutoShop_Level")));
     }
 }
 
