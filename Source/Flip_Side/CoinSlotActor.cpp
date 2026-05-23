@@ -42,10 +42,18 @@ void ACoinSlotActor::OnUnhover_Implementation()
 
 void ACoinSlotActor::OnClicked_Implementation()
 {
+    if (bClickCooldown) return;
+
     for (ACoinActor* Coin : AllowcatedCoins)
     {
         if (Coin && !Coin->GetCoinIsReady() && Coin->SameTypeIndex == 0)
         {
+            bClickCooldown = true;
+            GetWorldTimerManager().SetTimer(ClickCooldownTimer, [this]()
+            {
+                bClickCooldown = false;
+            }, 0.3f, false);
+
             FFlipSideSoundUtils::PlayDefaultClickSound(this);
             OnCoinSlotClicked.Broadcast(Coin);
             return;

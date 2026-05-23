@@ -97,6 +97,11 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	TArray<ACoinActor*> AllowcatedCoins;
+
+private:
+	bool bClickCooldown = false;
+	FTimerHandle ClickCooldownTimer;
+
 public:
     UPROPERTY(BlueprintAssignable, Category = "Events|Hover")
 	FOnCoinSlotHovered OnCoinSlotHovered;

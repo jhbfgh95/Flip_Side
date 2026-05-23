@@ -244,41 +244,46 @@ void UCoinManagementWSubsystem::ArrangeSlotCoins(int32 FrontWeaponID)
     TArray<AActor*> OutActors;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACoinActor::StaticClass(), OutActors);
 
-    TArray<ACoinActor*> RemainingCoins;
+    // SlotIndex별로 코인을 그룹화 (같은 슬롯에 속한 코인들만 함께 정렬)
+    TMap<int32, TArray<ACoinActor*>> CoinsBySlot;
     for (AActor* Actor : OutActors)
     {
         ACoinActor* Coin = Cast<ACoinActor>(Actor);
         if (Coin && Coin->GetFrontWeaponID() == FrontWeaponID && Coin->GetActorScale3D().X < 1.1f)
         {
-            RemainingCoins.Add(Coin);
+            CoinsBySlot.FindOrAdd(Coin->GetSlotNum()).Add(Coin);
         }
     }
 
-
-    RemainingCoins.Sort([](const ACoinActor& A, const ACoinActor& B) {
-        return A.SameTypeIndex < B.SameTypeIndex;
-    });
-
-    for (int32 i = 0; i < RemainingCoins.Num(); ++i)
+    for (auto& Pair : CoinsBySlot)
     {
-        ACoinActor* Coin = RemainingCoins[i];
-        Coin->SameTypeIndex = i; 
+        TArray<ACoinActor*>& RemainingCoins = Pair.Value;
 
-        FVector EndLoc = Coin->GetOriginSlotLocation();
-        EndLoc.Y += (i * 35.f);
+        RemainingCoins.Sort([](const ACoinActor& A, const ACoinActor& B) {
+            return A.SameTypeIndex < B.SameTypeIndex;
+        });
 
-        FLatentActionInfo LatentInfo;
-        LatentInfo.CallbackTarget = this;
-        LatentInfo.UUID = Coin->GetUniqueID();
-        LatentInfo.Linkage = 0;
-        LatentInfo.ExecutionFunction = FName("OnArrangeSlotMoveComplete");
+        for (int32 i = 0; i < RemainingCoins.Num(); ++i)
+        {
+            ACoinActor* Coin = RemainingCoins[i];
+            Coin->SameTypeIndex = i;
 
-        UKismetSystemLibrary::MoveComponentTo(
-            Coin->GetRootComponent(), 
-            EndLoc, 
-            Coin->GetActorRotation(), 
-            true, true, 0.35f, false, EMoveComponentAction::Move, LatentInfo
-        );
+            FVector EndLoc = Coin->GetOriginSlotLocation();
+            EndLoc.Y += (i * 35.f);
+
+            FLatentActionInfo LatentInfo;
+            LatentInfo.CallbackTarget = this;
+            LatentInfo.UUID = Coin->GetUniqueID();
+            LatentInfo.Linkage = 0;
+            LatentInfo.ExecutionFunction = FName("OnArrangeSlotMoveComplete");
+
+            UKismetSystemLibrary::MoveComponentTo(
+                Coin->GetRootComponent(),
+                EndLoc,
+                Coin->GetActorRotation(),
+                true, true, 0.35f, false, EMoveComponentAction::Move, LatentInfo
+            );
+        }
     }
 }
 
