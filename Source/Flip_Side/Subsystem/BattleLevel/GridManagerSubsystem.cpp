@@ -32,7 +32,7 @@ void UGridManagerSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	if (!InWorld.IsGameWorld())
 		return;
 
-	InitGrid(8, 5);
+	InitGrid(9, 9);
 	InstanceGrid();
 }
 
@@ -107,6 +107,12 @@ void UGridManagerSubsystem::InstanceGrid()
 
 			NewGrid->SetGridXY(X, Y);     
 			NewGrid->FinishSpawning(SpawnTM);
+
+			const int32 GridNumber = (Y * GridXSize) + X + 1;
+			if (GridNumber >= 54 && GridNumber <= 80)
+			{
+				NewGrid->SetDefaultOutlineColor(FLinearColor(1.0f, 0.35f, 0.35f, 1.0f));
+			}
 
 			FGridPoint P;
 			P.GridX = X;

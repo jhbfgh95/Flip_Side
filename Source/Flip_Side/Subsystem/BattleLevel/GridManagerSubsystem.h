@@ -84,10 +84,10 @@ public:
 	float SpacingY = 440.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")
-	int32 GridXSize = 8; // ����
+	int32 GridXSize = 9; // ����
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")
-	int32 GridYSize = 5; // ����
+	int32 GridYSize = 9; // ����
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void InitGrid(int32 InGridXSize, int32 InGridYSize);

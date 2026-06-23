@@ -9,7 +9,7 @@
 class AGridActor;
 
 /**
- * 레벨 내 별도 위치에 5x8 그리드 2개를 스폰.
+ * 레벨 내 별도 위치에 9x9 그리드 2개를 스폰.
  * - 왼쪽 그리드: 앞면 무기 사거리
  * - 오른쪽 그리드: 뒷면 무기 사거리
  *
@@ -42,10 +42,10 @@ public:
 	float SpacingY = 440.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
-	int32 GridXSize = 8;
+	int32 GridXSize = 9;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
-	int32 GridYSize = 5;
+	int32 GridYSize = 9;
 
 	// 에디터에서 BP_GridActor 할당
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
@@ -53,7 +53,7 @@ public:
 
 	// 코인이 올라갈 기준 셀 (두 그리드 모두 동일)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
-	FGridPoint CoinCell = FGridPoint{ 3, 2 };
+	FGridPoint CoinCell = FGridPoint{ 4, 4 };
 
 	// 사거리 하이라이트 색
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Visual")

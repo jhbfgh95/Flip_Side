@@ -22,6 +22,9 @@ ABattlePlayerPawn_FlipSide::ABattlePlayerPawn_FlipSide()
 
 	// Perspective 모드 for 시각적 깊이감
 	Camera->ProjectionMode = ECameraProjectionMode::Perspective;
+	Camera->SetRelativeLocation(FVector(719.0f, 212.0f, 233.0f));
+	Camera->SetRelativeRotation(FRotator(1.0f, 0.0f, 0.0f));
+	Camera->FieldOfView = 55.0f;
 
 	// 초기 목표 상태 설정
 	TargetLocation = GetActorLocation();
@@ -42,6 +45,10 @@ void ABattlePlayerPawn_FlipSide::BeginPlay()
     SetActorLocation(TargetLocation);
     SpringArm->SetRelativeRotation(TargetRotation);
     SpringArm->TargetArmLength = TargetArmLength;
+
+	Camera->SetRelativeLocation(FVector(719.0f, 212.0f, 233.0f));
+	Camera->SetRelativeRotation(FRotator(1.0f, 0.0f, 0.0f));
+	Camera->SetFieldOfView(55.0f);
 }
 
 void ABattlePlayerPawn_FlipSide::Tick(float DeltaTime)

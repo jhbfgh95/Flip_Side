@@ -19,6 +19,10 @@ AGridActor::AGridActor()
 
 	GridMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Coin Mesh"));
 	GridMesh->SetupAttachment(RootComponent);
+
+	DefaultColorSet.Color = FLinearColor::White;
+	DefaultColorSet.Intensity = 0.3f;
+	DefaultColorSet.DoorOpen = 0.f;
 }
 
 void AGridActor::BeginPlay()
@@ -135,6 +139,12 @@ void AGridActor::ClearSwamp()
 	SwampRemainingTurns = 0;
 	SwampDebuffAmount = 0;
 	SwampTargetClass = EWeaponClass::None;
+	InitColor();
+}
+
+void AGridActor::SetDefaultOutlineColor(const FLinearColor& Color)
+{
+	DefaultColorSet.Color = Color;
 	InitColor();
 }
 
@@ -263,8 +273,9 @@ void AGridActor::InitColor()
 	{
 		MID->SetVectorParameterValue(TEXT("Cover_Color"), FLinearColor::White);
 		MID->SetVectorParameterValue(TEXT("Fill_Color"), FLinearColor::White);
-		MID->SetVectorParameterValue(TEXT("Outline_Color"), FLinearColor::White);
-		MID->SetScalarParameterValue(TEXT("Fill_intensity"), 0.3f);
+		MID->SetVectorParameterValue(TEXT("Outline_Color"), DefaultColorSet.Color);
+		MID->SetScalarParameterValue(TEXT("Fill_intensity"), DefaultColorSet.Intensity);
+		MID->SetScalarParameterValue(TEXT("Door_Open"), DefaultColorSet.DoorOpen);
 	}
 }
 

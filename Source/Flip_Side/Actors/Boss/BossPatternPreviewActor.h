@@ -32,10 +32,10 @@ public:
 	float SpacingY = 440.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
-	int32 GridXSize = 8;
+	int32 GridXSize = 9;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
-	int32 GridYSize = 5;
+	int32 GridYSize = 9;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
 	TSubclassOf<AGridActor> GridActorClass;

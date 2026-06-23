@@ -21,6 +21,8 @@ void UBossManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
+    Collection.InitializeDependency<UGridManagerSubsystem>();
+
     UGameInstance* GI = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
     if (GI)
     {

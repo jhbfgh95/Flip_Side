@@ -46,6 +46,7 @@ class FLIP_SIDE_API AGridActor : public AActor, public IBattleClickInterface, pu
 	TArray<FLinearColor> HoverColor;
 
 	FCachedColorSet BossColorset;
+	FCachedColorSet DefaultColorSet;
 
 protected:
 	UPROPERTY(Transient)
@@ -144,6 +145,7 @@ public:
 	void ClearSwamp();
 	bool HasSwamp() const { return bHasSwamp; }
 	void ClearBossAttackFlag() { bIsBossAttack = false; bBossColorFirstSetted = false; }
+	void SetDefaultOutlineColor(const FLinearColor& Color);
 
 	UFUNCTION(BlueprintCallable, Category = "Grid | Preview")
 	void SetSwampPreviewColor(const FLinearColor& Color);
