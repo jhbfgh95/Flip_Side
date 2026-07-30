@@ -13,8 +13,8 @@ namespace
         {
         case ETurnState::CoinReadyTurn:
             return FText::FromString(TEXT("<CoinReady>Coin Ready</>"));
-        case ETurnState::CoinSelectTurn:
-            return FText::FromString(TEXT("<CoinSelect>Coin Select</>"));
+        case ETurnState::CoinBehaviorTurn:
+            return FText::FromString(TEXT("Coin Behavior"));
         case ETurnState::BossTurn:
             return FText::FromString(TEXT("<Boss>Boss</>"));
         default:

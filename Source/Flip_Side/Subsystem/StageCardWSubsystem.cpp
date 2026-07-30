@@ -1,11 +1,8 @@
 // StageCardWSubsystem.cpp
 #include "Subsystem/StageCardWSubsystem.h"
 
-#include "FlipSideDevloperSettings.h"
 #include "Engine/World.h"
 #include "Engine/GameInstance.h"
-#include "GameFramework/PlayerController.h"
-#include "Blueprint/UserWidget.h"
 
 #include "Subsystem/CrossingLevelGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
@@ -45,18 +42,11 @@ void UStageCardWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         HandCards[i] = FCardData();
     }
 
-    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
-    if (Settings && !Settings->StageHUDWidgetClass.IsNull())
-    {
-        StageHUDClass = Settings->StageHUDWidgetClass.LoadSynchronous();
-    }
-
     FCardLogicLibrary::BuildLogicTable(CardLogicTable);
 }
 
 void UStageCardWSubsystem::Deinitialize()
 {
-    StageHUDInstance = nullptr;
     GridSubsys = nullptr;
     ActingManager = nullptr;
     CrossingGI = nullptr;
@@ -82,39 +72,11 @@ void UStageCardWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
         DM = GI->GetSubsystem<UDataManagerSubsystem>();
     }
 
-    // ===== HUD ���� + ���� ����ȭ =====
-    EnsureStageHUD(InWorld);
+    // ===== ���� ���� ����ȭ =====
     RefreshHandFromGI();
 
     // ===== ���� ���� Ÿ�̹� ī�� ó��=====
     ClearAllModifiers();
-}
-
-void UStageCardWSubsystem::EnsureStageHUD(UWorld& InWorld)
-{
-    if (StageHUDInstance) return;
-
-    if (!StageHUDClass)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[StageCardWSubsystem] StageHUDClass is null. Set it in defaults/BP."));
-        return;
-    }
-
-    APlayerController* PC = InWorld.GetFirstPlayerController();
-    if (!PC)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[StageCardWSubsystem] No PlayerController yet."));
-        return;
-    }
-
-    StageHUDInstance = CreateWidget<UUserWidget>(PC, StageHUDClass);
-    if (!StageHUDInstance)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[StageCardWSubsystem] CreateWidget failed."));
-        return;
-    }
-
-    StageHUDInstance->AddToViewport(5);
 }
 
 void UStageCardWSubsystem::RefreshHandFromGI()
@@ -132,6 +94,7 @@ void UStageCardWSubsystem::RefreshHandFromGI()
         return;
     }
     CrossingGI = LocalCrossingGI;
+    CardPrice = 0;
 
     const TArray<int32> IDs = CrossingGI->GetBattleCardIDs();
 
@@ -174,6 +137,8 @@ void UStageCardWSubsystem::RefreshHandFromGI()
         CardPrice += CardData.Price;
         OnHandCardSet.Broadcast(Slot, CardData);
     }
+
+    OnBattleCardDataChanged.Broadcast();
 }
 
 bool UStageCardWSubsystem::TryLoadCardData(int32 CardID, FCardData& Out) const
@@ -219,6 +184,26 @@ bool UStageCardWSubsystem::TryGetHandCard(int32 HandIndex, FCardData& Out) const
     return true;
 }
 
+void UStageCardWSubsystem::GetBattleCardSlots(TArray<FBattleCardSlotViewData>& OutCardSlots) const
+{
+    OutCardSlots.Reset();
+    OutCardSlots.Reserve(HandCount);
+
+    for (int32 SlotIndex = 0; SlotIndex < HandCount; ++SlotIndex)
+    {
+        FBattleCardSlotViewData& SlotView = OutCardSlots.AddDefaulted_GetRef();
+        SlotView.SlotNumber = SlotIndex;
+        SlotView.bOccupied = bHasCard.IsValidIndex(SlotIndex) && bHasCard[SlotIndex];
+        if (SlotView.bOccupied && HandCards.IsValidIndex(SlotIndex))
+        {
+            SlotView.CardData = HandCards[SlotIndex];
+        }
+
+        // TODO: Tick 기반 조건 검사 이관 후 실제 활성 상태를 여기서 전달합니다.
+        SlotView.bIsActive = false;
+    }
+}
+
 void UStageCardWSubsystem::ClearSlot(int32 HandIndex, bool bNotify)
 {
     bHasCard[HandIndex] = false;
@@ -227,6 +212,7 @@ void UStageCardWSubsystem::ClearSlot(int32 HandIndex, bool bNotify)
     if (bNotify)
     {
         OnHandCardCleared.Broadcast(HandIndex);
+        OnBattleCardDataChanged.Broadcast();
     }
 }
 

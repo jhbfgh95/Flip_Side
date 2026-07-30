@@ -114,15 +114,15 @@ protected:
 
 	void GenerateRandomStates();
 
-/* CoinSelectTurn (순서대로) */
+/* CoinBehaviorTurn (순서대로) */
 protected:
 	void MatchCoinsToRandomState();
 
 protected:
 	/* CoinReadyTurn */
 	void DoCoinReadyTurn();
-	/* CoinSelectTurn */
-	void DoCoinSelectTurn();
+	/* CoinBehaviorTurn */
+	void DoCoinBehaviorTurn();
 	/* SettingTurn*/
 	UFUNCTION()
 	void DoSettingTurn();

@@ -8,6 +8,8 @@
 
 class AUseableItemActor;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBattleItemDataChanged);
+
 UENUM()
 enum class EUseableItemTargetMode : uint8
 {
@@ -26,7 +28,7 @@ class FLIP_SIDE_API UUseableItemWSubsystem : public UWorldSubsystem
 	TArray<FSelectItem> ItemSlotArray;
 
 	UPROPERTY()
-	TArray<AUseableItemActor*> UnUsedItemArray;
+	TArray<FBattleItemSlotData> BattleItemSlots;
 
 	struct FAttackAreaSpec ItemAreaSpec;
 
@@ -37,12 +39,11 @@ class FLIP_SIDE_API UUseableItemWSubsystem : public UWorldSubsystem
 
 	FGridPoint DefaultItemRange = {1, 1};
 
-	bool bIsCoinSelectTurn = false;
+	bool bIsCoinBehaviorTurn = false;
 
 	EUseableItemTargetMode CurrentTargetMode = EUseableItemTargetMode::None;
 
-	UPROPERTY()
-	AUseableItemActor* SelectedItemActor = nullptr;
+	int32 SelectedItemID = INDEX_NONE;
 
 	UPROPERTY()
 	FItemData SelectedItemData;
@@ -56,12 +57,15 @@ class FLIP_SIDE_API UUseableItemWSubsystem : public UWorldSubsystem
 	TArray<FGridPoint> ValidTargetGrids;
 
 	UPROPERTY()
-	class AItemPreviewActor* ItemPreviewActor = nullptr;
+	class AUseableItemActor* PreviewItemActor = nullptr;
 
 	FTimerHandle ItemPreviewFollowTimerHandle;
 
 	UPROPERTY(EditAnywhere, Category = "UseableItem | Preview")
 	float ItemPreviewPlaneZ = -80.0f;
+
+	UPROPERTY(EditAnywhere, Category = "UseableItem | Preview")
+	float ItemPreviewScaleMultiplier = 0.6f;
 
 /* Dependency post - managers */
 protected:
@@ -77,11 +81,6 @@ protected:
 	UPROPERTY()
 	class UBattleLevelActingWSubsystem* ActingManager;
 
-	/*UI for Hovering */
-	UPROPERTY()
-    class UW_ItemInfo* ItemInfoWidgetInstance = nullptr;
-	
-
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
@@ -92,45 +91,32 @@ protected:
 protected:
 	void InitUseitemSlot();
 
-	void InstanceUseItems();
+	void InitializeBattleItemSlots();
 
 	void InitSelectedItem();
 
 	void ApplyRangedThings();
 
-	void BindItemDelegates(AUseableItemActor* TargetItem);
+	FBattleItemSlotData* FindBattleItemSlot(int32 ItemID);
 
-	bool TryGetItemData(AUseableItemActor* TargetItem, FItemData& OutItemData);
+	const FBattleItemSlotData* FindBattleItemSlot(int32 ItemID) const;
 
-	void ConsumeSelectedItemActor();
+	bool SetItemInfo(int32 ItemID);
 
-	void ConsumeSelectedItemActorOnly();
+	void ConsumeSelectedItem();
+
+	void ConsumeSelectedItemOnly();
 
 	void PlayItemFailedFeedback();
 
 	void PlaySelectedItemSuccessVFX(class AGridActor* TargetGrid, class ACoinActor* TargetCoin, AActor* TargetOther);
 
-	void StartItemCursorPreview(AUseableItemActor* SourceItem);
+	void StartItemCursorPreview(const FItemData& SourceItemData);
 
 	void UpdateItemCursorPreview();
 
 	void StopItemCursorPreview();
 
-	/* Bind for item actor delegate */
-	UFUNCTION() //hover
-	void VisibleItemInfoUI(AUseableItemActor* TargetItem);
-
-	UFUNCTION() //unhover
-	void HideItemInfoUi();
-		
-	UFUNCTION() //click
-	void SelectWantUseGridItem(AUseableItemActor* TargetItem);
-
-	UFUNCTION() //click
-	void SelectWantUseCoinItem(AUseableItemActor* TargetItem);
-
-	UFUNCTION() //RightClick
-	void HandleItemRightClicked(AUseableItemActor* TargetItem);
 /* Execution */
 protected:
 	UFUNCTION()
@@ -140,13 +126,20 @@ protected:
 	void ExecuteItemForCoin(class ACoinActor* TargetCoin);
 
 public:
-	void SetItemInfo(AUseableItemActor* TargetItem);
+	UPROPERTY(BlueprintAssignable, Category = "UseableItem")
+	FOnBattleItemDataChanged OnBattleItemDataChanged;
+
+	const TArray<FBattleItemSlotData>& GetBattleItemSlots() const { return BattleItemSlots; }
+
+	bool IsItemUseAvailable() const;
+
+	bool TrySelectItem(int32 ItemID);
 
 	void CancelWantUseItem();
 
 	void BuildEverywhereValidTargetGrids(class ACoinActor* TargetCoin);
 
-	//BattleManager call when CoinSelectTurn
+	//BattleManager call when CoinBehaviorTurn
 	void CoinBindsToItemMan();
 
 	//ItemAction의 ItemType과 같은 이유

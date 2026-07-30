@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "BossDataTypes.h"
 #include "W_BossHP.generated.h"
 
 /**
@@ -46,6 +47,7 @@ private:
 
 	bool bIsHpBarInitialized = false;
 	bool bIsShieldBarInitialized = false;
+	bool bDisplayingGroggyAsShield = false;
 
 private:
 	UPROPERTY(meta = (BindWidget))
@@ -105,6 +107,7 @@ private:
 public:
 
 	void SetCurrnetStage(const int32 StageNum) { CurrentStage = StageNum;}
+	void SetBossHUDData(const FBossHUDData& InData);
 	void InitBossHp(int32 SetMaxHp);
 	void InitBossShield(int32 SetMaxShield);
 	void SetBossName(const FString& SetBossName);

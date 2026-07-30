@@ -179,10 +179,11 @@ void UBattleTutorialWSubsystem::CacheTutorialTargets()
 
 void UBattleTutorialWSubsystem::BindBattleEvents()
 {
-	if (CoinManager)
-	{
-		CoinManager->OnBattleTutorialCoinSlotClicked.AddUObject(this, &UBattleTutorialWSubsystem::HandleCoinSlotClicked);
-	}
+	// TODO: Battle Tutorial을 재작성할 때 UI CoinSlot 이벤트에 맞춰 다시 연결합니다.
+	// if (CoinManager)
+	// {
+	// 	CoinManager->OnBattleTutorialCoinSlotClicked.AddUObject(this, &UBattleTutorialWSubsystem::HandleCoinSlotClicked);
+	// }
 
 	if (BattleManager)
 	{
@@ -192,10 +193,11 @@ void UBattleTutorialWSubsystem::BindBattleEvents()
 
 void UBattleTutorialWSubsystem::UnbindBattleEvents()
 {
-	if (CoinManager)
-	{
-		CoinManager->OnBattleTutorialCoinSlotClicked.RemoveAll(this);
-	}
+	// TODO: Battle Tutorial을 재작성할 때 UI CoinSlot 이벤트에 맞춰 다시 해제합니다.
+	// if (CoinManager)
+	// {
+	// 	CoinManager->OnBattleTutorialCoinSlotClicked.RemoveAll(this);
+	// }
 
 	if (BattleManager)
 	{
@@ -342,10 +344,7 @@ FVector2D UBattleTutorialWSubsystem::GetDefaultHoleSize(FName FocusId) const
 		return FVector2D(0.2f, 0.15f);
 	}
 
-	if (FocusId == TEXT("Drawer"))
-	{
-		return FVector2D(0.3f, 0.25f);
-	}
+	// TODO: DrawActor가 제거되었으므로 새 ReadyCoinWidget 튜토리얼 포커스로 대체합니다.
 
 	if (FocusId == TEXT("ItemSlot"))
 	{

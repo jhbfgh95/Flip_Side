@@ -12,6 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBossAttackEndedDelegate);
 DECLARE_DYNAMIC_DELEGATE(FOnDeadDeathMontageEnded);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBossDeathStarted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBossDead);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnBossHUDDataChanged, const FBossHUDData&);
 
 UCLASS()
 class FLIP_SIDE_API ABossActor : public AActor
@@ -97,12 +98,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Shield")
 	class UNiagaraComponent* ShieldEffectComponent;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Boss", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class UUserWidget> BossHPWidgetClass;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss")
-	class UW_BossHP* BossHpWidget = nullptr;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
 	class UStaticMeshComponent* FrontBackground;
 
@@ -147,7 +142,7 @@ protected:
 	void BroadcastBossDeadAfterEffect();
 
 	void UpdateShieldEffect();
-	void ApplyCachedPatternInfoToWidget();
+	void BroadcastBossHUDDataChanged();
 
 /* Can Custom */
 public:
@@ -196,10 +191,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	int32 GetMaxHP() const { return MaxHP; }
 
-	void SetCurrentHP(int32 NewHP) { CurrentHP = NewHP; }
+	virtual FBossHUDData GetBossHUDData() const;
+
+	void SetCurrentHP(int32 NewHP);
 	void SetMaxHP(int32 NewMaxHP);
 
-	void SetCurrentShield(int32 NewShield) { CurrentShield = NewShield; }
+	void SetCurrentShield(int32 NewShield);
 	void SetPattern(UBossPatternBase* InPattern) { Pattern = InPattern; }
 	void AddGimmick(UBossGimmickBase* InGimmick);
 	void SetActiveGimmick(UBossGimmickBase* InGimmick) { ActiveGimmick = InGimmick; }
@@ -285,6 +282,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Boss")
 	FOnBossDead OnBossDead;
+
+	FOnBossHUDDataChanged OnBossHUDDataChanged;
 
 	void FinishBossClearAnimation();
 

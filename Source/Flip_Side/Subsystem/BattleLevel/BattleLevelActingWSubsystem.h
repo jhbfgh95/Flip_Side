@@ -15,7 +15,6 @@ class ABossActor;
 struct FItemData;
 struct FBossPatternBattleData;
 
-DECLARE_DELEGATE_OneParam(FOnDrawMove, bool);
 DECLARE_DELEGATE(FOnGear);
 
 class ABase_PatternVisualActor;
@@ -136,8 +135,6 @@ public:
 	
 /* 연출용 델리게이트 */
 public:
-	FOnDrawMove DoDrawMove;
-
 	FOnGear DoGearMove;
 
 	FOnGear OnCoinLanded;

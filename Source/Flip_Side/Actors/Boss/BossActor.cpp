@@ -4,7 +4,6 @@
 #include "Components/StaticMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
-#include "W_BossHP.h"
 
 ABossActor::ABossActor()
 {
@@ -56,28 +55,8 @@ void ABossActor::BeginPlay()
 	Super::BeginPlay();
 
 	AnimInstance = BossMesh->GetAnimInstance();
-	if(BossHPWidgetClass)
-	{
-		BossHpWidget = CreateWidget<UW_BossHP>(GetWorld(), BossHPWidgetClass);
-		if(BossHpWidget)
-		{
-			BossHpWidget->AddToViewport();
-			BossHpWidget->SetVisibility(ESlateVisibility::Visible);
-			BossHpWidget->SetBossName(BossName);
-			BossHpWidget->InitBossHp(MaxHP);
-			if(MaxShield > 0)
-			{
-				if(CurrentShield <= 0)
-				{
-					CurrentShield = MaxShield;
-				}
-				BossHpWidget->InitBossShield(MaxShield);
-			}
-
-			ApplyCachedPatternInfoToWidget();
-		}
-	}
 	UpdateShieldEffect();
+	BroadcastBossHUDDataChanged();
 
 	if (AnimInstance)
     {
@@ -101,21 +80,8 @@ void ABossActor::InitializeFromBossData(const FBossBattleData& InData)
 	if (!InData.HitAnim.IsNull())
 		BossHitAnim = InData.HitAnim.LoadSynchronous();
 
-	if(BossHpWidget)
-	{
-		BossHpWidget->SetBossName(BossName);
-		BossHpWidget->InitBossHp(MaxHP);
-		if(MaxShield > 0)
-		{
-			if(CurrentShield <= 0)
-			{
-				CurrentShield = MaxShield;
-			}
-			BossHpWidget->InitBossShield(MaxShield);
-		}
-		ApplyCachedPatternInfoToWidget();
-	}
 	UpdateShieldEffect();
+	BroadcastBossHUDDataChanged();
 }
 
 void ABossActor::ApplyDamage(int32 Damage, AActor* DamageCauser)
@@ -141,15 +107,11 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 		CurrentShield -= ShieldDamage;
 		ActualDamageToHP = FinalDamage - ShieldDamage;
 
-		if(BossHpWidget && ShieldDamage > 0)
-		{
-			BossHpWidget->ChangeCurrentShield(-ShieldDamage);
-		}
-
 		if(ActualDamageToHP <= 0)
 		{
 			PlayHitAnimation();
 			UpdateShieldEffect();
+			BroadcastBossHUDDataChanged();
 			return 0;
 		}
 	}
@@ -157,11 +119,6 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 	if(ActualDamageToHP <= 0) return 0;
 
 	CurrentHP -= ActualDamageToHP;
-
-	if(BossHpWidget)
-	{
-		BossHpWidget->ChangeCurrentHp(-ActualDamageToHP);
-	}
 
 	if(CurrentHP <= 0 && !bIsDying)
 	{
@@ -177,6 +134,7 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 		PlayHitAnimation();
 	}
 	UpdateShieldEffect();
+	BroadcastBossHUDDataChanged();
 
 	return ActualDamageToHP;
 }
@@ -190,13 +148,9 @@ int32 ABossActor::ApplyShieldOnlyDamage(int32 Damage, AActor* DamageCauser)
 
 	CurrentShield -= ShieldDamage;
 
-	if(BossHpWidget)
-	{
-		BossHpWidget->ChangeCurrentShield(-ShieldDamage);
-	}
-
 	PlayHitAnimation();
 	UpdateShieldEffect();
+	BroadcastBossHUDDataChanged();
 
 	return ShieldDamage;
 }
@@ -215,6 +169,7 @@ void ABossActor::InitShield(int32 ShieldValue)
 	MaxShield = ShieldValue;
 	CurrentShield = ShieldValue;
 	UpdateShieldEffect();
+	BroadcastBossHUDDataChanged();
 }
 
 void ABossActor::ApplyShieldHeal(int32 Heal, AActor* HealCauser)
@@ -225,11 +180,11 @@ void ABossActor::ApplyShieldHeal(int32 Heal, AActor* HealCauser)
 	CurrentShield = FMath::Clamp(CurrentShield + FMath::Max(0, Heal), 0, MaxShield);
 
 	const int32 ActualHealedAmount = CurrentShield - OldShield;
-	if(ActualHealedAmount > 0 && BossHpWidget)
-	{
-		BossHpWidget->ChangeCurrentShield(ActualHealedAmount);
-	}
 	UpdateShieldEffect();
+	if (ActualHealedAmount > 0)
+	{
+		BroadcastBossHUDDataChanged();
+	}
 }
 
 void ABossActor::ApplyCC(const FCCStructure& CC)
@@ -247,11 +202,7 @@ void ABossActor::SetMaxHP(int32 NewMaxHP)
 {
 	MaxHP = NewMaxHP;
 	CurrentHP = NewMaxHP;
-
-	if (BossHpWidget)
-	{
-		BossHpWidget->InitBossHp(MaxHP);
-	}
+	BroadcastBossHUDDataChanged();
 }
 
 
@@ -484,31 +435,46 @@ void ABossActor::SetCurrentPatternInfo(int32 PatternIndex, const FBossPatternBat
 	CachedPatternIndex = PatternIndex;
 	CachedPatternData = PatternData;
 
-	ApplyCachedPatternInfoToWidget();
+	BroadcastBossHUDDataChanged();
 }
 
-void ABossActor::ApplyCachedPatternInfoToWidget()
+void ABossActor::SetCurrentHP(int32 NewHP)
 {
-	if(!BossHpWidget)
+	CurrentHP = NewHP;
+	BroadcastBossHUDDataChanged();
+}
+
+void ABossActor::SetCurrentShield(int32 NewShield)
+{
+	CurrentShield = NewShield;
+	BroadcastBossHUDDataChanged();
+}
+
+FBossHUDData ABossActor::GetBossHUDData() const
+{
+	FBossHUDData HUDData;
+	HUDData.BossName = BossName;
+	HUDData.CurrentHP = CurrentHP;
+	HUDData.MaxHP = MaxHP;
+	HUDData.CurrentShield = CurrentShield;
+	HUDData.MaxShield = MaxShield;
+	HUDData.bHasPatternInfo = bHasCachedPatternInfo;
+
+	if (bHasCachedPatternInfo)
 	{
-		return;
+		HUDData.PatternDisplayIndex = CachedPatternIndex + 1;
+		HUDData.PatternName = CachedPatternData.PatternName;
+		HUDData.PatternDescription = CachedPatternData.PatternDescription;
+		HUDData.PatternDamage = AttackPoint;
+		HUDData.PatternIcon = CachedPatternData.PatternIcon;
 	}
 
-	if(!bHasCachedPatternInfo)
-	{
-		return;
-	}
+	return HUDData;
+}
 
-	const int32 PatternDisplayIndex = CachedPatternIndex + 1;
-	const int32 FinalDamage = AttackPoint;
-
-	BossHpWidget->SetPatternInfo(
-		PatternDisplayIndex,
-		CachedPatternData.PatternName,
-		CachedPatternData.PatternDescription,
-		FinalDamage,
-		CachedPatternData.PatternIcon
-	);
+void ABossActor::BroadcastBossHUDDataChanged()
+{
+	OnBossHUDDataChanged.Broadcast(GetBossHUDData());
 }
 
 void ABossActor::SetTextureOfBackgrounds(UTexture2D* Front,

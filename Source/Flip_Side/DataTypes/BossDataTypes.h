@@ -198,6 +198,31 @@ struct FBossPatternBattleData
     int32 ShieldHeal = 0;
 };
 
+// 전투 HUD 표시 전용 보스 상태 데이터입니다.
+USTRUCT()
+struct FBossHUDData
+{
+    GENERATED_BODY()
+
+    FString BossName;
+    int32 CurrentHP = 0;
+    int32 MaxHP = 0;
+    int32 CurrentShield = 0;
+    int32 MaxShield = 0;
+
+    // 그로기 보스는 실드 게임 데이터 대신 HUD의 실드 영역을 그로기 표시로 사용합니다.
+    bool bUseGroggyAsShield = false;
+    int32 CurrentGroggy = 0;
+    int32 MaxGroggy = 0;
+
+    bool bHasPatternInfo = false;
+    int32 PatternDisplayIndex = INDEX_NONE;
+    FString PatternName;
+    FText PatternDescription;
+    int32 PatternDamage = 0;
+    TObjectPtr<UTexture2D> PatternIcon = nullptr;
+};
+
 // 배틀용 보스 전체 데이터
 USTRUCT(BlueprintType)
 struct FBossBattleData

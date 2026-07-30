@@ -3,8 +3,6 @@
 #include "Subsystem/CrossingLevelGISubsystem.h"
 #include "Subsystems/Subsystem.h"
 #include "FlipSideDevloperSettings.h"
-#include "Blueprint/UserWidget.h"
-#include "Kismet/GameplayStatics.h"
 #include "DataManagerSubsystem.h"
 #include "GridManagerSubsystem.h"
 #include "CoinActionManagementWSubsystem.h"
@@ -12,15 +10,12 @@
 #include "BattleLevelActingWSubsystem.h"
 #include "UseableItemActor.h"
 #include "FlipSide_Enum.h"
-#include "SlotActor.h"
 #include "CoinActor.h"
 #include "GridActor.h"
-#include "ItemPreviewActor.h"
 #include "BattlePlayerController_FlipSide.h"
 #include "ItemDataTypes.h"
 #include "GridTypes.h"
 #include "Item_Action.h"
-#include "W_ItemInfo.h"
 
 namespace
 {
@@ -57,25 +52,7 @@ void UUseableItemWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
     if(InWorld.IsGameWorld())
     {
-        InstanceUseItems();
-        if(!ItemInfoWidgetInstance)
-        {
-            const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
-            if(Settings && !Settings->ItemHoverWidget.IsNull())
-            {
-                UClass* ItemInfoWidgetClass = Settings->ItemHoverWidget.LoadSynchronous();
-
-                if(ItemInfoWidgetClass && ItemInfoWidgetClass->IsChildOf(UW_ItemInfo::StaticClass()))
-                {
-                    ItemInfoWidgetInstance = CreateWidget<UW_ItemInfo>(GetWorld(), ItemInfoWidgetClass);
-                    if(ItemInfoWidgetInstance)
-                    {
-                        ItemInfoWidgetInstance->AddToViewport();
-                        ItemInfoWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
-                    }
-                }
-            }
-        }
+        InitializeBattleItemSlots();
     }
 
     if(GridManager)
@@ -104,12 +81,16 @@ bool UUseableItemWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 
 void UUseableItemWSubsystem::InitUseitemSlot()
 {
-    UGameInstance* GI = GetWorld()->GetGameInstance();
-    if(!GI) return;
+    UWorld* World = GetWorld();
+    if(!IsValid(World)) return;
+
+    UGameInstance* GI = World->GetGameInstance();
+    if(!IsValid(GI)) return;
 
     UCrossingLevelGISubsystem* CrossingLevelSubsystem = GI->GetSubsystem<UCrossingLevelGISubsystem>();
     if(!CrossingLevelSubsystem) return;
 
+    ItemSlotArray.Reset();
     for(int i = 0; i < CrossingLevelSubsystem->GetMakedItemNum(); i++)
     {
         FSelectItem ItemData = CrossingLevelSubsystem->GetBattleUseItems(i);
@@ -117,129 +98,81 @@ void UUseableItemWSubsystem::InitUseitemSlot()
     }
 }
 
-void UUseableItemWSubsystem::InstanceUseItems()
+void UUseableItemWSubsystem::InitializeBattleItemSlots()
 {
-    UGameInstance* GI = GetWorld()->GetGameInstance();
-    if(!GI) return;
+    UWorld* World = GetWorld();
+    if(!IsValid(World)) return;
 
-    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
-    if(!Settings) return;
+    UGameInstance* GI = World->GetGameInstance();
+    if(!IsValid(GI)) return;
 
-    UClass* BPUseItem = Settings->UseableItemActor.LoadSynchronous();
-    UClass* BPItemSlot = Settings->UseableItemSlotActor.LoadSynchronous();
-    if(!BPUseItem || !BPItemSlot) return;
+    UDataManagerSubsystem* DM = GI->GetSubsystem<UDataManagerSubsystem>();
+    if(!IsValid(DM) || !DM->IsCacheReady()) return;
 
-    TArray<AActor*> OutSlots;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), BPItemSlot, OutSlots);
-    OutSlots.Sort([](const AActor& A, const AActor& B){
-        const ASlotActor* SlotA = Cast<ASlotActor>(&A);
-        const ASlotActor* SlotB = Cast<ASlotActor>(&B);
+    BattleItemSlots.Reset();
+    for(const FSelectItem& SelectItemData : ItemSlotArray)
+    {
+        if(SelectItemData.SameItemNum <= 0) continue;
 
-        if(SlotA && SlotB)
+        FItemData ItemData;
+        if(!DM->TryGetItem(SelectItemData.ItemID, ItemData)) continue;
+
+        FBattleItemSlotData* ExistingSlot = FindBattleItemSlot(ItemData.ItemID);
+        if(ExistingSlot)
         {
-            return SlotA->GetSlotIndex() < SlotB->GetSlotIndex();
+            ExistingSlot->AvailableCount += SelectItemData.SameItemNum;
+            continue;
         }
-        return false;
+
+        FBattleItemSlotData& NewSlot = BattleItemSlots.AddDefaulted_GetRef();
+        NewSlot.ItemData = ItemData;
+        NewSlot.AvailableCount = SelectItemData.SameItemNum;
+    }
+
+    OnBattleItemDataChanged.Broadcast();
+}
+
+FBattleItemSlotData* UUseableItemWSubsystem::FindBattleItemSlot(int32 ItemID)
+{
+    return BattleItemSlots.FindByPredicate([ItemID](const FBattleItemSlotData& ItemSlot)
+    {
+        return ItemSlot.ItemData.ItemID == ItemID;
     });
+}
 
-    UDataManagerSubsystem* DM = GI->GetSubsystem<UDataManagerSubsystem>();
-
-    if(DM && DM->IsCacheReady() && BPUseItem->IsChildOf(AUseableItemActor::StaticClass()))
+const FBattleItemSlotData* UUseableItemWSubsystem::FindBattleItemSlot(int32 ItemID) const
+{
+    return BattleItemSlots.FindByPredicate([ItemID](const FBattleItemSlotData& ItemSlot)
     {
-        int32 UseItemSlotIndex = 0;
-
-        for(const FSelectItem& SelectItemData : ItemSlotArray)
-        {
-            FItemData ItemData;
-            if(DM->TryGetItem(SelectItemData.ItemID, ItemData))
-            {
-                for(int i = 0; i < SelectItemData.SameItemNum; i++)
-                {
-                    if(OutSlots.IsValidIndex(UseItemSlotIndex))
-                    {
-                        ASlotActor* TargetSlot = Cast<ASlotActor>(OutSlots[UseItemSlotIndex]);
-                        if(TargetSlot)
-                        {
-                            FTransform SpawnTransform = TargetSlot->GetSlotTransform();
-                            if(i > 0)
-                            {
-                                FVector NewLocation = SpawnTransform.GetLocation() + FVector(0.f , 0.f , i * 35.f);
-                                SpawnTransform.SetLocation(NewLocation);
-                            }
-
-                            AUseableItemActor* NewItem = GetWorld()->SpawnActorDeferred<AUseableItemActor>(
-                                BPUseItem,
-                                SpawnTransform
-                            );
-                            
-                            if(NewItem)
-                            {
-                                NewItem->SetItemValues(ItemData.ItemID, ItemData.ItemType,ItemData.ItemIcon, ItemData.TypeColor, ItemData.Price);
-                                NewItem->FinishSpawning(SpawnTransform);
-                                BindItemDelegates(NewItem);
-                                UnUsedItemArray.Add(NewItem);
-                            }
-                        }
-                    }
-
-                }
-                UseItemSlotIndex++;
-            }
-        }
-    }
+        return ItemSlot.ItemData.ItemID == ItemID;
+    });
 }
 
-void UUseableItemWSubsystem::BindItemDelegates(AUseableItemActor* TargetItem)
+void UUseableItemWSubsystem::ConsumeSelectedItem()
 {
-    if(TargetItem)
-    {
-        TargetItem->OnHoverItem.AddDynamic(this, &UUseableItemWSubsystem::VisibleItemInfoUI);
-        TargetItem->OnUnhoverItem.AddDynamic(this, &UUseableItemWSubsystem::HideItemInfoUi);
-        //걍 여기서 함수 부르면 되는거 아닌가..
-        //클릭 다른 곳 하면 그때 Init불러도 늦지 않으니..
-        TargetItem->OnGridClickItem.AddDynamic(this, &UUseableItemWSubsystem::SelectWantUseGridItem);
-        TargetItem->OnCoinClickItem.AddDynamic(this, &UUseableItemWSubsystem::SelectWantUseCoinItem);
-        TargetItem->OnItemRightClick.AddDynamic(this, &UUseableItemWSubsystem::HandleItemRightClicked);
-    }
+    ConsumeSelectedItemOnly();
 }
 
-bool UUseableItemWSubsystem::TryGetItemData(AUseableItemActor* TargetItem, FItemData& OutItemData)
-{
-    if(!TargetItem) return false;
-
-    UGameInstance* GI = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
-    if(!GI) return false;
-
-    UDataManagerSubsystem* DM = GI->GetSubsystem<UDataManagerSubsystem>();
-    return DM && DM->TryGetItem(TargetItem->GetItemID(), OutItemData);
-}
-
-void UUseableItemWSubsystem::ConsumeSelectedItemActor()
-{
-    ConsumeSelectedItemActorOnly();
-}
-
-void UUseableItemWSubsystem::ConsumeSelectedItemActorOnly()
+void UUseableItemWSubsystem::ConsumeSelectedItemOnly()
 {
     StopItemCursorPreview();
 
-    if(ItemInfoWidgetInstance)
+    FBattleItemSlotData* SelectedItemSlot = FindBattleItemSlot(SelectedItemID);
+    if(SelectedItemSlot && SelectedItemSlot->AvailableCount > 0)
     {
-        ItemInfoWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+        --SelectedItemSlot->AvailableCount;
+        OnBattleItemDataChanged.Broadcast();
     }
 
-    if(IsValid(SelectedItemActor))
-    {
-        SelectedItemActor->Destroy();
-    }
-    SelectedItemActor = nullptr;
+    // EverywherePotion은 코인 선택 단계에서 먼저 소모한 뒤 그리드 선택을 이어갑니다.
+    SelectedItemID = INDEX_NONE;
 }
 
 void UUseableItemWSubsystem::PlayItemFailedFeedback()
 {
-    if(ActingManager && IsValid(ItemPreviewActor))
+    if(ActingManager && IsValid(PreviewItemActor))
     {
-        ActingManager->PlayUseableItemFailedVFXAtActor(ItemPreviewActor);
+        ActingManager->PlayUseableItemFailedVFX(PreviewItemActor);
     }
 
     //SoundManager에 아이템 실패 사운드 API가 추가되면 여기서 호출.
@@ -259,25 +192,29 @@ void UUseableItemWSubsystem::PlaySelectedItemSuccessVFX(AGridActor* TargetGrid, 
     //SoundManager에 아이템 성공 사운드 API가 추가되면 여기서 호출.
 }
 
-void UUseableItemWSubsystem::StartItemCursorPreview(AUseableItemActor* SourceItem)
+void UUseableItemWSubsystem::StartItemCursorPreview(const FItemData& SourceItemData)
 {
     StopItemCursorPreview();
 
     UWorld* World = GetWorld();
-    if(!World || !IsValid(SourceItem)) return;
+    if(!World) return;
+
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    UClass* ItemVisualTemplateClass = Settings ? Settings->UseableItemActor.LoadSynchronous() : nullptr;
+    if(!ItemVisualTemplateClass || !ItemVisualTemplateClass->IsChildOf(AUseableItemActor::StaticClass())) return;
 
     FActorSpawnParameters SpawnParams;
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-    ItemPreviewActor = World->SpawnActor<AItemPreviewActor>(
-        AItemPreviewActor::StaticClass(),
-        SourceItem->GetActorTransform(),
+    PreviewItemActor = World->SpawnActor<AUseableItemActor>(
+        ItemVisualTemplateClass,
+        FTransform::Identity,
         SpawnParams
     );
 
-    if(!ItemPreviewActor) return;
+    if(!IsValid(PreviewItemActor)) return;
 
-    ItemPreviewActor->InitFromItem(SourceItem);
+    PreviewItemActor->InitializeAsCursorPreview(SourceItemData, ItemPreviewScaleMultiplier);
     UpdateItemCursorPreview();
 
     World->GetTimerManager().SetTimer(
@@ -291,7 +228,7 @@ void UUseableItemWSubsystem::StartItemCursorPreview(AUseableItemActor* SourceIte
 
 void UUseableItemWSubsystem::UpdateItemCursorPreview()
 {
-    if(!IsValid(ItemPreviewActor))
+    if(!IsValid(PreviewItemActor))
     {
         StopItemCursorPreview();
         return;
@@ -306,7 +243,7 @@ void UUseableItemWSubsystem::UpdateItemCursorPreview()
     FVector CursorWorldLocation;
     if(BattlePC->GetCursorWorldLocationOnPlane(ItemPreviewPlaneZ, CursorWorldLocation))
     {
-        ItemPreviewActor->SetActorLocation(CursorWorldLocation);
+        PreviewItemActor->SetActorLocation(CursorWorldLocation);
     }
 }
 
@@ -318,15 +255,20 @@ void UUseableItemWSubsystem::StopItemCursorPreview()
         World->GetTimerManager().ClearTimer(ItemPreviewFollowTimerHandle);
     }
 
-    if(IsValid(ItemPreviewActor))
+    if(IsValid(PreviewItemActor))
     {
-        ItemPreviewActor->Destroy();
+        PreviewItemActor->Destroy();
     }
-    ItemPreviewActor = nullptr;
+    PreviewItemActor = nullptr;
 }
 
 void UUseableItemWSubsystem::InitSelectedItem()
 {
+    if(!IsValid(SelectedItemAction))
+    {
+        return;
+    }
+
     SelectedItemAction->SetActionRange(DefaultItemRange);
     SelectedItemAction->SetLogicID(-1);
     SelectedItemAction->SetTargetGrid(nullptr);
@@ -335,7 +277,7 @@ void UUseableItemWSubsystem::InitSelectedItem()
     SelectedItemAction->SetInRangeOthers(nullptr);
     SelectedItemAction->SetInRangeBoss(nullptr);
     CurrentTargetMode = EUseableItemTargetMode::None;
-    SelectedItemActor = nullptr;
+    SelectedItemID = INDEX_NONE;
     SelectedItemData = FItemData();
     bHasSelectedItemData = false;
     SelectedTargetCoin = nullptr;
@@ -351,38 +293,33 @@ void UUseableItemWSubsystem::InitSelectedItem()
     }
 }
 
-void UUseableItemWSubsystem::SetItemInfo(AUseableItemActor* TargetItem)
+bool UUseableItemWSubsystem::SetItemInfo(int32 ItemID)
 {
-    if(!bIsCoinSelectTurn) return;
-
-    if(!TargetItem) return;
+    if(!bIsCoinBehaviorTurn) return false;
 
     // SelectedItemAction이 혹시라도 Null인지 체크 // 크래시 발생해서 추가함
     if (!SelectedItemAction)
     {
         SelectedItemAction = NewObject<UItem_Action>(this);
-        if (!SelectedItemAction) return;
+        if (!SelectedItemAction) return false;
     }
 
-    FItemData SelectItem;
-    FGridPoint ItemRange;
+    const FBattleItemSlotData* ItemSlot = FindBattleItemSlot(ItemID);
+    if(!ItemSlot || ItemSlot->AvailableCount <= 0) return false;
 
-    if(TryGetItemData(TargetItem, SelectItem) && SelectedItemAction)
-    {
-        SelectedItemAction->SetLogicID(TargetItem->GetItemID());
-        //SelectedItemAction->SetItemType(SelectItem.ItemType);
-        SelectedItemAction->SetItemEffectValue(SelectItem.ItemEffectValue);
-        //ItemAreaSpec = SeletItem.ItemSpec;
-        //이거 왜 int임?
-        SelectedItemAction->SetActionRange(ItemRange = {SelectItem.ItemRange, SelectItem.ItemRange});
-    }
+    const FItemData& SelectItem = ItemSlot->ItemData;
+    SelectedItemAction->SetLogicID(SelectItem.ItemID);
+    SelectedItemAction->SetItemEffectValue(SelectItem.ItemEffectValue);
+    FGridPoint ItemRange{SelectItem.ItemRange, SelectItem.ItemRange};
+    SelectedItemAction->SetActionRange(ItemRange);
+    return true;
 }
 
 //나중에 Spec나오면 이거 부르면 될듯함
 //음..근데 그리드 기준으로 spec검사를 해야하긴 하는데
 void UUseableItemWSubsystem::ApplyRangedThings()
 {
-    if(GridManager)
+    if(IsValid(GridManager) && IsValid(SelectedItemAction))
     {
         FObjectOnGridInfo GridInfos;
 
@@ -400,14 +337,10 @@ void UUseableItemWSubsystem::ApplyRangedThings()
 void UUseableItemWSubsystem::CancelWantUseItem()
 {
     StopItemCursorPreview();
-    if(ItemInfoWidgetInstance)
-    {
-        ItemInfoWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
-    }
     InitSelectedItem();
     if(CoinActionManager)
     {
-        CoinActionManager->SetTurn(bIsCoinSelectTurn);
+        CoinActionManager->SetTurn(bIsCoinBehaviorTurn);
     }
 }
 
@@ -443,24 +376,24 @@ void UUseableItemWSubsystem::ExecuteItemForGrid(AGridActor* TargetGrid)
         return;
     }
 
-    if(!TargetGrid || TargetGrid->GetIsOccupied() || TargetGrid->GetItemFlag() == 0)
+    if(!IsValid(TargetGrid) || TargetGrid->GetIsOccupied() || TargetGrid->GetItemFlag() == 0)
     {
         PlayItemFailedFeedback();
         return;
     }
 
-    if(SelectedTargetCoin && !ValidTargetGrids.Contains(TargetGrid->GetGridPoint()))
+    if(IsValid(SelectedTargetCoin) && !ValidTargetGrids.Contains(TargetGrid->GetGridPoint()))
     {
         PlayItemFailedFeedback();
         return;
     }
 
-    if(SelectedItemAction)
+    if(IsValid(SelectedItemAction))
     {
         SelectedItemAction->SetTargetGrid(TargetGrid);
         SelectedItemAction->ExecuteAction();
         PlaySelectedItemSuccessVFX(TargetGrid, SelectedTargetCoin, nullptr);
-        ConsumeSelectedItemActor();
+        ConsumeSelectedItem();
     }
     CancelWantUseItem();
 }
@@ -469,7 +402,7 @@ void UUseableItemWSubsystem::ExecuteItemForCoin(ACoinActor* TargetCoin)
 {
     if(CurrentTargetMode == EUseableItemTargetMode::CoinThenGrid)
     {
-        if(!TargetCoin || !SelectedItemAction || !SelectedItemActor) 
+        if(!IsValid(TargetCoin) || !IsValid(SelectedItemAction) || SelectedItemID == INDEX_NONE)
         {
             PlayItemFailedFeedback();
             return;
@@ -489,7 +422,7 @@ void UUseableItemWSubsystem::ExecuteItemForCoin(ACoinActor* TargetCoin)
             return;
         }
 
-        ConsumeSelectedItemActorOnly();
+        ConsumeSelectedItemOnly();
         CurrentTargetMode = EUseableItemTargetMode::Grid;
         if(CoinManager)
         {
@@ -508,13 +441,13 @@ void UUseableItemWSubsystem::ExecuteItemForCoin(ACoinActor* TargetCoin)
         return;
     }
 
-    if(!TargetCoin || !SelectedItemAction)
+    if(!IsValid(TargetCoin) || !IsValid(SelectedItemAction))
     {
         PlayItemFailedFeedback();
         return;
     }
 
-    if(TargetCoin && SelectedItemAction)
+    if(IsValid(TargetCoin) && IsValid(SelectedItemAction))
     {
         SelectedItemAction->SetInRangeCoins(TargetCoin);
         if(GridManager)
@@ -523,129 +456,82 @@ void UUseableItemWSubsystem::ExecuteItemForCoin(ACoinActor* TargetCoin)
         }
         SelectedItemAction->ExecuteAction();
         PlaySelectedItemSuccessVFX(nullptr, TargetCoin, nullptr);
-        ConsumeSelectedItemActor();
+        ConsumeSelectedItem();
     }
     CancelWantUseItem();
 }
-/*
-bool UUseableItemWSubsystem::IsItemSetupInGrid() const
+bool UUseableItemWSubsystem::IsItemUseAvailable() const
 {
-    //2가 설치
-    if(SelectedItemAction->GetItemTypeID() == 2)
-    {
-        return true;
-    }
-    return false;
+    return bIsCoinBehaviorTurn &&
+        (!IsValid(CoinActionManager) || !CoinActionManager->IsActionSequenceActive());
 }
-*/
-void UUseableItemWSubsystem::VisibleItemInfoUI(AUseableItemActor* TargetItem)
-{
-    if(!TargetItem) return;
 
-    if(ItemInfoWidgetInstance)
+bool UUseableItemWSubsystem::TrySelectItem(int32 ItemID)
+{
+    if(!IsItemUseAvailable())
     {
-        FItemData HoveredItemData;
-        if(TryGetItemData(TargetItem, HoveredItemData))
+        return false;
+    }
+
+    const FBattleItemSlotData* ItemSlot = FindBattleItemSlot(ItemID);
+    if(!ItemSlot || ItemSlot->AvailableCount <= 0)
+    {
+        return false;
+    }
+
+    const FItemData ItemData = ItemSlot->ItemData;
+    if(ItemData.ItemType != EItemType::CoinBuff && ItemData.ItemType != EItemType::Install)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[UseableItem] Unsupported item type. ItemID=%d"), ItemID);
+        return false;
+    }
+
+    if(CoinActionManager)
+    {
+        CoinActionManager->CancelSelectWeapon();
+    }
+
+    CancelWantUseItem();
+
+    if(CoinActionManager)
+    {
+        CoinActionManager->SetTurn(false);
+    }
+
+    if(!SetItemInfo(ItemID))
+    {
+        CancelWantUseItem();
+        return false;
+    }
+
+    CurrentTargetMode = ItemData.ItemType == EItemType::Install
+        ? EUseableItemTargetMode::Grid
+        : (ItemID == EverywherePotionItemID ? EUseableItemTargetMode::CoinThenGrid : EUseableItemTargetMode::Coin);
+    SelectedItemID = ItemID;
+    SelectedItemData = ItemData;
+    bHasSelectedItemData = true;
+    StartItemCursorPreview(SelectedItemData);
+
+    if(CoinManager)
+    {
+        CoinManager->SetBattleCoinItemFlags(true);
+    }
+
+    if(GridManager)
+    {
+        if(CurrentTargetMode == EUseableItemTargetMode::Grid)
         {
-            ItemInfoWidgetInstance->UpdateItemInfo(HoveredItemData);
-            ItemInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+            GridManager->SetGridClickFlag(EGridClickFlag::ItemAction);
+            GridManager->SetGridItemFlags(1);
+        }
+        else
+        {
+            GridManager->SetGridClickFlag(EGridClickFlag::None, false);
+            GridManager->SetGridHoverFlags(2);
         }
     }
-}
 
-void UUseableItemWSubsystem::HideItemInfoUi()
-{
-    if(CurrentTargetMode != EUseableItemTargetMode::None || IsValid(SelectedItemActor))
-    {
-        return;
-    }
-
-    if(ItemInfoWidgetInstance)
-    {
-        ItemInfoWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
-    }
-
-    if(CurrentTargetMode == EUseableItemTargetMode::None)
-    {
-        InitSelectedItem();
-    }
-}
-
-void UUseableItemWSubsystem::SelectWantUseGridItem(AUseableItemActor* TargetItem)
-{
-    if(!bIsCoinSelectTurn || !TargetItem) return;
-    if(CoinActionManager && CoinActionManager->IsActionSequenceActive()) return;
-
-    if(CoinActionManager)
-    {
-        CoinActionManager->CancelSelectWeapon();
-    }
-    CancelWantUseItem();
-    if(CoinActionManager)
-    {
-        CoinActionManager->SetTurn(false);
-    }
-    SetItemInfo(TargetItem);
-    CurrentTargetMode = EUseableItemTargetMode::Grid;
-    SelectedItemActor = TargetItem;
-    bHasSelectedItemData = TryGetItemData(TargetItem, SelectedItemData);
-    VisibleItemInfoUI(TargetItem);
-    StartItemCursorPreview(TargetItem);
-
-    if(CoinManager)
-    {
-        CoinManager->SetBattleCoinItemFlags(true);
-    }
-
-    if(GridManager)
-    {
-        GridManager->SetGridClickFlag(EGridClickFlag::ItemAction);
-        GridManager->SetGridItemFlags(1);
-    }
-}
-
-void UUseableItemWSubsystem::SelectWantUseCoinItem(AUseableItemActor* TargetItem)
-{
-    if(!bIsCoinSelectTurn || !TargetItem) return;
-    if(CoinActionManager && CoinActionManager->IsActionSequenceActive()) return;
-
-    if(CoinActionManager)
-    {
-        CoinActionManager->CancelSelectWeapon();
-    }
-    CancelWantUseItem();
-    if(CoinActionManager)
-    {
-        CoinActionManager->SetTurn(false);
-    }
-    SetItemInfo(TargetItem);
-    CurrentTargetMode = TargetItem->GetItemID() == EverywherePotionItemID
-        ? EUseableItemTargetMode::CoinThenGrid
-        : EUseableItemTargetMode::Coin;
-    SelectedItemActor = TargetItem;
-    bHasSelectedItemData = TryGetItemData(TargetItem, SelectedItemData);
-    VisibleItemInfoUI(TargetItem);
-    StartItemCursorPreview(TargetItem);
-
-    if(CoinManager)
-    {
-        CoinManager->SetBattleCoinItemFlags(true);
-    }
-
-    if(GridManager)
-    {
-        GridManager->SetGridClickFlag(EGridClickFlag::None, false);
-        GridManager->SetGridHoverFlags(2);
-    }
-
-}
-
-void UUseableItemWSubsystem::HandleItemRightClicked(AUseableItemActor* TargetItem)
-{
-    if(!bIsCoinSelectTurn || !TargetItem) return;
-    if(TargetItem != SelectedItemActor) return;
-
-    PlayItemFailedFeedback();
+    return true;
 }
 
 void UUseableItemWSubsystem::CoinBindsToItemMan()
@@ -664,27 +550,22 @@ void UUseableItemWSubsystem::CoinBindsToItemMan()
 
 void UUseableItemWSubsystem::SetTurn(const bool bIsTurn)
 {
-    bIsCoinSelectTurn = bIsTurn;
+    bIsCoinBehaviorTurn = bIsTurn;
 
-    if(!bIsCoinSelectTurn)
+    if(!bIsCoinBehaviorTurn)
     {
         CancelWantUseItem();
-        if(ItemInfoWidgetInstance)
-        {
-            ItemInfoWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
-        }
     }
+
+    OnBattleItemDataChanged.Broadcast();
 }
 
 int32 UUseableItemWSubsystem::CalculateItemPrice() const
 {
     int32 ReturnItemPrice = 0;
-    for(AUseableItemActor* Item : UnUsedItemArray)
+    for(const FBattleItemSlotData& ItemSlot : BattleItemSlots)
     {
-        if(IsValid(Item))
-        {
-            ReturnItemPrice += Item->GetItemPrice();
-        }
+        ReturnItemPrice += ItemSlot.ItemData.Price * FMath::Max(0, ItemSlot.AvailableCount);
     }
 
     return static_cast<int32>(ReturnItemPrice / 2);
@@ -693,12 +574,9 @@ int32 UUseableItemWSubsystem::CalculateItemPrice() const
 int32 UUseableItemWSubsystem::CalculateItemCount() const
 {
     int32 ItemCount = 0;
-    for (AUseableItemActor* Item : UnUsedItemArray)
+    for (const FBattleItemSlotData& ItemSlot : BattleItemSlots)
     {
-        if (IsValid(Item))
-        {
-            ItemCount++;
-        }
+        ItemCount += FMath::Max(0, ItemSlot.AvailableCount);
     }
 
     return ItemCount;

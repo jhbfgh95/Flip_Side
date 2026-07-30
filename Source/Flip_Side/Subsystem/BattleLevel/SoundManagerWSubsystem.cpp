@@ -37,49 +37,16 @@ void USoundManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
         BattleManager->OnTurnChanged.AddDynamic(this, &USoundManagerWSubsystem::OnTurnChanged);
     }
 
-    if (UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>())
-    {
-        CoinManager->OnCoinAddedToReady.AddDynamic(this, &USoundManagerWSubsystem::OnCoinAddedToReady);
-    }
+    // TODO: CoinReadyPhase UI 사운드 정책이 확정되면 다시 연결합니다.
+    // if (UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>())
+    // {
+    //     CoinManager->OnCoinAddedToReady.AddDynamic(this, &USoundManagerWSubsystem::OnCoinAddedToReady);
+    // }
 }
 
 void USoundManagerWSubsystem::OnTurnChanged(ETurnState NewTurn)
 {
-    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
-    if (!Settings) return;
-
-    if (NewTurn == ETurnState::CoinReadyTurn)
-    {
-        USoundBase* Sound = Settings->DrawerOpenSFX.LoadSynchronous();
-        float Delay = Settings->DrawerOpenSFXDelay;
-        if (Delay <= 0.f)
-        {
-            PlaySFX(Sound);
-        }
-        else
-        {
-            GetWorld()->GetTimerManager().SetTimer(DrawerOpenDelayHandle, [this, Sound]()
-            {
-                PlaySFX(Sound);
-            }, Delay, false);
-        }
-    }
-    else if (NewTurn == ETurnState::CoinSelectTurn)
-    {
-        USoundBase* Sound = Settings->DrawerCloseSFX.LoadSynchronous();
-        float Delay = Settings->DrawerCloseSFXDelay;
-        if (Delay <= 0.f)
-        {
-            PlaySFX(Sound);
-        }
-        else
-        {
-            GetWorld()->GetTimerManager().SetTimer(DrawerCloseDelayHandle, [this, Sound]()
-            {
-                PlaySFX(Sound);
-            }, Delay, false);
-        }
-    }
+    // TODO: ReadyCoinWidget 전용 사운드 연출이 확정되면 구현합니다.
 }
 
 void USoundManagerWSubsystem::OnCoinAddedToReady()

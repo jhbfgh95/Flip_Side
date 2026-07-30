@@ -56,3 +56,23 @@ struct FCardData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 Price = 0;
 };
+
+// Battle HUD 표시 전용 카드 슬롯 데이터입니다.
+USTRUCT(BlueprintType)
+struct FBattleCardSlotViewData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    int32 SlotNumber = INDEX_NONE;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    FCardData CardData;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    bool bOccupied = false;
+
+    // TODO: 카드 조건 검사가 Tick 기반으로 이관되면 활성 연출 상태를 전달합니다.
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    bool bIsActive = false;
+};

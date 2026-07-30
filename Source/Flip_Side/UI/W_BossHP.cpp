@@ -37,6 +37,45 @@ void UW_BossHP::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
     UpdateProgressBars(InDeltaTime);
 }
 
+void UW_BossHP::SetBossHUDData(const FBossHUDData& InData)
+{
+    SetBossName(InData.BossName);
+
+    MaxHp = FMath::Max(0, InData.MaxHP);
+    CurrentHp = FMath::Clamp(InData.CurrentHP, 0, MaxHp);
+    RefreshHpBar();
+
+    if (InData.bUseGroggyAsShield)
+    {
+        const int32 NewMaxGroggy = FMath::Max(0, InData.MaxGroggy);
+        if (!bDisplayingGroggyAsShield || MaxShield != NewMaxGroggy)
+        {
+            InitGroggyAsShield(NewMaxGroggy);
+        }
+
+        bDisplayingGroggyAsShield = true;
+        UpdateGroggyAsShield(InData.CurrentGroggy);
+    }
+    else
+    {
+        bDisplayingGroggyAsShield = false;
+        MaxShield = FMath::Max(0, InData.MaxShield);
+        CurrentShield = FMath::Clamp(InData.CurrentShield, 0, MaxShield);
+        RefreshShieldBar();
+    }
+
+    if (InData.bHasPatternInfo)
+    {
+        SetPatternInfo(
+            InData.PatternDisplayIndex,
+            InData.PatternName,
+            InData.PatternDescription,
+            InData.PatternDamage,
+            InData.PatternIcon
+        );
+    }
+}
+
 void UW_BossHP::InitBossHp(int32 SetMaxHp)
 {
     MaxHp = FMath::Max(0, SetMaxHp);

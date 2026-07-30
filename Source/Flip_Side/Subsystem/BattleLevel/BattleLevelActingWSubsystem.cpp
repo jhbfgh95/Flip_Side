@@ -42,18 +42,7 @@ bool UBattleLevelActingWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 
 void UBattleLevelActingWSubsystem::WaitTeleportUntilLeverDown()
 {
-    UWorld* World = GetWorld();
-    if (!World) return;
-
-    //tlqkf 레버 타이머 이름이 다 다른 이유는 새벽이라 정신이 없기 때문임
-    World->GetTimerManager().ClearTimer(LeverWaitTimer);
-    World->GetTimerManager().ClearTimer(LeverDownTimer);
-    World->GetTimerManager().ClearTimer(CoinTeleportTimer);
-
-    DoDrawMove.ExecuteIfBound(true);
-    World->GetTimerManager().SetTimer(LeverWaitTimer, this, &UBattleLevelActingWSubsystem::MoveCoinsWithDraw, 0.6f, false);
-    World->GetTimerManager().SetTimer(LeverDownTimer, this, &UBattleLevelActingWSubsystem::OpenGrid, 1.3f, false);
-    World->GetTimerManager().SetTimer(CoinTeleportTimer, this, &UBattleLevelActingWSubsystem::DoCoinTeleportAct, 2.9f, false);
+    // TODO: ReadyCoinWidget 기반 CoinBehaviorTurn 연출이 정해진 뒤 새 흐름으로 구현합니다.
 }
 
 
@@ -124,7 +113,7 @@ void UBattleLevelActingWSubsystem::TeleportReadyCoinsToDecidedGrid(ACoinActor* R
 void UBattleLevelActingWSubsystem::DoSettingAct()
 {
     //뭐 또 타이머든 뭐든 써서 n초 후에 세팅 다 하고 다음 턴으로 넘어갈텐데 이제 그동안 연출되는 것들 다 여기에
-    DoDrawMove.ExecuteIfBound(false);
+    // ReadyCoinWidget으로 대체되어 기존 DrawActor 연출은 사용하지 않습니다.
 }
 
 void UBattleLevelActingWSubsystem::PrepareBossVisualActor(TSoftClassPtr<ABase_PatternVisualActor> VisualClass)

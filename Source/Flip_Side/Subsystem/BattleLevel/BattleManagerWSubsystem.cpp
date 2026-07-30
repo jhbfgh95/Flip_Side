@@ -102,17 +102,18 @@ void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
         }
     }
 
-    if(CoinManager)
-    {
-        CoinManager->OnAllCoinDead.BindUObject(this, &UBattleManagerWSubsystem::GameOver);
-    }
+    // TODO: CoinBehaviorTurn에서 실 CoinActor 생성 흐름을 복구할 때 다시 바인딩합니다.
+    // if(CoinManager)
+    // {
+    //     CoinManager->OnAllCoinDead.BindUObject(this, &UBattleManagerWSubsystem::GameOver);
+    // }
     DoSettingTurn();
 }
 
 void UBattleManagerWSubsystem::TurnStackInit()
 {
     TurnManageMentStack.Push(ETurnState::BossTurn);
-    TurnManageMentStack.Push(ETurnState::CoinSelectTurn);
+    TurnManageMentStack.Push(ETurnState::CoinBehaviorTurn);
     TurnManageMentStack.Push(ETurnState::CoinReadyTurn);
     TurnManageMentStack.Push(ETurnState::SettingTurn);
 
@@ -137,7 +138,7 @@ bool UBattleManagerWSubsystem::StartBattleFromLever(float BattleLeverEndTime) {
     }
 
     if (CurrentTurn != ETurnState::CoinReadyTurn &&
-        CurrentTurn != ETurnState::CoinSelectTurn)
+        CurrentTurn != ETurnState::CoinBehaviorTurn)
     {
         return false;
     }
@@ -188,7 +189,7 @@ void UBattleManagerWSubsystem::TurnProgressing()
 {
     if(bIsStageEnded) return;
 
-    //세팅 턴 -> 코인 레디턴 -> 코인 설렉트턴 -> 보스 턴 
+    //세팅 턴 -> 코인 레디턴 -> 코인 비헤이비어턴 -> 보스 턴
     TurnManageMentStack.Pop();
     CurrentTurn = TurnManageMentStack.Top();
 
@@ -224,8 +225,8 @@ void UBattleManagerWSubsystem::TurnProgressing()
     case ETurnState::CoinReadyTurn:
         DoCoinReadyTurn();
         break;
-    case ETurnState::CoinSelectTurn:
-        DoCoinSelectTurn();
+    case ETurnState::CoinBehaviorTurn:
+        DoCoinBehaviorTurn();
         break;
     case ETurnState::BossTurn:
         DoBossTurn();
@@ -268,58 +269,49 @@ void UBattleManagerWSubsystem::GenerateRandomStates()
 
 void UBattleManagerWSubsystem::MatchCoinsToRandomState()
 {
-    if(!CoinManager || !GridManager) return;
-
-    TArray<ACoinActor*> ReadyCoins = CoinManager->GetReadyCoins();
-
-    int32 StateIndex = 0;
-    for (ACoinActor* Coin : ReadyCoins)
-    {
-        if (IsValid(Coin))
-        {
-            CoinManager->LockCoinReady(Coin);
-            Coin->SetCoinFace(RandomStateArray[StateIndex].RandomFace);
-            Coin->SetGridPoint(RandomStateArray[StateIndex].RandomGrid);
-            Coin->SetCoinOnBattle(true);
-            Coin->SetCoinIsReady(false);
-            Coin->SetUIVisibility(true);
-
-            GridManager->GetGridActor(RandomStateArray[StateIndex].RandomGrid)->SetOccupied(true, EGridOccupyingType::Coin, Coin);
-            
-            StateIndex++; // 코인을 찾았을 때만 다음 랜덤 상태로
-        }
-    }
-
-    ActingManager->WaitTeleportUntilLeverDown();
+    // TODO: CoinBehaviorTurn에서 ReadyCoinData를 CoinActor로 인스턴싱한 뒤 복구합니다.
 }
 
 void UBattleManagerWSubsystem::DoCoinReadyTurn()
 {
     LockLever(EBattleLeverLockReason::TurnTransition);
-    CoinManager->SetCoinReadyTurn(true);
+	if (ItemManager)
+	{
+		ItemManager->SetTurn(false);
+	}
+    // TODO: CoinReadyPhase 리팩터링 완료 후 UI 입력 활성화를 여기서 제어합니다.
+    // CoinManager->SetCoinReadyTurn(true);
     UnlockLeverAfter(LeverLockTime + 1.0f);
 }
 
-void UBattleManagerWSubsystem::DoCoinSelectTurn()
+void UBattleManagerWSubsystem::DoCoinBehaviorTurn()
 {
-    CoinManager->SetCoinReadyTurn(false);
+    // TODO: CoinBehaviorTurn 구현 전까지 Actor 기반 CoinReady 처리와 전송은 비활성화합니다.
+    // CoinManager->SetCoinReadyTurn(false);
+    // MatchCoinsToRandomState();
     
-    MatchCoinsToRandomState();
-    
-    if (StageCardManager)
+    // TODO: 카드 조건 검사가 Tick 기반으로 이관되면 호출 경로를 복구합니다.
+    // if (StageCardManager)
+    // {
+    //     StageCardManager->ExecuteCardsEffect();
+    // }
+
+    if (IsValid(CoinActionManager))
     {
-        StageCardManager->ExecuteCardsEffect();
+        CoinActionManager->SetTurn(true);
     }
 
-    CoinActionManager->SetTurn(true);
-    ItemManager->SetTurn(true);
-    ItemManager->CoinBindsToItemMan();
+    if (IsValid(ItemManager))
+    {
+        ItemManager->SetTurn(true);
+        ItemManager->CoinBindsToItemMan();
+    }
 
     UnlockLeverAfter(LeverLockTime + 3.0f);
 
     if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
     {
-        UE_LOG(LogTemp, Warning, TEXT("[Battle] DoCoinSelectTurn OnPlayerTurnStart broadcast, GimmickCount=%d"), Boss->GetGimmickList().Num());
+        UE_LOG(LogTemp, Warning, TEXT("[Battle] DoCoinBehaviorTurn OnPlayerTurnStart broadcast, GimmickCount=%d"), Boss->GetGimmickList().Num());
         for (UBossGimmickBase* G : Boss->GetGimmickList())
         {
             if (IsValid(G)) G->OnPlayerTurnStart(Boss);
@@ -336,10 +328,25 @@ void UBattleManagerWSubsystem::DoBossTurn()
         if (IsValid(G)) G->OnPlayerTurnEnd(Boss);
     }
 
-    CoinActionManager->SetTurn(false);
-    ItemManager->SetTurn(false);
-    ActingManager->PlayBossPatternAct();
-    BossManager->ExecuteCurrentPattern();
+    if (IsValid(CoinActionManager))
+    {
+        CoinActionManager->SetTurn(false);
+    }
+
+    if (IsValid(ItemManager))
+    {
+        ItemManager->SetTurn(false);
+    }
+
+    if (IsValid(ActingManager))
+    {
+        ActingManager->PlayBossPatternAct();
+    }
+
+    if (IsValid(BossManager))
+    {
+        BossManager->ExecuteCurrentPattern();
+    }
     TurnStackInit();
 }
 
@@ -357,7 +364,8 @@ void UBattleManagerWSubsystem::DoSettingTurn()
     GenerateRandomStates();
     ActingManager->DoSettingAct();
     GridManager->InitGrids();
-    CoinManager->CheckBattleReadyCoinAlive();
+    // TODO: CoinBehaviorTurn에서 생존 CoinActor를 ReadyCoinData로 복귀시키는 로직을 추가합니다.
+    // CoinManager->CheckBattleReadyCoinAlive();
     BossManager->StartBossSetting();
     TSoftClassPtr<ABase_PatternVisualActor> VisualClass = BossManager->GetCurrentPatternVisualClass();
 
