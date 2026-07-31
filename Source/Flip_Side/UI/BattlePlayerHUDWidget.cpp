@@ -3,7 +3,6 @@
 
 #include "UI/BattlePlayerHUDWidget.h"
 
-#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/PanelWidget.h"
 #include "UI/BattleCoinSlotWidget.h"
@@ -22,6 +21,9 @@ void UBattlePlayerHUDWidget::NativeConstruct()
 	{
 		BattleReadyCoinWidget->OnReadyCoinClicked.AddUObject(this, &UBattlePlayerHUDWidget::HandleReadyCoinClicked);
 	}
+
+	CacheFixedItemSlots();
+	CacheFixedCardSlots();
 }
 
 void UBattlePlayerHUDWidget::SetCoinSlots(const TArray<FBattleCoinSlotViewData>& InCoinSlots)
@@ -65,7 +67,6 @@ void UBattlePlayerHUDWidget::SetBossHUDData(const FBossHUDData& InData)
 
 void UBattlePlayerHUDWidget::SetItemSlots(const TArray<FBattleItemSlotViewData>& InItemSlots)
 {
-	EnsureItemSlotWidgets(InItemSlots.Num());
 	ItemSlotViewDataByID.Reset();
 
 	for (int32 SlotIndex = 0; SlotIndex < ItemSlotWidgets.Num(); ++SlotIndex)
@@ -91,7 +92,6 @@ void UBattlePlayerHUDWidget::SetItemSlots(const TArray<FBattleItemSlotViewData>&
 
 void UBattlePlayerHUDWidget::SetCardSlots(const TArray<FBattleCardSlotViewData>& InCardSlots)
 {
-	EnsureCardSlotWidgets(InCardSlots.Num());
 	CardSlotViewDataByNumber.Reset();
 
 	for (int32 SlotIndex = 0; SlotIndex < CardSlotWidgets.Num(); ++SlotIndex)
@@ -138,48 +138,39 @@ void UBattlePlayerHUDWidget::EnsureCoinSlotWidgets(int32 RequiredCount)
 	}
 }
 
-void UBattlePlayerHUDWidget::EnsureItemSlotWidgets(int32 RequiredCount)
+void UBattlePlayerHUDWidget::CacheFixedItemSlots()
 {
-	if (!IsValid(ItemSlotContainer) || !BattleItemSlotWidgetClass)
+	ItemSlotWidgets = { ItemSlot1, ItemSlot2, ItemSlot3 };
+	for (UBattleItemSlotWidget* ItemSlotWidget : ItemSlotWidgets)
 	{
-		return;
-	}
-
-	while (ItemSlotWidgets.Num() < RequiredCount)
-	{
-		UBattleItemSlotWidget* ItemSlotWidget = CreateWidget<UBattleItemSlotWidget>(this, BattleItemSlotWidgetClass);
 		if (!IsValid(ItemSlotWidget))
 		{
-			return;
+			continue;
 		}
 
+		ItemSlotWidget->OnBattleItemSlotClicked.RemoveAll(this);
+		ItemSlotWidget->OnBattleItemSlotHovered.RemoveAll(this);
+		ItemSlotWidget->OnBattleItemSlotUnhovered.RemoveAll(this);
 		ItemSlotWidget->OnBattleItemSlotClicked.AddUObject(this, &UBattlePlayerHUDWidget::HandleItemSlotClicked);
 		ItemSlotWidget->OnBattleItemSlotHovered.AddUObject(this, &UBattlePlayerHUDWidget::HandleItemSlotHovered);
 		ItemSlotWidget->OnBattleItemSlotUnhovered.AddUObject(this, &UBattlePlayerHUDWidget::HandleItemSlotUnhovered);
-		ItemSlotContainer->AddChild(ItemSlotWidget);
-		ItemSlotWidgets.Add(ItemSlotWidget);
 	}
 }
 
-void UBattlePlayerHUDWidget::EnsureCardSlotWidgets(int32 RequiredCount)
+void UBattlePlayerHUDWidget::CacheFixedCardSlots()
 {
-	if (!IsValid(CardSlotContainer) || !BattleCardSlotWidgetClass)
+	CardSlotWidgets = { CardSlot1, CardSlot2, CardSlot3 };
+	for (UBattleCardSlotWidget* CardSlotWidget : CardSlotWidgets)
 	{
-		return;
-	}
-
-	while (CardSlotWidgets.Num() < RequiredCount)
-	{
-		UBattleCardSlotWidget* CardSlotWidget = CreateWidget<UBattleCardSlotWidget>(this, BattleCardSlotWidgetClass);
 		if (!IsValid(CardSlotWidget))
 		{
-			return;
+			continue;
 		}
 
+		CardSlotWidget->OnBattleCardSlotHovered.RemoveAll(this);
+		CardSlotWidget->OnBattleCardSlotUnhovered.RemoveAll(this);
 		CardSlotWidget->OnBattleCardSlotHovered.AddUObject(this, &UBattlePlayerHUDWidget::HandleCardSlotHovered);
 		CardSlotWidget->OnBattleCardSlotUnhovered.AddUObject(this, &UBattlePlayerHUDWidget::HandleCardSlotUnhovered);
-		CardSlotContainer->AddChild(CardSlotWidget);
-		CardSlotWidgets.Add(CardSlotWidget);
 	}
 }
 
@@ -231,7 +222,7 @@ void UBattlePlayerHUDWidget::HandleItemSlotHovered(int32 ItemID)
 	{
 		ItemInfoWidget->UpdateItemInfo(ItemSlotData->ItemData);
 		ItemInfoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
-		PositionPopupAtCursor(ItemInfoWidget);
+		ApplyPopupAnchorLayout(ItemInfoWidget, ItemPopupAnchor);
 	}
 }
 
@@ -264,7 +255,7 @@ void UBattlePlayerHUDWidget::HandleCardSlotHovered(int32 SlotNumber)
 	{
 		CardInfoWidget->InitCard(CardSlotData->CardData);
 		CardInfoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
-		PositionPopupAtCursor(CardInfoWidget);
+		ApplyPopupAnchorLayout(CardInfoWidget, CardPopupAnchor);
 	}
 }
 
@@ -276,27 +267,24 @@ void UBattlePlayerHUDWidget::HandleCardSlotUnhovered(int32 SlotNumber)
 	}
 }
 
-void UBattlePlayerHUDWidget::PositionPopupAtCursor(UUserWidget* PopupWidget)
+void UBattlePlayerHUDWidget::ApplyPopupAnchorLayout(UUserWidget* PopupWidget, UWidget* PopupAnchor)
 {
-	if (!IsValid(PopupWidget))
+	if (!IsValid(PopupWidget) || !IsValid(PopupAnchor))
 	{
 		return;
 	}
 
 	UCanvasPanelSlot* PopupCanvasSlot = Cast<UCanvasPanelSlot>(PopupWidget->Slot);
-	APlayerController* OwningPC = GetOwningPlayer();
-	if (!IsValid(PopupCanvasSlot) || !IsValid(OwningPC))
+	UCanvasPanelSlot* AnchorCanvasSlot = Cast<UCanvasPanelSlot>(PopupAnchor->Slot);
+	if (!IsValid(PopupCanvasSlot) || !IsValid(AnchorCanvasSlot))
 	{
 		return;
 	}
 
-	FVector2D CursorPosition;
-	if (!UWidgetLayoutLibrary::GetMousePositionScaledByDPI(OwningPC, CursorPosition.X, CursorPosition.Y))
-	{
-		return;
-	}
-
-	const FVector2D PopupOffset(16.0f, 16.0f);
-	PopupCanvasSlot->SetPosition(CursorPosition + PopupOffset);
+	PopupCanvasSlot->SetAnchors(AnchorCanvasSlot->GetAnchors());
+	PopupCanvasSlot->SetAlignment(AnchorCanvasSlot->GetAlignment());
+	PopupCanvasSlot->SetPosition(AnchorCanvasSlot->GetPosition());
+	PopupCanvasSlot->SetSize(AnchorCanvasSlot->GetSize());
+	PopupCanvasSlot->SetAutoSize(AnchorCanvasSlot->GetAutoSize());
 }
 

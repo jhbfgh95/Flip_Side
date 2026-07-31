@@ -56,8 +56,7 @@ bool UCoinManagementWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 void UCoinManagementWSubsystem::InitializeCoinSlots(const TArray<FCoinTypeStructure>& InCoinSlots)
 {
 	CoinSlots.Reset();
-	ReadyCoins.Reset();
-	NextCoinInstanceID = 1;
+	ReadyCoins.Init(FReadyCoinData(), MaxReadyCoinCount);
 
 	for (int32 SlotIndex = 0; SlotIndex < InCoinSlots.Num(); ++SlotIndex)
 	{
@@ -114,7 +113,7 @@ void UCoinManagementWSubsystem::CreateTestCoinSlots()
 
 bool UCoinManagementWSubsystem::TryAddReadyCoinFromSlot(int32 SlotNumber)
 {
-	if (!bIsCoinReadyTurn || ReadyCoins.Num() >= MaxReadyCoinCount)
+	if (!bIsCoinReadyTurn || GetReadyCoinCount() >= MaxReadyCoinCount)
 	{
 		return false;
 	}
@@ -125,8 +124,16 @@ bool UCoinManagementWSubsystem::TryAddReadyCoinFromSlot(int32 SlotNumber)
 		return false;
 	}
 
-	FReadyCoinData& ReadyCoin = ReadyCoins.AddDefaulted_GetRef();
-	ReadyCoin.CoinInstanceID = NextCoinInstanceID++;
+	const int32 ReadyCoinSlotIndex = FindEmptyReadyCoinSlotIndex();
+	const int32 CoinInstanceID = AllocateCoinInstanceID();
+	if (ReadyCoinSlotIndex == INDEX_NONE || CoinInstanceID == INDEX_NONE)
+	{
+		return false;
+	}
+
+	FReadyCoinData& ReadyCoin = ReadyCoins[ReadyCoinSlotIndex];
+	ReadyCoin = FReadyCoinData();
+	ReadyCoin.CoinInstanceID = CoinInstanceID;
 	ReadyCoin.SourceSlotNumber = CoinSlot->SlotNumber;
 	ReadyCoin.FrontWeaponID = CoinSlot->FrontWeaponID;
 	ReadyCoin.BackWeaponID = CoinSlot->BackWeaponID;
@@ -158,7 +165,7 @@ bool UCoinManagementWSubsystem::TryCancelReadyCoin(int32 CoinInstanceID)
 	}
 
 	++SourceCoinSlot->AvailableCoinCount;
-	ReadyCoins.RemoveAt(ReadyCoinIndex);
+	ReadyCoins[ReadyCoinIndex] = FReadyCoinData();
 	BroadcastCoinDataChanged();
 	return true;
 }
@@ -175,14 +182,15 @@ bool UCoinManagementWSubsystem::RemoveReadyCoinByInstanceID(int32 CoinInstanceID
 		return false;
 	}
 
-	ReadyCoins.RemoveAt(ReadyCoinIndex);
+	// 사망한 코인만 비우며, 뒤의 레디 코인을 앞으로 당기지 않습니다.
+	ReadyCoins[ReadyCoinIndex] = FReadyCoinData();
 	BroadcastCoinDataChanged();
 	return true;
 }
 
 void UCoinManagementWSubsystem::InitBattleReadyCoin()
 {
-	ReadyCoins.Reset();
+	ReadyCoins.Init(FReadyCoinData(), MaxReadyCoinCount);
 	BroadcastCoinDataChanged();
 }
 
@@ -237,12 +245,52 @@ int32 UCoinManagementWSubsystem::CalculateCoinPrice() const
 
 int32 UCoinManagementWSubsystem::CalculateCoinCount() const
 {
-	int32 TotalCoinCount = ReadyCoins.Num();
+	int32 TotalCoinCount = GetReadyCoinCount();
 	for (const FBattleCoinSlotData& CoinSlot : CoinSlots)
 	{
 		TotalCoinCount += CoinSlot.AvailableCoinCount;
 	}
 	return TotalCoinCount;
+}
+
+int32 UCoinManagementWSubsystem::FindEmptyReadyCoinSlotIndex() const
+{
+	return ReadyCoins.IndexOfByPredicate([](const FReadyCoinData& ReadyCoin)
+	{
+		return ReadyCoin.CoinInstanceID == INDEX_NONE;
+	});
+}
+
+int32 UCoinManagementWSubsystem::AllocateCoinInstanceID() const
+{
+	for (int32 CandidateID = 1; CandidateID <= MaxReadyCoinCount; ++CandidateID)
+	{
+		const bool bAlreadyUsed = ReadyCoins.ContainsByPredicate([CandidateID](const FReadyCoinData& ReadyCoin)
+		{
+			return ReadyCoin.CoinInstanceID == CandidateID;
+		});
+
+		if (!bAlreadyUsed)
+		{
+			return CandidateID;
+		}
+	}
+
+	return INDEX_NONE;
+}
+
+int32 UCoinManagementWSubsystem::GetReadyCoinCount() const
+{
+	int32 ReadyCoinCount = 0;
+	for (const FReadyCoinData& ReadyCoin : ReadyCoins)
+	{
+		if (ReadyCoin.CoinInstanceID != INDEX_NONE)
+		{
+			++ReadyCoinCount;
+		}
+	}
+
+	return ReadyCoinCount;
 }
 
 FBattleCoinSlotData* UCoinManagementWSubsystem::FindCoinSlot(int32 SlotNumber)

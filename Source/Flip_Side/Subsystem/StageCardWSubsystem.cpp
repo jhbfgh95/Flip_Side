@@ -98,22 +98,6 @@ void UStageCardWSubsystem::RefreshHandFromGI()
 
     const TArray<int32> IDs = CrossingGI->GetBattleCardIDs();
 
-    auto IsEmpty = [&]()
-        {
-            if (IDs.Num() < HandCount) return true;
-            return (IDs[0] < 0 && IDs[1] < 0 && IDs[2] < 0);
-        };
-
-    // �׽�Ʈ�� �ڵ� ä��
-    if (IsEmpty())
-    {
-        //CrossingGI->SetBattleCardID(3, 0);
-        //CrossingGI->SetBattleCardID(5, 1);
-        //CrossingGI->SetBattleCardID(6, 2);
-
-        UE_LOG(LogTemp, Warning, TEXT("[StageCard] BattleCardIDs were empty. Filled with 1,2,3 for test."));
-    }
-
     for (int32 Slot = 0; Slot < HandCount; ++Slot)
     {
         const int32 CardID = IDs.IsValidIndex(Slot) ? IDs[Slot] : -1;
@@ -138,7 +122,75 @@ void UStageCardWSubsystem::RefreshHandFromGI()
         OnHandCardSet.Broadcast(Slot, CardData);
     }
 
+    if (GetCardCount() == 0)
+    {
+        TestCardGenerate();
+        return;
+    }
+
     OnBattleCardDataChanged.Broadcast();
+}
+
+bool UStageCardWSubsystem::TestCardGenerate()
+{
+    // 실제 장착 카드가 하나라도 있으면 테스트 데이터로 덮어쓰지 않습니다.
+    if (GetCardCount() > 0)
+    {
+        return false;
+    }
+
+    UWorld* World = GetWorld();
+    UGameInstance* GameInstance = IsValid(World) ? World->GetGameInstance() : nullptr;
+    UDataManagerSubsystem* DataManager = IsValid(GameInstance)
+        ? GameInstance->GetSubsystem<UDataManagerSubsystem>()
+        : nullptr;
+    if (!IsValid(DataManager) || !DataManager->IsCacheReady())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[StageCard] TestCardGenerate failed: DataManager cache is unavailable."));
+        OnBattleCardDataChanged.Broadcast();
+        return false;
+    }
+
+    TArray<FCardData> AllCards;
+    if (!DataManager->TryGetAllCards(AllCards))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[StageCard] TestCardGenerate failed: card DB data could not be loaded."));
+        OnBattleCardDataChanged.Broadcast();
+        return false;
+    }
+
+    AllCards.RemoveAll([](const FCardData& CardData)
+    {
+        return CardData.CardID < 0;
+    });
+    AllCards.Sort([](const FCardData& Left, const FCardData& Right)
+    {
+        return Left.CardID < Right.CardID;
+    });
+
+    const int32 GeneratedCardCount = FMath::Min(HandCount, AllCards.Num());
+    CardPrice = 0;
+    for (int32 SlotIndex = 0; SlotIndex < GeneratedCardCount; ++SlotIndex)
+    {
+        HandCards[SlotIndex] = AllCards[SlotIndex];
+        bHasCard[SlotIndex] = true;
+        CardPrice += HandCards[SlotIndex].Price;
+        OnHandCardSet.Broadcast(SlotIndex, HandCards[SlotIndex]);
+    }
+
+    if (GeneratedCardCount < HandCount)
+    {
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("[StageCard] TestCardGenerate created %d/%d card types."),
+            GeneratedCardCount,
+            HandCount
+        );
+    }
+
+    OnBattleCardDataChanged.Broadcast();
+    return GeneratedCardCount > 0;
 }
 
 bool UStageCardWSubsystem::TryLoadCardData(int32 CardID, FCardData& Out) const

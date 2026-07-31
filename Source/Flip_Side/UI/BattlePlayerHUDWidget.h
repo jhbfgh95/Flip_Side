@@ -50,33 +50,51 @@ protected:
 	TObjectPtr<class UBattleReadyCoinWidget> BattleReadyCoinWidget;
 
 	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<class UPanelWidget> ItemSlotContainer;
-
-	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UPanelWidget> PopupLayer;
 
 	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<class UPanelWidget> CardSlotContainer;
+	TObjectPtr<class UWidget> CoinSlotPopupAnchor;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UWidget> ReadyCoinPopupAnchor;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UWidget> ItemPopupAnchor;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UWidget> CardPopupAnchor;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBattleItemSlotWidget> ItemSlot1;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBattleItemSlotWidget> ItemSlot2;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBattleItemSlotWidget> ItemSlot3;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBattleCardSlotWidget> CardSlot1;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBattleCardSlotWidget> CardSlot2;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBattleCardSlotWidget> CardSlot3;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Coin")
 	TSubclassOf<class UBattleCoinSlotWidget> BattleCoinSlotWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Item")
-	TSubclassOf<class UBattleItemSlotWidget> BattleItemSlotWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Item")
 	TSubclassOf<class UW_ItemInfo> ItemInfoWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Card")
-	TSubclassOf<class UBattleCardSlotWidget> BattleCardSlotWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Card")
 	TSubclassOf<class UW_CardWidget> CardInfoWidgetClass;
 
 private:
 	void EnsureCoinSlotWidgets(int32 RequiredCount);
-	void EnsureItemSlotWidgets(int32 RequiredCount);
-	void EnsureCardSlotWidgets(int32 RequiredCount);
+	void CacheFixedItemSlots();
+	void CacheFixedCardSlots();
 	void HandleCoinSlotClicked(int32 SlotNumber);
 	void HandleCoinSlotHovered(int32 SlotNumber);
 	void HandleCoinSlotUnhovered(int32 SlotNumber);
@@ -86,7 +104,7 @@ private:
 	void HandleItemSlotUnhovered(int32 ItemID);
 	void HandleCardSlotHovered(int32 SlotNumber);
 	void HandleCardSlotUnhovered(int32 SlotNumber);
-	void PositionPopupAtCursor(class UUserWidget* PopupWidget);
+	void ApplyPopupAnchorLayout(class UUserWidget* PopupWidget, class UWidget* PopupAnchor);
 
 	UPROPERTY()
 	TArray<TObjectPtr<class UBattleCoinSlotWidget>> CoinSlotWidgets;

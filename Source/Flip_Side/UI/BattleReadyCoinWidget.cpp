@@ -22,7 +22,7 @@ void UBattleReadyCoinWidget::SetReadyCoins(const TArray<FBattleReadyCoinViewData
 			continue;
 		}
 
-		if (InReadyCoins.IsValidIndex(SlotIndex))
+		if (InReadyCoins.IsValidIndex(SlotIndex) && InReadyCoins[SlotIndex].CoinInstanceID != INDEX_NONE)
 		{
 			ReadyCoinSlot->SetReadyCoinData(InReadyCoins[SlotIndex]);
 		}

@@ -74,6 +74,9 @@ private:
 
 	FBattleCoinSlotData* FindCoinSlot(int32 SlotNumber);
 	const FBattleCoinSlotData* FindCoinSlot(int32 SlotNumber) const;
+	int32 FindEmptyReadyCoinSlotIndex() const;
+	int32 AllocateCoinInstanceID() const;
+	int32 GetReadyCoinCount() const;
 	int32 GetHPForSlotIndex(int32 SlotIndex) const;
 	void BroadcastCoinDataChanged();
 
@@ -82,8 +85,6 @@ private:
 
 	UPROPERTY()
 	TArray<FReadyCoinData> ReadyCoins;
-
-	int32 NextCoinInstanceID = 1;
 
 	// BattleManager의 CoinReadyTurn 연결은 현재 주석 처리되어 있으므로 UI 테스트 중에는 활성 상태로 둡니다.
 	bool bIsCoinReadyTurn = true;

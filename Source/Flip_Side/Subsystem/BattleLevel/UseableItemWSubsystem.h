@@ -131,6 +131,10 @@ public:
 
 	const TArray<FBattleItemSlotData>& GetBattleItemSlots() const { return BattleItemSlots; }
 
+	// 실제 보유 아이템이 없을 때 HUD/전투 확인용 아이템 3종을 런타임 슬롯에 생성합니다.
+	UFUNCTION(BlueprintCallable, Category = "Debug|Battle Item")
+	bool TestItemGenerate();
+
 	bool IsItemUseAvailable() const;
 
 	bool TrySelectItem(int32 ItemID);

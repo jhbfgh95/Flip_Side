@@ -21,6 +21,8 @@ namespace
 {
     constexpr int32 PhaseChangePotionItemID = 4;
     constexpr int32 EverywherePotionItemID = 6;
+	constexpr int32 TestItemTypeCount = 3;
+	constexpr int32 TestItemCountPerType = 3;
 }
 
 void UUseableItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -129,7 +131,74 @@ void UUseableItemWSubsystem::InitializeBattleItemSlots()
         NewSlot.AvailableCount = SelectItemData.SameItemNum;
     }
 
+	if (BattleItemSlots.IsEmpty())
+	{
+		TestItemGenerate();
+		return;
+	}
+
     OnBattleItemDataChanged.Broadcast();
+}
+
+bool UUseableItemWSubsystem::TestItemGenerate()
+{
+	// 실제 보유 데이터가 하나라도 있으면 테스트 데이터로 덮어쓰지 않습니다.
+	if (!BattleItemSlots.IsEmpty())
+	{
+		return false;
+	}
+
+	UWorld* World = GetWorld();
+	UGameInstance* GameInstance = IsValid(World) ? World->GetGameInstance() : nullptr;
+	UDataManagerSubsystem* DataManager = IsValid(GameInstance)
+		? GameInstance->GetSubsystem<UDataManagerSubsystem>()
+		: nullptr;
+	if (!IsValid(DataManager) || !DataManager->IsCacheReady())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UseableItem] TestItemGenerate failed: DataManager cache is unavailable."));
+		OnBattleItemDataChanged.Broadcast();
+		return false;
+	}
+
+	TArray<FItemData> AllItems;
+	if (!DataManager->TryGetAllItems(AllItems))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UseableItem] TestItemGenerate failed: item DB data could not be loaded."));
+		OnBattleItemDataChanged.Broadcast();
+		return false;
+	}
+
+	AllItems.RemoveAll([](const FItemData& ItemData)
+	{
+		return ItemData.ItemID < 0 ||
+			(ItemData.ItemType != EItemType::CoinBuff && ItemData.ItemType != EItemType::Install);
+	});
+	AllItems.Sort([](const FItemData& Left, const FItemData& Right)
+	{
+		return Left.ItemID < Right.ItemID;
+	});
+
+	const int32 GeneratedTypeCount = FMath::Min(TestItemTypeCount, AllItems.Num());
+	for (int32 ItemIndex = 0; ItemIndex < GeneratedTypeCount; ++ItemIndex)
+	{
+		FBattleItemSlotData& TestSlot = BattleItemSlots.AddDefaulted_GetRef();
+		TestSlot.ItemData = AllItems[ItemIndex];
+		TestSlot.AvailableCount = TestItemCountPerType;
+	}
+
+	if (GeneratedTypeCount < TestItemTypeCount)
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("[UseableItem] TestItemGenerate created %d/%d usable item types."),
+			GeneratedTypeCount,
+			TestItemTypeCount
+		);
+	}
+
+	OnBattleItemDataChanged.Broadcast();
+	return GeneratedTypeCount > 0;
 }
 
 FBattleItemSlotData* UUseableItemWSubsystem::FindBattleItemSlot(int32 ItemID)

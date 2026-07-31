@@ -32,6 +32,31 @@ void UReadyCoinSlot::SetReadyCoinData(const FBattleReadyCoinViewData& InData)
 	CoinInstanceID = InData.CoinInstanceID;
 	bCanCancel = InData.bCanCancel;
 
+	if (IsValid(FrontWeaponIcon))
+	{
+		FrontWeaponIcon->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	if (IsValid(BackWeaponIcon))
+	{
+		BackWeaponIcon->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	if (IsValid(HPText))
+	{
+		HPText->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	if (IsValid(CanCancleText))
+	{
+		CanCancleText->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	if (IsValid(CanCancleIcon))
+	{
+		CanCancleIcon->SetVisibility(ESlateVisibility::Visible);
+	}
+
 	if (IsValid(ReadySlotNumberText))
 	{
 		ReadySlotNumberText->SetText(FText::AsNumber(InData.ReadySlotNumber));
@@ -73,8 +98,36 @@ void UReadyCoinSlot::ClearReadyCoinData()
 {
 	CoinInstanceID = INDEX_NONE;
 	bCanCancel = false;
-	UpdateCancelStateVisual();
-	SetVisibility(ESlateVisibility::Collapsed);
+
+	// 빈 슬롯도 Horizontal Box의 고정 폭을 유지해야 하므로 슬롯 위젯 자체는 숨기지 않습니다.
+	if (IsValid(FrontWeaponIcon))
+	{
+		FrontWeaponIcon->SetVisibility(ESlateVisibility::Hidden);
+	}
+
+	if (IsValid(BackWeaponIcon))
+	{
+		BackWeaponIcon->SetVisibility(ESlateVisibility::Hidden);
+	}
+
+	if (IsValid(HPText))
+	{
+		HPText->SetText(FText::GetEmpty());
+		HPText->SetVisibility(ESlateVisibility::Hidden);
+	}
+
+	if (IsValid(CanCancleText))
+	{
+		CanCancleText->SetText(FText::GetEmpty());
+		CanCancleText->SetVisibility(ESlateVisibility::Hidden);
+	}
+
+	if (IsValid(CanCancleIcon))
+	{
+		CanCancleIcon->SetVisibility(ESlateVisibility::Hidden);
+	}
+
+	SetVisibility(ESlateVisibility::Visible);
 }
 
 void UReadyCoinSlot::HandleReadyCoinClicked()

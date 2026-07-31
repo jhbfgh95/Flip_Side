@@ -63,6 +63,10 @@ public:
 
     void GetBattleCardSlots(TArray<FBattleCardSlotViewData>& OutCardSlots) const;
 
+    // 실제 장착 카드가 없을 때 HUD/전투 확인용 카드 3종을 런타임 손패에 생성합니다.
+    UFUNCTION(BlueprintCallable, Category = "Debug|Stage Card")
+    bool TestCardGenerate();
+
     
 
 public:

@@ -3,6 +3,14 @@
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Materials/MaterialInstanceDynamic.h"
+
+namespace
+{
+	const FName CardIconParameterName(TEXT("Weapon_Icon"));
+	const FName CardColorParameterName(TEXT("Weapon_Color"));
+	const FLinearColor CardIconColor(0.670588f, 0.541176f, 1.0f, 1.0f); // AB8AFFFF
+}
 
 void UBattleCardSlotWidget::NativeConstruct()
 {
@@ -22,7 +30,17 @@ void UBattleCardSlotWidget::SetCardData(const FBattleCardSlotViewData& InData)
 
 	if (IsValid(CardIcon) && IsValid(InData.CardData.Icon))
 	{
-		CardIcon->SetBrushFromTexture(InData.CardData.Icon, false);
+		// CardIcon의 BP Brush에 지정한 아이템/무기 공용 UI 머티리얼을 유지하고 파라미터만 갱신합니다.
+		CardIconMaterialInstance = CardIcon->GetDynamicMaterial();
+		if (IsValid(CardIconMaterialInstance))
+		{
+			CardIconMaterialInstance->SetTextureParameterValue(CardIconParameterName, InData.CardData.Icon);
+			CardIconMaterialInstance->SetVectorParameterValue(CardColorParameterName, CardIconColor);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[BattleCardSlot] GetDynamicMaterial failed. CardIcon Brush에 공용 UI 머티리얼을 지정하세요."));
+		}
 	}
 
 	if (IsValid(CardNameText))

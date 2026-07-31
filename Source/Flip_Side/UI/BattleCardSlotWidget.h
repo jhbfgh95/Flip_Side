@@ -41,4 +41,7 @@ private:
 
 	int32 SlotNumber = INDEX_NONE;
 	bool bOccupied = false;
+
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> CardIconMaterialInstance;
 };
