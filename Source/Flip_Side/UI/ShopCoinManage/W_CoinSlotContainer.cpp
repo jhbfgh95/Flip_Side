@@ -35,16 +35,16 @@ void UW_CoinSlotContainer::NativeDestruct()
 
 void UW_CoinSlotContainer::SetTotalCoinText(int32 ChangedSlotIndex, int32 Count)
 {
-
+    /*
     FString TextString = FString::Printf(TEXT("코인 개수 %d / 30"), ShopCoinSubsystem->GetTotalCoinCount());
     
-    TotalCoinText->SetText(FText::FromString(TextString));
+    TotalCoinText->SetText(FText::FromString(TextString));*/
 }
 
 
 void UW_CoinSlotContainer::AddCoinSlot()
 {
-
+    /*
     UWidget* SlotWidget = SlotScroll->GetChildAt(CoinSlotCount);
     if(!SlotWidget)
         return;
@@ -55,13 +55,14 @@ void UW_CoinSlotContainer::AddCoinSlot()
 
         SlotWidget->SetVisibility(ESlateVisibility::Visible);
         CoinSlotCount++;
-    }
+    }*/
 
 
 }
 
 void UW_CoinSlotContainer::DecreaseCoinSlot()
 {
+    /*
     UWidget* SlotWidget = SlotScroll->GetChildAt(CoinSlotCount-1);
     if(!SlotWidget)
         return;
@@ -70,12 +71,13 @@ void UW_CoinSlotContainer::DecreaseCoinSlot()
         CoinSlot[CoinSlotCount-1]->ResetSlot();
         SlotWidget->SetVisibility(ESlateVisibility::Collapsed);
         CoinSlotCount--;
-    }
+    }*/
 }
 
 
 void UW_CoinSlotContainer::InitCoinSlot()
 {
+    /*
     for(int i =0; i<10; i++)
     {
         UUserWidget* CoinSlotUserWidget = CreateWidget<UUserWidget>(GetWorld(), CoinSlotWidget);
@@ -87,12 +89,13 @@ void UW_CoinSlotContainer::InitCoinSlot()
             SlotClass->InitSlot(i);
             SlotClass->SetVisibility(ESlateVisibility::Collapsed);
         }
-    }
+    }*/
 }
 
 void UW_CoinSlotContainer::UpdateSlotText(bool IsIncrease)
 {
+    /*
     int32 SlotCount = ShopCoinSubsystem->GetCurrentSlotCount();
     FString SlotText = FString::Printf(TEXT("%d / 10"), SlotCount);
-    SlotInfoText->SetText(FText::FromString(SlotText));
+    SlotInfoText->SetText(FText::FromString(SlotText));*/
 }

@@ -7,6 +7,9 @@
 
 #include "Components/Button.h"
 
+#include "UI/ShopCoinManage/ShopCoinViewModel.h"
+
+
 void UW_CoinCountButton::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -21,14 +24,19 @@ void UW_CoinCountButton::InitButton(int32 SlotNum)
     SlotIndex = SlotNum;
 }
 
+void UW_CoinCountButton::SetViewModel(UShopCoinViewModel* SetViewModel)
+{
+    ViewModel = SetViewModel;
+}
+
 void UW_CoinCountButton::ChangeCount()
 {
     if(IsIncrease)
     {
-        ShopCoinSubsystem->IncreaseSlotCoinCount(SlotIndex);
+        //ShopCoinSubsystem->IncreaseSlotCoinCount(SlotIndex);
     }
     else
     {
-        ShopCoinSubsystem->DecreaseSlotCoinCount(SlotIndex);
+        //ShopCoinSubsystem->DecreaseSlotCoinCount(SlotIndex);
     }
 }

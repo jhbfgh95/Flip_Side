@@ -33,6 +33,7 @@ void UW_WeaponGridContainer::SetUnlockImageSlotChange()
 
 void UW_WeaponGridContainer::SetUnlockImage(bool IsIncrease)
 {
+    /*
     if(CoinSubsystem->GetCurrentSlotCount()==0)
     {
         LockImage->SetVisibility(ESlateVisibility::Visible);
@@ -40,7 +41,7 @@ void UW_WeaponGridContainer::SetUnlockImage(bool IsIncrease)
     else
     {
         LockImage->SetVisibility(ESlateVisibility::Collapsed);
-    }
+    }*/
 }   
 
 void UW_WeaponGridContainer::SetDealGrid()
@@ -60,7 +61,7 @@ void UW_WeaponGridContainer::SetUtilGrid()
 
 void UW_WeaponGridContainer::SetWeaponGrid(EWeaponClass weaponClass)
 {
-    
+    /*
     DealGrid->SetVisibility(ESlateVisibility::Collapsed);
     TankGrid->SetVisibility(ESlateVisibility::Collapsed);
     UtilGrid->SetVisibility(ESlateVisibility::Collapsed);
@@ -89,5 +90,5 @@ void UW_WeaponGridContainer::SetWeaponGrid(EWeaponClass weaponClass)
             break;
     }
 
-    CoinSubsystem->ChangeCoinClass(weaponClass);
+    CoinSubsystem->ChangeCoinClass(weaponClass);*/
 }

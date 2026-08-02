@@ -57,4 +57,6 @@ public:
 	bool IsCardUnlockByID(int32 ID);
 
 	void ResetUnlockData();
+
+	const TArray<int32>& GetUnlockWeaponArray(EWeaponClass WeaponClass);
 };

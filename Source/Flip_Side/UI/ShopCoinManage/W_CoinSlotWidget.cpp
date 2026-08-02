@@ -17,6 +17,7 @@ void UW_CoinSlotWidget::NativeConstruct()
     Super::NativeConstruct();
     CoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     DataSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+    
     if (FrontWeaponImage)
     {
         FrontDynamicMaterial = FrontWeaponImage->GetDynamicMaterial();
@@ -46,7 +47,7 @@ void UW_CoinSlotWidget::NativeDestruct()
 
 void UW_CoinSlotWidget::SetWeaponTexture(int32 WeaponID)
 {
-    
+    /*
     if(SlotIndex!=CoinSubsystem->GetCurrentSlotNum())
         return;
     FFaceData FrontWeaponData;
@@ -73,34 +74,37 @@ void UW_CoinSlotWidget::SetWeaponTexture(int32 WeaponID)
     else
     {
         BackDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
-    }
+    }*/
 }
 
 
 void UW_CoinSlotWidget::PressSlotButton()
 {
-    CoinSubsystem->SelectCoin(SlotIndex);
+    //CoinSubsystem->SelectCoin(SlotIndex);
 }
 
 void UW_CoinSlotWidget::SetCountText(int32 SlotNum, int32 Count)
 {
+    /*
     if(SlotNum != SlotIndex)
         return;
 
-    CoinCountText->SetText(FText::AsNumber(Count));
+    CoinCountText->SetText(FText::AsNumber(Count));*/
 }
 
 	
 void UW_CoinSlotWidget::SetBackGround()
 {
+    /*
     if(CoinSubsystem->GetCurrentSlotNum()==SlotIndex)
         BackGroundBorder->SetRenderOpacity(1.2f);
     else
-        BackGroundBorder->SetRenderOpacity(0.7f);
+        BackGroundBorder->SetRenderOpacity(0.7f);*/
 }
 	
 void UW_CoinSlotWidget::InitSlot(int32 SlotNum)
 {
+    /*
     SlotIndex = SlotNum;
     IncreaseButton->InitButton(SlotIndex);
     DecreaseButton->InitButton(SlotIndex);
@@ -108,7 +112,7 @@ void UW_CoinSlotWidget::InitSlot(int32 SlotNum)
     SetCountText(SlotIndex,0);
     FrontDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
     BackDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
-
+*/
 }
 	
 void UW_CoinSlotWidget::ResetSlot()

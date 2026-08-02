@@ -77,6 +77,8 @@ private:
 	/*현재 선택 중인 코인 슬롯 번호*/
 	int32 CurrentCoinSlotNum;
 
+	int32 CurrentCoinSlotIndex = -1;
+
 /*델리게이트들*/
 public:
 	FChangeCoinSlot OnCoinSlotChange;
@@ -95,12 +97,42 @@ private:
 private:
 	//코인 개수를 증가 시킬수 있는가?
 	bool CanIncreaseCoin(int32 SlotNum);
+
+	bool CanIncreaseCoin(int32 SlotNum,int32 Amount);
 	//코인 개수를 감소 시킬수 있는가?
 	bool CanDecreaseCoin(int32 SlotNum);
+
+	bool CanDecreaseCoin(int32 SlotIndex, int32 Amount);
 
 	int32 GetSameWeaponInCoinSlot(int32 SlotNum, int32 WeaponID);
 
 	bool IsTrySetSameWeapon(bool IsFront, int32 WeaponID);
+
+public:
+
+	bool BuyCoinSlot();
+
+	bool SellCoinSlot();
+
+	void IncreaseCoinSlotCoin(int32 SlotIndex, int32 Amount);
+
+	void DecreaseCoinSlotCoin(int32 SlotIndex, int32 Amount);
+
+	void SelectCoinSlot(int32 SlotIndex);
+
+	void ChangeCoinSlotOrder();
+
+	int32 GetUnlockCoinSlotCount();
+
+	int32 GetCurrentCoinSlotIndex();
+
+	int32 GetCoinSlotCoinCount(int32 SlotIndex);
+
+	FCoinTypeStructure GetCoinSlotCoinType(int32 SlotIndex);
+
+public:
+	void SetWeapon();
+	
 public:
 	//특정 번호의 코인 슬롯으로 변경
 	void ChangeCoinSlotByIndex(int32 SlotNum);
@@ -176,8 +208,12 @@ public:
 
 public:
 	void HoverWeapon(int32 WeaponID);
+	
 	void UnHoverWeapon();
 
 public:
 	void ChangeCoinClass(EWeaponClass WeaponClass);
+
+
+	//const TArray<FFaceData> GetPlayer
 };

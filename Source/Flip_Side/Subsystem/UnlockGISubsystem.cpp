@@ -206,3 +206,9 @@ bool UUnlockGISubsystem::IsWeaponUnlockByID(EWeaponClass WeaponClass, int32 ID)
         return false;
     }
 }
+
+
+const TArray<int32>& UUnlockGISubsystem::GetUnlockWeaponArray(EWeaponClass WeaponClass)
+{
+    return DealUnlockArray;
+}

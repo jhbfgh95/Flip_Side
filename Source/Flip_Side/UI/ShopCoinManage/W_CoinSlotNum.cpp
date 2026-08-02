@@ -25,6 +25,7 @@ void UW_CoinSlotNum::NativeDestruct()
 	
 void UW_CoinSlotNum::SetSlotNumText()
 {
+    /*
     if(CoinSubsystem->GetCurrentSlotNum() ==0)
     {
         if(!CoinSubsystem->GetCurrentCoinUnlock())
@@ -36,5 +37,5 @@ void UW_CoinSlotNum::SetSlotNumText()
     }
     else
         CountText->SetText(FText::AsNumber(CoinSubsystem->GetCurrentSlotNum()+1));
-    
+    */
 }

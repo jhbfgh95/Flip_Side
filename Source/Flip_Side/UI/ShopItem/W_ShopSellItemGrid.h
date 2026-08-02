@@ -10,6 +10,7 @@
 /**
  * 
  */
+class UVerticalBox;
 UCLASS()
 class FLIP_SIDE_API UW_ShopSellItemGrid : public UUserWidget
 {
@@ -22,8 +23,9 @@ class FLIP_SIDE_API UW_ShopSellItemGrid : public UUserWidget
 private:
 	class UShopItemWSubsystem* ShopItemSubsystem;
 
+protected:
 	TArray<class UW_SellItemButton*> SellItems;
-	
+	/*
 	UPROPERTY(meta = (BindWidget))
 	class UUniformGridPanel* SellItemGrid;
 
@@ -31,8 +33,15 @@ private:
 	class UTextBlock* ItemBuyDescrip;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
-	TSubclassOf<UUserWidget> SellItemButton;
+	TSubclassOf<UUserWidget> SellItemButton;*/
 
+	TArray<class UW_ShopItemSlot*> SellItemSlots;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UVerticalBox> SlotBox;
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
+	TSubclassOf<UUserWidget> SellItemSlot;
 private:
 	
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
@@ -44,4 +53,5 @@ private:
 	
 	UFUNCTION()
 	void HideDescrip();
+
 };

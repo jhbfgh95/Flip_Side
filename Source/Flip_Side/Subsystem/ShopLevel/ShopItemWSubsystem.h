@@ -57,13 +57,10 @@ public:
 	FItemSell OnItemSell;
 	FShopItemWarning OnShopItemWarning;
 private:
-
 	//상점 아이템 구매 목록
 	TArray<FItemData> ShopItemArray;
 	//플레이어 아이템 목록
 	TArray<FSelectItem> PlayerItemArray;
-	
-
 private:
 
 	//기본 아이템 데이터
@@ -77,28 +74,35 @@ private:
 	int32 GetSameItemInvenIndex(int32 ItemID);
 public:
 	//상점 아이템에 마우스를 올려놧을 때
-	void HoverItem(FItemData ItemNum);
+	void HoverItem(FItemData ItemData);
 	//상점 아이템에서 마우스를 땠을떄
 	void UnHoverItem();
-	
-	FItemData GetItemDataByShopIndex(int32 ShopIndex);
-	
-	FSelectItem GetItemDataByItemID(int32 ItemID);
-
-	void BuyItem(FItemData ItemData);
-	
-	int32 GetPlayerItemNum();
-
-	FSelectItem GetPlayerItem(int32 index);
-
-	TArray<FItemData> GetShopItemList();
 
 	void HoverPlayerItem(FItemData ItemNum);
 	//상점 아이템에서 마우스를 땠을떄
 	void UnHoverPlayerItem();
 
-	void SellItem(FItemData ItemData);
+public:
 
+	FItemData GetItemDataByShopIndex(int32 ShopIndex);
+	
+	FSelectItem GetItemDataByItemID(int32 ItemID);
+
+	int32 GetSameItemCountByItemID(int32 ItemID);
+
+	void BuyItem(FItemData ItemData, int32 ItemCount);
+
+	void SellItem(FItemData ItemData, int32 ItemCount);
+
+	int32 GetPlayerItemNum();
+
+	FSelectItem GetPlayerItem(int32 index);
+	
+	FItemData GetPlayerItemData(int32 index);
+
+	TArray<FItemData> GetShopItemList();
+
+public:
 	void ShopItemWarning(int32 WarningCode);
 	
 };

@@ -9,6 +9,7 @@
 /**
  * 
  */
+class UShopCoinViewModel;
 UCLASS()
 class FLIP_SIDE_API UW_CoinCountButton : public UUserWidget
 {
@@ -20,8 +21,11 @@ private:
 protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* CountButton;
-private:
+
+protected:
 	class UShopCoinWSubsystem* ShopCoinSubsystem;
+
+	TObjectPtr<UShopCoinViewModel> ViewModel;
 	
 private:
 
@@ -30,9 +34,14 @@ private:
 	int32 SlotIndex = 0;
 
 private:
+
 	UFUNCTION()
 	void ChangeCount();
+	
 public:
+
 	void InitButton(int32 SlotNum);
+
+	void SetViewModel(UShopCoinViewModel* SetViewModel);
 
 };

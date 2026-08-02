@@ -48,6 +48,7 @@ void UW_ShopCoinManage::SetDes(int32 WeaponID)
 
 void UW_ShopCoinManage::CoinFlipAdaptor(bool IsCoinFront)
 {
+	/*
     FCoinTypeStructure CoinData = CoinSubsystem->GetCurrentSlotCoin();
 	if(IsCoinFront)
 	{
@@ -56,51 +57,52 @@ void UW_ShopCoinManage::CoinFlipAdaptor(bool IsCoinFront)
 	else
 	{
 		SetDes(CoinData.BackWeaponID);
-	}
+	}*/
 
 }
 
 void UW_ShopCoinManage::CoinSlotChangeAdaptor()
 {
-    CoinFlipAdaptor(CoinSubsystem->GetIsCreateCoinFront());
+    //CoinFlipAdaptor(CoinSubsystem->GetIsCreateCoinFront());
 }
 
 void UW_ShopCoinManage::SetWeaponAdaptor(int32 WeaponID)
 {
-    SetDes(WeaponID);
+    //SetDes(WeaponID);
 }
 
 
 void UW_ShopCoinManage::SetDesText(FFaceData FaceData)
 {
+	/*
     if(FaceData.WeaponID != -1)
 		WeaponDes->SetExplainText(FaceData.WeaponName, FaceData.KOR_DES, FaceData.BehaviorPoint, FaceData.AttackPoint);
 	else
 		WeaponDes->SetExplainTextEmpty();
 
-	UE_LOG(LogTemp, Error, TEXT("%d"), FaceData.TypeID);
+	UE_LOG(LogTemp, Error, TEXT("%d"), FaceData.TypeID);*/
 }
 	
 void UW_ShopCoinManage::ShowDesPanel(int32 WeaponID)
 {
-	
+	/*
 	WeaponDes->SetVisibility(ESlateVisibility::Visible);
-	SetDes(WeaponID);
+	SetDes(WeaponID);*/
 }
 	
 void UW_ShopCoinManage::HideDesPanel()
 {
-	WeaponDes->SetVisibility(ESlateVisibility::Hidden);
+	//WeaponDes->SetVisibility(ESlateVisibility::Hidden);
 }
 	
 void UW_ShopCoinManage::ClearCoin()
 {
-	CoinSubsystem->ResetCoin(CoinSubsystem->GetCurrentSlotNum());
+	//CoinSubsystem->ResetCoin(CoinSubsystem->GetCurrentSlotNum());
 }
 	
 void UW_ShopCoinManage::ClearCoinSide()
 {
-	CoinSubsystem->ResetCoinSide(CoinSubsystem->GetCurrentSlotNum(), CoinSubsystem->GetIsCreateCoinFront());
+	//CoinSubsystem->ResetCoinSide(CoinSubsystem->GetCurrentSlotNum(), CoinSubsystem->GetIsCreateCoinFront());
 }
 
 

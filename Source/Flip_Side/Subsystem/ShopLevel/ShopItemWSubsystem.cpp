@@ -41,9 +41,7 @@ void UShopItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     }
 
     MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
-    PlayerItemArray.Reset();
-    for(int i =0; i <3 ;i++)
-        PlayerItemArray.Add(DefaultSelecttemData);
+    
 }
 
 void UShopItemWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
@@ -51,6 +49,10 @@ void UShopItemWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
     Super::OnWorldBeginPlay(InWorld);
     
     FString LevelName = UGameplayStatics::GetCurrentLevelName(&InWorld);
+    PlayerItemArray.Empty();
+    for(int i =0; i <3 ;i++)
+        PlayerItemArray.Add(DefaultSelecttemData);
+
     // 레벨 이름으로 조건 검사
     if(LevelName.Equals(TEXT("L_ShopLevel"), ESearchCase::IgnoreCase))
     {
@@ -84,7 +86,7 @@ void UShopItemWSubsystem::UnHoverPlayerItem()
     OnPlayerItemUnHovered.Broadcast();
 }
 
-void UShopItemWSubsystem::BuyItem(FItemData ItemData)
+void UShopItemWSubsystem::BuyItem(FItemData ItemData, int32 ItemCount)
 {
     int32 InvenIndex = GetSameItemInvenIndex(ItemData.ItemID);
 
@@ -93,11 +95,11 @@ void UShopItemWSubsystem::BuyItem(FItemData ItemData)
         int32 EmptyIvenNum = GetEmptyInvenIndex(ItemData.ItemID);
         if(EmptyIvenNum != -1)
         {
-            if(MoneySubsystem->SpendMoney(EMoneyRecordType::Item, ItemData.Price))
+            if(MoneySubsystem->SpendMoney(EMoneyRecordType::Item, ItemData.Price * ItemCount))
             {
                 FSelectItem SelectItemData;
                 SelectItemData.ItemID = ItemData.ItemID;
-                SelectItemData.SameItemNum = 1;
+                SelectItemData.SameItemNum = ItemCount;
                 PlayerItemArray[EmptyIvenNum] = SelectItemData;
                 
                 OnItemBuy.Broadcast(EmptyIvenNum);
@@ -106,9 +108,9 @@ void UShopItemWSubsystem::BuyItem(FItemData ItemData)
     }
     else
     {
-        if(MoneySubsystem->SpendMoney(EMoneyRecordType::Item, ItemData.Price))
+        if(MoneySubsystem->SpendMoney(EMoneyRecordType::Item, ItemData.Price* ItemCount))
         {
-            PlayerItemArray[InvenIndex].SameItemNum++;
+            PlayerItemArray[InvenIndex].SameItemNum += ItemCount;
             OnItemBuy.Broadcast(InvenIndex);
         }
     }
@@ -165,6 +167,16 @@ FSelectItem UShopItemWSubsystem::GetPlayerItem(int32 index)
     return DefaultSelecttemData;
 }
 
+FItemData UShopItemWSubsystem::GetPlayerItemData(int32 index)
+{
+    FItemData ReturnItemData;
+    if(PlayerItemArray.IsValidIndex(index))
+    {
+        DM->TryGetItem(PlayerItemArray[index].ItemID, ReturnItemData);
+    }
+
+    return ReturnItemData;
+}
 
 TArray<FItemData> UShopItemWSubsystem::GetShopItemList()
 {
@@ -172,26 +184,20 @@ TArray<FItemData> UShopItemWSubsystem::GetShopItemList()
 }
 
 
-void UShopItemWSubsystem::SellItem(FItemData ItemData)
+void UShopItemWSubsystem::SellItem(FItemData ItemData, int32 ItemCount)
 {  
     for(int i = 0; i< PlayerItemArray.Num();i++)
     {
         if(PlayerItemArray[i].ItemID == ItemData.ItemID)
         {
             
-            if(0<PlayerItemArray[i].SameItemNum)
+            if(0<=PlayerItemArray[i].SameItemNum - ItemCount)
             {
-                PlayerItemArray[i].SameItemNum--;
+                PlayerItemArray[i].SameItemNum-=ItemCount;
                 
             }
 
-            if(PlayerItemArray[i].SameItemNum <=0)
-            {
-                PlayerItemArray[i].ItemID = -1;
-                
-                PlayerItemArray[i].SameItemNum= 0;
-            }
-            MoneySubsystem->AddSaleMoney(EMoneyRecordType::Item, ItemData.Price);
+            MoneySubsystem->AddSaleMoney(EMoneyRecordType::Item, ItemData.Price*ItemCount);
             OnItemSell.Broadcast(i);
             return;
         }
@@ -202,4 +208,17 @@ void UShopItemWSubsystem::SellItem(FItemData ItemData)
 void UShopItemWSubsystem::ShopItemWarning(int32 WarningCode)
 {
     OnShopItemWarning.Broadcast(WarningCode);
+}
+
+
+int32 UShopItemWSubsystem::GetSameItemCountByItemID(int32 ItemID)
+{
+    for(int i =0; i < PlayerItemArray.Num(); i++)
+    {
+        if(PlayerItemArray[i].ItemID == ItemID)
+        {
+            return PlayerItemArray[i].SameItemNum;
+        }
+    }
+    return 0;
 }

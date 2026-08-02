@@ -20,21 +20,22 @@ void UW_SelectShopCoinSlotButton::NativeConstruct()
 void UW_SelectShopCoinSlotButton::ClickSlotButton()
 {
 
-	ShopCoinSubsystem->ChangeCoinSlotByIndex(SlotIndex);
+	//ShopCoinSubsystem->ChangeCoinSlotByIndex(SlotIndex);
 }
 
 void UW_SelectShopCoinSlotButton::SetSlotCoinCount(int32 CurrentSlotIndex, int32 Count)
 {
+    /*
     if(CurrentSlotIndex == SlotIndex)
     {
         SlotCoinCountText->SetText(FText::AsNumber(Count));
-    }
+    }*/
 }
 
 
 void UW_SelectShopCoinSlotButton::InitButton(int32 ChangeCoinSlotIndex, EWeaponClass SlotWeaponIndex)
 {
-
+/*
     if(ChangeCoinSlotIndex != SlotIndex)
         return;
 
@@ -49,5 +50,5 @@ void UW_SelectShopCoinSlotButton::InitButton(int32 ChangeCoinSlotIndex, EWeaponC
             NewStyle.Normal.TintColor = FSlateColor(FColor::FromHex(TEXT("00FF5BFF")));
 
         SelectSlotButton->SetStyle(NewStyle);
-    }
+    }*/
 }
