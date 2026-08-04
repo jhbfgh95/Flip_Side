@@ -2,6 +2,7 @@
 
 
 #include "UI/ShopUnlockCard/W_UnlockCardModeWidget.h"
+/*
 #include "UI/ShopCard/W_ShopCardWidget.h"
 
 #include "Subsystem/UnlockGISubsystem.h"
@@ -9,11 +10,10 @@
 #include "Subsystem/DataManagerSubsystem.h"
 #include "UI/W_PriceWidget.h"
 
-
 #include "Components/Button.h"
-#include "Components/UniformGridPanel.h"
+#include "Components/UniformGridPanel.h"*/
 
-
+/*
 void UW_UnlockCardModeWidget::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -132,7 +132,7 @@ void UW_UnlockCardModeWidget::SetSelectPlayerCardPopup(FCardData SelectCardData)
     {
         SelectPlayerCardButton->SetVisibility(ESlateVisibility::Visible);
     }*/
-}
+/*}
 
 void UW_UnlockCardModeWidget::SetUnSelectPlayerCardPopup(FCardData UnSelectCardData, int32 PlayerCardIndex)
 {
@@ -223,4 +223,4 @@ void UW_UnlockCardModeWidget::UnlockCardAdaptor(int32 ID)
 void UW_UnlockCardModeWidget::HandleCancelButton()
 {
     ShopCardSubsystem->UnSelectCard();
-}
+}*/

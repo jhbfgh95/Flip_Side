@@ -11,7 +11,7 @@ void UW_ShopPlayerCards::NativeConstruct()
     ShopCardSubsystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
 
     ShopCardSubsystem->OnUnSelectPlayerCard.AddDynamic(this, &UW_ShopPlayerCards::SetUnSelectPlayerCard);
-    ShopCardSubsystem->OnSelectPlayerCard.AddDynamic(this, &UW_ShopPlayerCards::SetSelectPlayerCard);
+    //ShopCardSubsystem->OnSelectPlayerCard.AddDynamic(this, &UW_ShopPlayerCards::SetSelectPlayerCard);
 
     int32 ChildCount = MainCanvas->GetChildrenCount();
 

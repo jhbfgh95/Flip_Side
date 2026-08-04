@@ -32,10 +32,11 @@ void UShopCardWSubsystem::OnWorldBeginPlay(UWorld& World)
 
     DM->TryGetAllCards(TotalCardList);
 
+    /*
     DefaultCard.CardID =-1;
     
     for(int i =0; i<3; i++)
-        PlayerCardList.Add(DefaultCard);
+        PlayerCardList.Add(DefaultCard);*/
 
 }
 
@@ -163,8 +164,9 @@ void UShopCardWSubsystem::AddCardListToUnlockCard(int32 UnlockCardID)
 }
 	
 	
-void UShopCardWSubsystem::SelectPlayerCard(FCardData CardData)
+bool UShopCardWSubsystem::SelectPlayerCard(FCardData CardData)
 {
+    /*
     if(CardData.CardID != -1 && CanSelectCard())
     {   
         int SelectIndex = CanSelectPlayerIndex();
@@ -173,12 +175,24 @@ void UShopCardWSubsystem::SelectPlayerCard(FCardData CardData)
             PlayerCardList[SelectIndex] = (CurrentSelectCard);
             OnSelectPlayerCard.Broadcast(CardData);
         }
+    }*/
+    if(CardData.CardID == -1)
+        return false;
+
+    int32 FindIndex = GetSelectCardListContainIndex(CardData.CardID);
+
+    if(FindIndex != -1)
+        return false;
         
-    }
+    PlayerCardList.Add(CardData);
+    OnSelectPlayerCard.Broadcast(CardData);
+    return true;
+
 }
 	
-void UShopCardWSubsystem::UnSelectPlayerCard(FCardData CardData)
+bool UShopCardWSubsystem::UnSelectPlayerCard(FCardData CardData)
 {
+    /*
     for(int i =0; i< PlayerCardList.Num();i++)
     {
         if(CardData.CardID == PlayerCardList[i].CardID)
@@ -187,10 +201,17 @@ void UShopCardWSubsystem::UnSelectPlayerCard(FCardData CardData)
             OnUnSelectPlayerCard.Broadcast(CardData, i);
             return;
         }
-    }
+    }*/
     
+    int32 index = GetSelectCardListContainIndex(CardData.CardID);
+    if(index != -1)
+    {   
+        PlayerCardList.RemoveAt(index);
+        OnUnselectPlayerCard.Broadcast();
+        return true;
+    }
     WarningShopCard(1);
-    OnUnSelectPlayerCard.Broadcast(DefaultCard,-1);
+    return false;
 }
 
 TArray<FCardData> UShopCardWSubsystem::GetCardListArray()
@@ -234,4 +255,48 @@ int32 UShopCardWSubsystem::GetPlayerCardIndexByID(int32 CardID)
 void UShopCardWSubsystem::WarningShopCard(int32 WarningNum)
 {
     OnShopCardWarning.Broadcast(WarningNum);
+}
+
+void UShopCardWSubsystem::BuyCard(FCardData BuyCardData)
+{
+    if(BuyCardData.CardID == -1)
+        return;
+    if(!UnlockSubsystem->IsCardUnlockByID(BuyCardData.CardID))
+    {
+        if(MoneySubsystem->SpendMoney(EMoneyRecordType::Card, BuyCardData.Price))
+        {
+            UnlockSubsystem->UnlockCard(BuyCardData.CardID);
+        }
+    }
+}
+
+
+
+void UShopCardWSubsystem::HoverCardSlot(FCardData HoverdCardData)
+{
+    OnHoverCard.Broadcast(HoverdCardData);
+}
+	
+void UShopCardWSubsystem::UnhoverCardSlot()
+{
+    OnUnhoverCard.Broadcast();
+}   
+	
+int32 UShopCardWSubsystem::GetPlayerSelectCardCount()
+{
+    return PlayerCardList.Num();
+}
+
+int32 UShopCardWSubsystem::GetSelectCardListContainIndex(int32 CardID)
+{
+    int32 FindIndex = -1;
+    for(int i =0; i< PlayerCardList.Num();i++)
+    {
+        if(PlayerCardList[i].CardID == CardID)
+        {
+            FindIndex = i;
+            return FindIndex;
+        }
+    }
+    return FindIndex;
 }

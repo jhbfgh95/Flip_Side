@@ -59,4 +59,6 @@ public:
 	void ResetUnlockData();
 
 	const TArray<int32>& GetUnlockWeaponArray(EWeaponClass WeaponClass);
+
+	const TArray<int32>& GetUnlockCardArray();
 };

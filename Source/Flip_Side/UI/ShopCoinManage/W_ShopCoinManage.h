@@ -14,7 +14,7 @@ UCLASS()
 class FLIP_SIDE_API UW_ShopCoinManage : public UUserWidget
 {
 	GENERATED_BODY()
-
+/*
 private:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
@@ -64,6 +64,6 @@ private:
 	void ClearCoinSide();
 
 	UFUNCTION()
-	void SetHpText(EWeaponClass WeaponClass);
+	void SetHpText(EWeaponClass WeaponClass);*/
 
 };

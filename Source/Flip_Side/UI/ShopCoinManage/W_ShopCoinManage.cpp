@@ -7,6 +7,7 @@
 #include "UI/W_WeaponDescription.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
+/*
 void UW_ShopCoinManage::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -47,7 +48,7 @@ void UW_ShopCoinManage::SetDes(int32 WeaponID)
 }
 
 void UW_ShopCoinManage::CoinFlipAdaptor(bool IsCoinFront)
-{
+{*/
 	/*
     FCoinTypeStructure CoinData = CoinSubsystem->GetCurrentSlotCoin();
 	if(IsCoinFront)
@@ -58,7 +59,7 @@ void UW_ShopCoinManage::CoinFlipAdaptor(bool IsCoinFront)
 	{
 		SetDes(CoinData.BackWeaponID);
 	}*/
-
+/*
 }
 
 void UW_ShopCoinManage::CoinSlotChangeAdaptor()
@@ -73,7 +74,7 @@ void UW_ShopCoinManage::SetWeaponAdaptor(int32 WeaponID)
 
 
 void UW_ShopCoinManage::SetDesText(FFaceData FaceData)
-{
+{*/
 	/*
     if(FaceData.WeaponID != -1)
 		WeaponDes->SetExplainText(FaceData.WeaponName, FaceData.KOR_DES, FaceData.BehaviorPoint, FaceData.AttackPoint);
@@ -81,14 +82,14 @@ void UW_ShopCoinManage::SetDesText(FFaceData FaceData)
 		WeaponDes->SetExplainTextEmpty();
 
 	UE_LOG(LogTemp, Error, TEXT("%d"), FaceData.TypeID);*/
-}
+/*}
 	
 void UW_ShopCoinManage::ShowDesPanel(int32 WeaponID)
-{
+{*/
 	/*
 	WeaponDes->SetVisibility(ESlateVisibility::Visible);
 	SetDes(WeaponID);*/
-}
+/*}
 	
 void UW_ShopCoinManage::HideDesPanel()
 {
@@ -131,4 +132,4 @@ void UW_ShopCoinManage::SetHpText(EWeaponClass WeaponClass)
 		HPText->SetText(FText::AsNumber(Hp));
 	else
 		HPText->SetText(FText::FromString(TEXT("--")));
-}
+}*/

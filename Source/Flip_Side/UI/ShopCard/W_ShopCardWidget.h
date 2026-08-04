@@ -32,7 +32,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* LockImage;
 
-	FCardData CardData;
+	FCardData CurrentCardData;
 
 
 private:
@@ -51,4 +51,9 @@ public:
 
 	void InitShopCard(FCardData CardDataValue, bool IsUnlock);
 
+	UFUNCTION()
+	void SetCardData(FCardData CardData);
+	
+	UFUNCTION()
+	void UnsetCardData();
 };
