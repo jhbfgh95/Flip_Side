@@ -31,7 +31,7 @@ struct FCoinTypeStructure
     int32 SlotNum = 0;
 };
 
-/** CoinReadyTurn에서 UI 슬롯이 관리하는 코인 묶음 데이터입니다. */
+/** CoinReadyPhase에서 UI 슬롯이 관리하는 코인 묶음 데이터입니다. */
 USTRUCT(BlueprintType)
 struct FBattleCoinSlotData
 {
@@ -53,7 +53,7 @@ struct FBattleCoinSlotData
     int32 AvailableCoinCount = 0;
 };
 
-/** ReadyCoin UI부터 CoinBehaviorTurn의 CoinActor까지 이어지는 논리 코인 데이터입니다. */
+/** ReadyCoin UI부터 CoinBehaviorPhase의 CoinActor까지 이어지는 논리 코인 데이터입니다. */
 USTRUCT(BlueprintType)
 struct FReadyCoinData
 {

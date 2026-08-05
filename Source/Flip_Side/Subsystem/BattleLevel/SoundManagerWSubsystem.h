@@ -19,7 +19,7 @@ private:
     class UAudioComponent* BGMComponent = nullptr;
 
 	UFUNCTION()
-    void OnTurnChanged(ETurnState NewTurn);
+    void OnPhaseChanged(EPhaseState NewPhase);
 
     UFUNCTION()
     void OnCoinAddedToReady();

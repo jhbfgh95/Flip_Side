@@ -34,7 +34,7 @@ void USoundManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
     if (UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>())
     {
-        BattleManager->OnTurnChanged.AddDynamic(this, &USoundManagerWSubsystem::OnTurnChanged);
+        BattleManager->OnPhaseChanged.AddDynamic(this, &USoundManagerWSubsystem::OnPhaseChanged);
     }
 
     // TODO: CoinReadyPhase UI 사운드 정책이 확정되면 다시 연결합니다.
@@ -44,7 +44,7 @@ void USoundManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
     // }
 }
 
-void USoundManagerWSubsystem::OnTurnChanged(ETurnState NewTurn)
+void USoundManagerWSubsystem::OnPhaseChanged(EPhaseState NewPhase)
 {
     // TODO: ReadyCoinWidget 전용 사운드 연출이 확정되면 구현합니다.
 }

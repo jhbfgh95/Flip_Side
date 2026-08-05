@@ -4,7 +4,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "GridTypes.h"
 #include "BossDataTypes.h"
-#include "BossTurnContext.h"
+#include "BossPhaseContext.h"
 
 #include "BossManagerSubsystem.generated.h"
 
@@ -43,7 +43,7 @@ protected:
     FBossBattleData CurrentBossBattleData;
 
     UPROPERTY()
-    FBossTurnContext TurnContext;
+    FBossPhaseContext PhaseContext;
 
     UPROPERTY()
     FBossStageContext StageContext;
@@ -66,10 +66,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Boss")
     TSoftClassPtr<ABase_PatternVisualActor> GetCurrentPatternVisualClass() const;
 
-    UBossPatternBase* GetCurrentTurnPattern() const { return TurnContext.CurrentPattern; }
-    int32 GetCurrentTurnPatternIndex() const { return TurnContext.CurrentPatternIndex; }
-    const TArray<FGridPoint>& GetCurrentTurnLockedCells() const { return TurnContext.LockedCells; }
-    const FBossTurnContext& GetTurnContext() const { return TurnContext; }
+    UBossPatternBase* GetCurrentPhasePattern() const { return PhaseContext.CurrentPattern; }
+    int32 GetCurrentPhasePatternIndex() const { return PhaseContext.CurrentPatternIndex; }
+    const TArray<FGridPoint>& GetCurrentPhaseLockedCells() const { return PhaseContext.LockedCells; }
+    const FBossPhaseContext& GetPhaseContext() const { return PhaseContext; }
 
     void RecalculateTelegraphForRoleTarget();
 
@@ -80,7 +80,7 @@ public:
     void ExecuteCurrentPattern();
 
     UFUNCTION(BlueprintCallable, Category = "Boss")
-    void ClearCurrentTurn();
+    void ClearCurrentPhase();
 
     void BroadcastCoinLanded();
 

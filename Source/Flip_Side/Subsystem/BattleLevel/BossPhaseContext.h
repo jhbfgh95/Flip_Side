@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GridTypes.h"
-#include "BossTurnContext.generated.h"
+#include "BossPhaseContext.generated.h"
 
 class UBossPatternBase;
 class ACoinActor;
@@ -27,7 +27,7 @@ struct FLockedBossTarget
 };
 
 USTRUCT(BlueprintType)
-struct FBossTurnContext
+struct FBossPhaseContext
 {
     GENERATED_BODY()
 

@@ -288,7 +288,7 @@ void UStageCardWSubsystem::ClearAllModifiers()
     UnActiveCardUI();
 }
 
-void UStageCardWSubsystem::SettingDoSettingTurn()
+void UStageCardWSubsystem::SettingDoSettingPhase()
 {
     ClearPromotionHighlight();
     //카드 활성화 초기화

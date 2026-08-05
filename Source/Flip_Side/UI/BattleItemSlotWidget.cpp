@@ -36,6 +36,11 @@ void UBattleItemSlotWidget::SetItemData(const FBattleItemSlotViewData& InData)
 		ItemCountText->SetText(FText::AsNumber(AvailableCount));
 	}
 
+	if (IsValid(ItemNameText))
+	{
+		ItemNameText->SetText(FText::FromString(InData.ItemData.ItemName));
+	}
+
 	if (IsValid(ItemIcon) && IsValid(InData.ItemData.ItemIcon))
 	{
 		ItemIconMaterialInstance = ItemIcon->GetDynamicMaterial();

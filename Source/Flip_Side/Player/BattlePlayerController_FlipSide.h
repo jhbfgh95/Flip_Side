@@ -54,10 +54,13 @@ private:
     FTimerHandle BossHUDBindRetryHandle;
 
     UFUNCTION()
-    void OnTurnChanged(ETurnState NewTurn);
+    void OnPhaseChanged(EPhaseState NewPhase);
 
     UFUNCTION()
     void OnStageEnded(int32 StageEndFlag);
+
+	UFUNCTION()
+	void HandleBossPhaseCompleted();
 
     UFUNCTION()
     void RefreshBattleCoinHUD();
@@ -68,6 +71,8 @@ private:
     UFUNCTION()
     void RefreshBattleCardHUD();
 
+    void RefreshBattlePhaseHUD();
+
     void TryBindBossHUD();
     void RefreshBossHUD();
     void HandleBossHUDDataChanged(const FBossHUDData& InData);
@@ -75,6 +80,7 @@ private:
     void HandleBattleCoinSlotClicked(int32 SlotNumber);
     void HandleReadyCoinClicked(int32 CoinInstanceID);
 	void HandleBattleItemSlotClicked(int32 ItemID);
+	void HandleBattlePhaseProgressClicked();
     FBattleCoinSlotViewData BuildCoinSlotViewData(const FBattleCoinSlotData& CoinSlotData) const;
     FBattleReadyCoinViewData BuildReadyCoinViewData(const FReadyCoinData& ReadyCoinData, int32 ReadySlotNumber) const;
 	FBattleItemSlotViewData BuildItemSlotViewData(const FBattleItemSlotData& ItemSlotData, bool bCanUse) const;

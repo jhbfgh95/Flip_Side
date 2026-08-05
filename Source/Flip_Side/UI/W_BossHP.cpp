@@ -2,28 +2,13 @@
 
 
 #include "UI/W_BossHP.h"
-#include "Components/Button.h"
-#include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
-#include "Components/Widget.h"
 
 void UW_BossHP::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    if(GroggyBarPanel)
-    {
-        GroggyBarPanel->SetVisibility(ESlateVisibility::Collapsed);
-    }
-
-    if(PatternHoverButton)
-    {
-        PatternHoverButton->OnHovered.AddDynamic(this, &UW_BossHP::ShowPatternPopup);
-        PatternHoverButton->OnUnhovered.AddDynamic(this, &UW_BossHP::HidePatternPopup);
-    }
-
-    HidePatternPopup();
     RefreshHpBar();
     RefreshShieldBar();
     SnapHpBarToTarget();
@@ -64,16 +49,6 @@ void UW_BossHP::SetBossHUDData(const FBossHUDData& InData)
         RefreshShieldBar();
     }
 
-    if (InData.bHasPatternInfo)
-    {
-        SetPatternInfo(
-            InData.PatternDisplayIndex,
-            InData.PatternName,
-            InData.PatternDescription,
-            InData.PatternDamage,
-            InData.PatternIcon
-        );
-    }
 }
 
 void UW_BossHP::InitBossHp(int32 SetMaxHp)
@@ -102,42 +77,6 @@ void UW_BossHP::SetBossName(const FString& SetBossName)
     }
 }
 
-void UW_BossHP::SetPatternInfo(int32 PatternDisplayIndex, const FString& PatternName, const FText& PatternDescription, int32 FinalDamage, UTexture2D* PatternIcon)
-{
-    if(PatternIndexText)
-    {
-        PatternIndexText->SetText(FText::AsNumber(PatternDisplayIndex));
-    }
-
-    if(PatternNameText)
-    {
-        PatternNameText->SetText(FText::FromString(PatternName));
-    }
-
-    if(PatternDescriptionText)
-    {
-        PatternDescriptionText->SetText(PatternDescription);
-    }
-
-    if(PatternDamageText)
-    {
-        PatternDamageText->SetText(FText::AsNumber(FinalDamage));
-    }
-
-    if(PatternIconImage)
-    {
-        if(PatternIcon)
-        {
-            PatternIconImage->SetBrushFromTexture(PatternIcon);
-            PatternIconImage->SetVisibility(ESlateVisibility::HitTestInvisible);
-        }
-        else
-        {
-            PatternIconImage->SetVisibility(ESlateVisibility::Hidden);
-        }
-    }
-}
-
 void UW_BossHP::ChangeMaxHp(int32 AddMaxHp)
 {
     MaxHp = FMath::Max(0, MaxHp + AddMaxHp);
@@ -151,27 +90,6 @@ void UW_BossHP::ChangeCurrentHp(int32 AddHpValue)
     CurrentHp = FMath::Clamp(CurrentHp + AddHpValue, 0, MaxHp);
 
     RefreshHpBar();
-}
-
-	
-void UW_BossHP::InitGroggyBar(int32 SetMaxGroggy)
-{
-    MaxGroggy = FMath::Max(0, SetMaxGroggy);
-    CurrentGroggy = 0;
-    bIsGroggyBarInitialized = true;
-
-    if(GroggyBarPanel)
-    {
-        GroggyBarPanel->SetVisibility(ESlateVisibility::HitTestInvisible);
-    }
-
-    RefreshGroggyBar();
-}
-
-void UW_BossHP::UpdateGroggyBar(int32 NewCurrentGroggy)
-{
-    CurrentGroggy = FMath::Clamp(NewCurrentGroggy, 0, MaxGroggy);
-    RefreshGroggyBar();
 }
 
 void UW_BossHP::InitGroggyAsShield(int32 SetMaxGroggy)
@@ -206,28 +124,6 @@ void UW_BossHP::UpdateGroggyAsShield(int32 NewCurrentGroggy)
     }
 }
 
-void UW_BossHP::RefreshGroggyBar()
-{
-    if(GroggyText)
-    {
-        GroggyText->SetText(FText::AsNumber(CurrentGroggy));
-    }
-
-    if(GroggyTotalText)
-    {
-        GroggyTotalText->SetText(FText::Format(
-            FText::FromString(TEXT("/ {0}")),
-            FText::AsNumber(MaxGroggy)
-        ));
-    }
-
-    if(GroggyProgressBar)
-    {
-        const float Percent = MaxGroggy > 0 ? static_cast<float>(CurrentGroggy) / static_cast<float>(MaxGroggy) : 0.f;
-        GroggyProgressBar->SetPercent(Percent);
-    }
-}
-
 void UW_BossHP::ChangeMaxShield(int32 AddMaxShield)
 {
     MaxShield = FMath::Max(0, MaxShield + AddMaxShield);
@@ -241,22 +137,6 @@ void UW_BossHP::ChangeCurrentShield(int32 AddShieldValue)
     CurrentShield = FMath::Clamp(CurrentShield + AddShieldValue, 0, MaxShield);
 
     RefreshShieldBar();
-}
-
-void UW_BossHP::ShowPatternPopup()
-{
-    if(PatternPopupPanel)
-    {
-        PatternPopupPanel->SetVisibility(ESlateVisibility::HitTestInvisible);
-    }
-}
-
-void UW_BossHP::HidePatternPopup()
-{
-    if(PatternPopupPanel)
-    {
-        PatternPopupPanel->SetVisibility(ESlateVisibility::Hidden);
-    }
 }
 
 void UW_BossHP::RefreshHpBar()

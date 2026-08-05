@@ -22,8 +22,8 @@ void UAnimNotify_BossVFX::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
 
 	if (!BossMgr || !ActingMgr || !GridMgr) return;
 
-	const int32 PatternIndex = BossMgr->GetCurrentTurnPatternIndex();
-	UBossPatternBase* Pattern = BossMgr->GetCurrentTurnPattern();
+	const int32 PatternIndex = BossMgr->GetCurrentPhasePatternIndex();
+	UBossPatternBase* Pattern = BossMgr->GetCurrentPhasePattern();
 
 	UE_LOG(LogTemp, Warning, TEXT("[BossVFX] PatternIndex=%d, Pattern=%d"), PatternIndex, Pattern != nullptr);
 
@@ -53,7 +53,7 @@ void UAnimNotify_BossVFX::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
 
 	const FVector Scale = ScaleOverride.IsZero() ? PatternData.PatternScale : ScaleOverride;
 
-	const TArray<FGridPoint>& LockedCells = BossMgr->GetCurrentTurnLockedCells();
+	const TArray<FGridPoint>& LockedCells = BossMgr->GetCurrentPhaseLockedCells();
 
 	UE_LOG(LogTemp, Warning, TEXT("[BossVFX] LockedCells count=%d"), LockedCells.Num());
 

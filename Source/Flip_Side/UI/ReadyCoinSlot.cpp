@@ -11,10 +11,10 @@
 namespace
 {
 	const FName CancelStateIconParameterName(TEXT("ReadyCoin_CancelStateIcon"));
-	const FName WeaponIconParameterName(TEXT("Weapon_Icon"));
-	const FName WeaponColorParameterName(TEXT("Weapon_Color"));
-	const FLinearColor FrontWeaponColor(0.862745f, 0.913725f, 0.313725f, 1.0f);
-	const FLinearColor BackWeaponColor(0.905882f, 0.933333f, 0.917647f, 1.0f);
+	const FName ReadyCoinWeaponIconParameterName(TEXT("Weapon_Icon"));
+	const FName ReadyCoinWeaponColorParameterName(TEXT("Weapon_Color"));
+	const FLinearColor ReadyCoinFrontWeaponColor(0.862745f, 0.913725f, 0.313725f, 1.0f);
+	const FLinearColor ReadyCoinBackWeaponColor(0.905882f, 0.933333f, 0.917647f, 1.0f);
 }
 
 void UReadyCoinSlot::NativeConstruct()
@@ -73,7 +73,7 @@ void UReadyCoinSlot::SetReadyCoinData(const FBattleReadyCoinViewData& InData)
 			FrontWeaponIcon,
 			InData.FrontIcon,
 			FrontWeaponIconMaterialInstance,
-			FrontWeaponColor
+			ReadyCoinFrontWeaponColor
 		);
 	}
 
@@ -83,7 +83,7 @@ void UReadyCoinSlot::SetReadyCoinData(const FBattleReadyCoinViewData& InData)
 			BackWeaponIcon,
 			InData.BackIcon,
 			BackWeaponIconMaterialInstance,
-			BackWeaponColor
+			ReadyCoinBackWeaponColor
 		);
 	}
 
@@ -216,8 +216,8 @@ void UReadyCoinSlot::UpdateWeaponIconMaterial(
 		return;
 	}
 
-	DynamicMaterial->SetTextureParameterValue(WeaponIconParameterName, WeaponIconTexture);
-	DynamicMaterial->SetVectorParameterValue(WeaponColorParameterName, WeaponColor);
+	DynamicMaterial->SetTextureParameterValue(ReadyCoinWeaponIconParameterName, WeaponIconTexture);
+	DynamicMaterial->SetVectorParameterValue(ReadyCoinWeaponColorParameterName, WeaponColor);
 	UE_LOG(
 		LogTemp,
 		Log,

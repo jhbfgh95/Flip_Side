@@ -42,7 +42,7 @@ bool UBattleLevelActingWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 
 void UBattleLevelActingWSubsystem::WaitTeleportUntilLeverDown()
 {
-    // TODO: ReadyCoinWidget 기반 CoinBehaviorTurn 연출이 정해진 뒤 새 흐름으로 구현합니다.
+    // TODO: ReadyCoinWidget 기반 CoinBehaviorPhase 연출이 정해진 뒤 새 흐름으로 구현합니다.
 }
 
 

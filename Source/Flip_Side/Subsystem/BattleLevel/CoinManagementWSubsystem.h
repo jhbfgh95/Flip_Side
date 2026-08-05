@@ -29,7 +29,7 @@ public:
 	/** 상점에서 넘긴 슬롯 데이터를 UI용 코인 슬롯 상태로 초기화합니다. */
 	void InitializeCoinSlots(const TArray<FCoinTypeStructure>& InCoinSlots);
 
-	/** 보유 코인이 없을 때 CoinReadyTurn UI를 점검하기 위한 3종 테스트 코인을 생성합니다. */
+	/** 보유 코인이 없을 때 CoinReadyPhase UI를 점검하기 위한 3종 테스트 코인을 생성합니다. */
 	UFUNCTION(BlueprintCallable, Category = "Coin|Debug")
 	void CreateTestCoinSlots();
 
@@ -39,12 +39,12 @@ public:
 	const TArray<FBattleCoinSlotData>& GetCoinSlots() const { return CoinSlots; }
 	const TArray<FReadyCoinData>& GetReadyCoinData() const { return ReadyCoins; }
 
-	void SetCoinReadyTurn(bool bEnabled) { bIsCoinReadyTurn = bEnabled; }
+	void SetCoinReadyPhase(bool bEnabled) { bIsCoinReadyPhase = bEnabled; }
 
-	// CoinBehaviorTurn에서 Actor가 생성된 뒤 사망 처리와 함께 사용할 예정입니다.
+	// CoinBehaviorPhase에서 Actor가 생성된 뒤 사망 처리와 함께 사용할 예정입니다.
 	bool RemoveReadyCoinByInstanceID(int32 CoinInstanceID);
 
-	// === 기존 전투 Actor 흐름 호환용 API: CoinBehaviorTurn 리팩터링 전까지 빈 배열을 반환합니다. ===
+	// === 기존 전투 Actor 흐름 호환용 API: CoinBehaviorPhase 리팩터링 전까지 빈 배열을 반환합니다. ===
 	void InitBattleReadyCoin();
 	void CheckBattleReadyCoinAlive();
 	void AddBattleReadyCoins(ACoinActor* SelectCoinActor, bool bArrangeSlot = true);
@@ -86,6 +86,6 @@ private:
 	UPROPERTY()
 	TArray<FReadyCoinData> ReadyCoins;
 
-	// BattleManager의 CoinReadyTurn 연결은 현재 주석 처리되어 있으므로 UI 테스트 중에는 활성 상태로 둡니다.
-	bool bIsCoinReadyTurn = true;
+	// BattleManager의 CoinReadyPhase 연결은 현재 주석 처리되어 있으므로 UI 테스트 중에는 활성 상태로 둡니다.
+	bool bIsCoinReadyPhase = true;
 };

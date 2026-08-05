@@ -12,6 +12,8 @@
 #include "UI/W_ItemInfo.h"
 #include "UI/W_CardWidget.h"
 #include "UI/W_BossHP.h"
+#include "UI/BattleBossPatternHUDWidget.h"
+#include "UI/W_BattlePhaseAndTurnDisplayUI.h"
 
 void UBattlePlayerHUDWidget::NativeConstruct()
 {
@@ -20,6 +22,12 @@ void UBattlePlayerHUDWidget::NativeConstruct()
 	if (IsValid(BattleReadyCoinWidget))
 	{
 		BattleReadyCoinWidget->OnReadyCoinClicked.AddUObject(this, &UBattlePlayerHUDWidget::HandleReadyCoinClicked);
+	}
+
+	if (IsValid(PhaseAndTurnDisplayWidget))
+	{
+		PhaseAndTurnDisplayWidget->OnPhaseProgressRequested.RemoveAll(this);
+		PhaseAndTurnDisplayWidget->OnPhaseProgressRequested.AddUObject(this, &UBattlePlayerHUDWidget::HandlePhaseProgressRequested);
 	}
 
 	CacheFixedItemSlots();
@@ -62,6 +70,11 @@ void UBattlePlayerHUDWidget::SetBossHUDData(const FBossHUDData& InData)
 	if (IsValid(BossHPWidget))
 	{
 		BossHPWidget->SetBossHUDData(InData);
+	}
+
+	if (IsValid(BossPatternWidget))
+	{
+		BossPatternWidget->SetBossHUDData(InData);
 	}
 }
 
@@ -112,6 +125,22 @@ void UBattlePlayerHUDWidget::SetCardSlots(const TArray<FBattleCardSlotViewData>&
 		{
 			CardSlotWidget->ClearCardData();
 		}
+	}
+}
+
+void UBattlePlayerHUDWidget::SetPhaseDisplay(EPhaseState CurrentPhase, int32 TurnCount)
+{
+	if (IsValid(PhaseAndTurnDisplayWidget))
+	{
+		PhaseAndTurnDisplayWidget->SetPhaseDisplay(CurrentPhase, TurnCount);
+	}
+}
+
+void UBattlePlayerHUDWidget::PlayBossPhaseCompletionAnimation()
+{
+	if (IsValid(PhaseAndTurnDisplayWidget))
+	{
+		PhaseAndTurnDisplayWidget->PlayBossPhaseCompletionAnimation();
 	}
 }
 
@@ -194,6 +223,11 @@ void UBattlePlayerHUDWidget::HandleCoinSlotUnhovered(int32 SlotNumber)
 void UBattlePlayerHUDWidget::HandleReadyCoinClicked(int32 CoinInstanceID)
 {
 	OnReadyCoinClicked.Broadcast(CoinInstanceID);
+}
+
+void UBattlePlayerHUDWidget::HandlePhaseProgressRequested()
+{
+	OnPhaseProgressClicked.Broadcast();
 }
 
 void UBattlePlayerHUDWidget::HandleItemSlotClicked(int32 ItemID)

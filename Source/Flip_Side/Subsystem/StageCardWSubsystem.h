@@ -82,7 +82,7 @@ public:
     UFUNCTION(BlueprintCallable)
     void ClearAllModifiers();
 
-    void SettingDoSettingTurn();
+    void SettingDoSettingPhase();
 
     //Park 추가
     int32 GetCardPrice() { return static_cast<int32>(CardPrice / 2); }

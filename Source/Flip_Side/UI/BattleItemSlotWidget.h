@@ -36,6 +36,9 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> ItemCountText;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> ItemNameText;
+
 private:
 	UFUNCTION()
 	void HandleItemButtonClicked();

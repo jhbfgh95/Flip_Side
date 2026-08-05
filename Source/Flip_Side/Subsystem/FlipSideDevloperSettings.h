@@ -12,7 +12,6 @@ class UW_BattleCoinInfo;
 class UUserWidget;
 class UW_StageEnd;
 class UW_MoneyDisplay;
-class UW_BattlePhaseAndTurnDisplayUI;
 class UW_BattleTutorialOverlay;
 class UBattleTutorialSequenceData;
 class AUseableItemActor;
@@ -41,9 +40,6 @@ public:
 
 	UPROPERTY(EditAnywhere, config, Category = "Battle | UI")
 	TSoftClassPtr<UW_StageEnd> StageEndWidgetClass;
-
-	UPROPERTY(EditAnywhere, config, Category = "Battle | UI")
-	TSoftClassPtr<UW_BattlePhaseAndTurnDisplayUI> BattlePhaseAndTurnDisplayWidgetClass;
 
 	UPROPERTY(EditAnywhere, config, Category = "Battle | Tutorial")
 	TSoftObjectPtr<UBattleTutorialSequenceData> BattleTutorialSequenceData;

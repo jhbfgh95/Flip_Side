@@ -215,7 +215,7 @@ void ABossActor::RemoveCC()
 	UE_LOG(LogTemp, Warning, TEXT("[BossActor] CC Removed"));
 }
 
-bool ABossActor::ConsumeCCForBossTurn()
+bool ABossActor::ConsumeCCForBossPhase()
 {
 	if(!bIsOnCC)
 	{

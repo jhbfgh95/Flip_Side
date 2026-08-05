@@ -86,11 +86,11 @@ void UCoinActionManagementWSubsystem::CancelSelectWeapon()
     InitWeaponAction();
 }
 
-void UCoinActionManagementWSubsystem::SetTurn(const bool bIsTurn)
+void UCoinActionManagementWSubsystem::SetPhase(const bool bIsPhase)
 {
-    bIsCorrectTurn = bIsTurn;
+    bIsCorrectPhase = bIsPhase;
 
-    if(!bIsTurn)
+    if(!bIsPhase)
     {
         GetWorld()->GetTimerManager().ClearTimer(AutoActionHandler);
         GetWorld()->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
@@ -116,7 +116,7 @@ void UCoinActionManagementWSubsystem::StopActionSequenceForStageEnd()
         }
     }
 
-    bIsCorrectTurn = false;
+    bIsCorrectPhase = false;
     bActionSequenceActive = false;
     bCurrentStepTargetValid = true;
     bPendingFailedVFX = false;
@@ -208,7 +208,7 @@ bool UCoinActionManagementWSubsystem::ApplyRangedThings(const FGridPoint& Target
 
 void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
 {
-    if(!bIsCorrectTurn) return;
+    if(!bIsCorrectPhase) return;
     if(!IsValid(HoveredCoin)) return;
     if(bActionSequenceActive) return;
 
@@ -435,7 +435,7 @@ void UCoinActionManagementWSubsystem::HideBattleCoinInfo()
 
 void UCoinActionManagementWSubsystem::HandleCoinUnHovered()
 {
-    if(!bIsCorrectTurn) return;
+    if(!bIsCorrectPhase) return;
 
     HideBattleCoinInfo();
 
@@ -453,7 +453,7 @@ void UCoinActionManagementWSubsystem::HandleCoinUnHovered()
 
 void UCoinActionManagementWSubsystem::StartCoinActionSequence(ACoinActor* CasterCoin)
 {
-    if(!bIsCorrectTurn || !SelectedAction || !IsValid(CasterCoin)) return;
+    if(!bIsCorrectPhase || !SelectedAction || !IsValid(CasterCoin)) return;
     if(bActionSequenceActive) return;
 
     if (USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>())

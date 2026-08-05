@@ -25,7 +25,6 @@
 #include "TemplateFunction_Utils.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/GameInstance.h"
-#include "UI/W_BattlePhaseAndTurnDisplayUI.h"
 #include "UI/W_StageEnd.h"
 
 #define BATTLE_COIN_MAX 10
@@ -52,7 +51,7 @@ void UBattleManagerWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
     RandomStateArray.SetNum(BATTLE_COIN_MAX);
 
-    TurnStackInit();
+    PhaseStackInit();
 }
 
 bool UBattleManagerWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -95,38 +94,38 @@ void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
         {
             if (ABossActor* Boss = BossManager->GetCurrentBoss())
             {
-                Boss->OnBossAttackEnded.AddDynamic(this, &UBattleManagerWSubsystem::DoSettingTurn);
+                Boss->OnBossAttackEnded.AddDynamic(this, &UBattleManagerWSubsystem::HandleBossPhaseCompleted);
                 Boss->OnBossDeathStarted.AddDynamic(this, &UBattleManagerWSubsystem::BossDeathStarted);
                 Boss->OnBossDead.AddDynamic(this, &UBattleManagerWSubsystem::StageEnded);
             }
         }
     }
 
-    // TODO: CoinBehaviorTurn에서 실 CoinActor 생성 흐름을 복구할 때 다시 바인딩합니다.
+    // TODO: CoinBehaviorPhase에서 실 CoinActor 생성 흐름을 복구할 때 다시 바인딩합니다.
     // if(CoinManager)
     // {
     //     CoinManager->OnAllCoinDead.BindUObject(this, &UBattleManagerWSubsystem::GameOver);
     // }
-    DoSettingTurn();
+    DoSettingPhase();
 }
 
-void UBattleManagerWSubsystem::TurnStackInit()
+void UBattleManagerWSubsystem::PhaseStackInit()
 {
-    TurnManageMentStack.Push(ETurnState::BossTurn);
-    TurnManageMentStack.Push(ETurnState::CoinBehaviorTurn);
-    TurnManageMentStack.Push(ETurnState::CoinReadyTurn);
-    TurnManageMentStack.Push(ETurnState::SettingTurn);
+    PhaseManagementStack.Push(EPhaseState::BossPhase);
+    PhaseManagementStack.Push(EPhaseState::CoinBehaviorPhase);
+    PhaseManagementStack.Push(EPhaseState::CoinReadyPhase);
+    PhaseManagementStack.Push(EPhaseState::SettingPhase);
 
-    CurrentTurn = TurnManageMentStack.Top();
+    CurrentPhase = PhaseManagementStack.Top();
 }
 
-ETurnState UBattleManagerWSubsystem::GetCurrentTurn()
+EPhaseState UBattleManagerWSubsystem::GetCurrentPhase() const
 {
-    return TurnManageMentStack.Top();
+    return PhaseManagementStack.Top();
 }
 
-bool UBattleManagerWSubsystem::StartBattleFromLever(float BattleLeverEndTime) { 
-   
+bool UBattleManagerWSubsystem::RequestPhaseProgress(float TransitionLockTime)
+{
     if (bIsStageEnded)
     {
         return false;
@@ -137,18 +136,30 @@ bool UBattleManagerWSubsystem::StartBattleFromLever(float BattleLeverEndTime) {
         return false;
     }
 
-    if (CurrentTurn != ETurnState::CoinReadyTurn &&
-        CurrentTurn != ETurnState::CoinBehaviorTurn)
+    if (CurrentPhase != EPhaseState::CoinReadyPhase &&
+        CurrentPhase != EPhaseState::CoinBehaviorPhase)
     {
         return false;
     }
 
-    LeverLockTime = BattleLeverEndTime;
+    LeverLockTime = FMath::Max(0.f, TransitionLockTime);
 
-    LockLever(EBattleLeverLockReason::TurnTransition);
-    TurnProgressing();
-    OnBattleTutorialLeverTriggered.Broadcast();
+    LockLever(EBattleLeverLockReason::PhaseTransition);
+    PhaseProgressing();
 
+    return true;
+}
+
+bool UBattleManagerWSubsystem::StartBattleFromLever(float BattleLeverEndTime)
+{
+    const bool bPhaseProgressed = RequestPhaseProgress(BattleLeverEndTime);
+    if (!bPhaseProgressed)
+    {
+        return false;
+    }
+
+    // TODO: 튜토리얼을 재구성할 때 새 UI 진행 버튼에 맞는 이벤트로 다시 연결합니다.
+    // OnBattleTutorialLeverTriggered.Broadcast();
     return true;
 }
 
@@ -185,51 +196,29 @@ void UBattleManagerWSubsystem::UnlockLeverAfter(float DelaySeconds)
     }
 }
 
-void UBattleManagerWSubsystem::TurnProgressing()
+void UBattleManagerWSubsystem::PhaseProgressing()
 {
     if(bIsStageEnded) return;
 
-    //세팅 턴 -> 코인 레디턴 -> 코인 비헤이비어턴 -> 보스 턴
-    TurnManageMentStack.Pop();
-    CurrentTurn = TurnManageMentStack.Top();
+    // 세팅 페이즈 -> 코인 레디 페이즈 -> 코인 비헤이비어 페이즈 -> 보스 페이즈
+    PhaseManagementStack.Pop();
+    CurrentPhase = PhaseManagementStack.Top();
 
-    OnTurnChanged.Broadcast(CurrentTurn);
+    OnPhaseChanged.Broadcast(CurrentPhase);
 
-    if (CurrentTurn != ETurnState::SettingTurn)
+    switch(CurrentPhase)
     {
-        if (!BattlePhaseAndTurnDisplayWidgetInstance)
-        {
-            const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
-            UClass* BattlePhaseAndTurnDisplayWidgetClass = Settings ? Settings->BattlePhaseAndTurnDisplayWidgetClass.LoadSynchronous() : nullptr;
-            if (BattlePhaseAndTurnDisplayWidgetClass)
-            {
-                BattlePhaseAndTurnDisplayWidgetInstance = CreateWidget<UW_BattlePhaseAndTurnDisplayUI>(GetWorld(), BattlePhaseAndTurnDisplayWidgetClass);
-                if (BattlePhaseAndTurnDisplayWidgetInstance)
-                {
-                    BattlePhaseAndTurnDisplayWidgetInstance->AddToViewport(90);
-                }
-            }
-        }
-
-        if (BattlePhaseAndTurnDisplayWidgetInstance)
-        {
-            BattlePhaseAndTurnDisplayWidgetInstance->SetTurnDisplay(CurrentTurn, TurnCount);
-        }
-    }
-
-    switch(CurrentTurn)
-    {
-    case ETurnState::SettingTurn:
-        DoSettingTurn();
+    case EPhaseState::SettingPhase:
+        DoSettingPhase();
         break;
-    case ETurnState::CoinReadyTurn:
-        DoCoinReadyTurn();
+    case EPhaseState::CoinReadyPhase:
+        DoCoinReadyPhase();
         break;
-    case ETurnState::CoinBehaviorTurn:
-        DoCoinBehaviorTurn();
+    case EPhaseState::CoinBehaviorPhase:
+        DoCoinBehaviorPhase();
         break;
-    case ETurnState::BossTurn:
-        DoBossTurn();
+    case EPhaseState::BossPhase:
+        DoBossPhase();
         break;
     }
 
@@ -269,25 +258,25 @@ void UBattleManagerWSubsystem::GenerateRandomStates()
 
 void UBattleManagerWSubsystem::MatchCoinsToRandomState()
 {
-    // TODO: CoinBehaviorTurn에서 ReadyCoinData를 CoinActor로 인스턴싱한 뒤 복구합니다.
+    // TODO: CoinBehaviorPhase에서 ReadyCoinData를 CoinActor로 인스턴싱한 뒤 복구합니다.
 }
 
-void UBattleManagerWSubsystem::DoCoinReadyTurn()
+void UBattleManagerWSubsystem::DoCoinReadyPhase()
 {
-    LockLever(EBattleLeverLockReason::TurnTransition);
+    LockLever(EBattleLeverLockReason::PhaseTransition);
 	if (ItemManager)
 	{
-		ItemManager->SetTurn(false);
+		ItemManager->SetPhase(false);
 	}
     // TODO: CoinReadyPhase 리팩터링 완료 후 UI 입력 활성화를 여기서 제어합니다.
-    // CoinManager->SetCoinReadyTurn(true);
+    // CoinManager->SetCoinReadyPhase(true);
     UnlockLeverAfter(LeverLockTime + 1.0f);
 }
 
-void UBattleManagerWSubsystem::DoCoinBehaviorTurn()
+void UBattleManagerWSubsystem::DoCoinBehaviorPhase()
 {
-    // TODO: CoinBehaviorTurn 구현 전까지 Actor 기반 CoinReady 처리와 전송은 비활성화합니다.
-    // CoinManager->SetCoinReadyTurn(false);
+    // TODO: CoinBehaviorPhase 구현 전까지 Actor 기반 CoinReady 처리와 전송은 비활성화합니다.
+    // CoinManager->SetCoinReadyPhase(false);
     // MatchCoinsToRandomState();
     
     // TODO: 카드 조건 검사가 Tick 기반으로 이관되면 호출 경로를 복구합니다.
@@ -298,12 +287,12 @@ void UBattleManagerWSubsystem::DoCoinBehaviorTurn()
 
     if (IsValid(CoinActionManager))
     {
-        CoinActionManager->SetTurn(true);
+        CoinActionManager->SetPhase(true);
     }
 
     if (IsValid(ItemManager))
     {
-        ItemManager->SetTurn(true);
+        ItemManager->SetPhase(true);
         ItemManager->CoinBindsToItemMan();
     }
 
@@ -311,31 +300,31 @@ void UBattleManagerWSubsystem::DoCoinBehaviorTurn()
 
     if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
     {
-        UE_LOG(LogTemp, Warning, TEXT("[Battle] DoCoinBehaviorTurn OnPlayerTurnStart broadcast, GimmickCount=%d"), Boss->GetGimmickList().Num());
+        UE_LOG(LogTemp, Warning, TEXT("[Battle] DoCoinBehaviorPhase OnPlayerPhaseStart broadcast, GimmickCount=%d"), Boss->GetGimmickList().Num());
         for (UBossGimmickBase* G : Boss->GetGimmickList())
         {
-            if (IsValid(G)) G->OnPlayerTurnStart(Boss);
+            if (IsValid(G)) G->OnPlayerPhaseStart(Boss);
         }
     }
 
 }
 
-void UBattleManagerWSubsystem::DoBossTurn()
+void UBattleManagerWSubsystem::DoBossPhase()
 {
      if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
     for (UBossGimmickBase* G : Boss->GetGimmickList())
     {
-        if (IsValid(G)) G->OnPlayerTurnEnd(Boss);
+        if (IsValid(G)) G->OnPlayerPhaseEnd(Boss);
     }
 
     if (IsValid(CoinActionManager))
     {
-        CoinActionManager->SetTurn(false);
+        CoinActionManager->SetPhase(false);
     }
 
     if (IsValid(ItemManager))
     {
-        ItemManager->SetTurn(false);
+        ItemManager->SetPhase(false);
     }
 
     if (IsValid(ActingManager))
@@ -347,10 +336,9 @@ void UBattleManagerWSubsystem::DoBossTurn()
     {
         BossManager->ExecuteCurrentPattern();
     }
-    TurnStackInit();
 }
 
-void UBattleManagerWSubsystem::DoSettingTurn()
+void UBattleManagerWSubsystem::DoSettingPhase()
 {
     if (bIsStageEnded) return;
 
@@ -358,13 +346,13 @@ void UBattleManagerWSubsystem::DoSettingTurn()
 
     if (StageCardManager)
     {
-        StageCardManager->SettingDoSettingTurn();
+        StageCardManager->SettingDoSettingPhase();
     }
 
     GenerateRandomStates();
     ActingManager->DoSettingAct();
     GridManager->InitGrids();
-    // TODO: CoinBehaviorTurn에서 생존 CoinActor를 ReadyCoinData로 복귀시키는 로직을 추가합니다.
+    // TODO: CoinBehaviorPhase에서 생존 CoinActor를 ReadyCoinData로 복귀시키는 로직을 추가합니다.
     // CoinManager->CheckBattleReadyCoinAlive();
     BossManager->StartBossSetting();
     TSoftClassPtr<ABase_PatternVisualActor> VisualClass = BossManager->GetCurrentPatternVisualClass();
@@ -374,7 +362,19 @@ void UBattleManagerWSubsystem::DoSettingTurn()
         ActingManager->PrepareBossVisualActor(VisualClass);
     }
 
-    TurnProgressing();
+    PhaseProgressing();
+}
+
+void UBattleManagerWSubsystem::HandleBossPhaseCompleted()
+{
+	if (bIsStageEnded)
+	{
+		return;
+	}
+
+	OnBossPhaseCompleted.Broadcast();
+	PhaseStackInit();
+	DoSettingPhase();
 }
 
 void UBattleManagerWSubsystem::StageEnded()
@@ -399,7 +399,7 @@ void UBattleManagerWSubsystem::BossDeathStarted()
 
     if (ItemManager)
     {
-        ItemManager->SetTurn(false);
+        ItemManager->SetPhase(false);
     }
 
     if (ActingManager)
@@ -424,12 +424,6 @@ bool UBattleManagerWSubsystem::TryEndStage(int32 StageEndFlag)
     }
 
     bIsStageEnded = true;
-
-    if (BattlePhaseAndTurnDisplayWidgetInstance)
-    {
-        BattlePhaseAndTurnDisplayWidgetInstance->RemoveFromParent();
-        BattlePhaseAndTurnDisplayWidgetInstance = nullptr;
-    }
 
     if (StageEndFlag == StageClearFlag)
     {

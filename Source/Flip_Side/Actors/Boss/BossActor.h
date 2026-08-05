@@ -89,7 +89,7 @@ public:
 
 	virtual void RemoveCC();
 
-	virtual bool ConsumeCCForBossTurn();
+	virtual bool ConsumeCCForBossPhase();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")

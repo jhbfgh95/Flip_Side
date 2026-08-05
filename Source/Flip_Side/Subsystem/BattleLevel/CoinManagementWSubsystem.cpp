@@ -113,7 +113,7 @@ void UCoinManagementWSubsystem::CreateTestCoinSlots()
 
 bool UCoinManagementWSubsystem::TryAddReadyCoinFromSlot(int32 SlotNumber)
 {
-	if (!bIsCoinReadyTurn || GetReadyCoinCount() >= MaxReadyCoinCount)
+	if (!bIsCoinReadyPhase || GetReadyCoinCount() >= MaxReadyCoinCount)
 	{
 		return false;
 	}
@@ -196,17 +196,17 @@ void UCoinManagementWSubsystem::InitBattleReadyCoin()
 
 void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
 {
-	// TODO: CoinBehaviorTurn에서 살아남은 CoinActor를 ReadyCoinData로 복귀시키는 흐름을 구현합니다.
+	// TODO: CoinBehaviorPhase에서 살아남은 CoinActor를 ReadyCoinData로 복귀시키는 흐름을 구현합니다.
 }
 
 void UCoinManagementWSubsystem::AddBattleReadyCoins(ACoinActor* SelectCoinActor, bool bArrangeSlot)
 {
-	// TODO: 기존 3D ReadyCoin 흐름은 CoinBehaviorTurn 리팩터링 시 제거합니다.
+	// TODO: 기존 3D ReadyCoin 흐름은 CoinBehaviorPhase 리팩터링 시 제거합니다.
 }
 
 void UCoinManagementWSubsystem::RemoveBattleReadyCoins(ACoinActor* SelectCoinActor)
 {
-	// TODO: 기존 3D ReadyCoin 흐름은 CoinBehaviorTurn 리팩터링 시 제거합니다.
+	// TODO: 기존 3D ReadyCoin 흐름은 CoinBehaviorPhase 리팩터링 시 제거합니다.
 }
 
 TArray<ACoinActor*> UCoinManagementWSubsystem::GetReadyCoins() const
@@ -217,7 +217,7 @@ TArray<ACoinActor*> UCoinManagementWSubsystem::GetReadyCoins() const
 
 void UCoinManagementWSubsystem::SetBattleCoinItemFlags(bool bEnabled)
 {
-	// CoinBehaviorTurn 전까지 전투 CoinActor가 존재하지 않습니다.
+	// CoinBehaviorPhase 전까지 전투 CoinActor가 존재하지 않습니다.
 }
 
 bool UCoinManagementWSubsystem::IsCoinInBattleReady(ACoinActor* InCoin) const
@@ -235,7 +235,7 @@ bool UCoinManagementWSubsystem::IsCoinIdInBattleReady(int32 TargetID) const
 
 void UCoinManagementWSubsystem::LockCoinReady(ACoinActor* TargetCoin)
 {
-	// CoinBehaviorTurn 전까지 전투 CoinActor가 존재하지 않습니다.
+	// CoinBehaviorPhase 전까지 전투 CoinActor가 존재하지 않습니다.
 }
 
 int32 UCoinManagementWSubsystem::CalculateCoinPrice() const

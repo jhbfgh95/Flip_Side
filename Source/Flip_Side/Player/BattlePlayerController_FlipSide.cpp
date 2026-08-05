@@ -69,7 +69,11 @@ void ABattlePlayerController_FlipSide::BeginPlay()
 
     if (UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>())
     {
-        BattleManager->OnTurnChanged.AddDynamic(this, &ABattlePlayerController_FlipSide::OnTurnChanged);
+		BattleManager->OnPhaseChanged.RemoveAll(this);
+        BattleManager->OnPhaseChanged.AddDynamic(this, &ABattlePlayerController_FlipSide::OnPhaseChanged);
+		BattleManager->OnBossPhaseCompleted.RemoveAll(this);
+		BattleManager->OnBossPhaseCompleted.AddDynamic(this, &ABattlePlayerController_FlipSide::HandleBossPhaseCompleted);
+		BattleManager->OnStageEnded.RemoveAll(this);
         BattleManager->OnStageEnded.AddDynamic(this, &ABattlePlayerController_FlipSide::OnStageEnded);
     }
 
@@ -85,10 +89,13 @@ void ABattlePlayerController_FlipSide::BeginPlay()
         {
             BattleHUDWidget->AddToViewport();
             BattleHUDWidget->OnCoinSlotClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleCoinSlotClicked);
-            BattleHUDWidget->OnReadyCoinClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinClicked);
+			BattleHUDWidget->OnReadyCoinClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinClicked);
 			BattleHUDWidget->OnItemSlotClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleItemSlotClicked);
+			BattleHUDWidget->OnPhaseProgressClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattlePhaseProgressClicked);
         }
     }
+
+	RefreshBattlePhaseHUD();
 
 	TryBindBossHUD();
 
@@ -340,11 +347,13 @@ void ABattlePlayerController_FlipSide::MoveCameraForBossDead()
         ControlledPawn->MoveCameraToArea(BossDeadCameraLocation, BossDeadCameraRotation, BossDeadCameraArmLength);
 }
 
-void ABattlePlayerController_FlipSide::OnTurnChanged(ETurnState NewTurn)
+void ABattlePlayerController_FlipSide::OnPhaseChanged(EPhaseState NewPhase)
 {
+	RefreshBattlePhaseHUD();
+
     if (!ControlledPawn) return;
 
-    if (NewTurn == ETurnState::CoinBehaviorTurn)
+    if (NewPhase == EPhaseState::CoinBehaviorPhase)
     {
         GetWorldTimerManager().SetTimer(CoinBehaviorCameraDelayHandle, [this]()
         {
@@ -352,7 +361,7 @@ void ABattlePlayerController_FlipSide::OnTurnChanged(ETurnState NewTurn)
                 ControlledPawn->MoveCameraToArea(CoinBehaviorCameraLocation, CoinBehaviorCameraRotation, CoinBehaviorCameraArmLength);
         }, CoinBehaviorCameraDelay, false);
     }
-    else if (NewTurn == ETurnState::CoinReadyTurn)
+    else if (NewPhase == EPhaseState::CoinReadyPhase)
     {
         ControlledPawn->MoveCameraToArea(DefaultCameraLocation, DefaultCameraRotation, DefaultCameraArmLength);
     }
@@ -378,6 +387,30 @@ void ABattlePlayerController_FlipSide::SetInputForTutorial(bool bEnable)
 void ABattlePlayerController_FlipSide::OnStageEnded(int32 StageEndFlag)
 {
     SetInputForTutorial(true);
+}
+
+void ABattlePlayerController_FlipSide::HandleBossPhaseCompleted()
+{
+	if (IsValid(BattleHUDWidget))
+	{
+		BattleHUDWidget->PlayBossPhaseCompletionAnimation();
+	}
+}
+
+void ABattlePlayerController_FlipSide::RefreshBattlePhaseHUD()
+{
+	if (!IsValid(BattleHUDWidget) || !IsValid(GetWorld()))
+	{
+		return;
+	}
+
+	UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
+	if (!IsValid(BattleManager))
+	{
+		return;
+	}
+
+	BattleHUDWidget->SetPhaseDisplay(BattleManager->GetCurrentPhase(), BattleManager->GetTurnCount());
 }
 
 void ABattlePlayerController_FlipSide::RefreshBattleCoinHUD()
@@ -486,6 +519,20 @@ void ABattlePlayerController_FlipSide::HandleBattleItemSlotClicked(int32 ItemID)
 	if (UUseableItemWSubsystem* ItemManager = GetWorld()->GetSubsystem<UUseableItemWSubsystem>())
 	{
 		ItemManager->TrySelectItem(ItemID);
+	}
+}
+
+void ABattlePlayerController_FlipSide::HandleBattlePhaseProgressClicked()
+{
+	if (!IsValid(GetWorld()))
+	{
+		return;
+	}
+
+	if (UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>())
+	{
+		// TODO: UI 애니메이션 완료 시점이 확정되면 그 콜백에서 요청하도록 변경합니다.
+		BattleManager->RequestPhaseProgress();
 	}
 }
 

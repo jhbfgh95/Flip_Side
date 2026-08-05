@@ -39,7 +39,7 @@ class FLIP_SIDE_API UUseableItemWSubsystem : public UWorldSubsystem
 
 	FGridPoint DefaultItemRange = {1, 1};
 
-	bool bIsCoinBehaviorTurn = false;
+	bool bIsCoinBehaviorPhase = false;
 
 	EUseableItemTargetMode CurrentTargetMode = EUseableItemTargetMode::None;
 
@@ -143,13 +143,13 @@ public:
 
 	void BuildEverywhereValidTargetGrids(class ACoinActor* TargetCoin);
 
-	//BattleManager call when CoinBehaviorTurn
+	//BattleManager call when CoinBehaviorPhase
 	void CoinBindsToItemMan();
 
 	//ItemAction의 ItemType과 같은 이유
 	//bool IsItemSetupInGrid() const;
 
-	void SetTurn(const bool bIsTurn);
+	void SetPhase(const bool bIsPhase);
 
 	int32 CalculateItemPrice() const;
 

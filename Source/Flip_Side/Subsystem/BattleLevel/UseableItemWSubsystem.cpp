@@ -364,7 +364,7 @@ void UUseableItemWSubsystem::InitSelectedItem()
 
 bool UUseableItemWSubsystem::SetItemInfo(int32 ItemID)
 {
-    if(!bIsCoinBehaviorTurn) return false;
+    if(!bIsCoinBehaviorPhase) return false;
 
     // SelectedItemAction이 혹시라도 Null인지 체크 // 크래시 발생해서 추가함
     if (!SelectedItemAction)
@@ -409,7 +409,7 @@ void UUseableItemWSubsystem::CancelWantUseItem()
     InitSelectedItem();
     if(CoinActionManager)
     {
-        CoinActionManager->SetTurn(bIsCoinBehaviorTurn);
+        CoinActionManager->SetPhase(bIsCoinBehaviorPhase);
     }
 }
 
@@ -531,7 +531,7 @@ void UUseableItemWSubsystem::ExecuteItemForCoin(ACoinActor* TargetCoin)
 }
 bool UUseableItemWSubsystem::IsItemUseAvailable() const
 {
-    return bIsCoinBehaviorTurn &&
+    return bIsCoinBehaviorPhase &&
         (!IsValid(CoinActionManager) || !CoinActionManager->IsActionSequenceActive());
 }
 
@@ -564,7 +564,7 @@ bool UUseableItemWSubsystem::TrySelectItem(int32 ItemID)
 
     if(CoinActionManager)
     {
-        CoinActionManager->SetTurn(false);
+        CoinActionManager->SetPhase(false);
     }
 
     if(!SetItemInfo(ItemID))
@@ -617,11 +617,11 @@ void UUseableItemWSubsystem::CoinBindsToItemMan()
     }
 }
 
-void UUseableItemWSubsystem::SetTurn(const bool bIsTurn)
+void UUseableItemWSubsystem::SetPhase(const bool bIsPhase)
 {
-    bIsCoinBehaviorTurn = bIsTurn;
+    bIsCoinBehaviorPhase = bIsPhase;
 
-    if(!bIsCoinBehaviorTurn)
+    if(!bIsCoinBehaviorPhase)
     {
         CancelWantUseItem();
     }

@@ -32,14 +32,14 @@ enum class EFaceState : uint8
  * �� ���� ����
  */
 UENUM(BlueprintType)
-enum class ETurnState : uint8
+enum class EPhaseState : uint8
 {
     None           UMETA(DisplayName = "None"),
-    CoinReadyTurn  UMETA(DisplayName = "Coin Ready Turn"),
-    CoinBehaviorTurn UMETA(DisplayName = "Coin Behavior Turn"),
-    BehaviorTurn   UMETA(DisplayName = "Behavior Turn"),
-    BossTurn       UMETA(DisplayName = "Boss Turn"), 
-    SettingTurn       UMETA(DisplayName = "Setting Turn")
+    CoinReadyPhase  UMETA(DisplayName = "Coin Ready Phase"),
+    CoinBehaviorPhase UMETA(DisplayName = "Coin Behavior Phase"),
+    BehaviorPhase   UMETA(DisplayName = "Behavior Phase"),
+    BossPhase       UMETA(DisplayName = "Boss Phase"), 
+    SettingPhase       UMETA(DisplayName = "Setting Phase")
 };
 
 /**

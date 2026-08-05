@@ -15,6 +15,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDCoinSlotHovered, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDCoinSlotUnhovered, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDReadyCoinClicked, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDItemSlotClicked, int32);
+DECLARE_MULTICAST_DELEGATE(FOnBattleHUDPhaseProgressClicked);
 
 /**
  * 
@@ -32,16 +33,25 @@ public:
 	void SetBossHUDData(const FBossHUDData& InData);
 	void SetItemSlots(const TArray<FBattleItemSlotViewData>& InItemSlots);
 	void SetCardSlots(const TArray<FBattleCardSlotViewData>& InCardSlots);
+	void SetPhaseDisplay(EPhaseState CurrentPhase, int32 TurnCount);
+	void PlayBossPhaseCompletionAnimation();
 
 	FOnBattleHUDCoinSlotClicked OnCoinSlotClicked;
 	FOnBattleHUDCoinSlotHovered OnCoinSlotHovered;
 	FOnBattleHUDCoinSlotUnhovered OnCoinSlotUnhovered;
 	FOnBattleHUDReadyCoinClicked OnReadyCoinClicked;
 	FOnBattleHUDItemSlotClicked OnItemSlotClicked;
+	FOnBattleHUDPhaseProgressClicked OnPhaseProgressClicked;
 
 protected:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UW_BossHP> BossHPWidget;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBattleBossPatternHUDWidget> BossPatternWidget;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UW_BattlePhaseAndTurnDisplayUI> PhaseAndTurnDisplayWidget;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UPanelWidget> CoinSlotContainer;
@@ -99,6 +109,7 @@ private:
 	void HandleCoinSlotHovered(int32 SlotNumber);
 	void HandleCoinSlotUnhovered(int32 SlotNumber);
 	void HandleReadyCoinClicked(int32 CoinInstanceID);
+	void HandlePhaseProgressRequested();
 	void HandleItemSlotClicked(int32 ItemID);
 	void HandleItemSlotHovered(int32 ItemID);
 	void HandleItemSlotUnhovered(int32 ItemID);
