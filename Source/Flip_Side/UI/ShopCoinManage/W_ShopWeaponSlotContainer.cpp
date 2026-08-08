@@ -4,9 +4,10 @@
 #include "UI/ShopCoinManage/W_ShopWeaponSlotContainer.h"
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 #include "Subsystem/UnlockGISubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
-#include "UI/ShopCoinManage/W_CoinWeaponSlot.h"
+#include "UI/ShopCoinManage/W_ShopCoinWeaponSlot.h"
 
 
 void UW_ShopWeaponSlotContainer::NativeConstruct()
@@ -14,27 +15,36 @@ void UW_ShopWeaponSlotContainer::NativeConstruct()
     Super::NativeConstruct();
     ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
+    DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 
-    //TArray<int> WeaponFaceData = UnlockSubsystem->GetUnlockWeaponArray(EWeaponClass::Deal);
+    //UnlockSubsystem->OnWeaponUnlock.AddDynamic(this, &UW_ShopWeaponSlotContainer::AddWeaponSlot);
 
-    for(int i =0; i<3;i++)
+    TArray<int> WeaponID = UnlockSubsystem->GetUnlockWeaponArray(EWeaponClass::Deal);
+    
+    for(int i =0; i<WeaponID.Num();i++)
     {
-        UW_CoinWeaponSlot* CoinWeaponSlotWidget =Cast<UW_CoinWeaponSlot>(CreateWidget<UUserWidget>(GetWorld(), WepoanSlotWidget));
-        if (CoinWeaponSlotWidget)
-        {
-            WeaponSlotArray.Add(CoinWeaponSlotWidget);
-            UVerticalBoxSlot* VSlot = SlotBox->AddChildToVerticalBox(CoinWeaponSlotWidget);
-
-            if(VSlot)
-                VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-
-            //CoinWeaponSlotWidget->InitWidget(i);
-        }
+        AddWeaponSlot(WeaponID[i]);
     }
 }
-
 
 void UW_ShopWeaponSlotContainer::NativeDestruct()
 {
     Super::NativeDestruct();
+}
+	
+void UW_ShopWeaponSlotContainer::AddWeaponSlot(int32 WeaponID)
+{
+    FFaceData ParamWeaponData;
+    DataManager->TryGetWeapon(WeaponID,ParamWeaponData);
+    UW_ShopCoinWeaponSlot* CoinWeaponSlotWidget =Cast<UW_ShopCoinWeaponSlot>(CreateWidget<UUserWidget>(GetWorld(), WepoanSlotWidget));
+    if (CoinWeaponSlotWidget)
+    {
+        WeaponSlotArray.Add(CoinWeaponSlotWidget);
+        UVerticalBoxSlot* VSlot = SlotBox->AddChildToVerticalBox(CoinWeaponSlotWidget);
+
+        if(VSlot)
+            VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+
+        CoinWeaponSlotWidget->InitWidget(ParamWeaponData, ShopCoinSubsystem);
+    }
 }

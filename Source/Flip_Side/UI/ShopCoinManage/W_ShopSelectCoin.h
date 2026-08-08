@@ -30,12 +30,6 @@ protected:
 	TObjectPtr<UButton> ChangeCoinSideButton;
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UImage> FrontSideImage;
-
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UImage> BackSideImage;
-
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UImage> FrontWeaponImage;
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
@@ -50,12 +44,6 @@ protected:
 protected:
 	FFaceData FrontWeaponData;
 	FFaceData BackWeaponData;
-
-	UPROPERTY()
-	TObjectPtr<UMaterialInstanceDynamic> FrontDynamicMaterial;
-	UPROPERTY()
-	TObjectPtr<UMaterialInstanceDynamic> BackDynamicMaterial;
-
 	
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	TObjectPtr<UTexture2D> DefaultsTexture;
@@ -63,9 +51,19 @@ protected:
 	FCoinTypeStructure CurrentCoinType;
 
 public:
+	UFUNCTION()
+	void SetWeapon(int32 WeaponID);
+
 	void SetFrontWeapon(FFaceData FrontWeaponFaceData);
 	void SetBackWeapon(FFaceData BackWeaponFaceData);
+	
+	UFUNCTION()
 	void ChangeCoinSide();
+
+	UFUNCTION()
 	void SetCoin();
 
+	
+	UFUNCTION()
+	void UnhoverWeapon();
 };

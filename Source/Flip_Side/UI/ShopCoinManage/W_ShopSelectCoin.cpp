@@ -13,13 +13,41 @@ void UW_ShopSelectCoin::NativeOnInitialized()
     CoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
 
-    if (FrontWeaponImage)
+
+    CoinSubsystem->OnHoverWeapon.AddDynamic(this, &UW_ShopSelectCoin::SetWeapon);
+    CoinSubsystem->OnSetWeapon.AddDynamic(this, &UW_ShopSelectCoin::SetWeapon);
+    CoinSubsystem->OnUnHoverWeapon.AddDynamic(this, &UW_ShopSelectCoin::UnhoverWeapon);
+    CoinSubsystem->OnCoinSlotChange.AddDynamic(this, &UW_ShopSelectCoin::SetCoin);
+
+    ChangeCoinSideButton->OnClicked.AddDynamic(this, &UW_ShopSelectCoin::ChangeCoinSide);
+    
+    
+}
+
+void UW_ShopSelectCoin::SetWeapon(int32 WeaponID)
+{
+    FFaceData SetFaceData;
+    DataManager->TryGetWeapon(WeaponID, SetFaceData);
+
+    if(CoinSubsystem->GetIsCreateCoinFront())
     {
-        FrontDynamicMaterial = FrontWeaponImage->GetDynamicMaterial();
+        SetFrontWeapon(SetFaceData);
     }
-    if(BackWeaponImage)
+    else
     {
-        BackDynamicMaterial = BackWeaponImage->GetDynamicMaterial();
+        SetBackWeapon(SetFaceData);
+    }
+}
+
+void UW_ShopSelectCoin::UnhoverWeapon()
+{
+    if(CoinSubsystem->GetIsCreateCoinFront())
+    {
+        SetWeapon(CoinSubsystem->GetCurrentSlotCoin().FrontWeaponID);
+    }
+    else
+    {
+        SetWeapon(CoinSubsystem->GetCurrentSlotCoin().BackWeaponID);
     }
 }
 
@@ -28,12 +56,11 @@ void UW_ShopSelectCoin::SetFrontWeapon(FFaceData FrontWeaponFaceData)
     FrontWeaponData = FrontWeaponFaceData;
     if(FrontWeaponData.WeaponID != -1)
     {
-        FrontDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), FrontWeaponData.WeaponIcon);
-        FrontDynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), FrontWeaponData.TypeColor);
+        FrontWeaponImage->SetBrushFromTexture(FrontWeaponData.WeaponIcon);
     }
     else
     {
-        FrontDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
+        FrontWeaponImage->SetBrushFromTexture(DefaultsTexture);
     }
 
 }
@@ -42,18 +69,17 @@ void UW_ShopSelectCoin::SetBackWeapon(FFaceData BackWeaponFaceData)
     BackWeaponData = BackWeaponFaceData;
     if(BackWeaponData.WeaponID != -1)
     {
-        BackDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), BackWeaponData.WeaponIcon);
-        BackDynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), BackWeaponData.TypeColor);
+        BackWeaponImage->SetBrushFromTexture(BackWeaponData.WeaponIcon);
     }
     else
-    {
-        BackDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
+    { 
+        BackWeaponImage->SetBrushFromTexture(DefaultsTexture);
     }
 }
 
 void UW_ShopSelectCoin::ChangeCoinSide()
 {
-
+    CoinSubsystem->ChangeCoinSide();
 }
 
 void UW_ShopSelectCoin::SetCoin()
@@ -62,7 +88,6 @@ void UW_ShopSelectCoin::SetCoin()
     CurrentCoinType = CoinSubsystem->GetCurrentSlotCoin();
     DataManager->TryGetWeapon(CurrentCoinType.FrontWeaponID,SetFaceData);
     SetFrontWeapon(SetFaceData);
-
     DataManager->TryGetWeapon(CurrentCoinType.BackWeaponID,SetFaceData);
     SetBackWeapon(SetFaceData);
 

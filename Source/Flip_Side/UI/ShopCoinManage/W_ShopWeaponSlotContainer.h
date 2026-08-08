@@ -9,10 +9,11 @@
 /**
  * 
  */
-class UW_CoinWeaponSlot;
+class UW_ShopCoinWeaponSlot;
 class UVerticalBox;
 class UShopCoinWSubsystem;
 class UUnlockGISubsystem;
+class UDataManagerSubsystem;
 UCLASS()
 class FLIP_SIDE_API UW_ShopWeaponSlotContainer : public UUserWidget
 {
@@ -26,15 +27,20 @@ private:
 	TObjectPtr<UShopCoinWSubsystem> ShopCoinSubsystem;
 	UPROPERTY()
 	TObjectPtr<UUnlockGISubsystem> UnlockSubsystem;
+	UPROPERTY()
+	TObjectPtr<UDataManagerSubsystem> DataManager;
 
 protected:
 	UPROPERTY()
-	TArray<TObjectPtr<UW_CoinWeaponSlot>> WeaponSlotArray;
+	TArray<TObjectPtr<UW_ShopCoinWeaponSlot>> WeaponSlotArray;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<UW_CoinWeaponSlot> WepoanSlotWidget;
+	TSubclassOf<UW_ShopCoinWeaponSlot> WepoanSlotWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UVerticalBox> SlotBox;
 
+protected:
+	UFUNCTION()
+	void AddWeaponSlot(int32 WeaponID);
 };
