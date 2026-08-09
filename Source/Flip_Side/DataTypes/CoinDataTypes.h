@@ -29,6 +29,10 @@ struct FCoinTypeStructure
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 SlotNum = 0;
+
+    // 슬롯 레벨(1~3). 이 값으로 구매 비용/HP를 조회함 (DataManagerSubsystem::GetCoinSlotLevelStats)
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 Level = 1;
 };
 
 /** CoinReadyPhase에서 UI 슬롯이 관리하는 코인 묶음 데이터입니다. */
