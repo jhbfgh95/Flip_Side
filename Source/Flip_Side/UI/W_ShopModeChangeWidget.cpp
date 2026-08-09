@@ -11,12 +11,12 @@ void UW_ShopModeChangeWidget::NativeConstruct()
     Super::NativeConstruct();
     ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
 
-    WidgetOpenButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::OpenWidget);
+    //WidgetOpenButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::OpenWidget);
 	CoinCreateModeButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickCoinCreateMode);
 	CardSelectModeButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickCardSelecrMode);
 	ShopItemModeButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickShopItemMode);
 	CheckBossModeButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickCheckBossMode);
-    ShopMainModeButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickShopMainModeButton);
+    GameStartButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickGameStartModeButton);
     UnlockWeaponButton->OnClicked.AddDynamic(this,&UW_ShopModeChangeWidget::ClickUnlockWeaponMode);
 }
 
@@ -27,13 +27,14 @@ void UW_ShopModeChangeWidget::NativeDestruct()
 
 void UW_ShopModeChangeWidget::SetButtonTexture(UTexture2D* SetButtonTexture)
 {
+    /*
     FButtonStyle ButtonStyle = WidgetOpenButton->GetStyle();
     FSlateBrush Brush;
     Brush.SetResourceObject(SetButtonTexture);
     ButtonStyle.SetNormal(Brush);
     ButtonStyle.SetHovered(Brush);
     ButtonStyle.SetPressed(Brush);
-    WidgetOpenButton->SetStyle(ButtonStyle);
+    WidgetOpenButton->SetStyle(ButtonStyle);*/
 }
 
 void UW_ShopModeChangeWidget::ClickCoinCreateMode()
@@ -83,13 +84,11 @@ void UW_ShopModeChangeWidget::OpenWidget()
     }
 }
 
-void UW_ShopModeChangeWidget::ClickShopMainModeButton()
+void UW_ShopModeChangeWidget::ClickGameStartModeButton()
 {
     if(ShopGameMode)
     {
-        IsSlidePanelOpen = false;
-        PlayAnimationTimeRange(SlidePanelOpenAnim, 0.0f, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f, false);
-        ShopGameMode->SetShopMainMode();
+        ShopGameMode->ChangeBattleLevel();
     }
 }
 

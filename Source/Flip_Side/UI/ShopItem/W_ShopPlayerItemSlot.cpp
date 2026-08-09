@@ -32,6 +32,7 @@ void UW_ShopPlayerItemSlot::InitItemWidget(int32 InitIndex)
 {
     PlayerInvenIndex = InitIndex;
     SetItemWidget(InitIndex);
+
 }
 
 void UW_ShopPlayerItemSlot::ClickItemSellButton()
@@ -40,11 +41,11 @@ void UW_ShopPlayerItemSlot::ClickItemSellButton()
 
     ItemSellCountTextBlock->SetText(FText::AsNumber(0));
     ItemSubsystem->SellItem(WidgetItemData, CurrentItemCount);
+    CurrentItemCount = 0;
+    int32 SameItemCount = ItemSubsystem->GetPlayerItem(PlayerInvenIndex).SameItemNum;
+    ItemCountTextBlock->SetText(FText::AsNumber(SameItemCount));
 
-    int CalCulateCount = ItemSubsystem->GetPlayerItem(PlayerInvenIndex).SameItemNum;
-    ItemCountTextBlock->SetText(FText::AsNumber(CalCulateCount));
-
-    if(CalCulateCount <= 0)
+    if(SameItemCount <= 0)
     {
         DeleteItemWidget();
     }
@@ -77,7 +78,10 @@ void UW_ShopPlayerItemSlot::SetItemWidget(int32 BuyItemIndex)
     WidgetItemData = ItemSubsystem->GetPlayerItemData(PlayerInvenIndex);
 
     if(WidgetItemData.ItemID == -1)
-    { return;}
+    { 
+        DeleteItemWidget();
+        return;
+    }
     ItemImage->SetBrushFromTexture(WidgetItemData.ItemIcon);
     ItemNameTextBlock->SetText(FText::FromString(WidgetItemData.ItemName));
     ItemCountTextBlock->SetText(FText::AsNumber(ItemSubsystem->GetPlayerItem(PlayerInvenIndex).SameItemNum));

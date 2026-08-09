@@ -170,6 +170,7 @@ FSelectItem UShopItemWSubsystem::GetPlayerItem(int32 index)
 FItemData UShopItemWSubsystem::GetPlayerItemData(int32 index)
 {
     FItemData ReturnItemData;
+    ReturnItemData.ItemID = -1;
     if(PlayerItemArray.IsValidIndex(index))
     {
         DM->TryGetItem(PlayerItemArray[index].ItemID, ReturnItemData);

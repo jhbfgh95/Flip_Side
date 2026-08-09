@@ -21,9 +21,6 @@ private:
 	class AGameMode_Shop* ShopGameMode;
 
 	UPROPERTY(meta = (BindWidget))
-	UUserWidget* ShopModeChangeWidet;
-	
-	UPROPERTY(meta = (BindWidget))
 	UUserWidget* ShopItemWidget;
 	
 	UPROPERTY(meta = (BindWidget))
