@@ -104,6 +104,36 @@ struct FBattleCoinSlotViewData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UTexture2D* BackIcon = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FText FrontWeaponName;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FText BackWeaponName;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FText FrontWeaponDescription;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FText BackWeaponDescription;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 FrontBehaviorPoint = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 BackBehaviorPoint = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 FrontAttackPoint = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 BackAttackPoint = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FLinearColor FrontWeaponColor = FLinearColor::White;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FLinearColor BackWeaponColor = FLinearColor::White;
 };
 
 USTRUCT(BlueprintType)

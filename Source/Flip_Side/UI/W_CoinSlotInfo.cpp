@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/W_ReadyAndSlotCoinInfo.h"
+#include "UI/W_CoinSlotInfo.h"
 #include "Components/Image.h"
 #include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
@@ -15,7 +15,7 @@ namespace
 	}
 }
 
-void UW_ReadyAndSlotCoinInfo::NativeConstruct()
+void UW_CoinSlotInfo::NativeConstruct()
 {
 	Super::NativeConstruct();
 
@@ -26,25 +26,57 @@ void UW_ReadyAndSlotCoinInfo::NativeConstruct()
     }
 }
 
-void UW_ReadyAndSlotCoinInfo::SetReadyCoinInfo(bool FaceFlag, UTexture2D * Icon, const FText & WeaponName, const FText & RawDescription, int32 DefaultBP, int32 DefaultAP, int32 MaxHP, FLinearColor typeColor)
+void UW_CoinSlotInfo::SetCoinSlotInfo(const FBattleCoinSlotViewData& InData)
 {
-    if (CoinMaxHPText)
+    if (IsValid(CoinSlotNumberText))
     {
-        CoinMaxHPText->SetText(FText::AsNumber(MaxHP));
+        CoinSlotNumberText->SetText(FText::AsNumber(InData.SlotNumber));
     }
 
-    if(FaceFlag)
+    if (IsValid(CoinCountText))
     {
-        if (HoveredFrontWeaponIcon && Icon && FrontDynamicMaterial)
+        CoinCountText->SetText(FText::AsNumber(InData.CoinCount));
+    }
+
+    if (IsValid(CoinMaxHPText))
+    {
+        CoinMaxHPText->SetText(FText::AsNumber(InData.HP));
+    }
+
+    SetWeaponInfo(
+        true,
+        InData.FrontIcon,
+        InData.FrontWeaponName,
+        InData.FrontWeaponDescription,
+        InData.FrontBehaviorPoint,
+        InData.FrontAttackPoint,
+        InData.FrontWeaponColor
+    );
+    SetWeaponInfo(
+        false,
+        InData.BackIcon,
+        InData.BackWeaponName,
+        InData.BackWeaponDescription,
+        InData.BackBehaviorPoint,
+        InData.BackAttackPoint,
+        InData.BackWeaponColor
+    );
+}
+
+void UW_CoinSlotInfo::SetWeaponInfo(bool bFrontFace, UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, int32 DefaultBP, int32 DefaultAP, const FLinearColor& WeaponColor)
+{
+    if (bFrontFace)
+    {
+        if (IsValid(HoveredFrontWeaponIcon) && IsValid(Icon) && IsValid(FrontDynamicMaterial))
         {
             FrontDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), Icon);
-            FrontDynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), typeColor);
+            FrontDynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), WeaponColor);
         }
-        if (HoveredFrontWeaponName)
+        if (IsValid(HoveredFrontWeaponName))
         {
             HoveredFrontWeaponName->SetText(WeaponName);
         }
-        if (HoveredFrontWeaponDes)
+        if (IsValid(HoveredFrontWeaponDes))
         {
             FFormatNamedArguments Args;
 
@@ -58,16 +90,16 @@ void UW_ReadyAndSlotCoinInfo::SetReadyCoinInfo(bool FaceFlag, UTexture2D * Icon,
     }
     else
     {
-        if (HoveredBackWeaponIcon && Icon && BackDynamicMaterial)
+        if (IsValid(HoveredBackWeaponIcon) && IsValid(Icon) && IsValid(BackDynamicMaterial))
         {
             BackDynamicMaterial->SetTextureParameterValue(FName("Weapon_Icon"), Icon);
-            BackDynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), typeColor);
+            BackDynamicMaterial->SetVectorParameterValue(FName("Weapon_Color"), WeaponColor);
         }
-        if (HoveredBackWeaponName)
+        if (IsValid(HoveredBackWeaponName))
         {
             HoveredBackWeaponName->SetText(WeaponName);
         }
-        if (HoveredBackWeaponDes)
+        if (IsValid(HoveredBackWeaponDes))
         {
             //언리얼 기본 포맷 
             //사용 : {BP} 만큼 데미지를 줍니다

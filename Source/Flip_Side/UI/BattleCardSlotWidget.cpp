@@ -9,7 +9,7 @@ namespace
 {
 	const FName CardIconParameterName(TEXT("Weapon_Icon"));
 	const FName CardColorParameterName(TEXT("Weapon_Color"));
-	const FLinearColor CardIconColor(0.670588f, 0.541176f, 1.0f, 1.0f); // AB8AFFFF
+	const FLinearColor CardIconColor(1.0f, 0.823529f, 1.0f, 1.0f); // FFD2FFFF
 }
 
 void UBattleCardSlotWidget::NativeConstruct()
