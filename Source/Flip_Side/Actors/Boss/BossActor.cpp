@@ -14,6 +14,9 @@ ABossActor::ABossActor()
 
 	BossMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
 	BossMesh->SetupAttachment(RootComponent);
+	// 코인 발판(3x3) 위에 올라가도록 축소 + 띄우기 - Simulate에서 확인한 값
+	BossMesh->SetRelativeLocation(FVector(0.f, 0.f, 900.f));
+	BossMesh->SetRelativeScale3D(FVector(20.f, 20.f, 20.f));
 
 	FrontBackground = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FrontBackground"));
 	FrontBackground->SetupAttachment(RootComponent);

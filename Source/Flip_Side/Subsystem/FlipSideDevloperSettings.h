@@ -16,6 +16,7 @@ class UW_BattleTutorialOverlay;
 class UBattleTutorialSequenceData;
 class AUseableItemActor;
 class UNiagaraSystem;
+class ABossCoinActor;
 
 UCLASS(Config=Game, meta=(DisplayName="My Manager Settings"))
 class FLIP_SIDE_API UFlipSideDevloperSettings : public UDeveloperSettings
@@ -37,6 +38,10 @@ public:
 
 	UPROPERTY(EditAnywhere, Config, Category = "GridSpawn")
 	TSoftClassPtr<class AGridActor> GridActor;
+
+	// 항상 그리드 가장 뒤 가운데 3x3 자리에 고정 스폰됨
+	UPROPERTY(EditAnywhere, Config, Category = "GridSpawn")
+	TSoftClassPtr<ABossCoinActor> BossCoinActorClass;
 
 	UPROPERTY(EditAnywhere, config, Category = "Battle | UI")
 	TSoftClassPtr<UW_StageEnd> StageEndWidgetClass;
