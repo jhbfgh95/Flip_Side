@@ -95,6 +95,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Coin")
 	TSubclassOf<class UBattleCoinSlotWidget> BattleCoinSlotWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Coin")
+	TSubclassOf<class UW_CoinSlotInfo> CoinSlotInfoWidgetClass;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Item")
 	TSubclassOf<class UW_ItemInfo> ItemInfoWidgetClass;
 
@@ -130,8 +133,12 @@ private:
 	TObjectPtr<class UW_ItemInfo> ItemInfoWidget;
 
 	UPROPERTY()
+	TObjectPtr<class UW_CoinSlotInfo> CoinSlotInfoWidget;
+
+	UPROPERTY()
 	TObjectPtr<class UW_CardWidget> CardInfoWidget;
 
+	TMap<int32, FBattleCoinSlotViewData> CoinSlotViewDataByNumber;
 	TMap<int32, FBattleItemSlotViewData> ItemSlotViewDataByID;
 	TMap<int32, FBattleCardSlotViewData> CardSlotViewDataByNumber;
 };

@@ -555,12 +555,22 @@ FBattleCoinSlotViewData ABattlePlayerController_FlipSide::BuildCoinSlotViewData(
     if (DataManager->TryGetWeapon(CoinSlotData.FrontWeaponID, FrontWeaponData))
     {
         ViewData.FrontIcon = FrontWeaponData.WeaponIcon;
+        ViewData.FrontWeaponName = FText::FromString(FrontWeaponData.WeaponName);
+        ViewData.FrontWeaponDescription = FText::FromString(FrontWeaponData.KOR_DES);
+        ViewData.FrontBehaviorPoint = FrontWeaponData.BehaviorPoint;
+        ViewData.FrontAttackPoint = FrontWeaponData.AttackPoint;
+        ViewData.FrontWeaponColor = FrontWeaponData.TypeColor;
     }
 
     FFaceData BackWeaponData;
     if (DataManager->TryGetWeapon(CoinSlotData.BackWeaponID, BackWeaponData))
     {
         ViewData.BackIcon = BackWeaponData.WeaponIcon;
+        ViewData.BackWeaponName = FText::FromString(BackWeaponData.WeaponName);
+        ViewData.BackWeaponDescription = FText::FromString(BackWeaponData.KOR_DES);
+        ViewData.BackBehaviorPoint = BackWeaponData.BehaviorPoint;
+        ViewData.BackAttackPoint = BackWeaponData.AttackPoint;
+        ViewData.BackWeaponColor = BackWeaponData.TypeColor;
     }
 
     return ViewData;

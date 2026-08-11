@@ -9,6 +9,7 @@
 #include "UI/BattleCardSlotWidget.h"
 #include "UI/BattleItemSlotWidget.h"
 #include "UI/BattleReadyCoinWidget.h"
+#include "UI/W_CoinSlotInfo.h"
 #include "UI/W_ItemInfo.h"
 #include "UI/W_CardWidget.h"
 #include "UI/W_BossHP.h"
@@ -36,6 +37,7 @@ void UBattlePlayerHUDWidget::NativeConstruct()
 
 void UBattlePlayerHUDWidget::SetCoinSlots(const TArray<FBattleCoinSlotViewData>& InCoinSlots)
 {
+	CoinSlotViewDataByNumber.Reset();
 	EnsureCoinSlotWidgets(InCoinSlots.Num());
 
 	for (int32 SlotIndex = 0; SlotIndex < CoinSlotWidgets.Num(); ++SlotIndex)
@@ -49,6 +51,7 @@ void UBattlePlayerHUDWidget::SetCoinSlots(const TArray<FBattleCoinSlotViewData>&
 		if (InCoinSlots.IsValidIndex(SlotIndex))
 		{
 			CoinSlotWidget->SetSlotData(InCoinSlots[SlotIndex]);
+			CoinSlotViewDataByNumber.Add(InCoinSlots[SlotIndex].SlotNumber, InCoinSlots[SlotIndex]);
 		}
 		else
 		{
@@ -210,13 +213,36 @@ void UBattlePlayerHUDWidget::HandleCoinSlotClicked(int32 SlotNumber)
 
 void UBattlePlayerHUDWidget::HandleCoinSlotHovered(int32 SlotNumber)
 {
-	// TODO: CoinSlotInfoWidget이 준비되면 HUD PopupLayer에서 생성합니다.
+	const FBattleCoinSlotViewData* CoinSlotData = CoinSlotViewDataByNumber.Find(SlotNumber);
+	if (CoinSlotData && IsValid(PopupLayer) && CoinSlotInfoWidgetClass)
+	{
+		if (!IsValid(CoinSlotInfoWidget))
+		{
+			CoinSlotInfoWidget = CreateWidget<UW_CoinSlotInfo>(this, CoinSlotInfoWidgetClass);
+			if (IsValid(CoinSlotInfoWidget))
+			{
+				PopupLayer->AddChild(CoinSlotInfoWidget);
+			}
+		}
+
+		if (IsValid(CoinSlotInfoWidget))
+		{
+			CoinSlotInfoWidget->SetCoinSlotInfo(*CoinSlotData);
+			CoinSlotInfoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+			ApplyPopupAnchorLayout(CoinSlotInfoWidget, CoinSlotPopupAnchor);
+		}
+	}
+
 	OnCoinSlotHovered.Broadcast(SlotNumber);
 }
 
 void UBattlePlayerHUDWidget::HandleCoinSlotUnhovered(int32 SlotNumber)
 {
-	// TODO: CoinSlotInfoWidget이 준비되면 HUD PopupLayer의 팝업을 제거합니다.
+	if (IsValid(CoinSlotInfoWidget))
+	{
+		CoinSlotInfoWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
+
 	OnCoinSlotUnhovered.Broadcast(SlotNumber);
 }
 

@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "W_ReadyAndSlotCoinInfo.generated.h"
+#include "CoinDataTypes.h"
+#include "W_CoinSlotInfo.generated.h"
 
 UCLASS()
-class FLIP_SIDE_API UW_ReadyAndSlotCoinInfo : public UUserWidget
+class FLIP_SIDE_API UW_CoinSlotInfo : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -36,6 +37,12 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* CoinMaxHPText;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* CoinSlotNumberText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* CoinCountText;
+
 	UPROPERTY()
 	class UMaterialInstanceDynamic* FrontDynamicMaterial;
 
@@ -43,15 +50,16 @@ private:
 	class UMaterialInstanceDynamic* BackDynamicMaterial;
 
 public:
-	//FaceFlag true면 앞 false면 뒤
-	void SetReadyCoinInfo(
-		bool FaceFlag,
+	void SetCoinSlotInfo(const FBattleCoinSlotViewData& InData);
+
+private:
+	void SetWeaponInfo(
+		bool bFrontFace,
 		class UTexture2D* Icon,
-		const FText& WeaponName, 
+		const FText& WeaponName,
 		const FText& RawDescription,
-		int32 DefaultBP, 
+		int32 DefaultBP,
 		int32 DefaultAP,
-		int32 MaxHP,
-		FLinearColor typeColor
+		const FLinearColor& WeaponColor
 	);
 };

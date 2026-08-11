@@ -23,7 +23,7 @@ namespace
         case EPhaseState::CoinReadyPhase:
             return FText::FromString(TEXT("<CoinReady>Coin Ready</>"));
         case EPhaseState::CoinBehaviorPhase:
-            return FText::FromString(TEXT("Coin Behavior"));
+            return FText::FromString(TEXT("<CoinBehavior>Coin Behavior</>"));
         case EPhaseState::BossPhase:
             return FText::FromString(TEXT("<Boss>Boss</>"));
         default:
