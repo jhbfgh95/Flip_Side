@@ -13,6 +13,7 @@ public:
     ABossActor_Groggy();
 
     void UpdateGroggyBar(int32 CurrentGroggy);
+    virtual FBossHUDData GetBossHUDData() const override;
 
 protected:
     virtual void BeginPlay() override;

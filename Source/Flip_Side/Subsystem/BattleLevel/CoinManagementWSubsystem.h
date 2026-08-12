@@ -3,17 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Subsystems/WorldSubsystem.h"
-#include "GridTypes.h"
-#include "Subsystems/Subsystem.h"
 #include "CoinDataTypes.h"
-#include "CoinSlotActor.h"
+#include "Subsystems/WorldSubsystem.h"
 #include "CoinManagementWSubsystem.generated.h"
 
 class ACoinActor;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRangeWanted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCoinAddedToReady);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBattleCoinDataChanged);
 DECLARE_DELEGATE(FOnAllCoinDead);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleTutorialCoinSlotClicked, ACoinActor*);
 
@@ -22,107 +20,46 @@ class FLIP_SIDE_API UCoinManagementWSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
-	TArray<FCoinTypeStructure> CoinSlotDataArray;
-
-	//서랍으로 가는 코인
-	UPROPERTY()
-	TArray<ACoinActor*> BattleReadyCoins;
-
-	//그리드에서 살아남은 코인
-	UPROPERTY()
-	TArray<ACoinActor*> LiveCoinStacks;
-
-	//게임 오버용 전체 코인 확인
-	UPROPERTY()
-	TArray<ACoinActor*> GameOverCheckArray;
-
-	UPROPERTY()
-	TArray<ACoinSlotActor*> CoinSlots;
-
-	UPROPERTY()
-    class UW_ReadyAndSlotCoinInfo* ReadyCoinInfoWidgetInstance = nullptr;
-
-	UPROPERTY()
-	class UCoinActionManagementWSubsystem* CoinActionManager = nullptr;
-
-	bool bIsCoinReadyTurn = false;
-
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
-
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 
-protected:
-	void InitCoinSlot();
-
-	void AddEmptyFallbackCoinSlot();
-
-	void InstanceCoins();
-
-	void BindCoinEvents(ACoinActor* CoinActor);
-
-	void SetCoinInfoWidgetData(
-		FCoinWidgetInfoData& FrontWeaponData,
-		FCoinWidgetInfoData& BackWeaponData
-	);
-
-	void ArrangeSlotCoins(int32 FrontWeaponID);
-
-/* 델리게이트 바인딩 함수들 */
-protected:
-	UFUNCTION()
-    void HandleReadyCoinHovered(ACoinActor* HoveredCoin);
-
-	UFUNCTION()
-	void HandleCoinSlotHovered(class ACoinSlotActor* TargetCoinSlot);
-
-	UFUNCTION()
-	void HandleCoinUnHovered();
-	
-	UFUNCTION()
-	void HandleCoinSlotUnHovered();
-	UFUNCTION()
-	void HandleReadyCoinClicked(ACoinActor* ClickedCoin);
-
-	UFUNCTION()
-	void HandleCoinSlotClicked(ACoinActor* ReadyTargetCoin);
-
-	UFUNCTION()
-	void HandleCoinDestroyed(AActor* DestroyedCoin);
-
-	UFUNCTION()
-	void OnArrangeSlotMoveComplete() {}
 public:
-	//서랍 초기화
+	/** 상점에서 넘긴 슬롯 데이터를 UI용 코인 슬롯 상태로 초기화합니다. */
+	void InitializeCoinSlots(const TArray<FCoinTypeStructure>& InCoinSlots);
+
+	/** 보유 코인이 없을 때 CoinReadyPhase UI를 점검하기 위한 3종 테스트 코인을 생성합니다. */
+	UFUNCTION(BlueprintCallable, Category = "Coin|Debug")
+	void CreateTestCoinSlots();
+
+	bool TryAddReadyCoinFromSlot(int32 SlotNumber);
+	bool TryCancelReadyCoin(int32 CoinInstanceID);
+
+	const TArray<FBattleCoinSlotData>& GetCoinSlots() const { return CoinSlots; }
+	const TArray<FReadyCoinData>& GetReadyCoinData() const { return ReadyCoins; }
+
+	void SetCoinReadyPhase(bool bEnabled) { bIsCoinReadyPhase = bEnabled; }
+
+	// CoinBehaviorPhase에서 Actor가 생성된 뒤 사망 처리와 함께 사용할 예정입니다.
+	bool RemoveReadyCoinByInstanceID(int32 CoinInstanceID);
+
+	// === 기존 전투 Actor 흐름 호환용 API: CoinBehaviorPhase 리팩터링 전까지 빈 배열을 반환합니다. ===
 	void InitBattleReadyCoin();
-
 	void CheckBattleReadyCoinAlive();
-
 	void AddBattleReadyCoins(ACoinActor* SelectCoinActor, bool bArrangeSlot = true);
-
-	// 서랍에 들어간 코인을 다시 클릭 시 취소 로직
-    void RemoveBattleReadyCoins(ACoinActor* SelectCoinActor);
-
+	void RemoveBattleReadyCoins(ACoinActor* SelectCoinActor);
 	TArray<ACoinActor*> GetReadyCoins() const;
-
 	void SetBattleCoinItemFlags(bool bEnabled);
-
 	bool IsCoinInBattleReady(ACoinActor* InCoin) const;
-
 	bool IsCoinIdInBattleReady(int32 TargetID) const;
-
 	void LockCoinReady(ACoinActor* TargetCoin);
-
-	void SetCoinReadyTurn(const bool TurnFlag) { bIsCoinReadyTurn = TurnFlag;}
-
 	int32 CalculateCoinPrice() const;
-
 	int32 CalculateCoinCount() const;
 
-	//외부 사거리 카메라에 바인딩할 델리게이트
+	UPROPERTY(BlueprintAssignable, Category = "Events|Coin")
+	FOnBattleCoinDataChanged OnBattleCoinDataChanged;
+
 	UPROPERTY(BlueprintAssignable, Category = "Events|Hover")
 	FOnRangeWanted OnRangeWanted;
 
@@ -130,6 +67,25 @@ public:
 	FOnCoinAddedToReady OnCoinAddedToReady;
 
 	FOnAllCoinDead OnAllCoinDead;
-
 	FOnBattleTutorialCoinSlotClicked OnBattleTutorialCoinSlotClicked;
+
+private:
+	static constexpr int32 MaxReadyCoinCount = 10;
+
+	FBattleCoinSlotData* FindCoinSlot(int32 SlotNumber);
+	const FBattleCoinSlotData* FindCoinSlot(int32 SlotNumber) const;
+	int32 FindEmptyReadyCoinSlotIndex() const;
+	int32 AllocateCoinInstanceID() const;
+	int32 GetReadyCoinCount() const;
+	int32 GetHPForSlotIndex(int32 SlotIndex) const;
+	void BroadcastCoinDataChanged();
+
+	UPROPERTY()
+	TArray<FBattleCoinSlotData> CoinSlots;
+
+	UPROPERTY()
+	TArray<FReadyCoinData> ReadyCoins;
+
+	// BattleManager의 CoinReadyPhase 연결은 현재 주석 처리되어 있으므로 UI 테스트 중에는 활성 상태로 둡니다.
+	bool bIsCoinReadyPhase = true;
 };

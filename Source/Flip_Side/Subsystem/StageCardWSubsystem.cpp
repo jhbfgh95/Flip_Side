@@ -1,11 +1,8 @@
 // StageCardWSubsystem.cpp
 #include "Subsystem/StageCardWSubsystem.h"
 
-#include "FlipSideDevloperSettings.h"
 #include "Engine/World.h"
 #include "Engine/GameInstance.h"
-#include "GameFramework/PlayerController.h"
-#include "Blueprint/UserWidget.h"
 
 #include "Subsystem/CrossingLevelGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
@@ -45,18 +42,11 @@ void UStageCardWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         HandCards[i] = FCardData();
     }
 
-    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
-    if (Settings && !Settings->StageHUDWidgetClass.IsNull())
-    {
-        StageHUDClass = Settings->StageHUDWidgetClass.LoadSynchronous();
-    }
-
     FCardLogicLibrary::BuildLogicTable(CardLogicTable);
 }
 
 void UStageCardWSubsystem::Deinitialize()
 {
-    StageHUDInstance = nullptr;
     GridSubsys = nullptr;
     ActingManager = nullptr;
     CrossingGI = nullptr;
@@ -82,39 +72,11 @@ void UStageCardWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
         DM = GI->GetSubsystem<UDataManagerSubsystem>();
     }
 
-    // ===== HUD ���� + ���� ����ȭ =====
-    EnsureStageHUD(InWorld);
+    // ===== ���� ���� ����ȭ =====
     RefreshHandFromGI();
 
     // ===== ���� ���� Ÿ�̹� ī�� ó��=====
     ClearAllModifiers();
-}
-
-void UStageCardWSubsystem::EnsureStageHUD(UWorld& InWorld)
-{
-    if (StageHUDInstance) return;
-
-    if (!StageHUDClass)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[StageCardWSubsystem] StageHUDClass is null. Set it in defaults/BP."));
-        return;
-    }
-
-    APlayerController* PC = InWorld.GetFirstPlayerController();
-    if (!PC)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[StageCardWSubsystem] No PlayerController yet."));
-        return;
-    }
-
-    StageHUDInstance = CreateWidget<UUserWidget>(PC, StageHUDClass);
-    if (!StageHUDInstance)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[StageCardWSubsystem] CreateWidget failed."));
-        return;
-    }
-
-    StageHUDInstance->AddToViewport(5);
 }
 
 void UStageCardWSubsystem::RefreshHandFromGI()
@@ -132,24 +94,9 @@ void UStageCardWSubsystem::RefreshHandFromGI()
         return;
     }
     CrossingGI = LocalCrossingGI;
+    CardPrice = 0;
 
     const TArray<int32> IDs = CrossingGI->GetBattleCardIDs();
-
-    auto IsEmpty = [&]()
-        {
-            if (IDs.Num() < HandCount) return true;
-            return (IDs[0] < 0 && IDs[1] < 0 && IDs[2] < 0);
-        };
-
-    // �׽�Ʈ�� �ڵ� ä��
-    if (IsEmpty())
-    {
-        //CrossingGI->SetBattleCardID(3, 0);
-        //CrossingGI->SetBattleCardID(5, 1);
-        //CrossingGI->SetBattleCardID(6, 2);
-
-        UE_LOG(LogTemp, Warning, TEXT("[StageCard] BattleCardIDs were empty. Filled with 1,2,3 for test."));
-    }
 
     for (int32 Slot = 0; Slot < HandCount; ++Slot)
     {
@@ -174,6 +121,76 @@ void UStageCardWSubsystem::RefreshHandFromGI()
         CardPrice += CardData.Price;
         OnHandCardSet.Broadcast(Slot, CardData);
     }
+
+    if (GetCardCount() == 0)
+    {
+        TestCardGenerate();
+        return;
+    }
+
+    OnBattleCardDataChanged.Broadcast();
+}
+
+bool UStageCardWSubsystem::TestCardGenerate()
+{
+    // 실제 장착 카드가 하나라도 있으면 테스트 데이터로 덮어쓰지 않습니다.
+    if (GetCardCount() > 0)
+    {
+        return false;
+    }
+
+    UWorld* World = GetWorld();
+    UGameInstance* GameInstance = IsValid(World) ? World->GetGameInstance() : nullptr;
+    UDataManagerSubsystem* DataManager = IsValid(GameInstance)
+        ? GameInstance->GetSubsystem<UDataManagerSubsystem>()
+        : nullptr;
+    if (!IsValid(DataManager) || !DataManager->IsCacheReady())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[StageCard] TestCardGenerate failed: DataManager cache is unavailable."));
+        OnBattleCardDataChanged.Broadcast();
+        return false;
+    }
+
+    TArray<FCardData> AllCards;
+    if (!DataManager->TryGetAllCards(AllCards))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[StageCard] TestCardGenerate failed: card DB data could not be loaded."));
+        OnBattleCardDataChanged.Broadcast();
+        return false;
+    }
+
+    AllCards.RemoveAll([](const FCardData& CardData)
+    {
+        return CardData.CardID < 0;
+    });
+    AllCards.Sort([](const FCardData& Left, const FCardData& Right)
+    {
+        return Left.CardID < Right.CardID;
+    });
+
+    const int32 GeneratedCardCount = FMath::Min(HandCount, AllCards.Num());
+    CardPrice = 0;
+    for (int32 SlotIndex = 0; SlotIndex < GeneratedCardCount; ++SlotIndex)
+    {
+        HandCards[SlotIndex] = AllCards[SlotIndex];
+        bHasCard[SlotIndex] = true;
+        CardPrice += HandCards[SlotIndex].Price;
+        OnHandCardSet.Broadcast(SlotIndex, HandCards[SlotIndex]);
+    }
+
+    if (GeneratedCardCount < HandCount)
+    {
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("[StageCard] TestCardGenerate created %d/%d card types."),
+            GeneratedCardCount,
+            HandCount
+        );
+    }
+
+    OnBattleCardDataChanged.Broadcast();
+    return GeneratedCardCount > 0;
 }
 
 bool UStageCardWSubsystem::TryLoadCardData(int32 CardID, FCardData& Out) const
@@ -219,6 +236,26 @@ bool UStageCardWSubsystem::TryGetHandCard(int32 HandIndex, FCardData& Out) const
     return true;
 }
 
+void UStageCardWSubsystem::GetBattleCardSlots(TArray<FBattleCardSlotViewData>& OutCardSlots) const
+{
+    OutCardSlots.Reset();
+    OutCardSlots.Reserve(HandCount);
+
+    for (int32 SlotIndex = 0; SlotIndex < HandCount; ++SlotIndex)
+    {
+        FBattleCardSlotViewData& SlotView = OutCardSlots.AddDefaulted_GetRef();
+        SlotView.SlotNumber = SlotIndex;
+        SlotView.bOccupied = bHasCard.IsValidIndex(SlotIndex) && bHasCard[SlotIndex];
+        if (SlotView.bOccupied && HandCards.IsValidIndex(SlotIndex))
+        {
+            SlotView.CardData = HandCards[SlotIndex];
+        }
+
+        // TODO: Tick 기반 조건 검사 이관 후 실제 활성 상태를 여기서 전달합니다.
+        SlotView.bIsActive = false;
+    }
+}
+
 void UStageCardWSubsystem::ClearSlot(int32 HandIndex, bool bNotify)
 {
     bHasCard[HandIndex] = false;
@@ -227,6 +264,7 @@ void UStageCardWSubsystem::ClearSlot(int32 HandIndex, bool bNotify)
     if (bNotify)
     {
         OnHandCardCleared.Broadcast(HandIndex);
+        OnBattleCardDataChanged.Broadcast();
     }
 }
 
@@ -250,7 +288,7 @@ void UStageCardWSubsystem::ClearAllModifiers()
     UnActiveCardUI();
 }
 
-void UStageCardWSubsystem::SettingDoSettingTurn()
+void UStageCardWSubsystem::SettingDoSettingPhase()
 {
     ClearPromotionHighlight();
     //카드 활성화 초기화

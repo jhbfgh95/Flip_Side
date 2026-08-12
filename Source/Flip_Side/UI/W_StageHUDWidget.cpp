@@ -2,7 +2,6 @@
 #include "Subsystem/StageCardWSubsystem.h"
 #include "UI/W_StageHandCardWidget.h"
 #include "Components/VerticalBox.h"
-#include "Components/Button.h"
 #include "UI/W_CardWidget.h"
 
 void UW_StageHUDWidget::NativeConstruct()
@@ -14,11 +13,6 @@ void UW_StageHUDWidget::NativeConstruct()
     {
         UE_LOG(LogTemp, Error, TEXT("[StageHUD] StageCardSubSystem is null"));
         return;
-    }
-
-    if (ToggleHandButton)
-    {
-        ToggleHandButton->OnClicked.AddDynamic(this, &UW_StageHUDWidget::OnClickToggleHandButton);
     }
 
     if (HandCard0)
@@ -41,7 +35,7 @@ void UW_StageHUDWidget::NativeConstruct()
         HandCard2->OnUnHoverHandCard.AddDynamic(this, &UW_StageHUDWidget::HidePopupCard);
     }
 
-    bHandVisible = true;
+    // 카드 영역은 Battle HUD 이관 후에도 항상 표시합니다.
     if (HandCardPanel)
     {
         HandCardPanel->SetVisibility(ESlateVisibility::Visible);
@@ -63,16 +57,6 @@ void UW_StageHUDWidget::NativeDestruct()
     Super::NativeDestruct();
 }
 
-void UW_StageHUDWidget::OnClickToggleHandButton()
-{
-    bHandVisible = !bHandVisible;
-
-    if (!HandCardPanel)
-        return;
-
-    HandCardPanel->SetVisibility(bHandVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-}
-    
 void UW_StageHUDWidget::ShowPopupCard(FCardData CardData)
 {
     PopUpCardWidget->InitCard(CardData);

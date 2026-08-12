@@ -19,20 +19,20 @@ UENUM()
 enum class EBattleLeverLockReason : uint8
 {
     None,
-    TurnTransition,
-    SettingTurn,
-    BossTurn,
+    PhaseTransition,
+    SettingPhase,
+    BossPhase,
     LeverAnimation,
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTurnChanged, ETurnState, NewTurn);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, EPhaseState, NewPhase);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBossPhaseCompleted);
 //StageEndFlag: 0 = StageClear, 1 = GameOver, 2 = GameClear
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStageEnded, int32, StageEndFlag);
 DECLARE_MULTICAST_DELEGATE(FOnBattleTutorialLeverTriggered);
 
 class ACoinActor;
 class UW_StageEnd;
-class UW_BattlePhaseAndTurnDisplayUI;
 
 UCLASS()
 class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
@@ -40,12 +40,12 @@ class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 	
 	UPROPERTY()
-	TArray<ETurnState> TurnManageMentStack;
+	TArray<EPhaseState> PhaseManagementStack;
 
 	UPROPERTY()
 	TArray<FRandomState> RandomStateArray;
 
-	ETurnState CurrentTurn;
+	EPhaseState CurrentPhase;
 	
 	bool bIsStageEnded = false;
 
@@ -53,10 +53,6 @@ class FLIP_SIDE_API UBattleManagerWSubsystem : public UWorldSubsystem
 
 	UPROPERTY()
 	UW_StageEnd* StageEndWidgetInstance = nullptr;
-
-	UPROPERTY()
-	UW_BattlePhaseAndTurnDisplayUI* BattlePhaseAndTurnDisplayWidgetInstance = nullptr;
-
 
 /* 레버 잠금 */
 protected:
@@ -108,26 +104,29 @@ protected:
 	class USoundManagerWSubsystem* SoundManager;
 
 protected:
-	void TurnProgressing();
+	void PhaseProgressing();
 
-	void TurnStackInit();
+	void PhaseStackInit();
 
 	void GenerateRandomStates();
 
-/* CoinSelectTurn (순서대로) */
+/* CoinBehaviorPhase (순서대로) */
 protected:
 	void MatchCoinsToRandomState();
 
 protected:
-	/* CoinReadyTurn */
-	void DoCoinReadyTurn();
-	/* CoinSelectTurn */
-	void DoCoinSelectTurn();
-	/* SettingTurn*/
+	/* CoinReadyPhase */
+	void DoCoinReadyPhase();
+	/* CoinBehaviorPhase */
+	void DoCoinBehaviorPhase();
+	/* SettingPhase*/
 	UFUNCTION()
-	void DoSettingTurn();
-	/* BossTurn*/
-	void DoBossTurn();
+	void DoSettingPhase();
+
+	UFUNCTION()
+	void HandleBossPhaseCompleted();
+	/* BossPhase*/
+	void DoBossPhase();
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -154,15 +153,22 @@ protected:
 
 public:
 	UPROPERTY(BlueprintAssignable)
-	FOnTurnChanged OnTurnChanged;
+	FOnPhaseChanged OnPhaseChanged;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnBossPhaseCompleted OnBossPhaseCompleted;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnStageEnded OnStageEnded;
 
 	FOnBattleTutorialLeverTriggered OnBattleTutorialLeverTriggered;
 
-	ETurnState GetCurrentTurn();
+	EPhaseState GetCurrentPhase() const;
+	int32 GetTurnCount() const { return TurnCount; }
 
+	bool RequestPhaseProgress(float TransitionLockTime = 0.f);
+
+	// TODO: 3D BattleLever가 제거되기 전까지 기존 호출 경로를 유지합니다.
 	bool StartBattleFromLever(float BattleLeverEndTime);
 
 };

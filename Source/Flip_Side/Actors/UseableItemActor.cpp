@@ -18,16 +18,24 @@ AUseableItemActor::AUseableItemActor()
 void AUseableItemActor::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
+	ApplyItemVisual();
+}
 
-	if(ItemTexture)
+
+void AUseableItemActor::ApplyItemVisual()
+
+
+{
+	if(!IsValid(UseableItemMesh) || !IsValid(ItemTexture))
 	{
-		UMaterialInstanceDynamic* MID = UseableItemMesh->CreateDynamicMaterialInstance(0);
-		
-		if(MID)
-		{	
-			MID->SetTextureParameterValue(FName("UseItem_Icon"), ItemTexture);
-			MID->SetVectorParameterValue(FName("Front_Color"), ItemColor);
-		}
+		return;
+	}
+
+	UMaterialInstanceDynamic* MID = UseableItemMesh->CreateDynamicMaterialInstance(0);
+	if(IsValid(MID))
+	{
+		MID->SetTextureParameterValue(FName("UseItem_Icon"), ItemTexture);
+		MID->SetVectorParameterValue(FName("Front_Color"), ItemColor);
 	}
 }
 
@@ -49,6 +57,20 @@ void AUseableItemActor::SetItemValues(int32 TheItemID, EItemType theItemType,UTe
 	ItemTexture = ItemTex;
 	ItemColor = Color;
 	ItemPrice = price;
+	ApplyItemVisual();
+}
+
+void AUseableItemActor::InitializeAsCursorPreview(const FItemData& ItemData, float PreviewScaleMultiplier)
+{
+	SetItemValues(ItemData.ItemID, ItemData.ItemType, ItemData.ItemIcon, ItemData.TypeColor, ItemData.Price);
+
+	SetActorEnableCollision(false);
+	if(IsValid(UseableItemMesh))
+	{
+		UseableItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		UseableItemMesh->SetGenerateOverlapEvents(false);
+		UseableItemMesh->SetRelativeScale3D(UseableItemMesh->GetRelativeScale3D() * PreviewScaleMultiplier);
+	}
 }
 
 int32 AUseableItemActor::GetItemID() const

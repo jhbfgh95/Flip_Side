@@ -1,5 +1,4 @@
 #include "DrawActor.h"
-#include "BattleLevelActingWSubsystem.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 
@@ -18,9 +17,7 @@ void ADrawActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UBattleLevelActingWSubsystem* ActManager= GetWorld()->GetSubsystem<UBattleLevelActingWSubsystem>();
-	ActManager->DoDrawMove.BindUObject(this, &ADrawActor::DoDrawAct);
-
+	// ReadyCoinWidget으로 대체되었습니다. 맵의 기존 BP 에셋 호환을 위해 Actor 클래스만 유지합니다.
 	OriginDrawLocation = GetActorLocation();
 }
 

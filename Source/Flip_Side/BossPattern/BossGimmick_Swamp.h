@@ -24,10 +24,10 @@ class FLIP_SIDE_API UBossGimmick_Swamp : public UBossGimmickBase
 	GENERATED_BODY()
 
 public:
-	virtual void OnPlayerTurnStart(ABossActor* Boss) override;
-	virtual void OnCoinLanded(ABossActor* Boss, FBossTurnContext& Context) override;
-	virtual void OnBeforePatternExecute(ABossActor* Boss, FBossTurnContext& Context) override;
-	virtual void OnTurnEnd(ABossActor* Boss) override;
+	virtual void OnPlayerPhaseStart(ABossActor* Boss) override;
+	virtual void OnCoinLanded(ABossActor* Boss, FBossPhaseContext& Context) override;
+	virtual void OnBeforePatternExecute(ABossActor* Boss, FBossPhaseContext& Context) override;
+	virtual void OnPhaseEnd(ABossActor* Boss) override;
 
 	bool IsSwampCell(const FGridPoint& Cell) const;
 	const TArray<FSwampCell>& GetActiveSwamps() const { return ActiveSwamps; }

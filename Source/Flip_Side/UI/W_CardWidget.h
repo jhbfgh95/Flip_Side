@@ -33,6 +33,9 @@ class FLIP_SIDE_API UW_CardWidget : public UUserWidget
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* CardDescription;
 
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> CardIconMaterialInstance;
+
 	public:
 	//void SetCardIcon(UImage* Image);
 	//void InitCard(UTexture2D* IconImage, FString Title,FString Description);

@@ -76,3 +76,32 @@ struct FSelectItem
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 SameItemNum = 0;
 };
+
+// 전투 중 보유 아이템을 타입별로 관리하는 런타임 데이터입니다.
+USTRUCT(BlueprintType)
+struct FBattleItemSlotData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    FItemData ItemData;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    int32 AvailableCount = 0;
+};
+
+// Battle HUD 표시 전용 아이템 슬롯 데이터입니다.
+USTRUCT(BlueprintType)
+struct FBattleItemSlotViewData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    FItemData ItemData;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    int32 AvailableCount = 0;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    bool bCanUse = false;
+};

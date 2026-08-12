@@ -7,8 +7,8 @@
 // ActiveGimmick으로 세팅되는 래퍼.
 // OnDamageCalculate → 선택된 기믹에만 전달
 // OnPatternExecute  → 선택된 기믹에만 전달
-// OnTurnEnd         → 선택된 기믹에만 전달
-// OnPlayerTurnStart / OnPlayerTurnEnd → GimmickList 전체에 브로드캐스트
+// OnPhaseEnd         → 선택된 기믹에만 전달
+// OnPlayerPhaseStart / OnPlayerPhaseEnd → GimmickList 전체에 브로드캐스트
 UCLASS()
 class FLIP_SIDE_API UBossGimmick_Proxy : public UBossGimmickBase
 {
@@ -33,12 +33,12 @@ public:
             SelectedGimmick->OnPatternExecute(Boss, LockedCells, LockedTargets, LockedOthers);
     }
 
-    virtual void OnTurnEnd(ABossActor* Boss) override
+    virtual void OnPhaseEnd(ABossActor* Boss) override
     {
         if (IsValid(SelectedGimmick))
-            SelectedGimmick->OnTurnEnd(Boss);
+            SelectedGimmick->OnPhaseEnd(Boss);
     }
 
-    virtual void OnPlayerTurnStart(ABossActor* Boss) override;
-    virtual void OnPlayerTurnEnd(ABossActor* Boss) override;
+    virtual void OnPlayerPhaseStart(ABossActor* Boss) override;
+    virtual void OnPlayerPhaseEnd(ABossActor* Boss) override;
 };

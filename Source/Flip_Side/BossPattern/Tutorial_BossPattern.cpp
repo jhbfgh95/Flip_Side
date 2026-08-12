@@ -7,7 +7,7 @@
 
 void UTutorial_BossPattern::ExecutePattern(
 	ABossActor* Boss,
-	FBossTurnContext& Context,
+	FBossPhaseContext& Context,
 	const TArray<ACoinActor*>& InLockedTargets,
 	const TArray<ABase_OtherActor*>& InLockedOthers)
 {

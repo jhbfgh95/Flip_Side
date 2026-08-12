@@ -18,7 +18,7 @@ class FLIP_SIDE_API UTutorial_BossPattern : public UBossPatternBase
 	GENERATED_BODY()
 	virtual void ExecutePattern(
 		ABossActor* Boss,
-		FBossTurnContext& Context,
+		FBossPhaseContext& Context,
 		const TArray<ACoinActor*>& InLockedTargets,
 		const TArray<ABase_OtherActor*>& InLockedOthers) override;	
 };

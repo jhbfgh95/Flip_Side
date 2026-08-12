@@ -4,7 +4,7 @@
 #include "UObject/Object.h"
 #include "GridTypes.h"
 #include "BossDataTypes.h"
-#include "BossTurnContext.h"
+#include "BossPhaseContext.h"
 #include "BossPatternBase.generated.h"
 
 class ABossActor;
@@ -30,7 +30,7 @@ public:
 
 	virtual void ExecutePattern(
 		ABossActor* Boss,
-		FBossTurnContext& Context,
+		FBossPhaseContext& Context,
 		const TArray<ACoinActor*>& InLockedTargets,
 		const TArray<ABase_OtherActor*>& InLockedOthers);
 

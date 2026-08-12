@@ -78,6 +78,7 @@ bool UDataManagerSubsystem::ReloadCache()
     bOk &= LoadCards();
     bOk &= LoadStageRewards();
     bOk &= LoadGameConfig();
+    bOk &= LoadCoinSlotLevelTiers();
 
     bCacheReady = bOk;
 
@@ -187,6 +188,7 @@ void UDataManagerSubsystem::ClearCache()
     WeaponTypes.Reset();
     StageRewardByStageID.Reset();
     GameConfig = FGameConfigData();
+    CoinSlotLevelTierByLevel.Reset();
 }
 
 bool UDataManagerSubsystem::OpenDbReadWrite()
@@ -233,7 +235,6 @@ bool UDataManagerSubsystem::LoadWeapons()
             c.vfx_path,
             IFNULL(c.vfx_target, 0) AS vfx_target,
             c.type_id,
-            w.HP,
             c.weapon_point,
             c.weapon_name,
             c.KOR_DES,
@@ -299,7 +300,7 @@ bool UDataManagerSubsystem::LoadWeapons()
         Data.WeaponVFXTarget = (EWeaponVFXTarget)GetColInt(Stmt, Col++);
 
         Data.TypeID = GetColInt(Stmt, Col++);
-        Data.HP = GetColInt(Stmt, Col++);
+        // Data.HP: A.2에서 슬롯 레벨 기반 HP(coin_slot_level_tier)로 대체됨. weapon_type.HP 컬럼도 삭제됨.
         Data.AttackPoint = GetColInt(Stmt, Col++);
 
         Data.WeaponName = GetColTextUTF8(Stmt, Col++);
@@ -359,12 +360,12 @@ bool UDataManagerSubsystem::LoadWeapons()
 bool UDataManagerSubsystem::LoadWeaponTypes()
 {
     const TCHAR* Sql =
-        TEXT("SELECT type_id, weapon_type, HP, typecolor FROM weapon_type; ");
+        TEXT("SELECT type_id, weapon_type, typecolor FROM weapon_type; ");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
     {
-        UE_LOG(LogTemp, Error, TEXT("[DB] LoadWeapons: PrepareStatement failed"));
+        UE_LOG(LogTemp, Error, TEXT("[DB] LoadWeaponTypes: PrepareStatement failed"));
         return false;
     }
 
@@ -377,11 +378,9 @@ bool UDataManagerSubsystem::LoadWeaponTypes()
         const FString ClassStr = GetColText(Stmt, 1);
         Data.WeaponType = WeaponClassFromString(ClassStr);
 
-        
-        Data.HP = GetColInt(Stmt, 2);
-        
+        // Data.HP: weapon_type.HP 컬럼 삭제됨 (A.2에서 슬롯 레벨 기반 HP로 대체). 항상 0.
 
-        const FString ColorHex = GetColText(Stmt, 3);
+        const FString ColorHex = GetColText(Stmt, 2);
         if (!TryParseHexColor_RRGGBBAA(ColorHex, Data.TypeColor))
         {
             Data.TypeColor = FLinearColor::White;
@@ -944,5 +943,42 @@ bool UDataManagerSubsystem::LoadGameConfig()
 
     Stmt.Destroy();
     return true;
+}
+
+bool UDataManagerSubsystem::LoadCoinSlotLevelTiers()
+{
+    const TCHAR* Sql = TEXT("SELECT level, cost, hp FROM coin_slot_level_tier ORDER BY level ASC;");
+
+    FSQLitePreparedStatement Stmt;
+    if (!PrepareStmt(Db, Sql, Stmt))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[DB] LoadCoinSlotLevelTiers: PrepareStatement failed"));
+        return false;
+    }
+
+    while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
+    {
+        FCoinSlotLevelTier Tier;
+        Tier.Level = GetColInt(Stmt, 0);
+        Tier.Cost  = GetColInt(Stmt, 1);
+        Tier.HP    = GetColInt(Stmt, 2);
+        CoinSlotLevelTierByLevel.Add(Tier.Level, Tier);
+    }
+
+    Stmt.Destroy();
+    return true;
+}
+
+bool UDataManagerSubsystem::GetCoinSlotLevelStats(const FCoinTypeStructure& CoinSlot, int32& OutCost, int32& OutHP) const
+{
+    if (const FCoinSlotLevelTier* Tier = CoinSlotLevelTierByLevel.Find(CoinSlot.Level))
+    {
+        OutCost = Tier->Cost;
+        OutHP   = Tier->HP;
+        return true;
+    }
+    OutCost = 0;
+    OutHP   = 0;
+    return false;
 }
 
