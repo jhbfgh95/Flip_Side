@@ -43,9 +43,21 @@ void UShopUnlockWeaponWSubsystem::SelectUnlockWeapon(EWeaponClass WeaponClass, i
     CurrentUnlockWeaponID = WeaponID;
     CurrentUnlockWeaponClass = WeaponClass;
 
-    OnSelectUnlockWeapon.Broadcast(WeaponClass, WeaponID, IsWeaponUnlock);
+    //OnSelectUnlockWeapon.Broadcast(WeaponClass, WeaponID, IsWeaponUnlock);
 
 }
+
+void UShopUnlockWeaponWSubsystem::SelectUnlockWeapon(int32 WeaponID)
+{
+    CurrentUnlockWeaponID = WeaponID;
+}
+
+void UShopUnlockWeaponWSubsystem::UnSelectWeapon()
+{
+    OnUnselectUnlockWeapon.Broadcast();
+}
+
+
 
 int32 UShopUnlockWeaponWSubsystem::GetCurrentUnlockWeaponID()
 {
@@ -64,7 +76,7 @@ void UShopUnlockWeaponWSubsystem::UnlockCurrentWeapon()
         if(MoneySubsystem->SpendMoney(EMoneyRecordType::Weapon, WeaponFaceData.Price))
         {
             UnlockSubsystem->UnlockWeapon(CurrentUnlockWeaponClass, CurrentUnlockWeaponID);
-            OnSelectUnlockWeapon.Broadcast(CurrentUnlockWeaponClass,CurrentUnlockWeaponID,true);
+            //OnSelectUnlockWeapon.Broadcast(CurrentUnlockWeaponClass,CurrentUnlockWeaponID,true);
         }
        
     }

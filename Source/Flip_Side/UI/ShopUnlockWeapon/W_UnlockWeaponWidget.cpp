@@ -14,7 +14,7 @@ void UW_UnlockWeaponWidget::NativeConstruct()
     
     UnlockWeaponSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
     DataSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
-    UnlockWeaponSubsystem->OnSelectUnlockWeapon.AddDynamic(this, &UW_UnlockWeaponWidget::SetWidgetState);
+    //UnlockWeaponSubsystem->OnSelectUnlockWeapon.AddDynamic(this, &UW_UnlockWeaponWidget::SetWidgetState);
     HideWidget();
 }
 
