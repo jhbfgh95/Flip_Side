@@ -6,7 +6,7 @@
 #include "BossManagerSubsystem.h"
 #include "FlipSideDevloperSettings.h"
 #include "WeaponRangePreviewActor.h"
-#include "BossCoinActor.h"
+#include "Actors/Boss/BossCoinActor.h"
 
 bool UGridManagerSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {

@@ -1,4 +1,4 @@
-#include "BossCoinActor.h"
+#include "Actors/Boss/BossCoinActor.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 

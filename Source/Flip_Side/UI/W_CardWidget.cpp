@@ -8,9 +8,9 @@
 
 namespace
 {
-    const FName CardIconParameterName(TEXT("Weapon_Icon"));
-    const FName CardColorParameterName(TEXT("Weapon_Color"));
-    const FLinearColor CardIconColor(1.0f, 0.823529f, 1.0f, 1.0f); // FFD2FFFF
+    const FName WCardIconParameterName(TEXT("Weapon_Icon"));
+    const FName WCardColorParameterName(TEXT("Weapon_Color"));
+    const FLinearColor WCardIconColor(1.0f, 0.823529f, 1.0f, 1.0f); // FFD2FFFF
 }
 
 
@@ -29,8 +29,8 @@ void UW_CardWidget::InitCard(FCardData CardData)
         CardIconMaterialInstance = CardIconImage->GetDynamicMaterial();
         if (IsValid(CardIconMaterialInstance))
         {
-            CardIconMaterialInstance->SetTextureParameterValue(CardIconParameterName, CardData.Icon);
-            CardIconMaterialInstance->SetVectorParameterValue(CardColorParameterName, CardIconColor);
+            CardIconMaterialInstance->SetTextureParameterValue(WCardIconParameterName, CardData.Icon);
+            CardIconMaterialInstance->SetVectorParameterValue(WCardColorParameterName, WCardIconColor);
         }
         else
         {
