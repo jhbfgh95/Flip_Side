@@ -62,6 +62,10 @@ public:
     UPROPERTY(BlueprintReadOnly)
     FGameConfigData GameConfig;
 
+    // 슬롯 레벨(1~3)별 비용/HP
+    UPROPERTY(BlueprintReadOnly)
+    TMap<int32, FCoinSlotLevelTier> CoinSlotLevelTierByLevel;
+
     // ===== Subsystem =====
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     virtual void Deinitialize() override;
@@ -101,6 +105,10 @@ public:
     UFUNCTION(BlueprintCallable)
     bool TryGetStageReward(int32 StageID, FStageRewardData& Out) const;
 
+    // 슬롯 구조체의 Level로 해당 레벨의 구매 비용/HP를 조회
+    UFUNCTION(BlueprintCallable)
+    bool GetCoinSlotLevelStats(const FCoinTypeStructure& CoinSlot, int32& OutCost, int32& OutHP) const;
+
 private:
     bool bCacheReady = false;
     FSQLiteDatabase Db;
@@ -119,6 +127,7 @@ private:
     bool LoadCards();
     bool LoadStageRewards();
     bool LoadGameConfig();
+    bool LoadCoinSlotLevelTiers();
 
     static EAttackAreaPattern AttackAreaPatternFromInt(int32 Val);
     static EAreaAnchor AreaAnchorFromInt(int32 Val);

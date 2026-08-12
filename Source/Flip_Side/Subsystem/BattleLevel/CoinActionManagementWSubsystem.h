@@ -14,7 +14,7 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
-	bool bIsCorrectTurn = false;
+	bool bIsCorrectPhase = false;
 
 	//캐싱
 	FAttackAreaSpec AreaSpec;
@@ -59,7 +59,7 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 
 public:
 	//이거로 코인 선택하는거 잠궜습니다.
-	void SetTurn(const bool bIsTurn);
+	void SetPhase(const bool bIsPhase);
 
 	void StopActionSequenceForStageEnd();
 

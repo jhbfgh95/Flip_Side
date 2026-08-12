@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/Button.h"
 #include "DataTypes/CardTypes.h"
 #include "W_StageHUDWidget.generated.h"
 
@@ -23,10 +22,6 @@ private:
     UPROPERTY(meta = (BindWidget))
     class UVerticalBox* HandCardPanel;
 
-    // ������ ��� ��ư
-    UPROPERTY(meta = (BindWidget))
-    class UButton* ToggleHandButton;
-
     UPROPERTY(meta = (BindWidget))
     class UW_CardWidget* PopUpCardWidget;
 
@@ -40,11 +35,6 @@ protected:
 
     UPROPERTY(meta = (BindWidget))
     class UW_StageHandCardWidget* HandCard2;
-
-    UFUNCTION()
-    void OnClickToggleHandButton();
-
-    bool bHandVisible = true;
 
 protected:
     UFUNCTION()

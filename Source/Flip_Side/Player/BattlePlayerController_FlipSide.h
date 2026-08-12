@@ -4,6 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "BossDataTypes.h"
+#include "CoinDataTypes.h"
+#include "ItemDataTypes.h"
+#include "CardTypes.h"
 #include "FlipSide_Enum.h"
 #include "BattlePlayerController_FlipSide.generated.h"
 
@@ -12,6 +16,8 @@ class ABattlePlayerPawn_FlipSide;
 class ABattleArea;
 class IBattleHoverInterface;
 class IBattleClickInterface;
+class UBattlePlayerHUDWidget;
+class ABossActor;
 
 UCLASS(abstract)
 class ABattlePlayerController_FlipSide : public APlayerController
@@ -23,16 +29,16 @@ private:
     float DefaultCameraArmLength;
 
 	UPROPERTY(EditAnywhere, Category = "Camera")
-    FVector CoinSelectCameraLocation;
+    FVector CoinBehaviorCameraLocation;
 
     UPROPERTY(EditAnywhere, Category = "Camera")
-    FRotator CoinSelectCameraRotation;
+    FRotator CoinBehaviorCameraRotation;
 
     UPROPERTY(EditAnywhere, Category = "Camera")
-    float CoinSelectCameraArmLength = 0.f;
+    float CoinBehaviorCameraArmLength = 0.f;
 
     UPROPERTY(EditAnywhere, Category = "Camera")
-    float CoinSelectCameraDelay = 0.6f;
+    float CoinBehaviorCameraDelay = 0.6f;
 
     UPROPERTY(EditAnywhere, Category = "Camera")
     FVector BossDeadCameraLocation;
@@ -43,22 +49,56 @@ private:
     UPROPERTY(EditAnywhere, Category = "Camera")
     float BossDeadCameraArmLength = 0.f;
 
-    FTimerHandle CoinSelectCameraDelayHandle;
+    FTimerHandle CoinBehaviorCameraDelayHandle;
     FTimerHandle CursorClickResetHandle;
+    FTimerHandle BossHUDBindRetryHandle;
 
     UFUNCTION()
-    void OnTurnChanged(ETurnState NewTurn);
+    void OnPhaseChanged(EPhaseState NewPhase);
 
     UFUNCTION()
     void OnStageEnded(int32 StageEndFlag);
 
+	UFUNCTION()
+	void HandleBossPhaseCompleted();
+
+    UFUNCTION()
+    void RefreshBattleCoinHUD();
+
+    UFUNCTION()
+    void RefreshBattleItemHUD();
+
+    UFUNCTION()
+    void RefreshBattleCardHUD();
+
+    void RefreshBattlePhaseHUD();
+
+    void TryBindBossHUD();
+    void RefreshBossHUD();
+    void HandleBossHUDDataChanged(const FBossHUDData& InData);
     void MoveCameraForBossDead();
+    void HandleBattleCoinSlotClicked(int32 SlotNumber);
+    void HandleReadyCoinClicked(int32 CoinInstanceID);
+	void HandleBattleItemSlotClicked(int32 ItemID);
+	void HandleBattlePhaseProgressClicked();
+    FBattleCoinSlotViewData BuildCoinSlotViewData(const FBattleCoinSlotData& CoinSlotData) const;
+    FBattleReadyCoinViewData BuildReadyCoinViewData(const FReadyCoinData& ReadyCoinData, int32 ReadySlotNumber) const;
+	FBattleItemSlotViewData BuildItemSlotViewData(const FBattleItemSlotData& ItemSlotData, bool bCanUse) const;
 
 protected:
 	TObjectPtr<ABattlePlayerPawn_FlipSide> ControlledPawn;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputMappingContext* InputContext;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UBattlePlayerHUDWidget> BattleHUDWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UBattlePlayerHUDWidget> BattleHUDWidget;
+
+	UPROPERTY()
+	TObjectPtr<ABossActor> ObservedBoss;
 
 	virtual void BeginPlay() override;
 

@@ -2,7 +2,7 @@
 #include "BossActor_RoleTarget.h"
 #include "BossManagerSubsystem.h"
 
-void UBossGimmick_RoleTarget::OnPlayerTurnStart(ABossActor* Boss)
+void UBossGimmick_RoleTarget::OnPlayerPhaseStart(ABossActor* Boss)
 {
     if (!Boss) return;
 
@@ -17,14 +17,14 @@ void UBossGimmick_RoleTarget::OnPlayerTurnStart(ABossActor* Boss)
     UBossManagerSubsystem* BossMgr = World->GetSubsystem<UBossManagerSubsystem>();
     if (!BossMgr) return;
 
-    const FBossTurnContext& Ctx = BossMgr->GetTurnContext();
+    const FBossPhaseContext& Ctx = BossMgr->GetPhaseContext();
     if (!Ctx.CurrentPattern || !Ctx.CurrentPattern->PatternData.IsValidIndex(Ctx.CurrentPatternIndex)) return;
     if (Ctx.CurrentPattern->PatternData[Ctx.CurrentPatternIndex].GimmickType != EBossGimmickType::RoleTarget) return;
 
     RoleTargetBoss->StartRoleRoulette();
 }
 
-void UBossGimmick_RoleTarget::OnCoinLanded(ABossActor* Boss, FBossTurnContext& Context)
+void UBossGimmick_RoleTarget::OnCoinLanded(ABossActor* Boss, FBossPhaseContext& Context)
 {
     if (!Boss) return;
 

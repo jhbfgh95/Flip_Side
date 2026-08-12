@@ -17,6 +17,22 @@ struct FStageRewardData
     int32 RewardGold = 0;
 };
 
+// 코인 슬롯 레벨(1~3)별 구매 비용/HP. 슬롯은 이 3개 레벨 중 하나를 구매.
+USTRUCT(BlueprintType)
+struct FCoinSlotLevelTier
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 Level = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 Cost = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 HP = 0;
+};
+
 USTRUCT(BlueprintType)
 struct FGameConfigData
 {

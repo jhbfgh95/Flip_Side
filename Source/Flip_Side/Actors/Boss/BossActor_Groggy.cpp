@@ -1,6 +1,5 @@
 #include "BossActor_Groggy.h"
 #include "BossGimmick_Groggy.h"
-#include "UI/W_BossHP.h"
 
 ABossActor_Groggy::ABossActor_Groggy()
 {
@@ -8,27 +7,30 @@ ABossActor_Groggy::ABossActor_Groggy()
 
 void ABossActor_Groggy::UpdateGroggyBar(int32 CurrentGroggy)
 {
-    if (BossHpWidget)
-    {
-        BossHpWidget->UpdateGroggyAsShield(CurrentGroggy);
-    }
+    BroadcastBossHUDDataChanged();
 }
 
 void ABossActor_Groggy::BeginPlay()
 {
     Super::BeginPlay();
+}
 
-    if (BossHpWidget)
+FBossHUDData ABossActor_Groggy::GetBossHUDData() const
+{
+    FBossHUDData HUDData = Super::GetBossHUDData();
+    HUDData.bUseGroggyAsShield = true;
+
+    for (UBossGimmickBase* Gimmick : GimmickList)
     {
-        for (UBossGimmickBase* G : GimmickList)
+        if (const UBossGimmick_Groggy* GroggyGimmick = Cast<UBossGimmick_Groggy>(Gimmick))
         {
-            if (UBossGimmick_Groggy* GroggyGimmick = Cast<UBossGimmick_Groggy>(G))
-            {
-                BossHpWidget->InitGroggyAsShield(GroggyGimmick->GetMaxGroggy());
-                break;
-            }
+            HUDData.CurrentGroggy = GroggyGimmick->GetCurrentGroggy();
+            HUDData.MaxGroggy = GroggyGimmick->GetMaxGroggy();
+            break;
         }
     }
+
+    return HUDData;
 }
 
 void ABossActor_Groggy::PlayHitAnimation()

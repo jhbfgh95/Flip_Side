@@ -6,6 +6,7 @@
 #include "BossManagerSubsystem.h"
 #include "FlipSideDevloperSettings.h"
 #include "WeaponRangePreviewActor.h"
+#include "Actors/Boss/BossCoinActor.h"
 
 bool UGridManagerSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -32,7 +33,7 @@ void UGridManagerSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	if (!InWorld.IsGameWorld())
 		return;
 
-	InitGrid(8, 5);
+	InitGrid(9, 9);
 	InstanceGrid();
 }
 
@@ -97,6 +98,20 @@ void UGridManagerSubsystem::InstanceGrid()
 	}
 
 	UE_LOG(LogTemp, Log, TEXT("GridManager: Spawned grids %dx%d"), GridXSize, GridYSize);
+
+	// 보스 코인 발판: 항상 그리드 가장 뒤 가운데 3x3 고정 위치에 스폰
+	if (UClass* BossCoinClass = Settings->BossCoinActorClass.LoadSynchronous())
+	{
+		if (BossCoinClass->IsChildOf(ABossCoinActor::StaticClass()))
+		{
+			const FVector BossCoinSpawnLoc(4420.f, -800.f, -100.f);
+			World->SpawnActor<ABossCoinActor>(BossCoinClass, BossCoinSpawnLoc, FRotator::ZeroRotator);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("GridManager: BossCoinActorClass invalid (must be BP child of ABossCoinActor)."));
+		}
+	}
 }
 
 

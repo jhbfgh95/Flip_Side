@@ -18,7 +18,7 @@ FLinearColor UBossGimmick_Swamp::GetSwampColor(EWeaponClass Type)
 	}
 }
 
-void UBossGimmick_Swamp::OnPlayerTurnStart(ABossActor* Boss)
+void UBossGimmick_Swamp::OnPlayerPhaseStart(ABossActor* Boss)
 {
 	if (!Boss) return;
 
@@ -38,7 +38,7 @@ void UBossGimmick_Swamp::OnPlayerTurnStart(ABossActor* Boss)
 	}
 }
 
-void UBossGimmick_Swamp::OnCoinLanded(ABossActor* Boss, FBossTurnContext& Context)
+void UBossGimmick_Swamp::OnCoinLanded(ABossActor* Boss, FBossPhaseContext& Context)
 {
 	if (!Boss) return;
 
@@ -85,7 +85,7 @@ void UBossGimmick_Swamp::OnCoinLanded(ABossActor* Boss, FBossTurnContext& Contex
 	}
 }
 
-void UBossGimmick_Swamp::OnBeforePatternExecute(ABossActor* Boss, FBossTurnContext& Context)
+void UBossGimmick_Swamp::OnBeforePatternExecute(ABossActor* Boss, FBossPhaseContext& Context)
 {
 	if (!Boss || !Context.CurrentPattern) return;
 
@@ -105,7 +105,7 @@ void UBossGimmick_Swamp::OnBeforePatternExecute(ABossActor* Boss, FBossTurnConte
 	}
 }
 
-void UBossGimmick_Swamp::OnTurnEnd(ABossActor* Boss)
+void UBossGimmick_Swamp::OnPhaseEnd(ABossActor* Boss)
 {
 	if (!Boss) return;
 

@@ -21,6 +21,7 @@ struct FGridPoint;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FStageHandCardSet, int32, HandIndex, FCardData, CardInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStageHandCardCleared, int32, HandIndex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FStageHandCardActive, int32, HandIndex, bool, IsActive);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBattleCardDataChanged);
 
 UCLASS()
 class FLIP_SIDE_API UStageCardWSubsystem : public UWorldSubsystem
@@ -44,6 +45,9 @@ public:
     UPROPERTY(BlueprintAssignable)
     FStageHandCardActive OnStageHandCardActive;
 
+    UPROPERTY(BlueprintAssignable, Category = "StageCard")
+    FOnBattleCardDataChanged OnBattleCardDataChanged;
+
     int32 CardPrice = 0;
 
 public:
@@ -56,6 +60,12 @@ public:
 
     UFUNCTION(BlueprintCallable)
     bool TryGetHandCard(int32 HandIndex, FCardData& Out) const;
+
+    void GetBattleCardSlots(TArray<FBattleCardSlotViewData>& OutCardSlots) const;
+
+    // 실제 장착 카드가 없을 때 HUD/전투 확인용 카드 3종을 런타임 손패에 생성합니다.
+    UFUNCTION(BlueprintCallable, Category = "Debug|Stage Card")
+    bool TestCardGenerate();
 
     
 
@@ -72,7 +82,7 @@ public:
     UFUNCTION(BlueprintCallable)
     void ClearAllModifiers();
 
-    void SettingDoSettingTurn();
+    void SettingDoSettingPhase();
 
     //Park 추가
     int32 GetCardPrice() { return static_cast<int32>(CardPrice / 2); }
@@ -88,9 +98,6 @@ private:
     TArray<bool> bHasCard;
 
 private:
-    // ===== [���� UI ���� ����] =====
-    void EnsureStageHUD(UWorld& InWorld);
-
     // CardID -> FCardData
     bool TryLoadCardData(int32 CardID, FCardData& Out) const;
 
@@ -115,14 +122,6 @@ private:
 
     // 프로모션 카드 빛나는 그리드 (GridX==-1 이면 미선택)
     FGridPoint PromotionHighlightedGrid;
-
-private:
-    // HUD ���� Ŭ����(������/���ÿ��� ����)
-    UPROPERTY(EditDefaultsOnly, Category = "UI")
-    TSubclassOf<class UUserWidget> StageHUDClass;
-
-    UPROPERTY()
-    UUserWidget* StageHUDInstance = nullptr;
 
 private:
     //카드 UI 비활성화

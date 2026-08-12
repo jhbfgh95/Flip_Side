@@ -8,6 +8,7 @@
 #include "BattleClickInterface.h"
 #include "BattleRightClickInterface.h"
 #include "FlipSide_Enum.h"
+#include "ItemDataTypes.h"
 #include "UseableItemActor.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoverItemDelegate, AUseableItemActor*, HoveredItem);
@@ -54,6 +55,9 @@ public:
 
 	UFUNCTION()
 	void SetItemValues(int TheItemID, EItemType theItemType ,UTexture2D* ItemTex, FLinearColor Color, int32 price);
+
+	// 전투 HUD에서 선택한 아이템의 3D 커서 프리뷰 전용 초기화입니다.
+	void InitializeAsCursorPreview(const FItemData& ItemData, float PreviewScaleMultiplier);
 
 	UFUNCTION()
 	int32 GetItemPrice() const { return ItemPrice; }
@@ -103,5 +107,8 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | State")
-    FVector OriginLocation;
+	FVector OriginLocation;
+
+private:
+	void ApplyItemVisual();
 };

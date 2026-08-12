@@ -18,11 +18,8 @@ private:
     UPROPERTY()
     class UAudioComponent* BGMComponent = nullptr;
 
-    FTimerHandle DrawerOpenDelayHandle;
-    FTimerHandle DrawerCloseDelayHandle;
-
-    UFUNCTION()
-    void OnTurnChanged(ETurnState NewTurn);
+	UFUNCTION()
+    void OnPhaseChanged(EPhaseState NewPhase);
 
     UFUNCTION()
     void OnCoinAddedToReady();

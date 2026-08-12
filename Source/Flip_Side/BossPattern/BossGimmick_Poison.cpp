@@ -54,7 +54,7 @@ void UBossGimmick_Poison::OnPatternExecute(
 	}
 }
 
-void UBossGimmick_Poison::OnPlayerTurnStart(ABossActor* Boss)
+void UBossGimmick_Poison::OnPlayerPhaseStart(ABossActor* Boss)
 {
 	if (!Boss || PoisonedCoins.Num() == 0) return;
 
@@ -83,7 +83,7 @@ void UBossGimmick_Poison::OnPlayerTurnStart(ABossActor* Boss)
 	5.f, true);
 }
 
-void UBossGimmick_Poison::OnPlayerTurnEnd(ABossActor* Boss)
+void UBossGimmick_Poison::OnPlayerPhaseEnd(ABossActor* Boss)
 {
 	if (!Boss) return;
 

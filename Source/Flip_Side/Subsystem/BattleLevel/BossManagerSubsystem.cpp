@@ -249,7 +249,7 @@ bool UBossManagerSubsystem::StartBossSetting()
 
 bool UBossManagerSubsystem::PrepareCurrentPattern()
 {
-    ClearCurrentTurn();
+    ClearCurrentPhase();
 
     if (!IsValid(CurrentBoss))
     {
@@ -288,13 +288,13 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
         return false;
     }
 
-    TurnContext.CurrentPattern = PickedPattern;
-    TurnContext.CurrentPatternIndex = PatternIndex;
-    TurnContext.CurrentPattern->BuildTargetCells(CurrentBoss, TurnContext.LockedCells, TurnContext.CurrentPatternIndex);
+    PhaseContext.CurrentPattern = PickedPattern;
+    PhaseContext.CurrentPatternIndex = PatternIndex;
+    PhaseContext.CurrentPattern->BuildTargetCells(CurrentBoss, PhaseContext.LockedCells, PhaseContext.CurrentPatternIndex);
 
-    if (PickedPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
+    if (PickedPattern->PatternData.IsValidIndex(PhaseContext.CurrentPatternIndex))
     {
-        FBossPatternBattleData CurrentPatternData = PickedPattern->PatternData[TurnContext.CurrentPatternIndex];
+        FBossPatternBattleData CurrentPatternData = PickedPattern->PatternData[PhaseContext.CurrentPatternIndex];
         CurrentBoss->SetPatternAnim(CurrentPatternData.PatternMontage);
 
         // 패턴의 GimmickType으로 GimmickList에서 해당 기믹 찾아 ActiveGimmick 세팅
@@ -311,8 +311,8 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
             }
         }
         // Proxy를 통해 ActiveGimmick 세팅:
-        // OnPlayerTurnStart/End → GimmickList 전체 브로드캐스트
-        // OnPatternExecute/OnDamageCalculate/OnTurnEnd → MatchedGimmick에만 전달
+        // OnPlayerPhaseStart/End → GimmickList 전체 브로드캐스트
+        // OnPatternExecute/OnDamageCalculate/OnPhaseEnd → MatchedGimmick에만 전달
         UBossGimmick_Proxy* Proxy = NewObject<UBossGimmick_Proxy>(CurrentBoss);
         Proxy->SelectedGimmick = MatchedGimmick;
         Proxy->GimmickData = MatchedGimmick ? MatchedGimmick->GimmickData : FBossGimmickData{};
@@ -322,28 +322,28 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
             PatternIndex, (int32)CurrentPatternData.GimmickType,
             MatchedGimmick ? *MatchedGimmick->GetClass()->GetName() : TEXT("None"));
 
-        CurrentBoss->SetCurrentPatternInfo(TurnContext.CurrentPatternIndex, CurrentPatternData);
+        CurrentBoss->SetCurrentPatternInfo(PhaseContext.CurrentPatternIndex, CurrentPatternData);
     }
 
     // 늪 설치 패턴(bNoDamage)이면 보라색, 일반 공격이면 빨간색으로 예고
     // 늪이 깔린 셀 위로 공격이 겹치면 주황색으로 구분
-    const bool bIsInstallPattern = PickedPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex)
-        && PickedPattern->PatternData[TurnContext.CurrentPatternIndex].bNoDamage;
+    const bool bIsInstallPattern = PickedPattern->PatternData.IsValidIndex(PhaseContext.CurrentPatternIndex)
+        && PickedPattern->PatternData[PhaseContext.CurrentPatternIndex].bNoDamage;
     const FLinearColor NormalTelegraphColor = bIsInstallPattern
         ? FLinearColor(0.5f, 0.1f, 0.9f, 1.f)
         : FLinearColor(1.f, 0.f, 0.f, 1.f);
-    ShowTelegraphPreviewWithSwamp(TurnContext.LockedCells, NormalTelegraphColor);
+    ShowTelegraphPreviewWithSwamp(PhaseContext.LockedCells, NormalTelegraphColor);
 
-    TurnContext.bPrepared = true;
+    PhaseContext.bPrepared = true;
     return true;
 }
 
 
 TSoftClassPtr<ABase_PatternVisualActor> UBossManagerSubsystem::GetCurrentPatternVisualClass() const
 {
-    if (TurnContext.CurrentPattern && TurnContext.CurrentPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
+    if (PhaseContext.CurrentPattern && PhaseContext.CurrentPattern->PatternData.IsValidIndex(PhaseContext.CurrentPatternIndex))
     {
-        return TurnContext.CurrentPattern->PatternData[TurnContext.CurrentPatternIndex].VisualActorClass;
+        return PhaseContext.CurrentPattern->PatternData[PhaseContext.CurrentPatternIndex].VisualActorClass;
     }
     
     return nullptr;
@@ -351,7 +351,7 @@ TSoftClassPtr<ABase_PatternVisualActor> UBossManagerSubsystem::GetCurrentPattern
 
 void UBossManagerSubsystem::ExecuteCurrentPattern()
 {
-    if (!TurnContext.bPrepared)
+    if (!PhaseContext.bPrepared)
     {
         UE_LOG(LogTemp, Warning, TEXT("[BossManager] ExecuteCurrentPattern skipped: not prepared"));
         if (IsValid(CurrentBoss))
@@ -362,18 +362,18 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
     if (!IsValid(CurrentBoss))
     {
         UE_LOG(LogTemp, Warning, TEXT("[BossManager] ExecuteCurrentPattern skipped: CurrentBoss null"));
-        ClearCurrentTurn();
+        ClearCurrentPhase();
         return;
     }
 
-    if (!CurrentBoss->ConsumeCCForBossTurn())
+    if (!CurrentBoss->ConsumeCCForBossPhase())
     {
-        ClearCurrentTurn();
+        ClearCurrentPhase();
         CurrentBoss->FinishBossAttack();
         return;
     }
 
-    BuildLockedTargetsFromCells(TurnContext.LockedCells, TurnContext.LockedTargets);
+    BuildLockedTargetsFromCells(PhaseContext.LockedCells, PhaseContext.LockedTargets);
 
     CurrentBoss->PlayAttack();
 
@@ -384,9 +384,9 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
     }
 
     float ApplyDelay = 1.0f;
-    if (TurnContext.CurrentPattern && TurnContext.CurrentPattern->PatternData.IsValidIndex(TurnContext.CurrentPatternIndex))
+    if (PhaseContext.CurrentPattern && PhaseContext.CurrentPattern->PatternData.IsValidIndex(PhaseContext.CurrentPatternIndex))
     {
-        ApplyDelay = TurnContext.CurrentPattern->PatternData[TurnContext.CurrentPatternIndex].ApplyDelay;
+        ApplyDelay = PhaseContext.CurrentPattern->PatternData[PhaseContext.CurrentPatternIndex].ApplyDelay;
     }
 
     World->GetTimerManager().SetTimer(
@@ -400,11 +400,11 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
 
 void UBossManagerSubsystem::ApplyCurrentPattern()
 {
-    if (!TurnContext.bPrepared) return;
+    if (!PhaseContext.bPrepared) return;
 
     TArray<ACoinActor*> ValidLockedTargets;
     TArray<ABase_OtherActor*> ValidLockedOthers;
-    for (const FLockedBossTarget& LockedTarget : TurnContext.LockedTargets)
+    for (const FLockedBossTarget& LockedTarget : PhaseContext.LockedTargets)
     {
         if (IsValid(LockedTarget.CoinActor) && IsStillOnLockedCell(LockedTarget))
         {
@@ -418,35 +418,35 @@ void UBossManagerSubsystem::ApplyCurrentPattern()
 
     if (IsValid(CurrentBoss))
     {
-        TurnContext.BaseDamage = CurrentBoss->GetAttackPoint();
-        TurnContext.BonusDamage = 0;
-        TurnContext.DamageMultiplier = 1.f;
-        TurnContext.bSkipAttack = false;
+        PhaseContext.BaseDamage = CurrentBoss->GetAttackPoint();
+        PhaseContext.BonusDamage = 0;
+        PhaseContext.DamageMultiplier = 1.f;
+        PhaseContext.bSkipAttack = false;
     }
 
-    if (IsValid(CurrentBoss) && TurnContext.CurrentPattern)
+    if (IsValid(CurrentBoss) && PhaseContext.CurrentPattern)
     {
         for (UBossGimmickBase* G : CurrentBoss->GetGimmickList())
         {
-            G->OnBeforePatternExecute(CurrentBoss, TurnContext);
+            G->OnBeforePatternExecute(CurrentBoss, PhaseContext);
         }
     }
 
-    if (TurnContext.CurrentPattern)
+    if (PhaseContext.CurrentPattern)
     {
-        TurnContext.CurrentPattern->ExecutePattern(
+        PhaseContext.CurrentPattern->ExecutePattern(
             CurrentBoss,
-            TurnContext,
+            PhaseContext,
             ValidLockedTargets,
             ValidLockedOthers
         );
     }
 
-    ClearCurrentTurn();
+    ClearCurrentPhase();
 }
 
 
-void UBossManagerSubsystem::ClearCurrentTurn()
+void UBossManagerSubsystem::ClearCurrentPhase()
 {
     if (UWorld* World = GetWorld())
     {
@@ -454,20 +454,20 @@ void UBossManagerSubsystem::ClearCurrentTurn()
         World->GetTimerManager().ClearTimer(ApplyPatternTimerHandle);
     }
 
-    if (TurnContext.LockedCells.Num() > 0)
+    if (PhaseContext.LockedCells.Num() > 0)
     {
-        ClearTelegraphPreview(TurnContext.LockedCells);
+        ClearTelegraphPreview(PhaseContext.LockedCells);
     }
 
     if (IsValid(CurrentBoss))
     {
         for (UBossGimmickBase* G : CurrentBoss->GetGimmickList())
         {
-            if (IsValid(G)) G->OnTurnEnd(CurrentBoss);
+            if (IsValid(G)) G->OnPhaseEnd(CurrentBoss);
         }
     }
 
-    TurnContext.Reset();
+    PhaseContext.Reset();
 }
 
 void UBossManagerSubsystem::ShowTelegraphPreview(const TArray<FGridPoint>& Cells, const FLinearColor& Color)
@@ -590,17 +590,17 @@ void UBossManagerSubsystem::BroadcastCoinLanded()
     for (UBossGimmickBase* G : CurrentBoss->GetGimmickList())
     {
         if (IsValid(G))
-            G->OnCoinLanded(CurrentBoss, TurnContext);
+            G->OnCoinLanded(CurrentBoss, PhaseContext);
     }
 }
 
 void UBossManagerSubsystem::RecalculateTelegraphForRoleTarget()
 {
-    if (!TurnContext.CurrentPattern) return;
-    ClearTelegraphPreview(TurnContext.LockedCells);
-    TurnContext.LockedCells.Reset();
-    TurnContext.CurrentPattern->BuildTargetCells(CurrentBoss, TurnContext.LockedCells, TurnContext.CurrentPatternIndex);
-    ShowTelegraphPreview(TurnContext.LockedCells, FLinearColor(1.f, 0.f, 0.f, 1.f));
+    if (!PhaseContext.CurrentPattern) return;
+    ClearTelegraphPreview(PhaseContext.LockedCells);
+    PhaseContext.LockedCells.Reset();
+    PhaseContext.CurrentPattern->BuildTargetCells(CurrentBoss, PhaseContext.LockedCells, PhaseContext.CurrentPatternIndex);
+    ShowTelegraphPreview(PhaseContext.LockedCells, FLinearColor(1.f, 0.f, 0.f, 1.f));
 }
 
 bool UBossManagerSubsystem::IsStillOnLockedCell(const FLockedBossTarget& LockedTarget) const

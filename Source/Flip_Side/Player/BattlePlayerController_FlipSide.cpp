@@ -4,6 +4,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "BattlePlayerPawn_FlipSide.h"
 #include "BattleArea.h"
+#include "BossActor.h"
 #include "CoinActor.h"
 #include "GridActor.h"
 #include "UseableItemActor.h"
@@ -15,8 +16,14 @@
 #include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
 #include "Subsystem/BattleLevel/CoinManagementWSubsystem.h"
+#include "Subsystem/BattleLevel/UseableItemWSubsystem.h"
 #include "Subsystem/BattleLevel/BattleLevelActingWSubsystem.h"
+#include "Subsystem/BattleLevel/BossManagerSubsystem.h"
+#include "Subsystem/StageCardWSubsystem.h"
 #include "Subsystem/CursorGISubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
+#include "UI/BattlePlayerHUDWidget.h"
+#include "WeaponDataTypes.h"
 
 ABattlePlayerController_FlipSide::ABattlePlayerController_FlipSide()
 {
@@ -62,7 +69,11 @@ void ABattlePlayerController_FlipSide::BeginPlay()
 
     if (UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>())
     {
-        BattleManager->OnTurnChanged.AddDynamic(this, &ABattlePlayerController_FlipSide::OnTurnChanged);
+		BattleManager->OnPhaseChanged.RemoveAll(this);
+        BattleManager->OnPhaseChanged.AddDynamic(this, &ABattlePlayerController_FlipSide::OnPhaseChanged);
+		BattleManager->OnBossPhaseCompleted.RemoveAll(this);
+		BattleManager->OnBossPhaseCompleted.AddDynamic(this, &ABattlePlayerController_FlipSide::HandleBossPhaseCompleted);
+		BattleManager->OnStageEnded.RemoveAll(this);
         BattleManager->OnStageEnded.AddDynamic(this, &ABattlePlayerController_FlipSide::OnStageEnded);
     }
 
@@ -70,6 +81,96 @@ void ABattlePlayerController_FlipSide::BeginPlay()
     {
         Acting->OnBossDeadAct.BindUObject(this, &ABattlePlayerController_FlipSide::MoveCameraForBossDead);
     }
+
+    if (BattleHUDWidgetClass)
+    {
+        BattleHUDWidget = CreateWidget<UBattlePlayerHUDWidget>(this, BattleHUDWidgetClass);
+        if (IsValid(BattleHUDWidget))
+        {
+            BattleHUDWidget->AddToViewport();
+            BattleHUDWidget->OnCoinSlotClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleCoinSlotClicked);
+			BattleHUDWidget->OnReadyCoinClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinClicked);
+			BattleHUDWidget->OnItemSlotClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleItemSlotClicked);
+			BattleHUDWidget->OnPhaseProgressClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattlePhaseProgressClicked);
+        }
+    }
+
+	RefreshBattlePhaseHUD();
+
+	TryBindBossHUD();
+
+    if (UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>())
+    {
+        CoinManager->OnBattleCoinDataChanged.AddDynamic(this, &ABattlePlayerController_FlipSide::RefreshBattleCoinHUD);
+        RefreshBattleCoinHUD();
+    }
+
+	if (UUseableItemWSubsystem* ItemManager = GetWorld()->GetSubsystem<UUseableItemWSubsystem>())
+	{
+		ItemManager->OnBattleItemDataChanged.AddDynamic(this, &ABattlePlayerController_FlipSide::RefreshBattleItemHUD);
+		RefreshBattleItemHUD();
+	}
+
+	if (UStageCardWSubsystem* StageCardManager = GetWorld()->GetSubsystem<UStageCardWSubsystem>())
+	{
+		StageCardManager->OnBattleCardDataChanged.AddDynamic(this, &ABattlePlayerController_FlipSide::RefreshBattleCardHUD);
+		RefreshBattleCardHUD();
+	}
+}
+
+void ABattlePlayerController_FlipSide::TryBindBossHUD()
+{
+	if (!IsValid(GetWorld()))
+	{
+		return;
+	}
+
+	UBossManagerSubsystem* BossManager = GetWorld()->GetSubsystem<UBossManagerSubsystem>();
+	ABossActor* CurrentBoss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
+	if (!IsValid(CurrentBoss))
+	{
+		if (!GetWorldTimerManager().IsTimerActive(BossHUDBindRetryHandle))
+		{
+			GetWorldTimerManager().SetTimer(
+				BossHUDBindRetryHandle,
+				this,
+				&ABattlePlayerController_FlipSide::TryBindBossHUD,
+				0.1f,
+				true
+			);
+		}
+		return;
+	}
+
+	if (ObservedBoss != CurrentBoss)
+	{
+		if (IsValid(ObservedBoss))
+		{
+			ObservedBoss->OnBossHUDDataChanged.RemoveAll(this);
+		}
+
+		ObservedBoss = CurrentBoss;
+		ObservedBoss->OnBossHUDDataChanged.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBossHUDDataChanged);
+	}
+
+	RefreshBossHUD();
+	GetWorldTimerManager().ClearTimer(BossHUDBindRetryHandle);
+}
+
+void ABattlePlayerController_FlipSide::RefreshBossHUD()
+{
+	if (IsValid(BattleHUDWidget) && IsValid(ObservedBoss))
+	{
+		BattleHUDWidget->SetBossHUDData(ObservedBoss->GetBossHUDData());
+	}
+}
+
+void ABattlePlayerController_FlipSide::HandleBossHUDDataChanged(const FBossHUDData& InData)
+{
+	if (IsValid(BattleHUDWidget))
+	{
+		BattleHUDWidget->SetBossHUDData(InData);
+	}
 }
 
 void ABattlePlayerController_FlipSide::ReturnToDefaultCamera() // 일단 당장은 필요 X
@@ -246,19 +347,21 @@ void ABattlePlayerController_FlipSide::MoveCameraForBossDead()
         ControlledPawn->MoveCameraToArea(BossDeadCameraLocation, BossDeadCameraRotation, BossDeadCameraArmLength);
 }
 
-void ABattlePlayerController_FlipSide::OnTurnChanged(ETurnState NewTurn)
+void ABattlePlayerController_FlipSide::OnPhaseChanged(EPhaseState NewPhase)
 {
+	RefreshBattlePhaseHUD();
+
     if (!ControlledPawn) return;
 
-    if (NewTurn == ETurnState::CoinSelectTurn)
+    if (NewPhase == EPhaseState::CoinBehaviorPhase)
     {
-        GetWorldTimerManager().SetTimer(CoinSelectCameraDelayHandle, [this]()
+        GetWorldTimerManager().SetTimer(CoinBehaviorCameraDelayHandle, [this]()
         {
             if (ControlledPawn)
-                ControlledPawn->MoveCameraToArea(CoinSelectCameraLocation, CoinSelectCameraRotation, CoinSelectCameraArmLength);
-        }, CoinSelectCameraDelay, false);
+                ControlledPawn->MoveCameraToArea(CoinBehaviorCameraLocation, CoinBehaviorCameraRotation, CoinBehaviorCameraArmLength);
+        }, CoinBehaviorCameraDelay, false);
     }
-    else if (NewTurn == ETurnState::CoinReadyTurn)
+    else if (NewPhase == EPhaseState::CoinReadyPhase)
     {
         ControlledPawn->MoveCameraToArea(DefaultCameraLocation, DefaultCameraRotation, DefaultCameraArmLength);
     }
@@ -284,6 +387,231 @@ void ABattlePlayerController_FlipSide::SetInputForTutorial(bool bEnable)
 void ABattlePlayerController_FlipSide::OnStageEnded(int32 StageEndFlag)
 {
     SetInputForTutorial(true);
+}
+
+void ABattlePlayerController_FlipSide::HandleBossPhaseCompleted()
+{
+	if (IsValid(BattleHUDWidget))
+	{
+		BattleHUDWidget->PlayBossPhaseCompletionAnimation();
+	}
+}
+
+void ABattlePlayerController_FlipSide::RefreshBattlePhaseHUD()
+{
+	if (!IsValid(BattleHUDWidget) || !IsValid(GetWorld()))
+	{
+		return;
+	}
+
+	UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
+	if (!IsValid(BattleManager))
+	{
+		return;
+	}
+
+	BattleHUDWidget->SetPhaseDisplay(BattleManager->GetCurrentPhase(), BattleManager->GetTurnCount());
+}
+
+void ABattlePlayerController_FlipSide::RefreshBattleCoinHUD()
+{
+    if (!IsValid(BattleHUDWidget) || !IsValid(GetWorld()))
+    {
+        return;
+    }
+
+    UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>();
+    if (!IsValid(CoinManager))
+    {
+        return;
+    }
+
+    TArray<FBattleCoinSlotViewData> CoinSlotViews;
+    for (const FBattleCoinSlotData& CoinSlotData : CoinManager->GetCoinSlots())
+    {
+        CoinSlotViews.Add(BuildCoinSlotViewData(CoinSlotData));
+    }
+    BattleHUDWidget->SetCoinSlots(CoinSlotViews);
+
+    TArray<FBattleReadyCoinViewData> ReadyCoinViews;
+    const TArray<FReadyCoinData>& ReadyCoinData = CoinManager->GetReadyCoinData();
+    for (int32 ReadyCoinIndex = 0; ReadyCoinIndex < ReadyCoinData.Num(); ++ReadyCoinIndex)
+    {
+        ReadyCoinViews.Add(BuildReadyCoinViewData(ReadyCoinData[ReadyCoinIndex], ReadyCoinIndex + 1));
+    }
+    BattleHUDWidget->SetReadyCoins(ReadyCoinViews);
+}
+
+void ABattlePlayerController_FlipSide::RefreshBattleItemHUD()
+{
+	if (!IsValid(BattleHUDWidget) || !IsValid(GetWorld()))
+	{
+		return;
+	}
+
+	UUseableItemWSubsystem* ItemManager = GetWorld()->GetSubsystem<UUseableItemWSubsystem>();
+	if (!IsValid(ItemManager))
+	{
+		return;
+	}
+
+	const bool bCanUse = ItemManager->IsItemUseAvailable();
+	TArray<FBattleItemSlotViewData> ItemSlotViews;
+	for (const FBattleItemSlotData& ItemSlotData : ItemManager->GetBattleItemSlots())
+	{
+		ItemSlotViews.Add(BuildItemSlotViewData(ItemSlotData, bCanUse));
+	}
+
+	BattleHUDWidget->SetItemSlots(ItemSlotViews);
+}
+
+void ABattlePlayerController_FlipSide::RefreshBattleCardHUD()
+{
+	if (!IsValid(BattleHUDWidget) || !IsValid(GetWorld()))
+	{
+		return;
+	}
+
+	UStageCardWSubsystem* StageCardManager = GetWorld()->GetSubsystem<UStageCardWSubsystem>();
+	if (!IsValid(StageCardManager))
+	{
+		return;
+	}
+
+	TArray<FBattleCardSlotViewData> CardSlotViews;
+	StageCardManager->GetBattleCardSlots(CardSlotViews);
+	BattleHUDWidget->SetCardSlots(CardSlotViews);
+}
+
+void ABattlePlayerController_FlipSide::HandleBattleCoinSlotClicked(int32 SlotNumber)
+{
+    if (!IsValid(GetWorld()))
+    {
+        return;
+    }
+
+    if (UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>())
+    {
+        CoinManager->TryAddReadyCoinFromSlot(SlotNumber);
+    }
+}
+
+void ABattlePlayerController_FlipSide::HandleReadyCoinClicked(int32 CoinInstanceID)
+{
+    if (!IsValid(GetWorld()))
+    {
+        return;
+    }
+
+    if (UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>())
+    {
+        CoinManager->TryCancelReadyCoin(CoinInstanceID);
+    }
+}
+
+void ABattlePlayerController_FlipSide::HandleBattleItemSlotClicked(int32 ItemID)
+{
+	if (!IsValid(GetWorld()))
+	{
+		return;
+	}
+
+	if (UUseableItemWSubsystem* ItemManager = GetWorld()->GetSubsystem<UUseableItemWSubsystem>())
+	{
+		ItemManager->TrySelectItem(ItemID);
+	}
+}
+
+void ABattlePlayerController_FlipSide::HandleBattlePhaseProgressClicked()
+{
+	if (!IsValid(GetWorld()))
+	{
+		return;
+	}
+
+	if (UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>())
+	{
+		// TODO: UI 애니메이션 완료 시점이 확정되면 그 콜백에서 요청하도록 변경합니다.
+		BattleManager->RequestPhaseProgress();
+	}
+}
+
+FBattleCoinSlotViewData ABattlePlayerController_FlipSide::BuildCoinSlotViewData(const FBattleCoinSlotData& CoinSlotData) const
+{
+    FBattleCoinSlotViewData ViewData;
+    ViewData.SlotNumber = CoinSlotData.SlotNumber;
+    ViewData.CoinCount = CoinSlotData.AvailableCoinCount;
+    ViewData.HP = CoinSlotData.HP;
+    ViewData.FrontWeaponID = CoinSlotData.FrontWeaponID;
+    ViewData.BackWeaponID = CoinSlotData.BackWeaponID;
+
+    UDataManagerSubsystem* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>() : nullptr;
+    if (!IsValid(DataManager))
+    {
+        return ViewData;
+    }
+
+    FFaceData FrontWeaponData;
+    if (DataManager->TryGetWeapon(CoinSlotData.FrontWeaponID, FrontWeaponData))
+    {
+        ViewData.FrontIcon = FrontWeaponData.WeaponIcon;
+        ViewData.FrontWeaponName = FText::FromString(FrontWeaponData.WeaponName);
+        ViewData.FrontWeaponDescription = FText::FromString(FrontWeaponData.KOR_DES);
+        ViewData.FrontBehaviorPoint = FrontWeaponData.BehaviorPoint;
+        ViewData.FrontAttackPoint = FrontWeaponData.AttackPoint;
+        ViewData.FrontWeaponColor = FrontWeaponData.TypeColor;
+    }
+
+    FFaceData BackWeaponData;
+    if (DataManager->TryGetWeapon(CoinSlotData.BackWeaponID, BackWeaponData))
+    {
+        ViewData.BackIcon = BackWeaponData.WeaponIcon;
+        ViewData.BackWeaponName = FText::FromString(BackWeaponData.WeaponName);
+        ViewData.BackWeaponDescription = FText::FromString(BackWeaponData.KOR_DES);
+        ViewData.BackBehaviorPoint = BackWeaponData.BehaviorPoint;
+        ViewData.BackAttackPoint = BackWeaponData.AttackPoint;
+        ViewData.BackWeaponColor = BackWeaponData.TypeColor;
+    }
+
+    return ViewData;
+}
+
+FBattleReadyCoinViewData ABattlePlayerController_FlipSide::BuildReadyCoinViewData(const FReadyCoinData& ReadyCoinData, int32 ReadySlotNumber) const
+{
+    FBattleReadyCoinViewData ViewData;
+    ViewData.ReadySlotNumber = ReadySlotNumber;
+    ViewData.CoinInstanceID = ReadyCoinData.CoinInstanceID;
+    ViewData.CurrentHP = ReadyCoinData.CurrentHP;
+    ViewData.bCanCancel = ReadyCoinData.bCanCancel;
+
+    UDataManagerSubsystem* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>() : nullptr;
+    if (!IsValid(DataManager))
+    {
+        return ViewData;
+    }
+
+    FFaceData FrontWeaponData;
+    if (DataManager->TryGetWeapon(ReadyCoinData.FrontWeaponID, FrontWeaponData))
+    {
+        ViewData.FrontIcon = FrontWeaponData.WeaponIcon;
+    }
+
+    FFaceData BackWeaponData;
+    if (DataManager->TryGetWeapon(ReadyCoinData.BackWeaponID, BackWeaponData))
+    {
+        ViewData.BackIcon = BackWeaponData.WeaponIcon;
+    }
+
+    return ViewData;
+}
+
+FBattleItemSlotViewData ABattlePlayerController_FlipSide::BuildItemSlotViewData(const FBattleItemSlotData& ItemSlotData, bool bCanUse) const
+{
+	FBattleItemSlotViewData ViewData;
+	ViewData.ItemData = ItemSlotData.ItemData;
+	ViewData.AvailableCount = ItemSlotData.AvailableCount;
+	ViewData.bCanUse = bCanUse;
+	return ViewData;
 }
 
 bool ABattlePlayerController_FlipSide::GetCursorWorldLocationOnPlane(float PlaneZ, FVector& OutWorldLocation) const

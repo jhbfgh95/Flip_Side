@@ -116,7 +116,7 @@ void UBossPatternBase::BuildTargetCells(
 
 void UBossPatternBase::ExecutePattern(
 	ABossActor* Boss,
-	FBossTurnContext& Context,
+	FBossPhaseContext& Context,
 	const TArray<ACoinActor*>& InLockedTargets,
 	const TArray<ABase_OtherActor*>& InLockedOthers)
 {
@@ -197,7 +197,7 @@ void UBossPatternBase::PlayPatternEffect_Implementation(int32 PatternNum, FVecto
 	const FBossPatternBattleData& Data = PatternData[PatternNum];
 
 	// LockedCells → 월드 좌표 변환
-	const TArray<FGridPoint>& LockedCells = BossMgr->GetCurrentTurnLockedCells();
+	const TArray<FGridPoint>& LockedCells = BossMgr->GetCurrentPhaseLockedCells();
 	TArray<FVector> CellLocations;
 	for (const FGridPoint& Cell : LockedCells)
 	{
