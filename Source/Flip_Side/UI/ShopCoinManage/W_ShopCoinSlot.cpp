@@ -24,6 +24,10 @@ void UW_ShopCoinSlot::NativeOnInitialized()
     CoinSubsystem->OnCoinCountUpdate.AddDynamic(this, &UW_ShopCoinSlot::SetCountText);
     CoinSubsystem->OnCoinSlotChange.AddDynamic(this, &UW_ShopCoinSlot::SetBackGround);
 
+    FrontWeaponImageButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlot::ClickFrontWeaponButton);
+    
+    BackWeaponImageButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlot::ClickBackWeaponButton);
+
     SlotButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlot::PressSlotButton);
 
 
@@ -77,6 +81,7 @@ void UW_ShopCoinSlot::SetBackGround()
 void UW_ShopCoinSlot::InitSlot(int32 SlotNum)
 {
     SlotIndex = SlotNum;
+    SlotIndexText->SetText(FText::AsNumber(SlotIndex+1));
     SetCountText(SlotIndex,0);
     FCoinTypeStructure CoinDataType = CoinSubsystem->GetCoinSlotCoinType(SlotIndex);
     SetCoinSlotCoinType(CoinDataType);
@@ -87,29 +92,46 @@ void UW_ShopCoinSlot::InitSlot(int32 SlotNum)
 void UW_ShopCoinSlot::SetFrontWeaponImage(int32 WeaponID)
 {
     FFaceData FrontWeaponData;
+    FButtonStyle ButtonStyle = FrontWeaponImageButton->GetStyle();
+    UTexture2D* SetTexture;
+
     if(DataSubsystem->TryGetWeapon(WeaponID,FrontWeaponData))
     {
-        FrontWeaponImage->SetBrushFromTexture(FrontWeaponData.WeaponIcon);
+        SetTexture = FrontWeaponData.WeaponIcon;
     }
     else
     {
-        FrontWeaponImage->SetBrushFromTexture(DefaultsTexture);
+        SetTexture = DefaultsTexture;
     }
+    
+    ButtonStyle.Normal.SetResourceObject(SetTexture);
+    ButtonStyle.Hovered.SetResourceObject(SetTexture);
+    ButtonStyle.Pressed.SetResourceObject(SetTexture);
+
+    FrontWeaponImageButton->SetStyle(ButtonStyle);
 }
 
 void UW_ShopCoinSlot::SetBackWeaponImage(int32 WeaponID)
 {
 
     FFaceData BackWeaponData;
-
+    FButtonStyle ButtonStyle = FrontWeaponImageButton->GetStyle();
+    UTexture2D* SetTexture;
+    
     if(DataSubsystem->TryGetWeapon(WeaponID,BackWeaponData))
     {
-        BackWeaponImage->SetBrushFromTexture(BackWeaponData.WeaponIcon);
+        SetTexture = BackWeaponData.WeaponIcon;
     }
     else
     {
-        BackWeaponImage->SetBrushFromTexture(DefaultsTexture);
+        SetTexture = DefaultsTexture;
     }
+
+    ButtonStyle.Normal.SetResourceObject(SetTexture);
+    ButtonStyle.Hovered.SetResourceObject(SetTexture);
+    ButtonStyle.Pressed.SetResourceObject(SetTexture);
+
+    BackWeaponImageButton->SetStyle(ButtonStyle);
 }
 
 void UW_ShopCoinSlot::SetCoinSlotCoinType(FCoinTypeStructure CurrentCoinData)
@@ -118,6 +140,38 @@ void UW_ShopCoinSlot::SetCoinSlotCoinType(FCoinTypeStructure CurrentCoinData)
     SetBackWeaponImage(CurrentCoinData.BackWeaponID);
 }
 
+	
+void UW_ShopCoinSlot::SetCoinSlot()
+{
+    FCoinTypeStructure CoinData = CoinSubsystem->GetCoinSlotCoinType(SlotIndex);
+    SetCoinSlotCoinType(CoinData);
+    int32 price;
+    int32 hp;
+    DataSubsystem->GetCoinSlotLevelStats(CoinData, price, hp);
+    HPText->SetText(FText::AsNumber(hp));
+
+}
+
+
+void UW_ShopCoinSlot::ClickFrontWeaponButton()
+{
+    UE_LOG(LogTemp, Warning, TEXT("현재 인덱스 %d, 슬롯 인덱스 %d "), CoinSubsystem->GetCurrentCoinSlotIndex(),SlotIndex);
+    if(SlotIndex != CoinSubsystem->GetCurrentCoinSlotIndex())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("인덱스 %d"), CoinSubsystem->GetCurrentCoinSlotIndex());
+        CoinSubsystem->SelectCoin(SlotIndex);
+    }
+    
+    CoinSubsystem->ChangeCoinSide(true);
+}
+
+void UW_ShopCoinSlot::ClickBackWeaponButton()
+{
+    if(SlotIndex != CoinSubsystem->GetCurrentCoinSlotIndex())
+        CoinSubsystem->SelectCoin(SlotIndex);
+        
+    CoinSubsystem->ChangeCoinSide(false);
+}
 
 void UW_ShopCoinSlot::ResetSlot()
 {

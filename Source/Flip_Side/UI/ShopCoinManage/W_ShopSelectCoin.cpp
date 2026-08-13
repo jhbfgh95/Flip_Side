@@ -77,6 +77,11 @@ void UW_ShopSelectCoin::SetBackWeapon(FFaceData BackWeaponFaceData)
     }
 }
 
+void UW_ShopSelectCoin::ResetCoin()
+{
+    FrontWeaponImage->SetBrushFromTexture(DefaultsTexture);
+    BackWeaponImage->SetBrushFromTexture(DefaultsTexture);
+}
 void UW_ShopSelectCoin::ChangeCoinSide()
 {
     CoinSubsystem->ChangeCoinSide();
@@ -84,11 +89,15 @@ void UW_ShopSelectCoin::ChangeCoinSide()
 
 void UW_ShopSelectCoin::SetCoin()
 {
-    FFaceData SetFaceData;
+    FFaceData SetFrontFaceData;
+    FFaceData SetBackFaceData;
+    
     CurrentCoinType = CoinSubsystem->GetCurrentSlotCoin();
-    DataManager->TryGetWeapon(CurrentCoinType.FrontWeaponID,SetFaceData);
-    SetFrontWeapon(SetFaceData);
-    DataManager->TryGetWeapon(CurrentCoinType.BackWeaponID,SetFaceData);
-    SetBackWeapon(SetFaceData);
+
+    DataManager->TryGetWeapon(CurrentCoinType.FrontWeaponID,SetFrontFaceData);
+    SetFrontWeapon(SetFrontFaceData);
+
+    DataManager->TryGetWeapon(CurrentCoinType.BackWeaponID,SetBackFaceData);
+    SetBackWeapon(SetBackFaceData);
 
 }

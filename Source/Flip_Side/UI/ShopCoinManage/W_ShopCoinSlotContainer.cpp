@@ -56,8 +56,14 @@ void UW_ShopCoinSlotContainer::CoinSlotChangeAdaptor(bool IsIncreaseSlot)
 
 void UW_ShopCoinSlotContainer::AddCoinSlot()
 {
-    UWidget* AddCoinSlot = CoinSlotBox->GetChildAt(ShopCoinSubsystem->GetCurrentCoinSlotIndex());
-    AddCoinSlot->SetVisibility(ESlateVisibility::Visible);
+    int32 AddSlotIndex = ShopCoinSubsystem->GetUnlockSlotLastIndex();
+    UWidget* AddCoinSlot = CoinSlotBox->GetChildAt(AddSlotIndex);
+    if(AddCoinSlot)
+    {
+        AddCoinSlot->SetVisibility(ESlateVisibility::Visible);
+        CoinSlots[AddSlotIndex]->SetCoinSlot();
+    }
+        
 }
 
 void UW_ShopCoinSlotContainer::DecreaseCoinSlot()

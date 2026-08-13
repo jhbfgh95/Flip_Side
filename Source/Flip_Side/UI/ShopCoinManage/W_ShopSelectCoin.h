@@ -50,6 +50,8 @@ protected:
 
 	FCoinTypeStructure CurrentCoinType;
 
+protected:
+	void ResetCoin();
 public:
 	UFUNCTION()
 	void SetWeapon(int32 WeaponID);

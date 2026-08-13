@@ -36,10 +36,10 @@ protected:
 	TObjectPtr<UButton> SlotButton;
 	
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UImage> FrontWeaponImage;
+	TObjectPtr<UButton> FrontWeaponImageButton;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UImage> BackWeaponImage;
+	TObjectPtr<UButton> BackWeaponImageButton;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr <UTextBlock> CoinCountText;
@@ -75,8 +75,12 @@ protected:
 
 protected:
 	void SetFrontWeaponImage(int32 WeaponID);
-
 	void SetBackWeaponImage(int32 WeaponID);
+
+	UFUNCTION()
+	void ClickFrontWeaponButton();
+	UFUNCTION()
+	void ClickBackWeaponButton();
 
 public:
 	UFUNCTION()
@@ -90,6 +94,9 @@ public:
 	void ResetSlot();
 
 	void SetCoinSlotCoinType(FCoinTypeStructure CurrentCoinData);
+
+	void SetCoinSlot();
+
 protected:
 	
     virtual void NativeOnMouseEnter(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent) override;

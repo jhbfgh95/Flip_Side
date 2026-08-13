@@ -10,6 +10,8 @@
  * 
  */
 class UButton;
+class UTextBlock;
+class UDataManagerSubsystem;
 class UShopCoinWSubsystem;
 UCLASS()
 class FLIP_SIDE_API UW_ShopCoinSlotBuyButton : public UUserWidget
@@ -20,17 +22,25 @@ class FLIP_SIDE_API UW_ShopCoinSlotBuyButton : public UUserWidget
 protected:
 	virtual void NativeOnInitialized() override;
 protected:
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BuySlotButton;
-
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> BuySlotPriceTextBlock;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> BuySlotHpTextBlock;
 protected:
 	UPROPERTY()
 	TObjectPtr<UShopCoinWSubsystem> CoinSubsystem;
-
+	UPROPERTY()
+	TObjectPtr<UDataManagerSubsystem> DataManager;
 protected:
 	UPROPERTY(EditAnywhere)
-	int32 ButSlotLevel= 1;
+	int32 BuySlotLevel= 1;
+
+	int32 SlotPrice = 0;
+	int32 BuySlotHp = 0;
 protected:
 	UFUNCTION()
 	void ClickBuySlotButton();
+
 };

@@ -52,6 +52,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeCoinClass, EWeaponClass, Chan
 // WarningNum == 0 같은 무기 앞뒤 / == 1 같은 코인이 슬롯에 존재 / == 2 슬롯 잠김 / ==3 양면에 무기 없음 / == 4 전체 개수 꽉참 / == 5 슬롯 개수 꽉참
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWarningCreate, int32, WarningNum);
 
+
+class UDataManagerSubsystem;
 UCLASS()
 class FLIP_SIDE_API UShopCoinWSubsystem : public UWorldSubsystem
 {
@@ -65,16 +67,17 @@ protected:
 private:
 	class UMoneyGISubsystem* MoneySubsystem;
 	class UCrossingLevelGISubsystem* CrossLevelSubsystem;
+	UPROPERTY()
+	TObjectPtr<UDataManagerSubsystem> DataManager;
 private:
 	//총 코인 개수
 	int32 TotalCoinCount;
 	/*10개의 코인슬롯 정보*/
 	TArray<FShopCoinSlotData> ShopCoinSlotArray;
-	/*현재 선택 중인 코인 슬롯 번호*/
-	int32 CurrentCoinSlotNum;
 
 	int32 CurrentCoinSlotIndex = -1;
 
+	int32 LastUnlockCoinSlotIndex = -1;
 /*델리게이트들*/
 public:
 	FChangeCoinSlot OnCoinSlotChange;
@@ -91,12 +94,8 @@ public:
 private:
 	void InitCoinSetting();
 private:
-	//코인 개수를 증가 시킬수 있는가?
-	bool CanIncreaseCoin(int32 SlotNum);
 
 	bool CanIncreaseCoin(int32 SlotNum,int32 Amount);
-	//코인 개수를 감소 시킬수 있는가?
-	bool CanDecreaseCoin(int32 SlotNum);
 
 	bool CanDecreaseCoin(int32 SlotIndex, int32 Amount);
 
@@ -105,10 +104,6 @@ private:
 	bool IsTrySetSameWeapon(bool IsFront, int32 WeaponID);
 
 public:
-
-	bool BuyCoinSlot();
-
-	bool SellCoinSlot();
 
 	void IncreaseCoinSlotCoin(int32 SlotIndex, int32 Amount);
 
@@ -185,7 +180,7 @@ public:
 	int32 GetCurrentSlotNum();
 	int32 GetTotalCoinCount();
 	int32 GetCurrentSlotCount();
-
+	int32 GetUnlockSlotLastIndex();
 public:
 
 	void SelectCoin(int32 SlotNum);
