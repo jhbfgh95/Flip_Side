@@ -16,7 +16,6 @@
 //해금할 코인 선택 했을 때 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSelectUnlockWeapon, int32, WeaponID, bool, IsItemUnlock);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnselectUnlockWeapon);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeWeaponClass, EWeaponClass, WeaponClass);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnlockWeaponFWarning, int32, WarningCode);
 
@@ -36,7 +35,7 @@ private:
 	const TArray<FFaceData>* DealWeapons;
 	const TArray<FFaceData>* UtilWeapons;
 
-
+	TArray<FFaceData> UnlockWeapons;
 private:
 	class UUnlockGISubsystem* UnlockSubsystem;
 	class UMoneyGISubsystem* MoneySubsystem;
@@ -49,26 +48,18 @@ private:
 public:
 	FSelectUnlockWeapon OnSelectUnlockWeapon;
 	FUnselectUnlockWeapon OnUnselectUnlockWeapon;
-	FChangeWeaponClass OnChangeUnlockWaeponClass;
 	FUnlockWeaponFWarning OnUnlockWeaponWarning;
 public:
-	//무기 선택
-	void SelectUnlockWeapon(EWeaponClass WeaponClass, int32 WeaponID, bool IsWeaponUnlock);
 
 	void UnlockCurrentWeapon();
-
 	int32 GetCurrentUnlockWeaponID();
-
 	EWeaponClass GetCurrentWeaponClass();
-
-	void ChangeUnlockWeaponClass(EWeaponClass WeaponClass);
-
 	void SelectUnlockWeapon(int32 WeaponID);
 	void UnSelectWeapon();
 
 public:
 	int32 GetWeaponArrayNum(EWeaponClass WeaponType);
 	int32 GetWeaponIDByIndex(EWeaponClass WeaponType,int32 index);
-
 	void UnlockWeaponWarning(int32 WarningCode);
+	const TArray<FFaceData> GetUnlockWeapons();
 };

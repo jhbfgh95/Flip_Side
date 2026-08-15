@@ -23,17 +23,15 @@ protected:
 	virtual void NativeConstruct() override;
 
 protected:
-	UPROPERTY()
-	TArray<TObjectPtr<UW_UnlockWeaponSlot>> PlayerCardSlots;
 
 	UPROPERTY()
 	TArray<TObjectPtr<UW_UnlockWeaponSlot>> UnlockWeaponSlots;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UVerticalBox> PlayerSelectSlotBox;
+	TObjectPtr<UVerticalBox> UnlockWeaponSlotBox;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<UW_UnlockWeaponSlot> UnlockWeaponSlot;
+	TSubclassOf<UUserWidget> UnlockWeaponSlot;
 
 protected:
 	UPROPERTY()

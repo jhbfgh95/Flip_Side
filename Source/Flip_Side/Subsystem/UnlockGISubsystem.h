@@ -13,7 +13,7 @@
 
 
 //선택된 코인이 변경되었을 때 델리게이트
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FUnlockWeapon, EWeaponClass, WeaponClass, int32, AddIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnlockWeapon, int32, UnlockWeaponID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnlockCard, int32, CardID);
 
 UCLASS()
@@ -30,6 +30,9 @@ private:
 	TArray<int32> TankUnlockArray;
 	TArray<int32> DealUnlockArray;
 	TArray<int32> UtilUnlockArray;
+
+	TArray<int32> UnlockWeaponArray;
+
 	TArray<int32> CardUnlockArray;
 
 public:
@@ -42,7 +45,7 @@ public:
 	
 	int32 GetUnlockWeaponIndex(EWeaponClass WeaponClass, int32 index);
 
-	void UnlockWeapon(EWeaponClass WeaponClass, int32 ID);
+	void UnlockWeapon(int32 ID);
 
 	void UnlockCard(int32 ID);
 
@@ -59,6 +62,7 @@ public:
 	void ResetUnlockData();
 
 	const TArray<int32>& GetUnlockWeaponArray(EWeaponClass WeaponClass);
+	const TArray<int32>& GetUnlockWeaponArray();
 
 	const TArray<int32>& GetUnlockCardArray();
 };

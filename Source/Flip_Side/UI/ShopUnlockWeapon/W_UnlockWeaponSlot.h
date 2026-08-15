@@ -26,13 +26,13 @@ protected:
 	TObjectPtr<UShopUnlockWeaponWSubsystem> UnlockWeaponSubsystem;
 	
 protected:
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> WeaponImage;
 	
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> SelectButton;
 
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> WeaponName;
 
 protected:

@@ -19,6 +19,8 @@ void UW_UnlockWeaponSlot::InitWidget(FFaceData InitWeaponData, UShopUnlockWeapon
 {
     UnlockWeaponData = InitWeaponData;
     UnlockWeaponSubsystem = InitSubsystem;
+    WeaponImage->SetBrushFromTexture(UnlockWeaponData.WeaponIcon);
+    WeaponName->SetText(FText::FromString(UnlockWeaponData.WeaponName));
 }
 
 

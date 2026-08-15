@@ -10,6 +10,7 @@
 /**
  * 
  */
+
 class UButton;
 class UImage;
 class UTextBlock;
@@ -44,7 +45,9 @@ protected:
 	TObjectPtr<UTextBlock> ItemPriceTextBlock;
 
 protected:
+	UPROPERTY()
 	TObjectPtr<class UShopItemWSubsystem> ItemSubsystem;
+	UPROPERTY()
 	TObjectPtr<class UMoneyGISubsystem> MoneySubsystem;
 
 protected:

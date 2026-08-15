@@ -66,33 +66,10 @@ int32 UUnlockGISubsystem::GetUnlockWeaponID(EWeaponClass WeaponClass, int32 inde
     return -1;
 }
 
-void UUnlockGISubsystem::UnlockWeapon(EWeaponClass WeaponClass, int32 ID)
+void UUnlockGISubsystem::UnlockWeapon(int32 ID)
 {
-    if(EWeaponClass::Tank == WeaponClass)
-    {
-        if(GetWeaponUnlockIndexByIndex(WeaponClass, ID) == -1)
-        {
-            TankUnlockArray.Add(ID);
-            OnWeaponUnlock.Broadcast(WeaponClass, ID);
-        }
-        
-    }
-    else if(EWeaponClass::Deal == WeaponClass)
-    {
-        if(GetWeaponUnlockIndexByIndex(WeaponClass, ID) == -1)
-        {
-            DealUnlockArray.Add(ID);
-            OnWeaponUnlock.Broadcast(WeaponClass, ID);
-        }
-    }
-    else if(EWeaponClass::Heal == WeaponClass)
-    {
-        if(GetWeaponUnlockIndexByIndex(WeaponClass, ID)==-1)
-        {
-            UtilUnlockArray.Add(ID);
-            OnWeaponUnlock.Broadcast(WeaponClass, ID);
-        }
-    }
+    UnlockWeaponArray.Add(ID);
+    OnWeaponUnlock.Broadcast(ID);
 }
 
 void UUnlockGISubsystem::UnlockCard(int32 ID)
@@ -211,6 +188,11 @@ bool UUnlockGISubsystem::IsWeaponUnlockByID(EWeaponClass WeaponClass, int32 ID)
 const TArray<int32>& UUnlockGISubsystem::GetUnlockWeaponArray(EWeaponClass WeaponClass)
 {
     return DealUnlockArray;
+}
+
+const TArray<int32>& UUnlockGISubsystem::GetUnlockWeaponArray()
+{
+    return UnlockWeaponArray;
 }
 	
 const TArray<int32>& UUnlockGISubsystem::GetUnlockCardArray()

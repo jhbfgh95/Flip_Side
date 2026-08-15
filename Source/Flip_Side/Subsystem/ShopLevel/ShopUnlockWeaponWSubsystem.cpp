@@ -32,24 +32,25 @@ void UShopUnlockWeaponWSubsystem::OnWorldBeginPlay(UWorld& World)
         DM->TryGetWeaponsByType(1, TankWeapons);
         DM->TryGetWeaponsByType(2, DealWeapons);
         DM->TryGetWeaponsByType(3, UtilWeapons);
+        
+        UnlockWeapons.Append(*TankWeapons);
+        UnlockWeapons.Append(*DealWeapons);
+        UnlockWeapons.Append(*UtilWeapons);
+
+        for(int i = UnlockWeapons.Num()-1; 0 <= i ; i--)
+        {
+            if(UnlockWeapons[i].WeaponID == -2 || UnlockWeapons[i].WeaponID == -3 )
+            {
+                UnlockWeapons.RemoveAt(i);
+            }
+        }
     }
-}
-//무기 선택
-void UShopUnlockWeaponWSubsystem::SelectUnlockWeapon(EWeaponClass WeaponClass, int32 WeaponID, bool IsWeaponUnlock)
-{
-    if(WeaponID == CurrentUnlockWeaponID)
-        return;
-
-    CurrentUnlockWeaponID = WeaponID;
-    CurrentUnlockWeaponClass = WeaponClass;
-
-    //OnSelectUnlockWeapon.Broadcast(WeaponClass, WeaponID, IsWeaponUnlock);
-
 }
 
 void UShopUnlockWeaponWSubsystem::SelectUnlockWeapon(int32 WeaponID)
 {
     CurrentUnlockWeaponID = WeaponID;
+    OnSelectUnlockWeapon.Broadcast(CurrentUnlockWeaponID, true);
 }
 
 void UShopUnlockWeaponWSubsystem::UnSelectWeapon()
@@ -75,12 +76,9 @@ void UShopUnlockWeaponWSubsystem::UnlockCurrentWeapon()
 
         if(MoneySubsystem->SpendMoney(EMoneyRecordType::Weapon, WeaponFaceData.Price))
         {
-            UnlockSubsystem->UnlockWeapon(CurrentUnlockWeaponClass, CurrentUnlockWeaponID);
-            //OnSelectUnlockWeapon.Broadcast(CurrentUnlockWeaponClass,CurrentUnlockWeaponID,true);
+            UnlockSubsystem->UnlockWeapon(CurrentUnlockWeaponID);
         }
-       
     }
-    
 }
 
 EWeaponClass UShopUnlockWeaponWSubsystem::GetCurrentWeaponClass()
@@ -88,72 +86,12 @@ EWeaponClass UShopUnlockWeaponWSubsystem::GetCurrentWeaponClass()
     return CurrentUnlockWeaponClass;
 }
 
-void UShopUnlockWeaponWSubsystem::ChangeUnlockWeaponClass(EWeaponClass WeaponClass)
-{
-    OnChangeUnlockWaeponClass.Broadcast(WeaponClass);
-}
-	
-int32 UShopUnlockWeaponWSubsystem::GetWeaponArrayNum(EWeaponClass WeaponType)
-{
-    if(WeaponType == EWeaponClass::Tank )
-    {
-        if (TankWeapons)
-        {
-            return TankWeapons->Num();
-        }
-    }
-    else if(WeaponType == EWeaponClass::Deal )
-    {
-        if (DealWeapons)
-        {
-            return DealWeapons->Num();
-        }
-
-    }
-    else if(WeaponType == EWeaponClass::Heal )
-    {
-
-        if (UtilWeapons)
-        {
-            return UtilWeapons->Num();
-        }
-    }
-
-    return -1;
-}
-
-int32 UShopUnlockWeaponWSubsystem::GetWeaponIDByIndex(EWeaponClass WeaponType,int32 Index)
-{
-    if(Index <=-1)
-        return -1;
-    if(WeaponType == EWeaponClass::Tank )
-    {
-        if (TankWeapons && Index < TankWeapons->Num())
-        {
-            return (*TankWeapons)[Index].WeaponID;
-        }
-    }
-    else if(WeaponType == EWeaponClass::Deal )
-    {
-        if (DealWeapons&& Index < DealWeapons->Num())
-        {
-            return (*DealWeapons)[Index].WeaponID;
-        }
-
-    }
-    else if(WeaponType == EWeaponClass::Heal )
-    {
-
-        if (UtilWeapons&&Index < UtilWeapons->Num())
-        {
-            return (*UtilWeapons)[Index].WeaponID;
-        }
-    }
-
-    return -1;
-}
-	
 void UShopUnlockWeaponWSubsystem::UnlockWeaponWarning(int32 WarningCode)
 {
     OnUnlockWeaponWarning.Broadcast(WarningCode);
+}
+	
+const TArray<FFaceData> UShopUnlockWeaponWSubsystem::GetUnlockWeapons()
+{
+    return UnlockWeapons;
 }
