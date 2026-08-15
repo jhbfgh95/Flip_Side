@@ -10,6 +10,10 @@
 /**
  * 
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSellItem, int32 ,InvenItemIndex, int32, ItemID, int32, Amount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoveredPlayerItemSlot, int32, ItemID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoveredPlayerItemSlot);
+
 class UButton;
 class UImage;
 class UTextBlock;
@@ -48,19 +52,22 @@ protected:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UImage> EmptySlotImage;
 
-protected:
-	UPROPERTY()
-	class UShopItemWSubsystem* ItemSubsystem;
-	UPROPERTY()
-	TObjectPtr<class UMoneyGISubsystem> MoneySubsystem;
+public:
+
+	FOnSellItem OnSellItem;
+	FOnHoveredPlayerItemSlot OnHoveredSlot;
+	FOnUnhoveredPlayerItemSlot OnUnhoveredSlot;
 
 protected:
+
 	FItemData WidgetItemData;
+
+	FSelectItem WidgetSelectItemData;
+
 	int32 CurrentItemCount = 0;
+
 	UPROPERTY(EditAnywhere)
 	int32 PlayerInvenIndex = -1;
-public:
-	void InitItemWidget(int32 InitIndex);
 
 public:
 	UFUNCTION()
@@ -71,11 +78,15 @@ public:
 	void ClickItemCountMinusButton();
 
 public:
-	UFUNCTION()
-	void SetItemWidget(int32 BuyItemIndex);
+	void InitItemWidget(int32 ItemIndex, FItemData InItemData, FSelectItem InSelectItemData);
+
+	void SetItemWidget(FItemData InItemData, FSelectItem InSelectItemData);
 
 	UFUNCTION()
 	void DeleteItemWidget();
+
+	void UpdateItemCount(int32 SameItemCount);
+
 
 protected:
 	virtual FReply NativeOnMouseButtonDown(

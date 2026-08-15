@@ -11,8 +11,7 @@
 void UW_ShopItemSlot::NativeConstruct()
 {
     Super::NativeConstruct();
-    ItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
-    MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
+
     ItemCountPlusButton->OnClicked.AddDynamic(this, &UW_ShopItemSlot::ClickItemCountPlusButton);
     ItemCountMinusButton->OnClicked.AddDynamic(this, &UW_ShopItemSlot::ClickItemCountMinusButton);
     ItemBuyButton->OnClicked.AddDynamic(this, &UW_ShopItemSlot::ClickItemBuyButton);
@@ -28,22 +27,33 @@ void UW_ShopItemSlot::InitItemWidget(FItemData SetItemData)
     ItemPriceTextBlock->SetText(FText::AsNumber(SetItemData.Price));
     CurrentItemCount = 1;
 }
+	
+void UW_ShopItemSlot::SetItemSlotImage(FItemData SetItemData)
+{
+    WidgetItemData = SetItemData;
+    ItemImage->SetBrushFromTexture(SetItemData.ItemIcon);
+    ItemNameTextBlock->SetText(FText::FromString(SetItemData.ItemName));
+    ItemCountTextBlock->SetText(FText::AsNumber(1));
+    ItemPriceTextBlock->SetText(FText::AsNumber(SetItemData.Price));
+}
+
+void UW_ShopItemSlot::AddBuyItemCount(int32 Count)
+{
+    CurrentItemCount++;
+    ItemCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
+}
 
 void UW_ShopItemSlot::ClickItemBuyButton()
 {
-    ItemSubsystem->BuyItem(WidgetItemData, CurrentItemCount);
-    CurrentItemCount = 1;
+
     ItemCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
+    
+    OnBuyItem.Broadcast(WidgetItemData.ItemID, CurrentItemCount);
 }
 
 void UW_ShopItemSlot::ClickItemCountPlusButton()
 {
-    if(!MoneySubsystem) return;
-    
-    if(WidgetItemData.Price * (CurrentItemCount+1) <= MoneySubsystem->GetCurrentMoney())
-        CurrentItemCount++;
-    
-    ItemCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
+    OnAddBuyItemCount.Broadcast(this, WidgetItemData.ItemID, CurrentItemCount+1);
 }
 	
 void UW_ShopItemSlot::ClickItemCountMinusButton()
@@ -52,17 +62,20 @@ void UW_ShopItemSlot::ClickItemCountMinusButton()
         return;
 
     CurrentItemCount--;
+
     ItemCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
 }
 
 void UW_ShopItemSlot::NativeOnMouseEnter(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
-    ItemSubsystem->HoverItem(WidgetItemData);
+    OnHoveredSlot.Broadcast(WidgetItemData.ItemID);
+
 }
 
 void UW_ShopItemSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseLeave(InMouseEvent);
-    ItemSubsystem->UnHoverItem();
+
+    OnUnhoveredSlot.Broadcast();
 }

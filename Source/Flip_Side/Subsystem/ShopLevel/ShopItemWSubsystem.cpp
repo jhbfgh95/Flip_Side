@@ -86,7 +86,7 @@ void UShopItemWSubsystem::UnHoverPlayerItem()
     OnPlayerItemUnHovered.Broadcast();
 }
 
-void UShopItemWSubsystem::BuyItem(FItemData ItemData, int32 ItemCount)
+bool UShopItemWSubsystem::BuyItem(FItemData ItemData, int32 ItemCount)
 {
     int32 InvenIndex = GetSameItemInvenIndex(ItemData.ItemID);
 
@@ -103,6 +103,7 @@ void UShopItemWSubsystem::BuyItem(FItemData ItemData, int32 ItemCount)
                 PlayerItemArray[EmptyIvenNum] = SelectItemData;
                 
                 OnItemBuy.Broadcast(EmptyIvenNum);
+                return true;
             }
         }
     }
@@ -112,8 +113,10 @@ void UShopItemWSubsystem::BuyItem(FItemData ItemData, int32 ItemCount)
         {
             PlayerItemArray[InvenIndex].SameItemNum += ItemCount;
             OnItemBuy.Broadcast(InvenIndex);
+            return true;
         }
     }
+    return false;
 }
 
 int32 UShopItemWSubsystem::GetEmptyInvenIndex(int32 ItemID)
@@ -185,7 +188,12 @@ TArray<FItemData> UShopItemWSubsystem::GetShopItemList()
 }
 
 
-void UShopItemWSubsystem::SellItem(FItemData ItemData, int32 ItemCount)
+TArray<FSelectItem> UShopItemWSubsystem::GetPlayerItemArray()
+{
+    return PlayerItemArray;
+}
+
+bool UShopItemWSubsystem::SellItem(FItemData ItemData, int32 ItemCount)
 {  
     for(int i = 0; i< PlayerItemArray.Num();i++)
     {
@@ -200,10 +208,11 @@ void UShopItemWSubsystem::SellItem(FItemData ItemData, int32 ItemCount)
 
             MoneySubsystem->AddSaleMoney(EMoneyRecordType::Item, ItemData.Price*ItemCount);
             OnItemSell.Broadcast(i);
-            return;
+            return true;
         }
         
     }
+    return false;
 }
 	
 void UShopItemWSubsystem::ShopItemWarning(int32 WarningCode)
@@ -222,4 +231,18 @@ int32 UShopItemWSubsystem::GetSameItemCountByItemID(int32 ItemID)
         }
     }
     return 0;
+}
+
+int32 UShopItemWSubsystem::GetSameItemCountByIndex(int32 InvenIndex)
+{
+    if(PlayerItemArray.IsValidIndex(InvenIndex))
+    {
+        return PlayerItemArray[InvenIndex].SameItemNum;
+    }
+    return -1;
+}
+
+bool UShopItemWSubsystem::CanBuyItem(int32 Price, int32 ItemCount)
+{
+    return Price*ItemCount <= MoneySubsystem->GetCurrentMoney();
 }

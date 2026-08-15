@@ -3,7 +3,7 @@
 
 #include "UI/W_ShopWidgetContainer.h"
 #include "Player/GameMode_Shop.h"
-
+#include "UI/ShopItem/W_ShopItemWidget.h"
 
 void UW_ShopWidgetContainer::NativeConstruct()
 {
@@ -50,7 +50,7 @@ void UW_ShopWidgetContainer::SetShopBossWidget()
 	
 void UW_ShopWidgetContainer::HideAllWidget()
 {
-    ShopItemWidget->SetVisibility(ESlateVisibility::Collapsed);
+    //ShopItemWidget->SetVisibility(ESlateVisibility::Collapsed);
     ShopUnlockWeaponWidget->SetVisibility(ESlateVisibility::Collapsed);
     ShopCoinWidget->SetVisibility(ESlateVisibility::Collapsed);
     ShopCardWidget->SetVisibility(ESlateVisibility::Collapsed);
@@ -64,3 +64,8 @@ void UW_ShopWidgetContainer::SetWidget(UUserWidget* HideWidget)
     HideWidget->SetVisibility(ESlateVisibility::Visible);
 }
 	
+
+UW_ShopItemWidget* UW_ShopWidgetContainer::GetShopItemWidget()
+{
+    return ShopItemWidget;
+}

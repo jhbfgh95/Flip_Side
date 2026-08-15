@@ -2,8 +2,7 @@
 
 
 #include "UI/ShopItem/W_ShopPlayerItemSlot.h"
-#include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
-#include "Subsystem/MoneyGISubsystem.h"
+
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
@@ -15,49 +14,56 @@
 void UW_ShopPlayerItemSlot::NativeConstruct()
 {
     Super::NativeConstruct();
-    ItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
-    MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
-
-    ItemSubsystem->OnItemBuy.AddDynamic(this, &UW_ShopPlayerItemSlot::SetItemWidget);
-
-
     ItemCountPlusButton->OnClicked.AddDynamic(this, &UW_ShopPlayerItemSlot::ClickItemCountPlusButton);
     ItemCountMinusButton->OnClicked.AddDynamic(this, &UW_ShopPlayerItemSlot::ClickItemCountMinusButton);
     ItemSellButton->OnClicked.AddDynamic(this, &UW_ShopPlayerItemSlot::ClickItemSellButton);
-   UE_LOG(LogTemp, Warning, TEXT("개수 %d"),ItemSubsystem->GetPlayerItemNum());
 }
 
-
-void UW_ShopPlayerItemSlot::InitItemWidget(int32 InitIndex)
+void UW_ShopPlayerItemSlot::InitItemWidget(int32 ItemIndex, FItemData InItemData, FSelectItem InSelectItemData)
 {
-    PlayerInvenIndex = InitIndex;
-    SetItemWidget(InitIndex);
-
+    PlayerInvenIndex = ItemIndex;
+    SetItemWidget(InItemData, InSelectItemData);
 }
+
+void UW_ShopPlayerItemSlot::SetItemWidget(FItemData InItemData, FSelectItem InSelectItemData)
+{
+    WidgetItemData = InItemData;
+    WidgetSelectItemData = InSelectItemData;
+
+    if(WidgetItemData.ItemID == -1)
+    { 
+        DeleteItemWidget();
+        return;
+    }
+
+    ItemImage->SetBrushFromTexture(WidgetItemData.ItemIcon);
+    ItemNameTextBlock->SetText(FText::FromString(WidgetItemData.ItemName));
+    ItemCountTextBlock->SetText(FText::AsNumber(InSelectItemData.SameItemNum));
+    ItemPriceTextBlock->SetText(FText::AsNumber(WidgetItemData.Price));
+    ItemSellCountTextBlock->SetText(FText::AsNumber(0));
+    EmptySlotImage->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UW_ShopPlayerItemSlot::UpdateItemCount(int32 SameItemCount)
+{
+    CurrentItemCount=0;
+    ItemSellCountTextBlock->SetText(FText::AsNumber(0));
+    WidgetSelectItemData.SameItemNum = SameItemCount;
+}
+
 
 void UW_ShopPlayerItemSlot::ClickItemSellButton()
 {
-    if(!ItemSubsystem) return;
-
-    ItemSellCountTextBlock->SetText(FText::AsNumber(0));
-    ItemSubsystem->SellItem(WidgetItemData, CurrentItemCount);
-    CurrentItemCount = 0;
-    int32 SameItemCount = ItemSubsystem->GetPlayerItem(PlayerInvenIndex).SameItemNum;
-    ItemCountTextBlock->SetText(FText::AsNumber(SameItemCount));
-
-    if(SameItemCount <= 0)
-    {
-        DeleteItemWidget();
-    }
-    
+    OnSellItem.Broadcast(PlayerInvenIndex, WidgetItemData.ItemID, CurrentItemCount);
 }
 
 void UW_ShopPlayerItemSlot::ClickItemCountPlusButton()
 {
-    if(!ItemSubsystem) return;
+    if(WidgetSelectItemData.SameItemNum < CurrentItemCount + 1)
+        return;
     
-    if(CurrentItemCount+1 <= ItemSubsystem->GetSameItemCountByItemID(WidgetItemData.ItemID))
-        CurrentItemCount++;
+    UE_LOG(LogTemp, Warning, TEXT("개수증가"));
+    CurrentItemCount++;
     ItemSellCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
 }
 	
@@ -65,38 +71,34 @@ void UW_ShopPlayerItemSlot::ClickItemCountMinusButton()
 {
     if(CurrentItemCount-1<0)
         return;
-
+    
+        UE_LOG(LogTemp, Warning, TEXT("개수감소"));
     CurrentItemCount--;
     ItemSellCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
-}
-
-void UW_ShopPlayerItemSlot::SetItemWidget(int32 BuyItemIndex)
-{
-    if(BuyItemIndex != PlayerInvenIndex)
-        return;
-
-    WidgetItemData = ItemSubsystem->GetPlayerItemData(PlayerInvenIndex);
-
-    if(WidgetItemData.ItemID == -1)
-    { 
-        DeleteItemWidget();
-        return;
-    }
-    ItemImage->SetBrushFromTexture(WidgetItemData.ItemIcon);
-    ItemNameTextBlock->SetText(FText::FromString(WidgetItemData.ItemName));
-    ItemCountTextBlock->SetText(FText::AsNumber(ItemSubsystem->GetPlayerItem(PlayerInvenIndex).SameItemNum));
-    ItemPriceTextBlock->SetText(FText::AsNumber(WidgetItemData.Price));
-    EmptySlotImage->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 
 void UW_ShopPlayerItemSlot::DeleteItemWidget()
 {
+    CurrentItemCount = 0;
+    ItemSellCountTextBlock->SetText(FText::AsNumber(0));
     ItemImage->SetBrushFromTexture(nullptr);
     ItemNameTextBlock->SetText(FText::GetEmpty());
     ItemCountTextBlock->SetText(FText::GetEmpty());
     ItemPriceTextBlock->SetText(FText::GetEmpty());
     EmptySlotImage->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UW_ShopPlayerItemSlot::NativeOnMouseEnter(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent)
+{
+    Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
+    OnHoveredSlot.Broadcast(PlayerInvenIndex);
+}
+
+void UW_ShopPlayerItemSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+    Super::NativeOnMouseLeave(InMouseEvent);
+    OnUnhoveredSlot.Broadcast();
 }
 
 
@@ -148,14 +150,3 @@ void UW_ShopPlayerItemSlot::NativeOnDragDetected(
     OutOperation = DragOperation;
 }
 
-void UW_ShopPlayerItemSlot::NativeOnMouseEnter(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent)
-{
-    Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
-    ItemSubsystem->HoverItem(WidgetItemData);
-}
-
-void UW_ShopPlayerItemSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
-{
-    Super::NativeOnMouseLeave(InMouseEvent);
-    ItemSubsystem->UnHoverItem();
-}

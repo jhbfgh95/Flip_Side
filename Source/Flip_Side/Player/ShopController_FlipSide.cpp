@@ -7,9 +7,12 @@
 #include "ShopPlayerPawn_FlipSide.h"
 #include "Player/GameMode_Shop.h"
 #include "Subsystem/MoneyGISubsystem.h"
+#include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
 
+#include "UI/ShopItem/ShopItemPresenter.h"
 #include "Interface/ShopMouseInterface.h"
-
+#include "UI/W_ShopWidgetContainer.h"
 AShopController_FlipSide::AShopController_FlipSide()
 {
     bShowMouseCursor = true;
@@ -23,6 +26,17 @@ void AShopController_FlipSide::BeginPlay()
     ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
     this->bShowMouseCursor = true;
     this->bEnableMouseOverEvents = true;
+////////////////////////////
+    UDataManagerSubsystem* DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+    UShopItemWSubsystem* ItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
+    ShopWidgetContainer = Cast<UW_ShopWidgetContainer>(CreateWidget<UUserWidget>(this, ShopWidgetContainerClass));
+    
+    ItemPresenter = NewObject<UShopItemPresenter>();
+    ItemPresenter->InitPresenter(ShopWidgetContainer->GetShopItemWidget(), ItemSubsystem, DataManager);
+
+
+    ShopWidgetContainer->AddToViewport();
+////////////////////////////
     if(ShopGameMode)
     {
         ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopController_FlipSide::SetShopMainModeWidget);
@@ -38,14 +52,16 @@ void AShopController_FlipSide::BeginPlay()
         MoneySubsystem->UpdateMoneyDisplayWidget();
 
 
-    InitWidget(BlockWidgetClass,BlockWidget,20);
-    InitWidget(ShopMainWidgetClass,ShopMainWidget,0);
-    InitWidget(ShopModeWidgetClass,ShopModeWidget,0);
+    //InitWidget(BlockWidgetClass,BlockWidget,20);
+    //InitWidget(ShopMainWidgetClass,ShopMainWidget,0);
+    //InitWidget(ShopModeWidgetClass,ShopModeWidget,0);
     
-    AddOpenWidgetList(ShopMainWidget);
-    ViewWidgetList();
+    //AddOpenWidgetList(ShopWidgetContainer);
 
-    SetLockMouse(false);
+    //ViewWidgetList();
+
+    //SetLockMouse(false);
+
 }
 
 

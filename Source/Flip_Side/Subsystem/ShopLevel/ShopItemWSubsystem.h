@@ -84,15 +84,19 @@ public:
 
 public:
 
+	bool CanBuyItem(int32 Price, int32 ItemCount);
+
 	FItemData GetItemDataByShopIndex(int32 ShopIndex);
 	
 	FSelectItem GetItemDataByItemID(int32 ItemID);
 
 	int32 GetSameItemCountByItemID(int32 ItemID);
 
-	void BuyItem(FItemData ItemData, int32 ItemCount);
+	int32 GetSameItemCountByIndex(int32 InvenIndex);
 
-	void SellItem(FItemData ItemData, int32 ItemCount);
+	bool BuyItem(FItemData ItemData, int32 ItemCount);
+
+	bool SellItem(FItemData ItemData, int32 ItemCount);
 
 	int32 GetPlayerItemNum();
 
@@ -101,6 +105,8 @@ public:
 	FItemData GetPlayerItemData(int32 index);
 
 	TArray<FItemData> GetShopItemList();
+
+	TArray<FSelectItem> GetPlayerItemArray();
 
 public:
 	void ShopItemWarning(int32 WarningCode);

@@ -24,9 +24,7 @@ protected:
 	UInputMappingContext* InputContext;
 
 public:
-
 	virtual void BeginPlay() override;
-
 	virtual void PlayerTick(float DeltaTime) override; // 매 프레임 마우스 호버 감지용
 /* UI */
 protected:
@@ -40,6 +38,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> ShopModeWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> ShopWidgetContainerClass;
+
+protected:
+
+	UPROPERTY()
+	TObjectPtr<class UShopItemPresenter> ItemPresenter;
+
 //UI 스크립트
 private:
 
@@ -49,6 +55,8 @@ private:
 	UUserWidget* BlockWidget;
 	UPROPERTY()
 	UUserWidget* ShopModeWidget;
+	UPROPERTY()
+	TObjectPtr<class UW_ShopWidgetContainer> ShopWidgetContainer;
 protected:
 	void InitWidget(TSubclassOf<UUserWidget> WidgetClass, UUserWidget*& widget,int32 ZOrder);
 

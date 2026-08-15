@@ -9,6 +9,7 @@
 /**
  * 
  */
+class UW_ShopItemWidget;
 UCLASS()
 class FLIP_SIDE_API UW_ShopWidgetContainer : public UUserWidget
 {
@@ -21,7 +22,7 @@ private:
 	class AGameMode_Shop* ShopGameMode;
 
 	UPROPERTY(meta = (BindWidget))
-	UUserWidget* ShopItemWidget;
+	TObjectPtr<UW_ShopItemWidget> ShopItemWidget;
 	
 	UPROPERTY(meta = (BindWidget))
 	UUserWidget* ShopUnlockWeaponWidget;
@@ -50,4 +51,7 @@ private:
 private:
 	void HideAllWidget();
 	void SetWidget(UUserWidget* HideWidget);
+
+public:
+	UW_ShopItemWidget* GetShopItemWidget();
 };

@@ -10,6 +10,10 @@
 /**
  * 
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBuyItem, int32, ItemID, int32, Amount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoveredShopItemSlot, int32, ItemID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnAddBuyItemCount, UW_ShopItemSlot*, BuyItemSlot, int32, ItemID, int32, Count);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoveredShopItemSlot);
 
 class UButton;
 class UImage;
@@ -44,19 +48,22 @@ protected:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UTextBlock> ItemPriceTextBlock;
 
-protected:
-	UPROPERTY()
-	TObjectPtr<class UShopItemWSubsystem> ItemSubsystem;
-	UPROPERTY()
-	TObjectPtr<class UMoneyGISubsystem> MoneySubsystem;
+public:
+
+	FOnBuyItem OnBuyItem;
+	FOnHoveredShopItemSlot OnHoveredSlot;
+	FOnUnhoveredShopItemSlot OnUnhoveredSlot;
+	FOnAddBuyItemCount OnAddBuyItemCount;
 
 protected:
 	FItemData WidgetItemData;
 	int32 CurrentItemCount = 0;
 
 public:
-	void InitItemWidget(FItemData SetItemData);
 
+	void InitItemWidget(FItemData SetItemData);
+	void SetItemSlotImage(FItemData SetItemData);
+	void AddBuyItemCount(int32 Count);
 public:
 	UFUNCTION()
 	void ClickItemBuyButton();
@@ -64,6 +71,7 @@ public:
 	void ClickItemCountPlusButton();
 	UFUNCTION()
 	void ClickItemCountMinusButton();
+
 	
 protected:
     virtual void NativeOnMouseEnter(
