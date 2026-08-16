@@ -104,9 +104,9 @@ public:
 
 	void UnlockCard();
 
-	bool SelectPlayerCard(FCardData CardData);
+	int32 SelectPlayerCard(FCardData CardData);
 
-	bool UnSelectPlayerCard(FCardData CardData);
+	bool UnSelectPlayerCard(int32 RemoveIndex);
 
 	TArray<FCardData> GetPlayerCardList();
 
@@ -118,7 +118,7 @@ public:
 
 	void WarningShopCard(int32 WarningNum);
 
-	void BuyCard(FCardData BuyCardData);
+	bool BuyCard(FCardData BuyCardData);
 
 	void HoverCardSlot(FCardData HoverdCardData);
 

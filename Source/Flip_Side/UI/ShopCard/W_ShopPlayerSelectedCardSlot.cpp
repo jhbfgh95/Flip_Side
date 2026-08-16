@@ -2,7 +2,6 @@
 
 
 #include "UI/ShopCard/W_ShopPlayerSelectedCardSlot.h"
-#include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
 #include "UI/ShopCard/W_ShopPlayerCardSlot.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
@@ -13,19 +12,18 @@
 void UW_ShopPlayerSelectedCardSlot::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
+
     UnSelectCardButton->OnClicked.AddDynamic(this, &UW_ShopPlayerSelectedCardSlot::ClickUnSelectCard);
 }
 
-void UW_ShopPlayerSelectedCardSlot::InitCardSlot(UShopCardWSubsystem* InitCardSubsystem)
+void UW_ShopPlayerSelectedCardSlot::InitCardSlot(int32 InIndex)
 {
-    CardSubsystem = InitCardSubsystem;
-}   
-
+    SlotIndex = InIndex;
+}
 
 void UW_ShopPlayerSelectedCardSlot::ClickUnSelectCard()
 {
-    CardSubsystem->UnSelectPlayerCard(WidgetCardData);
-    PlayerCardSlot->SetSlotIsSelected(false);
+    OnUnselectedPlayerCard.Broadcast(SlotIndex);
 }
 	
 void UW_ShopPlayerSelectedCardSlot::SetCardSlot(FCardData SetCardData, UW_ShopPlayerCardSlot* ConnectedPlayerCardSlot)
@@ -36,19 +34,46 @@ void UW_ShopPlayerSelectedCardSlot::SetCardSlot(FCardData SetCardData, UW_ShopPl
     PlayerCardSlot = ConnectedPlayerCardSlot;
 }
 
+void UW_ShopPlayerSelectedCardSlot::DeactiveSlot()
+{
+    PlayerCardSlot->SetSlotIsSelected(false);
+    this->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UW_ShopPlayerSelectedCardSlot::ClearSlot()
+{
+    WidgetCardData = FCardData();
+    WidgetCardData.CardID = -1;
+    PlayerCardSlot = nullptr;
+    SetVisibility(ESlateVisibility::Collapsed);
+}
+
+
+void UW_ShopPlayerSelectedCardSlot::UpdateSlot()
+{
+    CardImage->SetBrushFromTexture(WidgetCardData.Icon);
+    CardNameTextBlock->SetText(FText::FromString(WidgetCardData.CardName));
+}
+
+FCardData UW_ShopPlayerSelectedCardSlot::GetCardData()
+{   
+    return WidgetCardData;
+}
+UW_ShopPlayerCardSlot* UW_ShopPlayerSelectedCardSlot::GetConnnectedSlot()
+{
+    return PlayerCardSlot;
+}
 
 void UW_ShopPlayerSelectedCardSlot::NativeOnMouseEnter(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
-    if(!CardSubsystem)
-        return;
-    CardSubsystem->HoverCardSlot(WidgetCardData);
+    
+    OnHoveredShopCardSlot.Broadcast(WidgetCardData.CardID);
 }
 
 void UW_ShopPlayerSelectedCardSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseLeave(InMouseEvent);
-    if(!CardSubsystem)
-        return;
-    CardSubsystem->UnhoverCardSlot();
+    
+    OnUnhoveredShopCardSlot.Broadcast();
 }

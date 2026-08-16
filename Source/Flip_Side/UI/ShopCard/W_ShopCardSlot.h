@@ -4,18 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/ShopCard/W_ShopCardBase.h"
 #include "DataTypes/CardTypes.h"
 #include "W_ShopCardSlot.generated.h"
 
 /**
  * 
  */
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBuyCard, UW_ShopCardSlot*, BuyCardSlot, int32, CardID);
+
 class UButton;
 class UImage;
 class UTextBlock;
 class UShopCardWSubsystem;
 UCLASS()
-class FLIP_SIDE_API UW_ShopCardSlot : public UUserWidget
+class FLIP_SIDE_API UW_ShopCardSlot : public UW_ShopCardBase
 {
 	GENERATED_BODY()
 protected:
@@ -34,9 +38,8 @@ protected:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UButton> BuyCardButton;
 
-protected:
-	UPROPERTY()
-	TObjectPtr<UShopCardWSubsystem> CardSubsystem;
+public:
+	FOnBuyCard OnBuyCard;
 
 protected:
 
@@ -44,11 +47,12 @@ protected:
 
 public:
 
-	void InitCardSlot(FCardData InitCard, UShopCardWSubsystem* InitCardSubsystem);
+	void InitCardSlot(FCardData InitCard);
 
+	void SetCardSlotHidden();
+protected:
 	UFUNCTION()
-	void BuyCard();
-
+	void ClickBuyCardButton();
 
 protected:
 

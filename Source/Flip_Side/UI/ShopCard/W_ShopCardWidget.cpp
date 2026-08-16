@@ -34,7 +34,7 @@ FReply UW_ShopCardWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,co
     }
     else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
     {
-        ShopCardSubsystem->UnSelectPlayerCard(CurrentCardData);
+        //ShopCardSubsystem->UnSelectPlayerCard(CurrentCardData);
         //PlayAnimation(UnSelectAnim);
     }
 

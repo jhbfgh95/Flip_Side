@@ -46,6 +46,9 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UShopItemPresenter> ItemPresenter;
 
+	UPROPERTY()
+	TObjectPtr<class UShopCardPresenter> CardPresenter;
+
 //UI 스크립트
 private:
 

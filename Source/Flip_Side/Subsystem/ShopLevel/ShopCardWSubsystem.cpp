@@ -164,7 +164,7 @@ void UShopCardWSubsystem::AddCardListToUnlockCard(int32 UnlockCardID)
 }
 	
 	
-bool UShopCardWSubsystem::SelectPlayerCard(FCardData CardData)
+int32 UShopCardWSubsystem::SelectPlayerCard(FCardData CardData)
 {
     /*
     if(CardData.CardID != -1 && CanSelectCard())
@@ -177,20 +177,17 @@ bool UShopCardWSubsystem::SelectPlayerCard(FCardData CardData)
         }
     }*/
     if(CardData.CardID == -1)
-        return false;
+        return -1;
 
-    int32 FindIndex = GetSelectCardListContainIndex(CardData.CardID);
+    if(3<PlayerCardList.Num()+1)
+        return -1;
 
-    if(FindIndex != -1)
-        return false;
-        
     PlayerCardList.Add(CardData);
-    OnSelectPlayerCard.Broadcast(CardData);
-    return true;
 
+    return PlayerCardList.Num()-1;
 }
 	
-bool UShopCardWSubsystem::UnSelectPlayerCard(FCardData CardData)
+bool UShopCardWSubsystem::UnSelectPlayerCard(int32 RemoveIndex)
 {
     /*
     for(int i =0; i< PlayerCardList.Num();i++)
@@ -202,14 +199,13 @@ bool UShopCardWSubsystem::UnSelectPlayerCard(FCardData CardData)
             return;
         }
     }*/
-    
-    int32 index = GetSelectCardListContainIndex(CardData.CardID);
-    if(index != -1)
+
+    if(PlayerCardList.IsValidIndex(RemoveIndex))
     {   
-        PlayerCardList.RemoveAt(index);
-        OnUnselectPlayerCard.Broadcast();
+        PlayerCardList.RemoveAt(RemoveIndex);
         return true;
     }
+
     WarningShopCard(1);
     return false;
 }
@@ -257,17 +253,19 @@ void UShopCardWSubsystem::WarningShopCard(int32 WarningNum)
     OnShopCardWarning.Broadcast(WarningNum);
 }
 
-void UShopCardWSubsystem::BuyCard(FCardData BuyCardData)
+bool UShopCardWSubsystem::BuyCard(FCardData BuyCardData)
 {
     if(BuyCardData.CardID == -1)
-        return;
+        return false;
     if(!UnlockSubsystem->IsCardUnlockByID(BuyCardData.CardID))
     {
         if(MoneySubsystem->SpendMoney(EMoneyRecordType::Card, BuyCardData.Price))
         {
             UnlockSubsystem->UnlockCard(BuyCardData.CardID);
+            return true;
         }
     }
+    return false;
 }
 
 

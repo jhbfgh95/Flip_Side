@@ -2,21 +2,13 @@
 
 
 #include "UI/ShopCard/W_ShopCardSlotContainer.h"
-#include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "UI/ShopCard/W_ShopCardSlot.h"
-#include "DataTypes/CardTypes.h"
 
-void UW_ShopCardSlotContainer::NativeConstruct()
+void UW_ShopCardSlotContainer::InitWidget(TArray<FCardData> InCardData)
 {
-    Super::NativeConstruct();
-    
-    CardSubsystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
-
-    TArray<FCardData> CardData = CardSubsystem->GetCardListArray();
-
-    for(int i =0; i<CardData.Num(); i++)
+    for(int i =0; i<InCardData.Num(); i++)
     {
         UW_ShopCardSlot* CardSlotWidget =Cast<UW_ShopCardSlot>(CreateWidget<UUserWidget>(GetWorld(), ShopCardSlotWidget));
         if (CardSlotWidget)
@@ -26,13 +18,12 @@ void UW_ShopCardSlotContainer::NativeConstruct()
             if(VSlot)
                 VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
             
-            CardSlotWidget->InitCardSlot(CardData[i], CardSubsystem);
+            CardSlotWidget->InitCardSlot(InCardData[i]);
         }
     }
 }
-
-void UW_ShopCardSlotContainer::NativeDestruct()
+	
+TArray<UW_ShopCardSlot*> UW_ShopCardSlotContainer::GetShopCardSlots()
 {
-    Super::NativeDestruct();
+    return ShopCardSlots;
 }
-

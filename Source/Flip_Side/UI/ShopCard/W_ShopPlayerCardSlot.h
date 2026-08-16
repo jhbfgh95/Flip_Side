@@ -4,18 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/ShopCard/W_ShopCardBase.h"
 #include "DataTypes/CardTypes.h"
 #include "W_ShopPlayerCardSlot.generated.h"
 
 /**
  * 
  */
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSelectShopPlayerCard, UW_ShopPlayerCardSlot*, SelectedCardSlot, int32, CardID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUnselectShopPlayerCard, int32, CardID);
+
 class UButton;
 class UImage;
 class UTextBlock;
 class UShopCardWSubsystem;
 UCLASS()
-class FLIP_SIDE_API UW_ShopPlayerCardSlot : public UUserWidget
+class FLIP_SIDE_API UW_ShopPlayerCardSlot : public UW_ShopCardBase
 {
 	GENERATED_BODY()
 	
@@ -32,10 +37,9 @@ protected:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UButton> SelectCardButton;
 
-protected:
-	UPROPERTY()
-	TObjectPtr<UShopCardWSubsystem> CardSubsystem;
-
+public:
+	FOnSelectShopPlayerCard OnSelectShopPlayerCard;
+	FOnUnselectShopPlayerCard OnUnselectShopPlayerCard;
 protected:
 
 	FCardData WidgetCardData;
@@ -44,16 +48,15 @@ protected:
 
 public:
 
-	void InitCardSlot(FCardData InitCard, UShopCardWSubsystem* InitCardSubsystem);
+	void InitCardSlot(FCardData InitCard);
 
 	UFUNCTION()
-	void SelectCard();
-
-	void SetCardSlot(FCardData SetCardData);
+	void ClickCardButton();
 
 	int32 GetSlotCardID();
 
 	void SetSlotIsSelected(bool IsSelected);
+
 protected:
 
     virtual void NativeOnMouseEnter(

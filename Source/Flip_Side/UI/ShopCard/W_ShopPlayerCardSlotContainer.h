@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "DataTypes/CardTypes.h"
 #include "W_ShopPlayerCardSlotContainer.generated.h"
 
 /**
@@ -21,23 +22,11 @@ class FLIP_SIDE_API UW_ShopPlayerCardSlotContainer : public UUserWidget
 {
 	GENERATED_BODY()
 
-	virtual void NativeConstruct() override;
-	virtual void NativeDestruct() override;
-	
-private:
-
-	UPROPERTY()
-	TObjectPtr<UShopCardWSubsystem> CardSubsystem;
-	UPROPERTY()
-	TObjectPtr<UUnlockGISubsystem> UnlockSubsystem;
-	UPROPERTY()
-	TObjectPtr<UDataManagerSubsystem> DataManager;
 protected:
 	UPROPERTY()
 	TArray<TObjectPtr<UW_ShopPlayerCardSlot>> PlayerCardSlots;
 
 	TArray<TObjectPtr<UW_ShopPlayerSelectedCardSlot>> SelectedPlayerCardSlots;
-
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UVerticalBox> PlayerSelectSlotBox;
@@ -51,18 +40,23 @@ protected:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	TSubclassOf<UUserWidget> PlayerSelectedCardSlotWidget;
 
+public:
+	void InitWidget(const TArray<FCardData> UnlockCardData);
+	
+	TArray<UW_ShopPlayerCardSlot*> GetShopPlayerCardSlots();
+	
+	TArray<UW_ShopPlayerSelectedCardSlot*> GetShopPlayerSelectedCardSlots();
 protected:
 	int32 UsingSelectSlotCount =0;
-protected:
-	UFUNCTION()
-	void UpdatePlayerCard(int32 CardID);
 
-	UFUNCTION()
-	void UpdatePlayerSelectCard();
+public:
 
-	UFUNCTION()
-	void AddPlayerCardSlot(FCardData AddCardData);
+	UW_ShopPlayerCardSlot* AddPlayerCardSlot(FCardData AddCardData);
 
-	UFUNCTION()
-	void AddPlayerSelectCardSlot(FCardData AddCardData);
+	void AddPlayerSelectCardSlot(FCardData AddCardData, UW_ShopPlayerCardSlot* ConnectedSlot);
+
+	void RemovePlayerSelectCardSlot(int32 RemoveIndex);
+
+	int32 GetPlayerSelectedCardIndex(int32 CardID);
+	
 };

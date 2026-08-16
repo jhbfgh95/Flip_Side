@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "DataTypes/CardTypes.h"
 #include "W_ShopCardSlotContainer.generated.h"
 
 /**
@@ -17,15 +18,6 @@ class FLIP_SIDE_API UW_ShopCardSlotContainer : public UUserWidget
 {
 	GENERATED_BODY()
 
-	
-	virtual void NativeConstruct() override;
-	virtual void NativeDestruct() override;
-
-	
-private:
-	UPROPERTY()
-	TObjectPtr<UShopCardWSubsystem> CardSubsystem;
-
 protected:
 
 	TArray<UW_ShopCardSlot*> ShopCardSlots;
@@ -35,4 +27,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	TSubclassOf<UUserWidget> ShopCardSlotWidget;
+
+public:
+	void InitWidget(TArray<FCardData> InCardData);
+	
+	TArray<UW_ShopCardSlot*> GetShopCardSlots();
 };

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/ShopCard/W_ShopCardBase.h"
 #include "DataTypes/CardTypes.h"
 #include "W_ShopPlayerCards.generated.h"
 
@@ -11,7 +12,7 @@
  * 
  */
 UCLASS()
-class FLIP_SIDE_API UW_ShopPlayerCards : public UUserWidget
+class FLIP_SIDE_API UW_ShopPlayerCards : public UW_ShopCardBase
 {
 	GENERATED_BODY()
 	

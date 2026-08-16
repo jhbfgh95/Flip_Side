@@ -29,7 +29,7 @@ FReply UW_ShopPlayerCard::NativeOnMouseButtonDown(const FGeometry& InGeometry,co
     {
         if(CardData.CardID != -1)
         {
-            ShopCardSubsystem->SelectPlayerCard(CardData);
+            //ShopCardSubsystem->SelectPlayerCard(CardData);
         }
     }
     else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
@@ -42,6 +42,7 @@ FReply UW_ShopPlayerCard::NativeOnMouseButtonDown(const FGeometry& InGeometry,co
 
 void UW_ShopPlayerCard::InitPlayerCard(FCardData CardDataValue)
 {
+    /*
     CardData = CardDataValue;
 
     if(CardData.CardID == -1)
@@ -54,10 +55,10 @@ void UW_ShopPlayerCard::InitPlayerCard(FCardData CardDataValue)
     }
     InitCard(CardDataValue);
 
-
+*/
 }
 
 void UW_ShopPlayerCard::RClickCard()
 {
-    ShopCardSubsystem->UnSelectPlayerCard(CardData);
+    //ShopCardSubsystem->UnSelectPlayerCard(CardData);
 }

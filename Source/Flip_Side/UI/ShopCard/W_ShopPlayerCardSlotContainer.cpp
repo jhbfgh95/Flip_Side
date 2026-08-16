@@ -12,31 +12,17 @@
 #include "UI/ShopCard/W_ShopPlayerSelectedCardSlot.h"
 
 
-void UW_ShopPlayerCardSlotContainer::NativeConstruct()
+void UW_ShopPlayerCardSlotContainer::InitWidget(const TArray<FCardData> UnlockCardData)
 {
-    Super::NativeConstruct();
-    
-    CardSubsystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
-    UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
-    DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
-
-    UnlockSubsystem->OnUnlockCard.AddDynamic(this, &UW_ShopPlayerCardSlotContainer::UpdatePlayerCard);
-    
-    CardSubsystem->OnSelectPlayerCard.AddDynamic(this, &UW_ShopPlayerCardSlotContainer::AddPlayerSelectCardSlot);
-    CardSubsystem->OnUnselectPlayerCard.AddDynamic(this, &UW_ShopPlayerCardSlotContainer::UpdatePlayerSelectCard);
-
-
-
-    const TArray<int32> UnlockCardID = UnlockSubsystem->GetUnlockCardArray();
-
-    for(int i =0; i<UnlockCardID.Num(); i++)
+    for(int i =0; i< UnlockCardData.Num(); i++)
     {
-        FCardData SetCardData;
-        DataManager->TryGetCard(UnlockCardID[i], SetCardData);
-
-        AddPlayerCardSlot(SetCardData);
+        AddPlayerCardSlot(UnlockCardData[i]);
     }
+
+    UsingSelectSlotCount = -1;
     FCardData DefaultsCardData;
+    DefaultsCardData.CardID = -1;
+
     for(int i =0; i<PLAYER_SELECTCARD_MAX; i++)
     {
         UW_ShopPlayerSelectedCardSlot* CardSlotWidget =Cast<UW_ShopPlayerSelectedCardSlot>(CreateWidget<UUserWidget>(GetWorld(), PlayerSelectedCardSlotWidget));
@@ -46,49 +32,14 @@ void UW_ShopPlayerCardSlotContainer::NativeConstruct()
             UVerticalBoxSlot* VSlot = PlayerSelectSlotBox->AddChildToVerticalBox(CardSlotWidget);
             if(VSlot)
                 VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+
             CardSlotWidget->SetVisibility(ESlateVisibility::Collapsed);
-            CardSlotWidget->InitCardSlot(CardSubsystem);
+            CardSlotWidget->InitCardSlot(i);
         }
     }
 }
 
-void UW_ShopPlayerCardSlotContainer::NativeDestruct()
-{
-    
-    UnlockSubsystem->OnUnlockCard.RemoveAll(this);
-    CardSubsystem->OnSelectPlayerCard.RemoveAll(this);
-    CardSubsystem->OnUnselectPlayerCard.RemoveAll(this);
-
-    Super::NativeDestruct();
-}
-
-
-void UW_ShopPlayerCardSlotContainer::UpdatePlayerCard(int32 CardID)
-{
-    FCardData UpdateCardData;
-    if(DataManager->TryGetCard(CardID, UpdateCardData))
-    {
-        AddPlayerCardSlot(UpdateCardData);
-    }
-
-}
-
-void UW_ShopPlayerCardSlotContainer::UpdatePlayerSelectCard()
-{
-    UsingSelectSlotCount = 0;
-    for(int i =0; i <SelectedPlayerCardSlots.Num();i++)
-    {
-        SelectedPlayerCardSlots[i]->SetVisibility(ESlateVisibility::Collapsed);
-    }
-
-    const TArray<FCardData> PlayerCards = CardSubsystem->GetPlayerCardList();
-    for(int i =0; i <PlayerCards.Num();i++)
-    {
-        AddPlayerSelectCardSlot(PlayerCards[i]);
-    }
-}
-
-void UW_ShopPlayerCardSlotContainer::AddPlayerCardSlot(FCardData AddCardData)
+UW_ShopPlayerCardSlot* UW_ShopPlayerCardSlotContainer::AddPlayerCardSlot(FCardData AddCardData)
 {
     UW_ShopPlayerCardSlot* CardSlotWidget = Cast<UW_ShopPlayerCardSlot>(CreateWidget<UUserWidget>(GetWorld(), PlayerCardSlotWidget));
 
@@ -99,29 +50,67 @@ void UW_ShopPlayerCardSlotContainer::AddPlayerCardSlot(FCardData AddCardData)
         if(VSlot)
             VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 
-        CardSlotWidget->InitCardSlot(AddCardData, CardSubsystem);
+        CardSlotWidget->InitCardSlot(AddCardData);
     }
+
+    return CardSlotWidget;
 }
 
-void UW_ShopPlayerCardSlotContainer::AddPlayerSelectCardSlot(FCardData AddCardData)
+void UW_ShopPlayerCardSlotContainer::AddPlayerSelectCardSlot(FCardData AddCardData, UW_ShopPlayerCardSlot* ConnectedSlot)
 {
-    UE_LOG(LogTemp,Warning, TEXT("델리게이트입력받았음"));
-
-    UW_ShopPlayerCardSlot* ConnectedSlot;
     for(int i =0; i< PlayerCardSlots.Num();i++)
     {
         if(PlayerCardSlots[i]->GetSlotCardID()==AddCardData.CardID)
         {
-            ConnectedSlot = PlayerCardSlots[i];
-            if(SelectedPlayerCardSlots.IsValidIndex(UsingSelectSlotCount))
+            if(SelectedPlayerCardSlots.IsValidIndex(UsingSelectSlotCount+1))
             {
+                UsingSelectSlotCount++;
                 SelectedPlayerCardSlots[UsingSelectSlotCount]->SetCardSlot(AddCardData, ConnectedSlot);
                 SelectedPlayerCardSlots[UsingSelectSlotCount]->SetVisibility(ESlateVisibility::Visible);
-                UsingSelectSlotCount++;
+                
             }
             return;
         }
     }
+}
 
-    
+void UW_ShopPlayerCardSlotContainer::RemovePlayerSelectCardSlot(int32 RemoveIndex)
+{
+    if (RemoveIndex < 0 || RemoveIndex > UsingSelectSlotCount)
+        return;
+
+    for (int32 i = RemoveIndex; i < UsingSelectSlotCount; ++i)
+    {
+        const FCardData& NextCardData = SelectedPlayerCardSlots[i + 1]->GetCardData();
+
+        UW_ShopPlayerCardSlot* NextConnectedSlot = SelectedPlayerCardSlots[i + 1]->GetConnnectedSlot();
+
+        SelectedPlayerCardSlots[i]->SetCardSlot(NextCardData,NextConnectedSlot);
+    }
+
+    SelectedPlayerCardSlots[UsingSelectSlotCount]->ClearSlot();
+    UsingSelectSlotCount--;
+}
+
+
+TArray<UW_ShopPlayerCardSlot*> UW_ShopPlayerCardSlotContainer::GetShopPlayerCardSlots()
+{
+    return PlayerCardSlots;
+}
+	
+TArray<UW_ShopPlayerSelectedCardSlot*> UW_ShopPlayerCardSlotContainer::GetShopPlayerSelectedCardSlots()
+{
+    return SelectedPlayerCardSlots;
+}
+	
+int32 UW_ShopPlayerCardSlotContainer::GetPlayerSelectedCardIndex(int32 CardID)
+{
+    for(int i =0; i<SelectedPlayerCardSlots.Num(); i++)
+    {  
+        if(SelectedPlayerCardSlots[i]->GetCardData().CardID == -1)
+            continue;
+        if(SelectedPlayerCardSlots[i]->GetCardData().CardID == CardID)
+            return i;
+    }
+    return -1;
 }
