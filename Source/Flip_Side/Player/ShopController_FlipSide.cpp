@@ -13,9 +13,11 @@
 
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
 #include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
+#include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 
 #include "UI/ShopItem/ShopItemPresenter.h"
 #include "UI/ShopCard/ShopCardPresenter.h"
+#include "UI/ShopCoinManage/ShopCoinPresenter.h"
 
 #include "Interface/ShopMouseInterface.h"
 #include "UI/W_ShopWidgetContainer.h"
@@ -37,13 +39,19 @@ void AShopController_FlipSide::BeginPlay()
     UShopItemWSubsystem* ItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
     UUnlockGISubsystem* UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
     UShopCardWSubsystem* CardSubsystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
+    UShopCoinWSubsystem* CoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     ShopWidgetContainer = Cast<UW_ShopWidgetContainer>(CreateWidget<UUserWidget>(this, ShopWidgetContainerClass));
+    
     
     ItemPresenter = NewObject<UShopItemPresenter>();
     ItemPresenter->InitPresenter(ShopWidgetContainer->GetShopItemWidget(), ItemSubsystem, DataManager);
+    
     CardPresenter = NewObject<UShopCardPresenter>();
     CardPresenter->InitPresenter(ShopWidgetContainer->GetShopCardWidget(), CardSubsystem, DataManager, UnlockSubsystem);
 
+    CoinPresenter = NewObject<UShopCoinPresenter>(this);
+    CoinPresenter->InitPresenter(ShopWidgetContainer->GetShopCoinWidget(), CoinSubsystem, DataManager, UnlockSubsystem);
+    
     ShopWidgetContainer->AddToViewport();
 ////////////////////////////
     if(ShopGameMode)

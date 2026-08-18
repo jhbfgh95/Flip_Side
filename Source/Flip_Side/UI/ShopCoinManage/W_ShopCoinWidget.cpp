@@ -1,0 +1,37 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "UI/ShopCoinManage/W_ShopCoinWidget.h"
+
+UW_ShopWeaponSlotContainer* UW_ShopCoinWidget::GetShopWeaponSlotContainer() const
+{
+	return ShopWeaponSlotContainer;
+}
+
+UW_ShopCoinSlotContainer* UW_ShopCoinWidget::GetShopCoinSlotContainer() const
+{
+	return ShopCoinSlotContainer;
+}
+
+UW_ShopCoinSlotBuyButton* UW_ShopCoinWidget::GetShopCoinSlotBuyButton(int32 GetButtonLevel)
+{
+	switch(GetButtonLevel)
+	{
+		case 1:
+			return L1_ShopCoinSlotBuyButton;
+			break;
+		case 2:
+			return L2_ShopCoinSlotBuyButton;
+			break;
+		case 3:
+			return L3_ShopCoinSlotBuyButton;
+			break;
+		default:
+			return L1_ShopCoinSlotBuyButton;
+	}
+}
+	
+UW_ShopSelectCoin* UW_ShopCoinWidget::GetShopSelectCoin()
+{
+	return ShopSelectCoin;
+}

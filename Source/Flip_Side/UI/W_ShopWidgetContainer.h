@@ -11,6 +11,7 @@
  */
 class UW_ShopItemWidget;
 class UW_ShopCardMainWidget;
+class UW_ShopCoinWidget;
 UCLASS()
 class FLIP_SIDE_API UW_ShopWidgetContainer : public UUserWidget
 {
@@ -27,9 +28,9 @@ private:
 	
 	UPROPERTY(meta = (BindWidget))
 	UUserWidget* ShopUnlockWeaponWidget;
-	
+
 	UPROPERTY(meta = (BindWidget))
-	UUserWidget* ShopCoinWidget;
+	TObjectPtr<UW_ShopCoinWidget> ShopCoinWidget;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UW_ShopCardMainWidget> ShopCardWidget;
@@ -57,4 +58,6 @@ public:
 	UW_ShopItemWidget* GetShopItemWidget();
 	
 	UW_ShopCardMainWidget* GetShopCardWidget();
+
+	UW_ShopCoinWidget* GetShopCoinWidget();
 };

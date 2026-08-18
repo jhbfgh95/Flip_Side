@@ -192,7 +192,7 @@ const TArray<int32>& UUnlockGISubsystem::GetUnlockWeaponArray(EWeaponClass Weapo
 
 const TArray<int32>& UUnlockGISubsystem::GetUnlockWeaponArray()
 {
-    return UnlockWeaponArray;
+    return DealUnlockArray;
 }
 	
 const TArray<int32>& UUnlockGISubsystem::GetUnlockCardArray()

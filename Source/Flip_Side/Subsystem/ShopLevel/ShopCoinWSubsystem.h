@@ -30,28 +30,8 @@ struct FShopCoinSlotData
     FCoinTypeStructure CoinData;
 };
 
-/*코인 개수가 변경됬을 떄 델리게이트*/
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCoinCountUpdate , int32 , CoinSlotIndex, int32, CoinCount);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangeCoinSlot);
-/*코인 슬롯 해금시 델리게이트*/
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeCoinSlotCount, bool, IsIncrease);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHoverWeapon,int32, WeaponID);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnHoverWeapon);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeSlotCoinSide, bool, IsFront);
-/*코안 제작 시작 시 데이터 값을 넘기는 델리게이트*/
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCoinCreated, int32, CreatedCoinIndex, EWeaponClass, CreateWeaponClass );
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSetWeapon, int32, WeaponID);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChangeCoinClass, EWeaponClass, ChangeClass);
-
 // WarningNum == 0 같은 무기 앞뒤 / == 1 같은 코인이 슬롯에 존재 / == 2 슬롯 잠김 / ==3 양면에 무기 없음 / == 4 전체 개수 꽉참 / == 5 슬롯 개수 꽉참
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWarningCreate, int32, WarningNum);
-
 
 class UDataManagerSubsystem;
 UCLASS()
@@ -72,30 +52,48 @@ private:
 private:
 	//총 코인 개수
 	int32 TotalCoinCount;
+
 	/*10개의 코인슬롯 정보*/
 	TArray<FShopCoinSlotData> ShopCoinSlotArray;
-
-	int32 CurrentCoinSlotIndex = -1;
 
 	int32 LastUnlockCoinSlotIndex = -1;
 /*델리게이트들*/
 public:
-	FChangeCoinSlot OnCoinSlotChange;
-	FCoinCountUpdate OnCoinCountUpdate;
-	FChangeCoinSlotCount OnChangeCoinSlotCount;
-	FCoinCreated OnCoinCreated;
-	FChangeSlotCoinSide OnChangeSlotCoinSide;
-	FSetWeapon OnSetWeapon;
 	FWarningCreate OnWarningCreate;
-	FHoverWeapon OnHoverWeapon;
-	FUnHoverWeapon OnUnHoverWeapon;
-	FChangeCoinClass OnChangeCoinClass;
 
 private:
 	void InitCoinSetting();
-private:
 
-	bool CanIncreaseCoin(int32 SlotNum,int32 Amount);
+/* 코인 슬롯 관련*/
+public:
+	//현재 코인슬롯을 개방
+	bool BuyCoinSlot(int32 BuySlotLevel);
+
+	bool SellCoinSlot(int32 BuySlotLevel);
+
+	bool IncreaseCoinSlot(int32 SlotNum);
+
+	bool DecreaseCoinSlot(int32 SlotNum);
+
+	bool GetCoinSlotUnlock(int32 Index);
+
+	void IncreaseCoinSlotCoin(int32 SlotIndex, int32 Amount);
+
+	void DecreaseCoinSlotCoin(int32 SlotIndex, int32 Amount);
+
+	void ResetCoinSlot(int32 SlotIndex);
+
+/*Get*/
+	FCoinTypeStructure GetCoinSlotCoinType(int32 SlotIndex);
+
+	int32 GetUnlockCoinSlotCount();
+
+	bool GetIsCoinSlotUnlockByIndex(int32 index);
+
+	FCoinTypeStructure GetSlotCoin(int32 index);
+
+private:
+	bool CanIncreaseCoin(int32 SlotIndex,int32 Amount);
 
 	bool CanDecreaseCoin(int32 SlotIndex, int32 Amount);
 
@@ -103,114 +101,25 @@ private:
 
 	bool IsTrySetSameWeapon(bool IsFront, int32 WeaponID);
 
+
+/* 코인 무기 관련*/
 public:
 
-	void IncreaseCoinSlotCoin(int32 SlotIndex, int32 Amount);
+	void SetCoinSlotFrontWeapon(int32 SlotIndex, int32 WeaponID);
 
-	void DecreaseCoinSlotCoin(int32 SlotIndex, int32 Amount);
+	void SetCoinSlotBackWeapon(int32 SlotIndex, int32 WeaponID);
 
+
+
+
+/*그 외 */
+public:
 
 	void ChangeCoinSlotOrder();
-
-	int32 GetUnlockCoinSlotCount();
-
-	int32 GetCurrentCoinSlotIndex();
-
-	int32 GetCoinSlotCoinCount(int32 SlotIndex);
-
-	FCoinTypeStructure GetCoinSlotCoinType(int32 SlotIndex);
-	
-public:
-	//특정 번호의 코인 슬롯으로 변경
-	void ChangeCoinSlotByIndex(int32 SlotNum);
-	//현재 코인슬롯을 개방
-	bool BuyCoinSlot(int32 BuySlotLevel);
-
-	bool SellCoinSlot(int32 BuySlotLevel);
-
-	bool UnlockCoinSlot(int32 SlotNum);
-
-	bool IncreaseCoinSlot(int32 SlotNum);
-
-	bool DecreaseCoinSlot(int32 SlotNum);
-
-public:
-	//현재 코인슬롯이 해금되었는지 반환
-	bool GetCurrentCoinUnlock();
-	
-	bool GetCoinUnlockByIndex(int32 index);
-	//현재 코인슬롯 번호에 해당하는 코인 정보를 가져옴
-	FCoinTypeStructure GetSlotCoin(int32 index);
-
-	EWeaponClass GetSlotCoinClass(int32 index);
-
-	int32 GetSlotCoinCount(int32 index);
-	//코인 잠금 해제
-	void UnlockCoin();
-
-	/*현재 코인슬롯의 코인 개수 증가*/
-	void IncreaseSlotCoinCount();
-	/*현재 코인슬롯의 코인 개수 감소*/
-	void DecreaseSlotCoinCount();
-
-	
-	void IncreaseSlotCoinCount(int32 SlotNum);
-
-	void DecreaseSlotCoinCount(int32 SlotNum);
-
-
-	//슬롯 번호에 해당하는 코인 초기화
-	void ResetCoin(int32 SlotNum);
-
-	void ResetCoinSide(int32 SlotNum, bool IsFront);
-
-	//현재 코인슬롯의 코인 정보를 가져옴
-	FCoinTypeStructure GetCurrentSlotCoin();
-	//현재 코인슬롯의 클래스 가져옴
-	EWeaponClass GetCurrentSlotCoinClass();
-
-	//현재 코인슬롯의 코인을 할당
-	void SetSlotCoin(FCoinTypeStructure SetCoinInfo, EWeaponClass CoinClass);
-
-	bool GetIsCoinEmpty();
-
-public:
-
-	int32 GetCurrentCoinCount();
-	int32 GetCurrentSlotNum();
-	int32 GetTotalCoinCount();
-	int32 GetCurrentSlotCount();
-	int32 GetUnlockSlotLastIndex();
-public:
-
-	void SelectCoin(int32 SlotNum);
-	
-private:
-
-	bool IsCreateCoinFront;
-
-public:	
-
-	//코인에 무기 장착
-	void SetWeaponToCoinSide(int32 WeaponID);
-
-	//코인의 앞뒤를 변경
-	void ChangeCoinSide();
-
-	void ChangeCoinSide(bool ChangeFrontSide);
-
-	bool GetIsCreateCoinFront();
-
-public:
-
-	int32 GetCurrentCoinWeaponID(bool IsFront);
-
 	void ExecuteWarning(int32 WarningCode);
-
+	bool GetIsCoinEmpty();
 public:
 
-	void HoverWeapon(int32 WeaponID);
-	
-	void UnHoverWeapon();
-
+	int32 GetTotalCoinCount();
+	int32 GetUnlockSlotLastIndex();
 };

@@ -11,6 +11,7 @@
  */
 class UTextBlock;
 class UVerticalBox;
+class UW_ShopCoinSlot;
 UCLASS()
 class FLIP_SIDE_API UW_ShopCoinSlotContainer : public UUserWidget
 {
@@ -19,9 +20,6 @@ class FLIP_SIDE_API UW_ShopCoinSlotContainer : public UUserWidget
 
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
-
-private:
-	class UShopCoinWSubsystem* ShopCoinSubsystem;
 
 protected:
 	
@@ -37,38 +35,25 @@ protected:
 	UFUNCTION()
 	void SetTotalCoinText(int32 ChangedSlotIndex, int32 Count);
 
-protected:
-	/*
-	UPROPERTY(meta= (BindWidget))
-	class UScrollBox* SlotScroll;
+public:
+	void InitWidget();
+	
+	void AddCoinSlot(int32 AddSlotIndex, int32 Hp);
+	
+	void RemoveCoinSlot(int32 RemoveSlotIndex);
 
-	UPROPERTY(meta= (BindWidget))
-	class UButton* SlotAddButton;
-
-	UPROPERTY(meta = (BindWidget))
-	class UButton* DecreaseSlotButton;
-
-	UPROPERTY(meta = (BindWidget))
-	class UContentWidget* SlotBuyDescrip;
-*/
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	TSubclassOf<class UUserWidget> CoinSlotWidget;
 
-	TArray<class UW_ShopCoinSlot*> CoinSlots;
-
-	int CoinSlotCount =0;
+	UPROPERTY()
+	TArray<TObjectPtr<UW_ShopCoinSlot>> CoinSlots;
 
 private:
-	UFUNCTION()
-	void AddCoinSlot();
-	UFUNCTION()
-	void DecreaseCoinSlot();
-	UFUNCTION()
 	void UpdateSlotText(bool IsIncrease);
-	UFUNCTION()
-	void CoinSlotChangeAdaptor(bool IsIncreaseSlot);
 
-	void InitCoinSlot();
+
+public:
+	const TArray<TObjectPtr<UW_ShopCoinSlot>>& GetCoinSlots() const { return CoinSlots; }
 
 };	

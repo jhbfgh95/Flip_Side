@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "DataTypes/CoinDataTypes.h"
+#include "DataTypes/WeaponDataTypes.h"
 #include "W_ShopCoinSlot.generated.h"
 
 /**
@@ -15,8 +15,17 @@ class UImage;
 class UTextBlock;
 class UBorder;
 class UTexture2D;
-class UShopCoinWSubsystem;
-class UDataManagerSubsystem;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedShopCoinSlot, int32, SlotIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoveredShopCoinSlot, int32, SlotIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoveredShopCoinSlot);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedShopCoinSlotFrontCoin, int32, SlotIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedShopCoinSlotBackCoin, int32, SlotIndex);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBuyShopCoinSlotCoin, int32, SlotIndex, int32, Count);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSellShopCoinSlotCoin, int32, SlotIndex, int32, Count);
+
 UCLASS()
 class FLIP_SIDE_API UW_ShopCoinSlot : public UUserWidget
 {
@@ -25,12 +34,7 @@ class FLIP_SIDE_API UW_ShopCoinSlot : public UUserWidget
 protected:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeDestruct() override;
-private:
-	UPROPERTY()
-	TObjectPtr<UShopCoinWSubsystem> CoinSubsystem;
-	UPROPERTY()
-	TObjectPtr<UDataManagerSubsystem> DataSubsystem;
-	
+
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> SlotButton;
@@ -59,6 +63,16 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr <UBorder> BackGroundBorder;
 
+public:
+	
+	FOnClickedShopCoinSlot OnClickedShopCoinSlot;
+	FOnHoveredShopCoinSlot OnHoveredShopCoinSlot;
+	FOnUnhoveredShopCoinSlot OnUnhoveredShopCoinSlot;
+	FOnClickedShopCoinSlotFrontCoin OnClickedShopCoinSlotFrontCoin;
+	FOnClickedShopCoinSlotBackCoin OnClickedShopCoinSlotBackCoin;
+	FOnBuyShopCoinSlotCoin OnBuyShopCoinSlotCoin;
+	FOnSellShopCoinSlotCoin OnSellShopCoinSlotCoin;
+
 protected:
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
@@ -67,35 +81,39 @@ protected:
 	UPROPERTY(EditAnywhere,meta =(AllowPrivateAccess))
 	int32 SlotIndex;
 	
+	
+protected:
+	UFUNCTION()
+	void ClickFrontWeaponButton();
+
+	UFUNCTION()
+	void ClickBackWeaponButton();
+
 	UFUNCTION()
 	void PressSlotButton();
 
 	UFUNCTION()
+	void BuyCoin();
+
+	UFUNCTION()
+	void SellCoin();
+
+	UFUNCTION()
 	void SetBackGround();
 
-protected:
-	void SetFrontWeaponImage(int32 WeaponID);
-	void SetBackWeaponImage(int32 WeaponID);
-
-	UFUNCTION()
-	void ClickFrontWeaponButton();
-	UFUNCTION()
-	void ClickBackWeaponButton();
-
 public:
-	UFUNCTION()
-	void SetWeaponTexture(int32 WeaponID);
-	
-	UFUNCTION()
-	void SetCountText(int32 SlotNum, int32 Count);
 
-	void InitSlot(int32 SlotNum);
+	void InitSlotWidget(int32 InSlotIndex);
+
+	void SetCoinSlot(int32 Hp);
+
+	void SetFrontWeaponImage(FFaceData InFrontCoinData);
+
+	void SetBackWeaponImage(FFaceData InBackCoinData);
+
+	void SetCountText(int32 Count);
 
 	void ResetSlot();
-
-	void SetCoinSlotCoinType(FCoinTypeStructure CurrentCoinData);
-
-	void SetCoinSlot();
 
 protected:
 	

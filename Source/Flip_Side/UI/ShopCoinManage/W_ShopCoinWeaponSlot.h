@@ -13,8 +13,10 @@
 class UImage;
 class UTextBlock;
 class UButton;
-class UShopCoinWSubsystem;
-class UDataManagerSubsystem;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedShopCoinWeaponSlot, int32, WeaponID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoveredShopCoinWeaponSlot, int32, WeaponID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoveredShopCoinWeaponSlot);
 
 UCLASS()
 class FLIP_SIDE_API UW_ShopCoinWeaponSlot : public UUserWidget
@@ -23,9 +25,6 @@ class FLIP_SIDE_API UW_ShopCoinWeaponSlot : public UUserWidget
 	
 protected:
 	virtual void NativeOnInitialized() override;
-protected:
-	UPROPERTY()
-	TObjectPtr<UShopCoinWSubsystem> CoinSubsystem;
 
 protected:
 	FFaceData WeaponData;
@@ -40,8 +39,17 @@ protected:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UButton> WeaponSelectButton;
 public:
+	UPROPERTY(BlueprintAssignable, Category = "Shop Coin Weapon Slot|Event")
+	FOnClickedShopCoinWeaponSlot OnClickedShopCoinWeaponSlot;
+
+	UPROPERTY(BlueprintAssignable, Category = "Shop Coin Weapon Slot|Event")
+	FOnHoveredShopCoinWeaponSlot OnHoveredShopCoinWeaponSlot;
+
+	UPROPERTY(BlueprintAssignable, Category = "Shop Coin Weapon Slot|Event")
+	FOnUnhoveredShopCoinWeaponSlot OnUnhoveredShopCoinWeaponSlot;
+
 	UFUNCTION()
-	void InitWidget(FFaceData FaceData, UShopCoinWSubsystem* InitCoinSubsystem);
+	void InitWidget(FFaceData FaceData);
 
 	UFUNCTION()
 	void ClickWidget();

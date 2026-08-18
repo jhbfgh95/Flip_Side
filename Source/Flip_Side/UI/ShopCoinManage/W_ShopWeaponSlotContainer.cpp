@@ -2,9 +2,6 @@
 
 
 #include "UI/ShopCoinManage/W_ShopWeaponSlotContainer.h"
-#include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
-#include "Subsystem/UnlockGISubsystem.h"
-#include "Subsystem/DataManagerSubsystem.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "UI/ShopCoinManage/W_ShopCoinWeaponSlot.h"
@@ -13,29 +10,19 @@
 void UW_ShopWeaponSlotContainer::NativeConstruct()
 {
     Super::NativeConstruct();
-    ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
-    UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
-    DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+}
 
-    //UnlockSubsystem->OnWeaponUnlock.AddDynamic(this, &UW_ShopWeaponSlotContainer::AddWeaponSlot);
-
-    TArray<int> WeaponID = UnlockSubsystem->GetUnlockWeaponArray(EWeaponClass::Deal);
-    
-    for(int i =0; i<WeaponID.Num();i++)
+void UW_ShopWeaponSlotContainer::InitWidget(TArray<FFaceData> InWeaponDataArray)
+{
+    for(FFaceData InWeaponData : InWeaponDataArray)
     {
-        AddWeaponSlot(WeaponID[i]);
+        AddWeaponSlot(InWeaponData);
     }
+    
 }
 
-void UW_ShopWeaponSlotContainer::NativeDestruct()
+void UW_ShopWeaponSlotContainer::AddWeaponSlot(FFaceData InWeaponData)
 {
-    Super::NativeDestruct();
-}
-	
-void UW_ShopWeaponSlotContainer::AddWeaponSlot(int32 WeaponID)
-{
-    FFaceData ParamWeaponData;
-    DataManager->TryGetWeapon(WeaponID,ParamWeaponData);
     UW_ShopCoinWeaponSlot* CoinWeaponSlotWidget =Cast<UW_ShopCoinWeaponSlot>(CreateWidget<UUserWidget>(GetWorld(), WepoanSlotWidget));
     if (CoinWeaponSlotWidget)
     {
@@ -45,6 +32,6 @@ void UW_ShopWeaponSlotContainer::AddWeaponSlot(int32 WeaponID)
         if(VSlot)
             VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 
-        CoinWeaponSlotWidget->InitWidget(ParamWeaponData, ShopCoinSubsystem);
+        CoinWeaponSlotWidget->InitWidget(InWeaponData);
     }
 }

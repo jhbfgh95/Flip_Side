@@ -5,6 +5,7 @@
 #include "Player/GameMode_Shop.h"
 #include "UI/ShopItem/W_ShopItemWidget.h"
 #include "UI/ShopCard/W_ShopCardMainWidget.h"
+#include "UI/ShopCoinManage/W_ShopCoinWidget.h"
 
 void UW_ShopWidgetContainer::NativeConstruct()
 {
@@ -53,8 +54,8 @@ void UW_ShopWidgetContainer::HideAllWidget()
 {
     ShopItemWidget->SetVisibility(ESlateVisibility::Collapsed);
     ShopUnlockWeaponWidget->SetVisibility(ESlateVisibility::Collapsed);
-    ShopCoinWidget->SetVisibility(ESlateVisibility::Collapsed);
-    //ShopCardWidget->SetVisibility(ESlateVisibility::Collapsed);
+    //ShopCoinWidget->SetVisibility(ESlateVisibility::Collapsed);
+    ShopCardWidget->SetVisibility(ESlateVisibility::Collapsed);
     ShopBossWidget->SetVisibility(ESlateVisibility::Collapsed);
 }
 
@@ -74,4 +75,9 @@ UW_ShopItemWidget* UW_ShopWidgetContainer::GetShopItemWidget()
 UW_ShopCardMainWidget* UW_ShopWidgetContainer::GetShopCardWidget()
 {
     return ShopCardWidget;
+}
+	
+UW_ShopCoinWidget* UW_ShopWidgetContainer::GetShopCoinWidget()
+{
+    return ShopCoinWidget;
 }

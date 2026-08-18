@@ -8,6 +8,8 @@
 #include "DataTypes/CoinDataTypes.h"
 #include "W_ShopSelectCoin.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnChangeShopSelectedCoinSide);
+
 /**
  * 
  */
@@ -34,6 +36,7 @@ protected:
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UImage> BackWeaponImage;
+
 protected:
 	UPROPERTY()
 	TObjectPtr<UShopCoinWSubsystem> CoinSubsystem;
@@ -42,30 +45,17 @@ protected:
 	TObjectPtr<UDataManagerSubsystem> DataManager;
 
 protected:
-	FFaceData FrontWeaponData;
-	FFaceData BackWeaponData;
-	
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	TObjectPtr<UTexture2D> DefaultsTexture;
-
-	FCoinTypeStructure CurrentCoinType;
-
-protected:
-	void ResetCoin();
 public:
-	UFUNCTION()
-	void SetWeapon(int32 WeaponID);
 
+	FOnChangeShopSelectedCoinSide OnChangeShopSelectedCoinSide;
+
+public:
 	void SetFrontWeapon(FFaceData FrontWeaponFaceData);
 	void SetBackWeapon(FFaceData BackWeaponFaceData);
-	
+	void ResetCoin();
 	UFUNCTION()
 	void ChangeCoinSide();
 
-	UFUNCTION()
-	void SetCoin();
-
-	
-	UFUNCTION()
-	void UnhoverWeapon();
 };

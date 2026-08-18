@@ -12,6 +12,7 @@
 #include "Components/VerticalBoxSlot.h"
 
 #include "UI/ShopCoinManage/W_ShopCoinSlot.h"
+#include "UI/ShopCoinManage/ShopCoinPresenter.h"
 
 #define MAX_SLOT_NUM 10
 
@@ -19,21 +20,14 @@
 void UW_ShopCoinSlotContainer::NativeConstruct()
 {
     Super::NativeConstruct();
-    ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
-    ShopCoinSubsystem->OnCoinCountUpdate.AddDynamic(this , &UW_ShopCoinSlotContainer::SetTotalCoinText);
-    ShopCoinSubsystem->OnChangeCoinSlotCount.AddDynamic(this , &UW_ShopCoinSlotContainer::UpdateSlotText);
-    ShopCoinSubsystem->OnChangeCoinSlotCount.AddDynamic(this , &UW_ShopCoinSlotContainer::CoinSlotChangeAdaptor);
 
     //SlotAddButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlotContainer::AddCoinSlot);
     //DecreaseSlotButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlotContainer::DecreaseCoinSlot);
     SetTotalCoinText(0, 0);
-    InitCoinSlot();
 }
 
 void UW_ShopCoinSlotContainer::NativeDestruct()
 {
-    ShopCoinSubsystem->OnCoinCountUpdate.RemoveAll(this);
-    ShopCoinSubsystem->OnChangeCoinSlotCount.RemoveAll(this);
     Super::NativeDestruct();
 }
 
@@ -46,34 +40,23 @@ void UW_ShopCoinSlotContainer::SetTotalCoinText(int32 ChangedSlotIndex, int32 Co
 }
 
 
-void UW_ShopCoinSlotContainer::CoinSlotChangeAdaptor(bool IsIncreaseSlot)
+void UW_ShopCoinSlotContainer::AddCoinSlot(int32 AddSlotIndex, int32 AddSlotHP)
 {
-    if(IsIncreaseSlot)
-        AddCoinSlot();
-    else
-        DecreaseCoinSlot();
-}
-
-void UW_ShopCoinSlotContainer::AddCoinSlot()
-{
-    int32 AddSlotIndex = ShopCoinSubsystem->GetUnlockSlotLastIndex();
-    UWidget* AddCoinSlot = CoinSlotBox->GetChildAt(AddSlotIndex);
-    if(AddCoinSlot)
+    if(CoinSlots.IsValidIndex(AddSlotIndex))
     {
-        AddCoinSlot->SetVisibility(ESlateVisibility::Visible);
-        CoinSlots[AddSlotIndex]->SetCoinSlot();
+        CoinSlots[AddSlotIndex]->SetVisibility(ESlateVisibility::Visible);
+        CoinSlots[AddSlotIndex]->SetCoinSlot(AddSlotHP);
     }
         
 }
 
-void UW_ShopCoinSlotContainer::DecreaseCoinSlot()
+void UW_ShopCoinSlotContainer::RemoveCoinSlot(int32 RemoveSlotIndex)
 {
-    UWidget* AddCoinSlot = CoinSlotBox->GetChildAt(ShopCoinSubsystem->GetCurrentCoinSlotIndex()+1);
-    AddCoinSlot->SetVisibility(ESlateVisibility::Collapsed);
+    CoinSlots[RemoveSlotIndex]->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 
-void UW_ShopCoinSlotContainer::InitCoinSlot()
+void UW_ShopCoinSlotContainer::InitWidget()
 {
     for(int i =0; i<MAX_SLOT_NUM; i++)
     {
@@ -86,11 +69,10 @@ void UW_ShopCoinSlotContainer::InitCoinSlot()
             if(VSlot)
                 VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 
-            CoinSlotWidgetClass->InitSlot(i);
+            CoinSlotWidgetClass->InitSlotWidget(i);
             CoinSlotWidgetClass->SetVisibility(ESlateVisibility::Collapsed);
         }
     }
-
 }
 
 void UW_ShopCoinSlotContainer::UpdateSlotText(bool IsIncrease)

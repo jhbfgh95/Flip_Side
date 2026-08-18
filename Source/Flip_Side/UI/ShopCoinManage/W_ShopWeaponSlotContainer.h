@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "DataTypes/WeaponDataTypes.h"
 #include "W_ShopWeaponSlotContainer.generated.h"
 
 /**
@@ -20,15 +21,7 @@ class FLIP_SIDE_API UW_ShopWeaponSlotContainer : public UUserWidget
 	GENERATED_BODY()
 
 	virtual void NativeConstruct() override;
-	virtual void NativeDestruct() override;
 	
-private:
-	UPROPERTY()
-	TObjectPtr<UShopCoinWSubsystem> ShopCoinSubsystem;
-	UPROPERTY()
-	TObjectPtr<UUnlockGISubsystem> UnlockSubsystem;
-	UPROPERTY()
-	TObjectPtr<UDataManagerSubsystem> DataManager;
 
 protected:
 	UPROPERTY()
@@ -40,7 +33,10 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UVerticalBox> SlotBox;
 
-protected:
-	UFUNCTION()
-	void AddWeaponSlot(int32 WeaponID);
+public:
+	void InitWidget(TArray<FFaceData> InWeaponData);
+
+	void AddWeaponSlot(FFaceData InWeaponData);
+	
+	const TArray<TObjectPtr<UW_ShopCoinWeaponSlot>>& GetWeaponSlots() const { return WeaponSlotArray; }
 };

@@ -5,21 +5,19 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
-#include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
+
 void UW_ShopCoinWeaponSlot::NativeOnInitialized()
 {   
     Super::NativeOnInitialized();
 
-    CoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
     WeaponSelectButton->OnClicked.AddDynamic(this, &UW_ShopCoinWeaponSlot::ClickWidget);
     WeaponSelectButton->OnHovered.AddDynamic(this, &UW_ShopCoinWeaponSlot::HoverWidget);
     WeaponSelectButton->OnUnhovered.AddDynamic(this, &UW_ShopCoinWeaponSlot::UnhoverWidget);
 }
 
-void UW_ShopCoinWeaponSlot::InitWidget(FFaceData FaceData, UShopCoinWSubsystem* InitCoinSubsystem)
+void UW_ShopCoinWeaponSlot::InitWidget(FFaceData FaceData)
 {
     WeaponData = FaceData;
-    CoinSubsystem = InitCoinSubsystem;
     if(FaceData.WeaponID != -1)
     {
         WeaponIcon->SetBrushFromTexture(FaceData.WeaponIcon);
@@ -36,15 +34,15 @@ void UW_ShopCoinWeaponSlot::InitWidget(FFaceData FaceData, UShopCoinWSubsystem* 
 	
 void UW_ShopCoinWeaponSlot::ClickWidget()
 {
-    CoinSubsystem->SetWeaponToCoinSide(WeaponData.WeaponID);
+    OnClickedShopCoinWeaponSlot.Broadcast(WeaponData.WeaponID);
 }
 	
 void UW_ShopCoinWeaponSlot::HoverWidget()
 {
-    CoinSubsystem->HoverWeapon(WeaponData.WeaponID);
+    OnHoveredShopCoinWeaponSlot.Broadcast(WeaponData.WeaponID);
 }
 
 void UW_ShopCoinWeaponSlot::UnhoverWidget()
 {
-    CoinSubsystem->UnHoverWeapon();
+    OnUnhoveredShopCoinWeaponSlot.Broadcast();
 }
