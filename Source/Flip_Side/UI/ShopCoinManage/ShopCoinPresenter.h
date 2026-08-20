@@ -85,6 +85,8 @@ protected:
 	UFUNCTION()
 	void SellCoinSlotCoin(int32 SlotIndex, int32 Count);
 
+	UFUNCTION()
+	void AddWeaponSlot(int32 WeaponID);
 	
 	FFaceData GetWeaponData(int32 WeaponID);
 

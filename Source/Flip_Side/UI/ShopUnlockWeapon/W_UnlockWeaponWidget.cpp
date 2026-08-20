@@ -3,71 +3,35 @@
 
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponWidget.h"
 #include "Components/Button.h"
-#include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
-#include "Subsystem/DataManagerSubsystem.h"
-#include "UI/W_WeaponDescription.h"
-#include "UI/W_PriceWidget.h"
+#include "UI/ShopUnlockWeapon/W_UnlockWeaponSlotContainer.h"
+#include "UI/ShopUnlockWeapon/W_SelectedUnlockWeapon.h"
+#include "UI/ShopUnlockWeapon/W_UnlockSelectWeaponButton.h"
 void UW_UnlockWeaponWidget::NativeConstruct()
 {
     Super::NativeConstruct();
-    
-    UnlockWeaponSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
-    DataSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
-    //UnlockWeaponSubsystem->OnSelectUnlockWeapon.AddDynamic(this, &UW_UnlockWeaponWidget::SetWidgetState);
-    HideWidget();
 }
 
 void UW_UnlockWeaponWidget::NativeDestruct()
 {
-    UnlockWeaponSubsystem->OnSelectUnlockWeapon.RemoveAll(this);
     Super::NativeDestruct();
 }
 
-void UW_UnlockWeaponWidget::SetWidgetState(EWeaponClass WeaponClass, int32 WeaponID, bool IsItemUnlock)
+UW_UnlockWeaponSlotContainer* UW_UnlockWeaponWidget::GetUnlockWeaponSlotContainer() const
 {
-    if(IsItemUnlock)
-    {
-        HideWidget();
-    }   
-    else
-    {
-        VisibleWidget();
-    }
-    SetDes(WeaponID);
-}
-	
-void UW_UnlockWeaponWidget::HideWidget()
-{
-    UnlockButton->SetVisibility(ESlateVisibility::Collapsed);
-    WeaponPriceText->SetVisibility(ESlateVisibility::Collapsed);
-    
-    FString ExpainText = TEXT("구매할 무기를 선택하세요");
-	WeaponDes->SetPanelStringText(ExpainText, TEXT(""));
-}
-	
-void UW_UnlockWeaponWidget::VisibleWidget()
-{
-    UnlockButton->SetVisibility(ESlateVisibility::Visible);
-    WeaponPriceText->SetVisibility(ESlateVisibility::Visible);
+    return UnlockWeaponSlotContainer;
 }
 
-
-void UW_UnlockWeaponWidget::SetDes(int32 WeaponID)
+UW_SelectedUnlockWeapon* UW_UnlockWeaponWidget::GetSelectedUnlockWeapon() const
 {
-    FFaceData FaceData;
-    DataSubsystem->TryGetWeapon(WeaponID, FaceData);
-	SetDesText(FaceData);
+    return SelectedUnlockWeapon;
 }
 
-
-void UW_UnlockWeaponWidget::SetDesText(FFaceData FaceData)
+UW_UnlockSelectWeaponButton* UW_UnlockWeaponWidget::GetUnlockButton() const
 {
-    if(FaceData.WeaponID != -1)
-		WeaponDes->SetExplainText(FaceData.WeaponName, FaceData.KOR_DES, FaceData.BehaviorPoint, FaceData.AttackPoint);
-	else
-    {
-        FString ExpainText = TEXT("구매할 무기를 선택하세요");
-		WeaponDes->SetPanelStringText(ExpainText, TEXT(""));
-    }
-    WeaponPriceText->SetPriceText(FaceData.Price);
+    return UnlockButton;
+}
+
+UW_PriceWidget* UW_UnlockWeaponWidget::GetWeaponPriceWidget() const
+{
+    return WeaponPriceText;
 }

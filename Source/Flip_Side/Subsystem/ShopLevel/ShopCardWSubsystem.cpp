@@ -46,72 +46,6 @@ void UShopCardWSubsystem::Deinitialize()
     Super::Deinitialize();
 }
 
-void UShopCardWSubsystem::SelectCard(FCardData CardData)
-{
-    /*
-    if(UnlockCardList.Num()<=0)
-        return;
-        
-    if(!CanSelectCard())
-        return;
-        
-    for(int i =0; i< PlayerCardList.Num(); i++)
-    {
-        if(PlayerCardList[i].CardID ==-1)
-        {
-            
-            PlayerCardList[i] = UnlockCardList[CurrentCardListNum];
-            OnCardSelected.Broadcast(i, PlayerCardList[i]);
-            return;
-        }
-    }*/
-    
-    CurrentSelectCard = CardData;
-    OnSelectCard.Broadcast(CurrentSelectCard);
-}
-	
-void UShopCardWSubsystem::UnSelectCard()
-{
-    CurrentSelectCard = DefaultCard;
-    OnUnSelectCard.Broadcast();
-}
-
-void UShopCardWSubsystem::UnlockCard()
-{
-    if(!UnlockSubsystem->IsCardUnlockByID(CurrentSelectCard.CardID))
-    {
-        if(MoneySubsystem->SpendMoney(EMoneyRecordType::Card, CurrentSelectCard.Price))
-        {
-            UnlockSubsystem->UnlockCard(CurrentSelectCard.CardID);
-            OnUnlockCard.Broadcast(CurrentSelectCard.CardID);
-        }
-    }
-}
-
-bool UShopCardWSubsystem::CanSelectCard()
-{
-
-    for(int i =0; i<PlayerCardList.Num(); i++)
-    {
-        if(PlayerCardList[i].CardID == CurrentSelectCard.CardID)
-        {
-            WarningShopCard(0);
-            return false;
-        }
-    }
-
-    for(int i =0; i< PlayerCardList.Num(); i++)
-    {
-        if(PlayerCardList[i].CardID ==-1)
-        {
-            return true;
-        }
-    }
-    
-    WarningShopCard(2);
-    return false;
-}
-
 int32 UShopCardWSubsystem::CanSelectPlayerIndex()
 {
     for(int i =0; i<PlayerCardList.Num(); i++)
@@ -134,14 +68,13 @@ int32 UShopCardWSubsystem::GetPlayerCardID(int32 index)
 
 void UShopCardWSubsystem::SetUnlockCard()
 {
-    for(int i =0; i<UnlockSubsystem->GetUnlockCardArrayNum();i++)
+    for(const int32 CardID : UnlockSubsystem->GetUnlockCardArray())
     {
         if(DM)
         {
-            int32 GetCardID = UnlockSubsystem->GetUnlockCardID(i);
             FCardData CardData;
 
-            if(DM->TryGetCard(GetCardID,CardData))
+            if(DM->TryGetCard(CardID, CardData))
             {
                 UnlockCardList.Add(CardData);
             }
@@ -270,16 +203,6 @@ bool UShopCardWSubsystem::BuyCard(FCardData BuyCardData)
 
 
 
-void UShopCardWSubsystem::HoverCardSlot(FCardData HoverdCardData)
-{
-    OnHoverCard.Broadcast(HoverdCardData);
-}
-	
-void UShopCardWSubsystem::UnhoverCardSlot()
-{
-    OnUnhoverCard.Broadcast();
-}   
-	
 int32 UShopCardWSubsystem::GetPlayerSelectCardCount()
 {
     return PlayerCardList.Num();

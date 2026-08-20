@@ -10,7 +10,6 @@
 /**
  * 
  */
-class UShopUnlockWeaponWSubsystem;
 class UImage;
 UCLASS()
 class FLIP_SIDE_API UW_SelectedUnlockWeapon : public UUserWidget
@@ -21,11 +20,7 @@ protected:
 	virtual void NativeConstruct() override;
 
 protected:
-	UPROPERTY()
-	TObjectPtr<UShopUnlockWeaponWSubsystem> UnlockWeaponSubsystem;
-	
-protected:
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> SelectedWeaponImage;
 
 public:

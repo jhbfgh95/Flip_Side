@@ -16,8 +16,6 @@ class AShopPlayerPawn_FlipSide : public APawn
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* Camera;
 
-private:
-	class AGameMode_Shop* ShopGameMode;
 public:
 	AShopPlayerPawn_FlipSide();
 

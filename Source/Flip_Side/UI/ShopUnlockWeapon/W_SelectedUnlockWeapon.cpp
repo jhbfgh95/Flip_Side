@@ -11,5 +11,5 @@ void UW_SelectedUnlockWeapon::NativeConstruct()
 
 void UW_SelectedUnlockWeapon::SetSelectedImage(FFaceData SelectedWeapon)
 {
-    
+    SelectedWeaponImage->SetBrushFromTexture(SelectedWeapon.WeaponIcon);
 }

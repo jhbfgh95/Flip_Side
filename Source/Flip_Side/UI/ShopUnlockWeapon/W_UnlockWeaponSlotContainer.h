@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "DataTypes/WeaponDataTypes.h"
 #include "W_UnlockWeaponSlotContainer.generated.h"
 
 /**
@@ -11,9 +12,6 @@
  */
 class UVerticalBox;
 class UW_UnlockWeaponSlot;
-class UUnlockGISubsystem;
-class UShopUnlockWeaponWSubsystem;
-class UDataManagerSubsystem;
 UCLASS()
 class FLIP_SIDE_API UW_UnlockWeaponSlotContainer : public UUserWidget
 {
@@ -31,16 +29,12 @@ protected:
 	TObjectPtr<UVerticalBox> UnlockWeaponSlotBox;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<UUserWidget> UnlockWeaponSlot;
+	TSubclassOf<UW_UnlockWeaponSlot> UnlockWeaponSlot;
 
-protected:
-	UPROPERTY()
-	TObjectPtr<UUnlockGISubsystem> UnlockSubsystem;
-
-	UPROPERTY()
-	TObjectPtr<UShopUnlockWeaponWSubsystem> UnlockWeaponSubsystem;
-
-	UPROPERTY()
-	TObjectPtr<UDataManagerSubsystem> DataManagerSubsystem;
+public:
+	void InitWidget(const TArray<FFaceData>& InWeaponDataArray);
+	void AddWeaponSlot(const FFaceData& InWeaponData);
+	bool RemoveWeaponSlot(int32 WeaponID);
+	const TArray<TObjectPtr<UW_UnlockWeaponSlot>>& GetWeaponSlots() const { return UnlockWeaponSlots; }
 
 };

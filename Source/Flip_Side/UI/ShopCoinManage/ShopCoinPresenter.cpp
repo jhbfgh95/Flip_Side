@@ -20,6 +20,7 @@ void UShopCoinPresenter::InitPresenter(UW_ShopCoinWidget* InShopCoinWidget, USho
 	CoinSubsystem = InCoinSubsystem;
 	DataManager = InDataManager;
 	UnlockSubsystem = InUnlockSubsystem;
+	UnlockSubsystem->OnWeaponUnlock.AddDynamic(this,&UShopCoinPresenter::AddWeaponSlot );
 	InitSlotWidget();
 	InitWeaponSlotWidget();
 	InitSlotBuyButtonWidget();
@@ -153,6 +154,7 @@ void UShopCoinPresenter::SelectWeapon(int32 WeaponID)
 	
 void UShopCoinPresenter::HoverWeapon(int32 WeaponID)
 {
+	UE_LOG(LogTemp,Warning, TEXT("호버링 중인 무기 %d"), WeaponID);
 	if(IsCurrentCoinSideFront)
 		ShopCoinWidget->GetShopSelectCoin()->SetFrontWeapon(GetWeaponData(WeaponID));
 	else
@@ -210,6 +212,29 @@ void UShopCoinPresenter::SetSlectCoinSideData(int32 SlotIndex)
 	FCoinTypeStructure IndexCoin = CoinSubsystem->GetCoinSlotCoinType(SlotIndex);
 	ShopCoinWidget->GetShopSelectCoin()->SetFrontWeapon(GetWeaponData(IndexCoin.FrontWeaponID));
 	ShopCoinWidget->GetShopSelectCoin()->SetBackWeapon(GetWeaponData(IndexCoin.BackWeaponID));
+}
+
+void UShopCoinPresenter::AddWeaponSlot(int32 WeaponID)
+{
+	if(WeaponID == -1)
+		return;
+
+	const FFaceData WeaponData = GetWeaponData(WeaponID);
+	if(WeaponData.WeaponID == -1)
+		return;
+
+	UW_ShopCoinWeaponSlot* NewWeaponSlot =
+		ShopCoinWidget->GetShopWeaponSlotContainer()->AddWeaponSlot(WeaponData);
+	if(!IsValid(NewWeaponSlot))
+		return;
+
+	WeaponSlotViews.Add(NewWeaponSlot);
+	NewWeaponSlot->OnClickedShopCoinWeaponSlot.AddDynamic(
+		this, &UShopCoinPresenter::SelectWeapon);
+	NewWeaponSlot->OnHoveredShopCoinWeaponSlot.AddDynamic(
+		this, &UShopCoinPresenter::HoverWeapon);
+	NewWeaponSlot->OnUnhoveredShopCoinWeaponSlot.AddDynamic(
+		this, &UShopCoinPresenter::UnhoverWeapon);
 }
 
 FFaceData UShopCoinPresenter::GetWeaponData(int32 WeaponID)

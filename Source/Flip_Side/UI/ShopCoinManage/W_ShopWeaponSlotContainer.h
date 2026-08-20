@@ -36,7 +36,7 @@ protected:
 public:
 	void InitWidget(TArray<FFaceData> InWeaponData);
 
-	void AddWeaponSlot(FFaceData InWeaponData);
+	UW_ShopCoinWeaponSlot* AddWeaponSlot(const FFaceData& InWeaponData);
 	
 	const TArray<TObjectPtr<UW_ShopCoinWeaponSlot>>& GetWeaponSlots() const { return WeaponSlotArray; }
 };

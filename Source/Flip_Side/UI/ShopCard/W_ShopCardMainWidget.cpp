@@ -2,6 +2,7 @@
 
 
 #include "UI/ShopCard/W_ShopCardMainWidget.h"
+#include "UI/ShopCard/W_ShopCardWidget.h"
 
 UW_ShopCardSlotContainer* UW_ShopCardMainWidget::GetShopCardSlotContainer() const
 {
@@ -11,4 +12,9 @@ UW_ShopCardSlotContainer* UW_ShopCardMainWidget::GetShopCardSlotContainer() cons
 UW_ShopPlayerCardSlotContainer* UW_ShopCardMainWidget::GetShopPlayerCardSlotContainer() const
 {
 	return ShopPlayerCardSlotContainer;
+}
+
+UW_ShopCardWidget* UW_ShopCardMainWidget::GetShopCardWidget() const
+{
+	return ShopCardWidget;
 }

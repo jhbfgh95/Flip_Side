@@ -20,9 +20,6 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
-	class UUnlockGISubsystem* UnlockSubsystem;
-	class UShopCardWSubsystem* ShopCardSubsystem;
-
 protected:
 
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent) override;

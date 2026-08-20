@@ -3,25 +3,16 @@
 
 #include "UI/ShopCard/W_ShopCardWidget.h"
 
-#include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
-#include "Subsystem/UnlockGISubsystem.h"
 #include "Components/Image.h"
 #include "Components/CanvasPanel.h"
 #include "Animation/WidgetAnimation.h"
 void UW_ShopCardWidget::NativeConstruct()
 {
     Super::NativeConstruct();
-    UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
-
-    ShopCardSubsystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
-    ShopCardSubsystem->OnUnlockCard.AddDynamic(this, &UW_ShopCardWidget::UnlockCard);
-    ShopCardSubsystem->OnHoverCard.AddDynamic(this, &UW_ShopCardWidget::SetCardData);
 }
 
 void UW_ShopCardWidget::NativeDestruct()
 {
-    ShopCardSubsystem->OnUnlockCard.RemoveAll(this);
-    ShopCardSubsystem->OnHoverCard.RemoveAll(this);
     Super::NativeDestruct();
 }
 
@@ -80,7 +71,6 @@ void UW_ShopCardWidget::HideLockIamge()
 
 void UW_ShopCardWidget::LeftClickCard()
 {
-    ShopCardSubsystem->SelectCard(CurrentCardData);
 }
 	
 void UW_ShopCardWidget::SetCardData(FCardData CardData)

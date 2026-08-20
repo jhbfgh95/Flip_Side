@@ -68,35 +68,3 @@ void AGameMode_Shop::ChangeBattleLevel()
 
 
 
-void AGameMode_Shop::SetShopMainMode()
-{
-    OnShopMainMode.Broadcast();
-}
-
-void AGameMode_Shop::SetCoinManageMode()
-{
-    OnCoinManageMode.Broadcast();
-}
-
-
-void AGameMode_Shop::SetShopItemMode()
-{
-    OnShopItemMode.Broadcast();
-}
-
-void AGameMode_Shop::SetCardSelectMode()
-{
-    OnSelectCardMode.Broadcast();
-}
-
-
-void AGameMode_Shop::SetUnlockWeaponMode()
-{
-    OnUnlockWeaponMode.Broadcast();
-}
-
-
-void AGameMode_Shop::SetCheckBossMode()
-{
-    OnCheckBossMode.Broadcast();
-}

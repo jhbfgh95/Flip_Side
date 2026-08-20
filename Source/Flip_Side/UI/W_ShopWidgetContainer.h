@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/W_ShopNavigationBar.h"
 #include "W_ShopWidgetContainer.generated.h"
 
 /**
@@ -12,22 +13,28 @@
 class UW_ShopItemWidget;
 class UW_ShopCardMainWidget;
 class UW_ShopCoinWidget;
+class UW_UnlockWeaponWidget;
+class UWidgetSwitcher;
 UCLASS()
 class FLIP_SIDE_API UW_ShopWidgetContainer : public UUserWidget
 {
 	GENERATED_BODY()
 
 
-	virtual void NativeConstruct() override;
+	virtual void NativeOnInitialized() override;
 
 private:
-	class AGameMode_Shop* ShopGameMode;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UW_ShopNavigationBar> ShopNavigationBar;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UWidgetSwitcher> ShopContentSwitcher;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UW_ShopItemWidget> ShopItemWidget;
 	
 	UPROPERTY(meta = (BindWidget))
-	UUserWidget* ShopUnlockWeaponWidget;
+	TObjectPtr<UW_UnlockWeaponWidget> ShopUnlockWeaponWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UW_ShopCoinWidget> ShopCoinWidget;
@@ -40,19 +47,7 @@ private:
 
 private:
 	UFUNCTION()
-	void SetShopItemWidget();
-	UFUNCTION()
-	void SetShopUnlockWeaponWidget();
-	UFUNCTION()
-	void SetShopCoinWidget();
-	UFUNCTION()
-	void SetShopCardWidget();
-	UFUNCTION()
-	void SetShopBossWidget();
-	
-private:
-	void HideAllWidget();
-	void SetWidget(UUserWidget* HideWidget);
+	void ShowShopPage(EShopPage Page);
 
 public:
 	UW_ShopItemWidget* GetShopItemWidget();
@@ -60,4 +55,6 @@ public:
 	UW_ShopCardMainWidget* GetShopCardWidget();
 
 	UW_ShopCoinWidget* GetShopCoinWidget();
+
+	UW_UnlockWeaponWidget* GetShopUnlockWeaponWidget();
 };

@@ -2,10 +2,6 @@
 
 
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponSlotContainer.h"
-#include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
-#include "Subsystem/UnlockGISubsystem.h"
-#include "Subsystem/DataManagerSubsystem.h"
-
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponSlot.h"
@@ -13,26 +9,45 @@
 void UW_UnlockWeaponSlotContainer::NativeConstruct()
 {
     Super::NativeConstruct();
+}
 
-    DataManagerSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
-    UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
-    UnlockWeaponSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
+void UW_UnlockWeaponSlotContainer::InitWidget(const TArray<FFaceData>& InWeaponDataArray)
+{
+    UnlockWeaponSlots.Empty();
+    UnlockWeaponSlotBox->ClearChildren();
 
-
-    TArray<FFaceData> LockWeapons = UnlockWeaponSubsystem->GetUnlockWeapons();
-    
-
-    for(int i =0; i<LockWeapons.Num(); i++)
+    for(const FFaceData& WeaponData : InWeaponDataArray)
     {
-        UW_UnlockWeaponSlot* UnlockWeaponSlotWidget =Cast<UW_UnlockWeaponSlot>(CreateWidget<UUserWidget>(GetWorld(), UnlockWeaponSlot));
-        if (UnlockWeaponSlotWidget)
+        AddWeaponSlot(WeaponData);
+    }
+}
+
+void UW_UnlockWeaponSlotContainer::AddWeaponSlot(const FFaceData& InWeaponData)
+{
+    UW_UnlockWeaponSlot* SlotWidget = CreateWidget<UW_UnlockWeaponSlot>(GetWorld(), UnlockWeaponSlot);
+    if(!IsValid(SlotWidget))
+        return;
+
+    UnlockWeaponSlots.Add(SlotWidget);
+    UVerticalBoxSlot* VerticalSlot = UnlockWeaponSlotBox->AddChildToVerticalBox(SlotWidget);
+    if(VerticalSlot)
+        VerticalSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+
+    SlotWidget->InitWidget(InWeaponData);
+}
+
+bool UW_UnlockWeaponSlotContainer::RemoveWeaponSlot(int32 WeaponID)
+{
+    for(int32 Index = 0; Index < UnlockWeaponSlots.Num(); ++Index)
+    {
+        UW_UnlockWeaponSlot* SlotWidget = UnlockWeaponSlots[Index];
+        if(IsValid(SlotWidget) && SlotWidget->GetWeaponID() == WeaponID)
         {
-            UnlockWeaponSlots.Add(UnlockWeaponSlotWidget);
-            UVerticalBoxSlot* VSlot = UnlockWeaponSlotBox->AddChildToVerticalBox(UnlockWeaponSlotWidget);
-            if(VSlot)
-                VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-            UnlockWeaponSlotWidget->InitWidget(LockWeapons[i], UnlockWeaponSubsystem);
+            UnlockWeaponSlotBox->RemoveChild(SlotWidget);
+            UnlockWeaponSlots.RemoveAt(Index);
+            return true;
         }
     }
 
+    return false;
 }

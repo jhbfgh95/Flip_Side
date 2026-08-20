@@ -13,10 +13,6 @@
  */
 
 
-//해금할 코인 선택 했을 때 델리게이트
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSelectUnlockWeapon, int32, WeaponID, bool, IsItemUnlock);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnselectUnlockWeapon);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnlockWeaponFWarning, int32, WarningCode);
 
 
@@ -40,22 +36,10 @@ private:
 	class UUnlockGISubsystem* UnlockSubsystem;
 	class UMoneyGISubsystem* MoneySubsystem;
 	
-private:
-	//현재 선택중인 무기 인덱스
-	int32 CurrentUnlockWeaponID = -1;
-	EWeaponClass CurrentUnlockWeaponClass;
-
 public:
-	FSelectUnlockWeapon OnSelectUnlockWeapon;
-	FUnselectUnlockWeapon OnUnselectUnlockWeapon;
 	FUnlockWeaponFWarning OnUnlockWeaponWarning;
 public:
-
-	void UnlockCurrentWeapon();
-	int32 GetCurrentUnlockWeaponID();
-	EWeaponClass GetCurrentWeaponClass();
-	void SelectUnlockWeapon(int32 WeaponID);
-	void UnSelectWeapon();
+	void UnlockWeapon(int32 WeaponID);
 
 public:
 	int32 GetWeaponArrayNum(EWeaponClass WeaponType);

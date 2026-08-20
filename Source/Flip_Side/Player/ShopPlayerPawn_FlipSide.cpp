@@ -1,7 +1,6 @@
 #include "ShopPlayerPawn_FlipSide.h"
 #include "Components/SceneComponent.h"
 #include "Camera/CameraComponent.h"
-#include "Player/GameMode_Shop.h"
 
 AShopPlayerPawn_FlipSide::AShopPlayerPawn_FlipSide()
 {
@@ -22,22 +21,6 @@ void AShopPlayerPawn_FlipSide::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
-	if(ShopGameMode)
-	{
-		ShopGameMode->OnCoinManageMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveCoinManageMode);
-		
-		ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveSelectCardMode);
-		
-		ShopGameMode->OnShopItemMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveShopItemMode);
-
-		ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveShopMainMode);
-
-		ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveUnlockWeaponMode);
-		
-		ShopGameMode->OnCheckBossMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveCheckBossInfoMode);
-	}
-	
 	SetActorLocation(ShopMainLocation);
 	SetActorRotation(MainRotation);
 }

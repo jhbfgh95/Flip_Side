@@ -2,68 +2,42 @@
 
 
 #include "UI/W_ShopWidgetContainer.h"
-#include "Player/GameMode_Shop.h"
+#include "Components/WidgetSwitcher.h"
 #include "UI/ShopItem/W_ShopItemWidget.h"
 #include "UI/ShopCard/W_ShopCardMainWidget.h"
 #include "UI/ShopCoinManage/W_ShopCoinWidget.h"
+#include "UI/ShopUnlockWeapon/W_UnlockWeaponWidget.h"
 
-void UW_ShopWidgetContainer::NativeConstruct()
+void UW_ShopWidgetContainer::NativeOnInitialized()
 {
-    Super::NativeConstruct();
+    Super::NativeOnInitialized();
 
-    ShopGameMode= Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
-
-    ShopGameMode->OnCoinManageMode.AddDynamic(this, &UW_ShopWidgetContainer::SetShopCoinWidget);
-    ShopGameMode->OnShopItemMode.AddDynamic(this, &UW_ShopWidgetContainer::SetShopItemWidget);
-    ShopGameMode->OnSelectCardMode.AddDynamic(this, &UW_ShopWidgetContainer::SetShopCardWidget);
-    ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &UW_ShopWidgetContainer::SetShopUnlockWeaponWidget);
-    ShopGameMode->OnCheckBossMode.AddDynamic(this, & UW_ShopWidgetContainer::SetShopBossWidget);
-
-    HideAllWidget();
+    ShopNavigationBar->OnShopPageRequested.AddDynamic(this, &UW_ShopWidgetContainer::ShowShopPage);
+    ShowShopPage(EShopPage::Coin);
 }
 
-void UW_ShopWidgetContainer::SetShopItemWidget()
+void UW_ShopWidgetContainer::ShowShopPage(EShopPage Page)
 {
-    SetWidget(ShopItemWidget);
-}
-
-
-void UW_ShopWidgetContainer::SetShopUnlockWeaponWidget()
-{
-    SetWidget(ShopUnlockWeaponWidget);
-}   
-
-
-void UW_ShopWidgetContainer::SetShopCoinWidget()
-{
-    SetWidget(ShopCoinWidget);
-}
-
-
-void UW_ShopWidgetContainer::SetShopCardWidget()
-{
-    SetWidget(ShopCardWidget);
-}
-
-void UW_ShopWidgetContainer::SetShopBossWidget()
-{
-    SetWidget(ShopBossWidget);
-}	
-	
-void UW_ShopWidgetContainer::HideAllWidget()
-{
-    ShopItemWidget->SetVisibility(ESlateVisibility::Collapsed);
-    ShopUnlockWeaponWidget->SetVisibility(ESlateVisibility::Collapsed);
-    //ShopCoinWidget->SetVisibility(ESlateVisibility::Collapsed);
-    ShopCardWidget->SetVisibility(ESlateVisibility::Collapsed);
-    ShopBossWidget->SetVisibility(ESlateVisibility::Collapsed);
-}
-
-
-void UW_ShopWidgetContainer::SetWidget(UUserWidget* HideWidget)
-{
-    HideAllWidget();
-    HideWidget->SetVisibility(ESlateVisibility::Visible);
+	switch(Page)
+	{
+	case EShopPage::Coin:
+		ShopContentSwitcher->SetActiveWidget(ShopCoinWidget);
+		break;
+	case EShopPage::Item:
+		ShopContentSwitcher->SetActiveWidget(ShopItemWidget);
+		break;
+	case EShopPage::Card:
+		ShopContentSwitcher->SetActiveWidget(ShopCardWidget);
+		break;
+	case EShopPage::UnlockWeapon:
+		ShopContentSwitcher->SetActiveWidget(ShopUnlockWeaponWidget);
+		break;
+	case EShopPage::Boss:
+		ShopContentSwitcher->SetActiveWidget(ShopBossWidget);
+		break;
+	default:
+		break;
+	}
 }
 	
 
@@ -80,4 +54,9 @@ UW_ShopCardMainWidget* UW_ShopWidgetContainer::GetShopCardWidget()
 UW_ShopCoinWidget* UW_ShopWidgetContainer::GetShopCoinWidget()
 {
     return ShopCoinWidget;
+}
+
+UW_UnlockWeaponWidget* UW_ShopWidgetContainer::GetShopUnlockWeaponWidget()
+{
+    return ShopUnlockWeaponWidget;
 }

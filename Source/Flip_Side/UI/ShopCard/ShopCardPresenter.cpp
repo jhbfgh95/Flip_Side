@@ -12,6 +12,7 @@
 #include "UI/ShopCard/W_ShopPlayerCardSlotContainer.h"
 #include "UI/ShopCard/W_ShopPlayerCardSlot.h"
 #include "UI/ShopCard/W_ShopPlayerSelectedCardSlot.h"
+#include "UI/ShopCard/W_ShopCardWidget.h"
 
 void UShopCardPresenter::InitPresenter(UW_ShopCardMainWidget* InShopCardMainWidget, 
     UShopCardWSubsystem* InShopCardSubsystem, UDataManagerSubsystem* InDataManager
@@ -79,11 +80,19 @@ void UShopCardPresenter::UnselectedPlayerCard(int32 CardID)
 
 void UShopCardPresenter::HoveredCard(int32 CardID)
 {
-    CardSubsystem->HoverCardSlot(GetCardData(CardID));
+	CurrentHoveredCardID = CardID;
+	if(UW_ShopCardWidget* CardWidget = ShopCardMainWidget->GetShopCardWidget())
+	{
+		CardWidget->SetCardData(GetCardData(CurrentHoveredCardID));
+	}
 }
 void UShopCardPresenter::UnhoveredCard()
 {
-    CardSubsystem->UnhoverCardSlot();
+	CurrentHoveredCardID = -1;
+	if(UW_ShopCardWidget* CardWidget = ShopCardMainWidget->GetShopCardWidget())
+	{
+		CardWidget->UnsetCardData();
+	}
 }
 
 

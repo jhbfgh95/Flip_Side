@@ -21,9 +21,9 @@ void UW_ShopWeaponSlotContainer::InitWidget(TArray<FFaceData> InWeaponDataArray)
     
 }
 
-void UW_ShopWeaponSlotContainer::AddWeaponSlot(FFaceData InWeaponData)
+UW_ShopCoinWeaponSlot* UW_ShopWeaponSlotContainer::AddWeaponSlot(const FFaceData& InWeaponData)
 {
-    UW_ShopCoinWeaponSlot* CoinWeaponSlotWidget =Cast<UW_ShopCoinWeaponSlot>(CreateWidget<UUserWidget>(GetWorld(), WepoanSlotWidget));
+    UW_ShopCoinWeaponSlot* CoinWeaponSlotWidget = CreateWidget<UW_ShopCoinWeaponSlot>(GetWorld(), WepoanSlotWidget);
     if (CoinWeaponSlotWidget)
     {
         WeaponSlotArray.Add(CoinWeaponSlotWidget);
@@ -33,5 +33,8 @@ void UW_ShopWeaponSlotContainer::AddWeaponSlot(FFaceData InWeaponData)
             VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 
         CoinWeaponSlotWidget->InitWidget(InWeaponData);
+        return CoinWeaponSlotWidget;
     }
+
+    return nullptr;
 }

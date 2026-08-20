@@ -73,6 +73,8 @@ protected:
 	FCardData GetCardData(int32 GetCardID);
 
 private:
+	int32 CurrentHoveredCardID = -1;
+
 	void InitShopCardSlot();
 	
 	void InitShopPlayerCardSlot();

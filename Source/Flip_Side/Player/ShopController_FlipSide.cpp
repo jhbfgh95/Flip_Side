@@ -5,7 +5,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "W_ShopWidget.h"
 #include "ShopPlayerPawn_FlipSide.h"
-#include "Player/GameMode_Shop.h"
 
 #include "Subsystem/MoneyGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
@@ -14,10 +13,12 @@
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
 #include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
+#include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
 
 #include "UI/ShopItem/ShopItemPresenter.h"
 #include "UI/ShopCard/ShopCardPresenter.h"
 #include "UI/ShopCoinManage/ShopCoinPresenter.h"
+#include "UI/ShopUnlockWeapon/UnlockWeaponPresenter.h"
 
 #include "Interface/ShopMouseInterface.h"
 #include "UI/W_ShopWidgetContainer.h"
@@ -30,8 +31,6 @@ void AShopController_FlipSide::BeginPlay()
 {
     Super::BeginPlay();
     
-    //게임모드에서 델리게이트에 등록
-    ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
     this->bShowMouseCursor = true;
     this->bEnableMouseOverEvents = true;
 ////////////////////////////
@@ -40,6 +39,7 @@ void AShopController_FlipSide::BeginPlay()
     UUnlockGISubsystem* UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
     UShopCardWSubsystem* CardSubsystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
     UShopCoinWSubsystem* CoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
+    UShopUnlockWeaponWSubsystem* UnlockWeaponWSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
     ShopWidgetContainer = Cast<UW_ShopWidgetContainer>(CreateWidget<UUserWidget>(this, ShopWidgetContainerClass));
     
     
@@ -51,19 +51,12 @@ void AShopController_FlipSide::BeginPlay()
 
     CoinPresenter = NewObject<UShopCoinPresenter>(this);
     CoinPresenter->InitPresenter(ShopWidgetContainer->GetShopCoinWidget(), CoinSubsystem, DataManager, UnlockSubsystem);
+
+    UnlockWeaponPresenter = NewObject<UUnlockWeaponPresenter>(this);
+    UnlockWeaponPresenter->InitPresenter(ShopWidgetContainer->GetShopUnlockWeaponWidget(),
+        UnlockWeaponWSubsystem, DataManager, UnlockSubsystem);
     
     ShopWidgetContainer->AddToViewport();
-////////////////////////////
-    if(ShopGameMode)
-    {
-        ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopController_FlipSide::SetShopMainModeWidget);
-        ShopGameMode->OnCoinManageMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
-        ShopGameMode->OnShopItemMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
-        ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
-        ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
-        ShopGameMode->OnCheckBossMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
-    }
-
     UMoneyGISubsystem* MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
     if(MoneySubsystem)
         MoneySubsystem->UpdateMoneyDisplayWidget();
@@ -239,12 +232,3 @@ void AShopController_FlipSide::SetLockMouse(bool IsMouseLock)
 }
 
 
-void AShopController_FlipSide::SetShopWidget()
-{
-    if(ShopModeWidget)
-    {
-        HideWidgetList();
-        AddOpenWidgetList(ShopModeWidget);
-        ViewWidgetList();
-    }
-}

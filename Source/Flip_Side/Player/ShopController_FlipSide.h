@@ -51,6 +51,9 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UShopCoinPresenter> CoinPresenter;
 
+	UPROPERTY()
+	TObjectPtr<class UUnlockWeaponPresenter> UnlockWeaponPresenter;
+
 //UI 스크립트
 private:
 
@@ -64,9 +67,6 @@ private:
 	TObjectPtr<class UW_ShopWidgetContainer> ShopWidgetContainer;
 protected:
 	void InitWidget(TSubclassOf<UUserWidget> WidgetClass, UUserWidget*& widget,int32 ZOrder);
-
-private:
-	class AGameMode_Shop* ShopGameMode;
 
 public:
 	AShopController_FlipSide();
@@ -85,10 +85,7 @@ public:
 	void AddOpenWidgetList(UUserWidget* AddWidget);
 //모드 변경 될 때 함수들
 public:
-	//상점 위젯 컨테이너
-	UFUNCTION()
-	void SetShopWidget();
-	//상점 메인
+	//튜토리얼 레거시 메인 위젯 전환
 	UFUNCTION()
 	void SetShopMainModeWidget();
 

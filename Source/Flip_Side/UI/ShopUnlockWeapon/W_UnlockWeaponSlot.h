@@ -13,7 +13,11 @@
 class UImage;
 class UButton;
 class UTextBlock;
-class UShopUnlockWeaponWSubsystem;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedUnlockWeaponSlot, int32, WeaponID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoveredUnlockWeaponSlot, int32, WeaponID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoveredUnlockWeaponSlot);
+
 UCLASS()
 class FLIP_SIDE_API UW_UnlockWeaponSlot : public UUserWidget
 {
@@ -21,9 +25,6 @@ class FLIP_SIDE_API UW_UnlockWeaponSlot : public UUserWidget
 	
 protected:
 	virtual void NativeConstruct() override;
-protected:
-	UPROPERTY()
-	TObjectPtr<UShopUnlockWeaponWSubsystem> UnlockWeaponSubsystem;
 	
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -39,7 +40,12 @@ protected:
 	FFaceData UnlockWeaponData;
 
 public:
-	void InitWidget(FFaceData InitWeaponData, UShopUnlockWeaponWSubsystem* InitSubsystem);
+	FOnClickedUnlockWeaponSlot OnClickedUnlockWeaponSlot;
+	FOnHoveredUnlockWeaponSlot OnHoveredUnlockWeaponSlot;
+	FOnUnhoveredUnlockWeaponSlot OnUnhoveredUnlockWeaponSlot;
+
+	void InitWidget(const FFaceData& InitWeaponData);
+	int32 GetWeaponID() const { return UnlockWeaponData.WeaponID; }
 
 protected:
 	UFUNCTION()

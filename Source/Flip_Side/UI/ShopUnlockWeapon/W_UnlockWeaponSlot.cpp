@@ -2,7 +2,6 @@
 
 
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponSlot.h"
-#include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
@@ -15,10 +14,9 @@ void UW_UnlockWeaponSlot::NativeConstruct()
     SelectButton->OnUnhovered.AddDynamic(this, &UW_UnlockWeaponSlot::UnhoverSlot);
 }
 
-void UW_UnlockWeaponSlot::InitWidget(FFaceData InitWeaponData, UShopUnlockWeaponWSubsystem* InitSubsystem)
+void UW_UnlockWeaponSlot::InitWidget(const FFaceData& InitWeaponData)
 {
     UnlockWeaponData = InitWeaponData;
-    UnlockWeaponSubsystem = InitSubsystem;
     WeaponImage->SetBrushFromTexture(UnlockWeaponData.WeaponIcon);
     WeaponName->SetText(FText::FromString(UnlockWeaponData.WeaponName));
 }
@@ -26,15 +24,15 @@ void UW_UnlockWeaponSlot::InitWidget(FFaceData InitWeaponData, UShopUnlockWeapon
 
 void UW_UnlockWeaponSlot::ClickSlot()
 {
-    UnlockWeaponSubsystem->SelectUnlockWeapon(UnlockWeaponData.WeaponID);
+    OnClickedUnlockWeaponSlot.Broadcast(UnlockWeaponData.WeaponID);
 }
 
 void UW_UnlockWeaponSlot::HoverSlot()
 {
-    UnlockWeaponSubsystem->SelectUnlockWeapon(UnlockWeaponData.WeaponID);
+    OnHoveredUnlockWeaponSlot.Broadcast(UnlockWeaponData.WeaponID);
 }
 	
 void UW_UnlockWeaponSlot::UnhoverSlot()
 {
-    UnlockWeaponSubsystem->UnSelectWeapon();
+    OnUnhoveredUnlockWeaponSlot.Broadcast();
 }

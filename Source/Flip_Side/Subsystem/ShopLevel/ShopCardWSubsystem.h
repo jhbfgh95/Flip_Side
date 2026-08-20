@@ -10,14 +10,9 @@
  * 
  */
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnSelectCard);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnlockSelectCard, int32, CardId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCardChanged, FCardData, CardInfo);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectCard, FCardData, CardInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangePlayerCard);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHoverCard, FCardData, HoverdCardData);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnhoverCard);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectPlayerCard, FCardData, CardInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FUnSelectPlayerCard, FCardData, CardInfo, int32, CardIndex);
@@ -57,12 +52,7 @@ private:
 
 	FCardData DefaultCard;
 
-	FCardData CurrentSelectCard;
-
-
 private:
-	bool CanSelectCard();
-
 	int32 CanSelectPlayerIndex();
 
 	UFUNCTION()
@@ -76,8 +66,6 @@ private:
 public:
 	FSelectPlayerCard OnSelectPlayerCard;
 	FCardChanged OnCardChanged;
-	FSelectCard OnSelectCard;
-	FUnSelectCard OnUnSelectCard;
 	FUnlockSelectCard OnUnlockCard;
 	FChangePlayerCard OnChangePlayerCard;
 
@@ -87,8 +75,6 @@ public:
 
 	FShopCardWarning OnShopCardWarning;
 
-	FHoverCard OnHoverCard;
-	FUnhoverCard OnUnhoverCard;
 public:
 	int32 PlayerSelectCard;
 
@@ -97,12 +83,6 @@ public:
 public:
 	
 	TArray<FCardData> GetCardListArray();
-
-	void SelectCard(FCardData CardData);
-
-	void UnSelectCard();
-
-	void UnlockCard();
 
 	int32 SelectPlayerCard(FCardData CardData);
 
@@ -119,10 +99,6 @@ public:
 	void WarningShopCard(int32 WarningNum);
 
 	bool BuyCard(FCardData BuyCardData);
-
-	void HoverCardSlot(FCardData HoverdCardData);
-
-	void UnhoverCardSlot();
 
 	int32 GetPlayerSelectCardCount();
 

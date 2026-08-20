@@ -10,6 +10,7 @@
  * 
  */
 class UW_ShopCardSlotContainer;
+class UW_ShopCardWidget;
 
 class UW_ShopPlayerCardSlotContainer;
 UCLASS()
@@ -24,9 +25,14 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UW_ShopPlayerCardSlotContainer> ShopPlayerCardSlotContainer;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UW_ShopCardWidget> ShopCardWidget;
+
 
 public:
 	UW_ShopCardSlotContainer* GetShopCardSlotContainer() const;
 
 	UW_ShopPlayerCardSlotContainer* GetShopPlayerCardSlotContainer() const;
+
+	UW_ShopCardWidget* GetShopCardWidget() const;
 };

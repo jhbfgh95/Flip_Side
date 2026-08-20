@@ -47,43 +47,19 @@ void UShopUnlockWeaponWSubsystem::OnWorldBeginPlay(UWorld& World)
     }
 }
 
-void UShopUnlockWeaponWSubsystem::SelectUnlockWeapon(int32 WeaponID)
+void UShopUnlockWeaponWSubsystem::UnlockWeapon(int32 WeaponID)
 {
-    CurrentUnlockWeaponID = WeaponID;
-    OnSelectUnlockWeapon.Broadcast(CurrentUnlockWeaponID, true);
-}
-
-void UShopUnlockWeaponWSubsystem::UnSelectWeapon()
-{
-    OnUnselectUnlockWeapon.Broadcast();
-}
-
-
-
-int32 UShopUnlockWeaponWSubsystem::GetCurrentUnlockWeaponID()
-{
-    return CurrentUnlockWeaponID;
-}
-
-
-void UShopUnlockWeaponWSubsystem::UnlockCurrentWeapon()
-{
-    if(CurrentUnlockWeaponID != -1)
+    if(WeaponID != -1)
     {
         FFaceData WeaponFaceData;
-        if(!DM->TryGetWeapon(CurrentUnlockWeaponID,WeaponFaceData))
+        if(!DM->TryGetWeapon(WeaponID,WeaponFaceData))
             return;
 
         if(MoneySubsystem->SpendMoney(EMoneyRecordType::Weapon, WeaponFaceData.Price))
         {
-            UnlockSubsystem->UnlockWeapon(CurrentUnlockWeaponID);
+            UnlockSubsystem->UnlockWeapon(WeaponID);
         }
     }
-}
-
-EWeaponClass UShopUnlockWeaponWSubsystem::GetCurrentWeaponClass()
-{
-    return CurrentUnlockWeaponClass;
 }
 
 void UShopUnlockWeaponWSubsystem::UnlockWeaponWarning(int32 WarningCode)
