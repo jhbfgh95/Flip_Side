@@ -11,6 +11,7 @@
  */
 class UW_ShopPlayerItemSlotContainer;
 class UW_ShopItemSlotContainer;
+class UW_ShopSelectedItem;
 UCLASS()
 class FLIP_SIDE_API UW_ShopItemWidget : public UUserWidget
 {
@@ -22,6 +23,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UW_ShopItemSlotContainer> ShopItemSlotContainer;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UW_ShopSelectedItem> ShopSelectedItem;
 	
 public:
 	UFUNCTION()
@@ -30,5 +34,7 @@ public:
 	UFUNCTION()
 	UW_ShopItemSlotContainer* GetShopItemSlotContainer() const;
 
+	UFUNCTION()
+	UW_ShopSelectedItem* GetShopSelectedItem() const;
 
 };

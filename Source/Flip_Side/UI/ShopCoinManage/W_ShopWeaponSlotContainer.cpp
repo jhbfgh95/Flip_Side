@@ -30,7 +30,10 @@ UW_ShopCoinWeaponSlot* UW_ShopWeaponSlotContainer::AddWeaponSlot(const FFaceData
         UVerticalBoxSlot* VSlot = SlotBox->AddChildToVerticalBox(CoinWeaponSlotWidget);
 
         if(VSlot)
-            VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        {
+            VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+            VSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Center);
+        }
 
         CoinWeaponSlotWidget->InitWidget(InWeaponData);
         return CoinWeaponSlotWidget;

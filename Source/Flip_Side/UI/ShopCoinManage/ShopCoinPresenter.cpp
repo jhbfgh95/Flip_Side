@@ -25,7 +25,7 @@ void UShopCoinPresenter::InitPresenter(UW_ShopCoinWidget* InShopCoinWidget, USho
 	InitWeaponSlotWidget();
 	InitSlotBuyButtonWidget();
 	InitSlotSelectCoin();
-	SetCoinSideFront(true);
+	IsCurrentCoinSideFront = true;
 }
 
 void UShopCoinPresenter::InitSlotWidget()
@@ -88,6 +88,8 @@ void UShopCoinPresenter::InitSlotSelectCoin()
 
 void UShopCoinPresenter::SelectSlot(int32 SlotIndex)
 {
+	if(CurrentSelectedSlotIndex == SlotIndex)
+		return;
 	if(!CoinSubsystem->GetIsCoinSlotUnlockByIndex(SlotIndex))
 		return;
 
@@ -183,8 +185,8 @@ void UShopCoinPresenter::BuySlot(int32 Level)
 		DataManager->GetCoinSlotLevelStats(InCoinData, Cost, Hp);
 		ShopCoinWidget->GetShopCoinSlotContainer()->AddCoinSlot(CoinSubsystem->GetUnlockCoinSlotCount()-1, Hp);
 		SelectSlot(CoinSubsystem->GetUnlockCoinSlotCount()-1);
-	}
 
+	}
 }
 	
 void UShopCoinPresenter::BuyCoinSlotCoin(int32 SlotIndex, int32 Count)
@@ -247,13 +249,14 @@ FFaceData UShopCoinPresenter::GetWeaponData(int32 WeaponID)
 	
 void UShopCoinPresenter::SetCoinSideFront(bool SetFront)
 {
+	if(IsCurrentCoinSideFront == SetFront)
+		return;
+
 	IsCurrentCoinSideFront = SetFront;
+	ShopCoinWidget->GetShopSelectCoin()->ChangeCoinSide(IsCurrentCoinSideFront);
 }
 	
 void UShopCoinPresenter::ChangeCoinSide()
 {
-	if(IsCurrentCoinSideFront)
-		IsCurrentCoinSideFront = false;
-	else
-		IsCurrentCoinSideFront = true;
+	SetCoinSideFront(!IsCurrentCoinSideFront);
 }

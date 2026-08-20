@@ -54,18 +54,24 @@ void UShopCardPresenter::AddCard(int32 CardID)
 
 void UShopCardPresenter::SelectedPlayerCard(UW_ShopPlayerCardSlot* SelectedCardSlot, int32 CardID)
 {
-    FCardData InCardData = GetCardData(CardID);
-    int32 AddIndex = CardSubsystem->SelectPlayerCard(InCardData);
-    UE_LOG(LogTemp, Warning, TEXT("인벤토리에 들어간 인덱스 %d"), AddIndex);
-    if(AddIndex != -1)
+    const FCardData CardData = GetCardData(CardID);
+    const int32 AddIndex = CardSubsystem->SelectPlayerCard(CardData);
+
+    if (AddIndex == -1)
     {
-        ShopCardMainWidget->GetShopPlayerCardSlotContainer()->AddPlayerSelectCardSlot(InCardData, SelectedCardSlot);
+        return;
     }
+
+    SelectedCardSlot->SetSlotIsSelected(true);
+
+    ShopCardMainWidget
+        ->GetShopPlayerCardSlotContainer()
+        ->AddPlayerSelectCardSlot(CardData, SelectedCardSlot);
+
 }
 
 void UShopCardPresenter::UnselectedPlayerSelectedCard(int32 RemoveSlotIndex)
 {
-    UE_LOG(LogTemp, Warning, TEXT("제거 슬롯 인덱스 %d"), RemoveSlotIndex);
     if(CardSubsystem->UnSelectPlayerCard(RemoveSlotIndex))
     {
         ShopCardMainWidget->GetShopPlayerCardSlotContainer()->RemovePlayerSelectCardSlot(RemoveSlotIndex);

@@ -13,3 +13,8 @@ UW_ShopItemSlotContainer* UW_ShopItemWidget::GetShopItemSlotContainer() const
 	return ShopItemSlotContainer;
 }
 
+UW_ShopSelectedItem* UW_ShopItemWidget::GetShopSelectedItem() const
+{
+	return ShopSelectedItem;
+}
+

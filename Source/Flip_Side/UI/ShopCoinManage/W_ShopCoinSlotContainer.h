@@ -12,6 +12,7 @@
 class UTextBlock;
 class UVerticalBox;
 class UW_ShopCoinSlot;
+class UScrollBox;
 UCLASS()
 class FLIP_SIDE_API UW_ShopCoinSlotContainer : public UUserWidget
 {
@@ -22,7 +23,9 @@ class FLIP_SIDE_API UW_ShopCoinSlotContainer : public UUserWidget
 	virtual void NativeDestruct() override;
 
 protected:
-	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UScrollBox> CoinSlotScrollBox;
+
 	UPROPERTY(meta  =(BindWidget))
 	TObjectPtr<UVerticalBox> CoinSlotBox;
 /*

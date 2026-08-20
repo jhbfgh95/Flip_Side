@@ -11,6 +11,7 @@
 #include "UI/ShopItem/W_ShopPlayerItemSlotContainer.h"
 #include "UI/ShopItem/W_ShopItemSlot.h"
 #include "UI/ShopItem/W_ShopPlayerItemSlot.h"
+#include "UI/ShopItem/W_ShopSelectedItem.h"
 
 
 void UShopItemPresenter::InitPresenter(UW_ShopItemWidget* InShopItemWidget, UShopItemWSubsystem* InItemSubsystem, UDataManagerSubsystem* InDataManager)
@@ -29,13 +30,17 @@ void UShopItemPresenter::InitPresenter(UW_ShopItemWidget* InShopItemWidget, USho
 
 void UShopItemPresenter::BuyItem(int32 ItemID, int32 Count)
 {
-    ItemSubsystem->BuyItem(GetItemData(ItemID), Count);
+    const FItemData ItemData = GetItemData(ItemID);
+    SetSelectedItemImage(ItemData);
+    ItemSubsystem->BuyItem(ItemData, Count);
 }
 
 void UShopItemPresenter::SellItem(int32 Index, int32 ItemID, int32 Count)
 {
     
-    ItemSubsystem->SellItem(GetItemData(ItemID), Count);
+    const FItemData ItemData = GetItemData(ItemID);
+    SetSelectedItemImage(ItemData);
+    ItemSubsystem->SellItem(ItemData, Count);
     
     int32 IndexItemCount = ItemSubsystem->GetSameItemCountByIndex(Index);
 
@@ -58,14 +63,35 @@ void UShopItemPresenter::SetPlayerItemSlot(int32 SetSlotIndex)
 
 void UShopItemPresenter::HoveredItemSlot(int32 ItemID)
 {
-    ItemSubsystem->HoverItem(GetItemData(ItemID));
+    const FItemData ItemData = GetItemData(ItemID);
+    ItemSubsystem->HoverItem(ItemData);
+    SetSelectedItemImage(ItemData);
     //보이는 아이템에서 보이도록 설정
 }
 	
 void UShopItemPresenter::UnhoveredItemSlot()
 {
     ItemSubsystem->UnHoverItem();
-    //안보이도록 설정
+    if (IsValid(ShopItemWidget) && IsValid(ShopItemWidget->GetShopSelectedItem()))
+    {
+        ShopItemWidget->GetShopSelectedItem()->SetImage(nullptr);
+    }
+}
+
+void UShopItemPresenter::HoveredPlayerItemSlot(int32 ItemIndex)
+{
+    const FItemData ItemData = ItemSubsystem->GetPlayerItemData(ItemIndex);
+    ItemSubsystem->HoverPlayerItem(ItemData);
+    SetSelectedItemImage(ItemData);
+}
+
+void UShopItemPresenter::UnhoveredPlayerItemSlot()
+{
+    ItemSubsystem->UnHoverPlayerItem();
+    if (IsValid(ShopItemWidget) && IsValid(ShopItemWidget->GetShopSelectedItem()))
+    {
+        ShopItemWidget->GetShopSelectedItem()->SetImage(nullptr);
+    }
 }
 	
 
@@ -100,6 +126,16 @@ void UShopItemPresenter::SetPlayerSlotItemViews()
     for(int i =0; i < ShopPlayerItemSlotViews.Num(); i++)
     {
         ShopPlayerItemSlotViews[i]->OnSellItem.AddDynamic(this, &UShopItemPresenter::SellItem);
+        ShopPlayerItemSlotViews[i]->OnHoveredSlot.AddDynamic(this, &UShopItemPresenter::HoveredPlayerItemSlot);
+        ShopPlayerItemSlotViews[i]->OnUnhoveredSlot.AddDynamic(this, &UShopItemPresenter::UnhoveredPlayerItemSlot);
+    }
+}
+
+void UShopItemPresenter::SetSelectedItemImage(const FItemData& ItemData)
+{
+    if (IsValid(ShopItemWidget) && IsValid(ShopItemWidget->GetShopSelectedItem()))
+    {
+        ShopItemWidget->GetShopSelectedItem()->SetImage(ItemData.ItemIcon);
     }
 }
 	

@@ -47,7 +47,12 @@ void UW_ShopCoinSlotContainer::AddCoinSlot(int32 AddSlotIndex, int32 AddSlotHP)
         CoinSlots[AddSlotIndex]->SetVisibility(ESlateVisibility::Visible);
         CoinSlots[AddSlotIndex]->SetCoinSlot(AddSlotHP);
     }
-        
+    CoinSlotScrollBox->ScrollWidgetIntoView(
+            CoinSlots[AddSlotIndex],
+            true,
+            EDescendantScrollDestination::IntoView,
+            10.0f
+        );
 }
 
 void UW_ShopCoinSlotContainer::RemoveCoinSlot(int32 RemoveSlotIndex)
@@ -67,8 +72,10 @@ void UW_ShopCoinSlotContainer::InitWidget()
             UVerticalBoxSlot* VSlot = CoinSlotBox->AddChildToVerticalBox(CoinSlotWidgetClass);
 
             if(VSlot)
-                VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-
+            {
+                VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+                VSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Center);
+            }
             CoinSlotWidgetClass->InitSlotWidget(i);
             CoinSlotWidgetClass->SetVisibility(ESlateVisibility::Collapsed);
         }

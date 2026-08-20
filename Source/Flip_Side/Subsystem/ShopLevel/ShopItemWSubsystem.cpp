@@ -88,29 +88,14 @@ void UShopItemWSubsystem::UnHoverPlayerItem()
 
 bool UShopItemWSubsystem::BuyItem(FItemData ItemData, int32 ItemCount)
 {
-    int32 InvenIndex = GetSameItemInvenIndex(ItemData.ItemID);
+    int32 InvenIndex = GetAddItemInvenIndex(ItemData.ItemID);
 
-    if(InvenIndex == -1)
-    {
-        int32 EmptyIvenNum = GetEmptyInvenIndex(ItemData.ItemID);
-        if(EmptyIvenNum != -1)
-        {
-            if(MoneySubsystem->SpendMoney(EMoneyRecordType::Item, ItemData.Price * ItemCount))
-            {
-                FSelectItem SelectItemData;
-                SelectItemData.ItemID = ItemData.ItemID;
-                SelectItemData.SameItemNum = ItemCount;
-                PlayerItemArray[EmptyIvenNum] = SelectItemData;
-                
-                OnItemBuy.Broadcast(EmptyIvenNum);
-                return true;
-            }
-        }
-    }
-    else
+    if(InvenIndex != -1)
     {
         if(MoneySubsystem->SpendMoney(EMoneyRecordType::Item, ItemData.Price* ItemCount))
         {
+            if(PlayerItemArray[InvenIndex].ItemID != ItemData.ItemID)
+                PlayerItemArray[InvenIndex].ItemID = ItemData.ItemID;
             PlayerItemArray[InvenIndex].SameItemNum += ItemCount;
             OnItemBuy.Broadcast(InvenIndex);
             return true;
@@ -119,20 +104,8 @@ bool UShopItemWSubsystem::BuyItem(FItemData ItemData, int32 ItemCount)
     return false;
 }
 
-int32 UShopItemWSubsystem::GetEmptyInvenIndex(int32 ItemID)
-{
-    for(int i =0; i<PlayerItemArray.Num() ; i++)
-    {
-        if(PlayerItemArray[i].ItemID == -1)
-        {
-            return i;
-        }
-    }
 
-    return -1;
-}
-
-int32 UShopItemWSubsystem::GetSameItemInvenIndex(int32 FindItemID)
+int32 UShopItemWSubsystem::GetAddItemInvenIndex(int32 FindItemID)
 {
     if(FindItemID ==-1)
         return -1;
@@ -144,6 +117,15 @@ int32 UShopItemWSubsystem::GetSameItemInvenIndex(int32 FindItemID)
             return i;
         }
     }
+
+    for(int i=0; i< PlayerItemArray.Num();i++)
+    {
+        if(PlayerItemArray[i].ItemID == -1)
+        {
+            return i;
+        }
+    }
+
     return -1;
 }
 
@@ -199,18 +181,24 @@ bool UShopItemWSubsystem::SellItem(FItemData ItemData, int32 ItemCount)
     {
         if(PlayerItemArray[i].ItemID == ItemData.ItemID)
         {
-            
-            if(0<=PlayerItemArray[i].SameItemNum - ItemCount)
+            if(PlayerItemArray[i].SameItemNum<ItemCount)
             {
-                PlayerItemArray[i].SameItemNum-=ItemCount;
-                
+                return false;
             }
 
+            if(0<PlayerItemArray[i].SameItemNum - ItemCount)
+            {
+                PlayerItemArray[i].SameItemNum-=ItemCount;
+            }
+            else
+            {
+                PlayerItemArray[i].SameItemNum = 0;
+                PlayerItemArray[i].ItemID = -1;
+            }
             MoneySubsystem->AddSaleMoney(EMoneyRecordType::Item, ItemData.Price*ItemCount);
             OnItemSell.Broadcast(i);
             return true;
         }
-        
     }
     return false;
 }

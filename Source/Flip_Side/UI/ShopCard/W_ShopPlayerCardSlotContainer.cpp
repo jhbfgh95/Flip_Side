@@ -77,19 +77,32 @@ void UW_ShopPlayerCardSlotContainer::AddPlayerSelectCardSlot(FCardData AddCardDa
 void UW_ShopPlayerCardSlotContainer::RemovePlayerSelectCardSlot(int32 RemoveIndex)
 {
     if (RemoveIndex < 0 || RemoveIndex > UsingSelectSlotCount)
+    {
         return;
+    }
+
+    UW_ShopPlayerSelectedCardSlot* RemovedSlot =
+        SelectedPlayerCardSlots[RemoveIndex];
+
+    if (RemovedSlot)
+    {
+        if (UW_ShopPlayerCardSlot* ConnectedSlot =
+                RemovedSlot->GetConnnectedSlot())
+        {
+            ConnectedSlot->SetSlotIsSelected(false);
+        }
+    }
 
     for (int32 i = RemoveIndex; i < UsingSelectSlotCount; ++i)
     {
-        const FCardData& NextCardData = SelectedPlayerCardSlots[i + 1]->GetCardData();
-
-        UW_ShopPlayerCardSlot* NextConnectedSlot = SelectedPlayerCardSlots[i + 1]->GetConnnectedSlot();
-
-        SelectedPlayerCardSlots[i]->SetCardSlot(NextCardData,NextConnectedSlot);
+        SelectedPlayerCardSlots[i]->SetCardSlot(
+            SelectedPlayerCardSlots[i + 1]->GetCardData(),
+            SelectedPlayerCardSlots[i + 1]->GetConnnectedSlot()
+        );
     }
 
     SelectedPlayerCardSlots[UsingSelectSlotCount]->ClearSlot();
-    UsingSelectSlotCount--;
+    --UsingSelectSlotCount;
 }
 
 
@@ -113,4 +126,9 @@ int32 UW_ShopPlayerCardSlotContainer::GetPlayerSelectedCardIndex(int32 CardID)
             return i;
     }
     return -1;
+}
+
+const UW_ShopPlayerSelectedCardSlot* UW_ShopPlayerCardSlotContainer::GetSelectedCardSlot(int32 Index)
+{
+    return SelectedPlayerCardSlots[Index];
 }

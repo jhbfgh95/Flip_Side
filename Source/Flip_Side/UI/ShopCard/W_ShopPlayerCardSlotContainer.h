@@ -59,4 +59,5 @@ public:
 
 	int32 GetPlayerSelectedCardIndex(int32 CardID);
 	
+	const UW_ShopPlayerSelectedCardSlot* GetSelectedCardSlot(int32 Index);
 };

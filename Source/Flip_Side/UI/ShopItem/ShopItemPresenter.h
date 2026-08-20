@@ -66,6 +66,10 @@ protected:
 	void HoveredItemSlot(int32 ItemID);
 	UFUNCTION()
 	void UnhoveredItemSlot();
+	UFUNCTION()
+	void HoveredPlayerItemSlot(int32 ItemIndex);
+	UFUNCTION()
+	void UnhoveredPlayerItemSlot();
 
 	UFUNCTION()
 	void SetPlayerItemSlot(int32 SetSlotIndex);
@@ -76,6 +80,7 @@ protected:
 private:
 	void SetShopSlotItemViews();
 	void SetPlayerSlotItemViews();
+	void SetSelectedItemImage(const FItemData& ItemData);
 
 	FItemData GetItemData(int32 ID);
 };

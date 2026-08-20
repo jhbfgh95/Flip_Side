@@ -68,10 +68,8 @@ private:
 	FItemData DefaultItemData;
 
 private:
-
-	int32 GetEmptyInvenIndex(int32 ItemID);
 	//해당 아이디를 가진 아이템이 플레이어의 인벤토리에 있는지
-	int32 GetSameItemInvenIndex(int32 ItemID);
+	int32 GetAddItemInvenIndex(int32 ItemID);
 public:
 	//상점 아이템에 마우스를 올려놧을 때
 	void HoverItem(FItemData ItemData);

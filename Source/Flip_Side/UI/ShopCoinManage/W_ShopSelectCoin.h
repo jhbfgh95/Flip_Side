@@ -15,10 +15,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnChangeShopSelectedCoinSide);
  */
 class UButton;
 class UImage;
+class UWidgetAnimation;
 class UMaterialInstanceDynamic;
 class UTexture2D;
-class UDataManagerSubsystem;
-class UShopCoinWSubsystem;
 UCLASS()
 class FLIP_SIDE_API UW_ShopSelectCoin : public UUserWidget
 {
@@ -36,13 +35,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UImage> BackWeaponImage;
-
 protected:
-	UPROPERTY()
-	TObjectPtr<UShopCoinWSubsystem> CoinSubsystem;
-	
-	UPROPERTY()
-	TObjectPtr<UDataManagerSubsystem> DataManager;
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	TObjectPtr<UWidgetAnimation> ChangeCoinSideAnim;
 
 protected:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
@@ -54,8 +49,11 @@ public:
 public:
 	void SetFrontWeapon(FFaceData FrontWeaponFaceData);
 	void SetBackWeapon(FFaceData BackWeaponFaceData);
+	
 	void ResetCoin();
-	UFUNCTION()
-	void ChangeCoinSide();
+	void ChangeCoinSide(bool IsFront);
 
+protected:
+	UFUNCTION()
+	void ClickChangeSideButton();
 };

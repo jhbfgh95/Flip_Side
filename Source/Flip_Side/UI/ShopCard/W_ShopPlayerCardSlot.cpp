@@ -26,12 +26,10 @@ void UW_ShopPlayerCardSlot::ClickCardButton()
 {
     if(!IsSelected)
     {
-        IsSelected = true;
         OnSelectShopPlayerCard.Broadcast(this, WidgetCardData.CardID);
     }
     else
     {
-        IsSelected = false;
         OnUnselectShopPlayerCard.Broadcast(WidgetCardData.CardID);
     }
 
