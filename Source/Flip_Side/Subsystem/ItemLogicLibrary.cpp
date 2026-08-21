@@ -119,8 +119,14 @@ void UItemLogicLibrary::EverwherePotion_Logic(UItem_Action* ItemContext)
     UGridManagerSubsystem* GridManager = World->GetSubsystem<UGridManagerSubsystem>();
     if(!GridManager) return;
 
+	const FGridPoint TargetPoint = TargetGrid->GetGridPoint();
+	if (!GridManager->CanCoinOccupyCell(TargetPoint)) return;
+
     AGridActor* PrevGrid = GridManager->GetGridActor(TargetCoin->GetDecidedGrid());
     if(!PrevGrid) return;
+
+	// 먼저 새 셀 점유에 성공한 뒤 기존 셀을 비워, 실패 시 코인이 점유 셀을 잃지 않게 합니다.
+	if (!GridManager->TryOccupyCoinCell(TargetPoint, TargetCoin)) return;
 
     PrevGrid->ClearOccupiedOnly();
 
@@ -130,9 +136,8 @@ void UItemLogicLibrary::EverwherePotion_Logic(UItem_Action* ItemContext)
         TargetCoin->GetActorLocation().Z
     );
 
-    TargetCoin->SetGridPoint(TargetGrid->GetGridPoint());
+    TargetCoin->SetGridPoint(TargetPoint);
     TargetCoin->SetActorLocation(TargetLocation);
-    TargetGrid->SetOccupied(true, EGridOccupyingType::Coin, TargetCoin);
 
     UE_LOG(LogTemp, Warning, TEXT("Everywhere"));
 }

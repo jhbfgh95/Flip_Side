@@ -54,9 +54,6 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 	UPROPERTY()
     class UGridManagerSubsystem* GridManager;
 
-	UPROPERTY()
-    class UW_BattleCoinInfo* BattleCoinInfoWidgetInstance = nullptr;
-
 public:
 	//이거로 코인 선택하는거 잠궜습니다.
 	void SetPhase(const bool bIsPhase);
@@ -104,16 +101,6 @@ protected:
 	void ExecuteGridAction(AGridActor* targetGrid);
 
 	void SetCoinActorForGrid();
-
-	void SetBattleCoinInfo(
-		UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
-		int32 DefaultBP, int32 ModifiedBP, 
-		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor,
-		int32 CurrentHP, int32 MaxHP,
-		const TArray<struct FBuffInfo>& ActiveBuffs
-	);
-
-	void HideBattleCoinInfo();
 
 	void StartCoinActionSequence(ACoinActor* CasterCoin);
 

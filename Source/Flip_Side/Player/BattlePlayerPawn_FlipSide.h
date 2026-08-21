@@ -29,6 +29,9 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(Exec)
+	void SetCamSettingVer(int32 Version);
+
 	// 카메라 이동: 시점 전환
 	void MoveCameraToArea(FVector NewTargetLocation, FRotator NewTargetRotation, float NewTargetArmLength);
 

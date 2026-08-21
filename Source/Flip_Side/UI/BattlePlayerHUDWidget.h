@@ -14,6 +14,8 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDCoinSlotClicked, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDCoinSlotHovered, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDCoinSlotUnhovered, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDReadyCoinClicked, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDReadyCoinHovered, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDReadyCoinUnhovered, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDItemSlotClicked, int32);
 DECLARE_MULTICAST_DELEGATE(FOnBattleHUDPhaseProgressClicked);
 
@@ -35,11 +37,17 @@ public:
 	void SetCardSlots(const TArray<FBattleCardSlotViewData>& InCardSlots);
 	void SetPhaseDisplay(EPhaseState CurrentPhase, int32 TurnCount);
 	void PlayBossPhaseCompletionAnimation();
+	void ShowBattleCoinInfo(const FBattleCoinInfoViewData& InData, bool bUseReadyCoinAnchor);
+	void HideBattleCoinInfo();
+	void SetAdditionalBattleCoinBuffsVisible(bool bVisible);
+	void SetCoinSlotDetailedStatsVisible(bool bVisible);
 
 	FOnBattleHUDCoinSlotClicked OnCoinSlotClicked;
 	FOnBattleHUDCoinSlotHovered OnCoinSlotHovered;
 	FOnBattleHUDCoinSlotUnhovered OnCoinSlotUnhovered;
 	FOnBattleHUDReadyCoinClicked OnReadyCoinClicked;
+	FOnBattleHUDReadyCoinHovered OnReadyCoinHovered;
+	FOnBattleHUDReadyCoinUnhovered OnReadyCoinUnhovered;
 	FOnBattleHUDItemSlotClicked OnItemSlotClicked;
 	FOnBattleHUDPhaseProgressClicked OnPhaseProgressClicked;
 
@@ -67,6 +75,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UWidget> ReadyCoinPopupAnchor;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UWidget> BattleCoinPopupAnchor;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UWidget> ItemPopupAnchor;
@@ -98,6 +109,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Coin")
 	TSubclassOf<class UW_CoinSlotInfo> CoinSlotInfoWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Coin")
+	TSubclassOf<class UW_BattleCoinInfo> BattleCoinInfoWidgetClass;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Item")
 	TSubclassOf<class UW_ItemInfo> ItemInfoWidgetClass;
 
@@ -112,6 +126,8 @@ private:
 	void HandleCoinSlotHovered(int32 SlotNumber);
 	void HandleCoinSlotUnhovered(int32 SlotNumber);
 	void HandleReadyCoinClicked(int32 CoinInstanceID);
+	void HandleReadyCoinHovered(int32 CoinInstanceID);
+	void HandleReadyCoinUnhovered(int32 CoinInstanceID);
 	void HandlePhaseProgressRequested();
 	void HandleItemSlotClicked(int32 ItemID);
 	void HandleItemSlotHovered(int32 ItemID);
@@ -136,9 +152,13 @@ private:
 	TObjectPtr<class UW_CoinSlotInfo> CoinSlotInfoWidget;
 
 	UPROPERTY()
+	TObjectPtr<class UW_BattleCoinInfo> BattleCoinInfoWidget;
+
+	UPROPERTY()
 	TObjectPtr<class UW_CardWidget> CardInfoWidget;
 
 	TMap<int32, FBattleCoinSlotViewData> CoinSlotViewDataByNumber;
 	TMap<int32, FBattleItemSlotViewData> ItemSlotViewDataByID;
 	TMap<int32, FBattleCardSlotViewData> CardSlotViewDataByNumber;
+	bool bShowCoinSlotDetailedStats = false;
 };

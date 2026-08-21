@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CoinStatDataTypes.h"
 #include "GridTypes.h"
 #include "FlipSide_Enum.h"
 #include "CoinDataTypes.generated.h"
@@ -35,6 +36,26 @@ struct FCoinTypeStructure
     int32 Level = 1;
 };
 
+/** 무기 설명 토큰을 HUD RichText로 표시할 때 필요한 최소 데이터입니다. */
+USTRUCT(BlueprintType)
+struct FWeaponDescriptionDisplayData
+{
+    GENERATED_BODY()
+
+    /** DB에는 [KW:*], [STAT:*] 토큰을 유지한 원문으로 저장합니다. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FText TokenizedDescription;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 AttackPower = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 WeaponPower = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 Count = 0;
+};
+
 /** CoinReadyPhase에서 UI 슬롯이 관리하는 코인 묶음 데이터입니다. */
 USTRUCT(BlueprintType)
 struct FBattleCoinSlotData
@@ -55,6 +76,13 @@ struct FBattleCoinSlotData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 AvailableCoinCount = 0;
+
+    /** DB 연결 전 UI 검증을 위해 CreateTestCoinSlots에서만 채우는 임시 데이터입니다. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FWeaponDescriptionDisplayData FrontWeaponDisplay;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FWeaponDescriptionDisplayData BackWeaponDisplay;
 };
 
 /** ReadyCoin UI부터 CoinBehaviorPhase의 CoinActor까지 이어지는 논리 코인 데이터입니다. */
@@ -77,6 +105,18 @@ struct FReadyCoinData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 CurrentHP = 0;
+
+    // CoinManager가 다음 CoinBehaviorPhase의 CoinActor 초기화에 사용할 버프 전 최대 HP입니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 BaseMaxHP = 0;
+
+    // CoinManager가 Actor 파괴 전 저장하고 다음 턴에 복원할 보호막입니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 Shield = 0;
+
+    // 턴 종료 시 TurnOnly를 제외하고 전투 안에서만 유지할 상태효과입니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TArray<FStatusEffectInstance> PersistentStatusEffects;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     bool bCanCancel = true;
@@ -116,22 +156,10 @@ struct FBattleCoinSlotViewData
     FText BackWeaponName;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FText FrontWeaponDescription;
+    FWeaponDescriptionDisplayData FrontWeaponDisplay;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FText BackWeaponDescription;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    int32 FrontBehaviorPoint = 0;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    int32 BackBehaviorPoint = 0;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    int32 FrontAttackPoint = 0;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    int32 BackAttackPoint = 0;
+    FWeaponDescriptionDisplayData BackWeaponDisplay;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FLinearColor FrontWeaponColor = FLinearColor::White;
@@ -162,6 +190,87 @@ struct FBattleReadyCoinViewData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UTexture2D* BackIcon = nullptr;
+};
+
+/** W_BattleCoinInfo에서 앞면 또는 뒷면 하나를 표시하기 위한 데이터입니다. */
+USTRUCT(BlueprintType)
+struct FBattleWeaponFaceInfoViewData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 WeaponID = INDEX_NONE;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    UTexture2D* WeaponIcon = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FText WeaponName;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FText WeaponDescription;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FWeaponNumericStats BaseStats;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FWeaponNumericStats FinalStats;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FLinearColor WeaponColor = FLinearColor::White;
+};
+
+/** BattleBuffIconWidget 하나가 표시하는 집계된 상태효과 데이터입니다. */
+USTRUCT(BlueprintType)
+struct FBattleStatusEffectViewData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 BuffTypeID = INDEX_NONE;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EStatusEffectSourceType SourceType = EStatusEffectSourceType::None;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 SourceDataID = INDEX_NONE;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EStatusPolarity Polarity = EStatusPolarity::Buff;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    UTexture2D* Icon = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 StackCount = 1;
+};
+
+/** ReadyCoinSlot과 필드 CoinActor가 공통으로 W_BattleCoinInfo에 전달하는 양면 정보입니다. */
+USTRUCT(BlueprintType)
+struct FBattleCoinInfoViewData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 CoinInstanceID = INDEX_NONE;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FBattleWeaponFaceInfoViewData FrontFace;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FBattleWeaponFaceInfoViewData BackFace;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 CurrentHP = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 MaxHP = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 Shield = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TArray<FBattleStatusEffectViewData> StatusEffects;
 };
 
 

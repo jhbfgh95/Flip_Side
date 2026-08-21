@@ -59,12 +59,32 @@ void UBattleReadyCoinWidget::CacheReadyCoinSlots()
 		}
 
 		ReadyCoinSlot->OnReadyCoinSlotClicked.RemoveAll(this);
+		ReadyCoinSlot->OnReadyCoinSlotHovered.RemoveAll(this);
+		ReadyCoinSlot->OnReadyCoinSlotUnhovered.RemoveAll(this);
 		ReadyCoinSlot->OnReadyCoinSlotClicked.AddUObject(this, &UBattleReadyCoinWidget::HandleReadyCoinSlotClicked);
+		ReadyCoinSlot->OnReadyCoinSlotHovered.AddUObject(this, &UBattleReadyCoinWidget::HandleReadyCoinSlotHovered);
+		ReadyCoinSlot->OnReadyCoinSlotUnhovered.AddUObject(this, &UBattleReadyCoinWidget::HandleReadyCoinSlotUnhovered);
 	}
 }
 
 void UBattleReadyCoinWidget::HandleReadyCoinSlotClicked(int32 CoinInstanceID)
 {
 	OnReadyCoinClicked.Broadcast(CoinInstanceID);
+}
+
+void UBattleReadyCoinWidget::HandleReadyCoinSlotHovered(int32 CoinInstanceID)
+{
+	if (CoinInstanceID != INDEX_NONE)
+	{
+		OnReadyCoinHovered.Broadcast(CoinInstanceID);
+	}
+}
+
+void UBattleReadyCoinWidget::HandleReadyCoinSlotUnhovered(int32 CoinInstanceID)
+{
+	if (CoinInstanceID != INDEX_NONE)
+	{
+		OnReadyCoinUnhovered.Broadcast(CoinInstanceID);
+	}
 }
 

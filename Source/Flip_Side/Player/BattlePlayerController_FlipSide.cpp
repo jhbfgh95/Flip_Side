@@ -1,7 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BattlePlayerController_FlipSide.h"
+#include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "InputAction.h"
+#include "InputActionValue.h"
 #include "BattlePlayerPawn_FlipSide.h"
 #include "BattleArea.h"
 #include "BossActor.h"
@@ -24,10 +27,49 @@
 #include "Subsystem/DataManagerSubsystem.h"
 #include "UI/BattlePlayerHUDWidget.h"
 #include "WeaponDataTypes.h"
+#include "ItemDataTypes.h"
+#include "Actors/Component_Status.h"
+#include "UObject/ConstructorHelpers.h"
+
+namespace
+{
+    const FLinearColor BattleInfoFrontWeaponColor(0.862745f, 0.913725f, 0.313725f, 1.0f);
+    const FLinearColor BattleInfoBackWeaponColor(0.905882f, 0.933333f, 0.917647f, 1.0f);
+
+    FWeaponFaceStats BuildTemporaryFaceStatsForUI(const FFaceData& LegacyFaceData)
+    {
+        FWeaponFaceStats FaceStats;
+        FaceStats.WeaponID = LegacyFaceData.WeaponID;
+        FaceStats.BaseNumericStats.AttackPoint = FMath::Max(0, LegacyFaceData.AttackPoint);
+        FaceStats.BaseNumericStats.WeaponPoint = FMath::Max(0, LegacyFaceData.BehaviorPoint);
+        FaceStats.BaseNumericStats.WeaponCnt = 0;
+        FaceStats.WeaponAttackSpec = LegacyFaceData.AttackAreaSpec;
+        // TODO: DB에 능력 전용 범위가 추가되면 기존 단일 범위 공유를 교체합니다.
+        FaceStats.WeaponBehaviorSpec = LegacyFaceData.AttackAreaSpec;
+        return FaceStats;
+    }
+
+    int32 CalculateReadyCoinMaxHP(const FReadyCoinData& ReadyCoinData)
+    {
+        int64 MaxHP = FMath::Max(1, ReadyCoinData.BaseMaxHP);
+        for (const FStatusEffectInstance& StatusEffect : ReadyCoinData.PersistentStatusEffects)
+        {
+            MaxHP += StatusEffect.Modifier.MaxHP;
+        }
+        return static_cast<int32>(FMath::Clamp<int64>(MaxHP, 1, MAX_int32));
+    }
+}
 
 ABattlePlayerController_FlipSide::ABattlePlayerController_FlipSide()
 {
     bShowMouseCursor = true;
+
+    static ConstructorHelpers::FObjectFinder<UInputAction> ShowAdditionalBuffsActionFinder(
+        TEXT("/Game/Player/Player_Battle/Inupts/IA_ShowAdditionalBuffs.IA_ShowAdditionalBuffs"));
+    if (ShowAdditionalBuffsActionFinder.Succeeded())
+    {
+        ShowAdditionalBuffsInputAction = ShowAdditionalBuffsActionFinder.Object;
+    }
 }
 
 void ABattlePlayerController_FlipSide::SetupInputComponent()
@@ -41,6 +83,35 @@ void ABattlePlayerController_FlipSide::SetupInputComponent()
 
     InputComponent->BindKey(EKeys::LeftMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnLeftClick);
     InputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnRightClick);
+
+    UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
+    if (IsValid(EnhancedInputComponent) && IsValid(ShowAdditionalBuffsInputAction))
+    {
+        EnhancedInputComponent->BindAction(
+            ShowAdditionalBuffsInputAction,
+            ETriggerEvent::Started,
+            this,
+            &ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsStarted
+        );
+        EnhancedInputComponent->BindAction(
+            ShowAdditionalBuffsInputAction,
+            ETriggerEvent::Completed,
+            this,
+            &ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsCompleted
+        );
+        EnhancedInputComponent->BindAction(
+            ShowAdditionalBuffsInputAction,
+            ETriggerEvent::Canceled,
+            this,
+            &ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsCompleted
+        );
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning,
+            TEXT("[BattlePlayerController] IA_ShowAdditionalBuffs 또는 EnhancedInputComponent가 유효하지 않습니다."));
+    }
+
 }
 
 void ABattlePlayerController_FlipSide::PlayerTick(float DeltaTime)
@@ -90,6 +161,8 @@ void ABattlePlayerController_FlipSide::BeginPlay()
             BattleHUDWidget->AddToViewport();
             BattleHUDWidget->OnCoinSlotClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleCoinSlotClicked);
 			BattleHUDWidget->OnReadyCoinClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinClicked);
+            BattleHUDWidget->OnReadyCoinHovered.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinHovered);
+            BattleHUDWidget->OnReadyCoinUnhovered.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinUnhovered);
 			BattleHUDWidget->OnItemSlotClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleItemSlotClicked);
 			BattleHUDWidget->OnPhaseProgressClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattlePhaseProgressClicked);
         }
@@ -116,6 +189,18 @@ void ABattlePlayerController_FlipSide::BeginPlay()
 		StageCardManager->OnBattleCardDataChanged.AddDynamic(this, &ABattlePlayerController_FlipSide::RefreshBattleCardHUD);
 		RefreshBattleCardHUD();
 	}
+}
+
+void ABattlePlayerController_FlipSide::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    StopObservingBattleInfoCoin();
+    HoveredBattleCoin.Reset();
+    HoveredReadyCoinInstanceID = INDEX_NONE;
+    if (IsValid(BattleHUDWidget))
+    {
+        BattleHUDWidget->HideBattleCoinInfo();
+    }
+    Super::EndPlay(EndPlayReason);
 }
 
 void ABattlePlayerController_FlipSide::TryBindBossHUD()
@@ -241,12 +326,34 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
             LastHoveredActor = nullptr;
         }
 
+        EndBattleCoinActorHover();
+        HoveredReadyCoinInstanceID = INDEX_NONE;
+        if (IsValid(BattleHUDWidget))
+        {
+            BattleHUDWidget->HideBattleCoinInfo();
+        }
+
         if (CurrentHoveredArea)
         {
             CurrentHoveredArea->SetHighlight(false);
             CurrentHoveredArea = nullptr;
         }
 
+        return;
+    }
+
+    // ReadyCoinSlot 호버 중에는 UI 뒤의 월드 CoinActor를 중복 호버하지 않습니다.
+    if (HoveredReadyCoinInstanceID != INDEX_NONE)
+    {
+        if (IsValid(LastHoveredActor))
+        {
+            if (IBattleHoverInterface* PreviousHover = Cast<IBattleHoverInterface>(LastHoveredActor))
+            {
+                PreviousHover->Execute_OnUnhover(LastHoveredActor);
+            }
+            LastHoveredActor = nullptr;
+        }
+        EndBattleCoinActorHover();
         return;
     }
 
@@ -262,6 +369,10 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
     {
         if (LastHoveredActor)
         {
+            if (ACoinActor* PreviousCoin = Cast<ACoinActor>(LastHoveredActor))
+            {
+                EndBattleCoinActorHover(PreviousCoin);
+            }
             if (IBattleHoverInterface* PrevHover = Cast<IBattleHoverInterface>(LastHoveredActor))
             {
                 PrevHover->Execute_OnUnhover(LastHoveredActor);
@@ -273,6 +384,11 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
             if (IBattleHoverInterface* NewHover = Cast<IBattleHoverInterface>(CurrentActor))
             {
                 NewHover->Execute_OnHover(CurrentActor);
+            }
+            if (ACoinActor* CurrentCoin = Cast<ACoinActor>(CurrentActor);
+                IsValid(CurrentCoin) && CurrentCoin->GetCoinOnBattle())
+            {
+                BeginBattleCoinActorHover(CurrentCoin);
             }
         }
         LastHoveredActor = CurrentActor;
@@ -353,15 +469,7 @@ void ABattlePlayerController_FlipSide::OnPhaseChanged(EPhaseState NewPhase)
 
     if (!ControlledPawn) return;
 
-    if (NewPhase == EPhaseState::CoinBehaviorPhase)
-    {
-        GetWorldTimerManager().SetTimer(CoinBehaviorCameraDelayHandle, [this]()
-        {
-            if (ControlledPawn)
-                ControlledPawn->MoveCameraToArea(CoinBehaviorCameraLocation, CoinBehaviorCameraRotation, CoinBehaviorCameraArmLength);
-        }, CoinBehaviorCameraDelay, false);
-    }
-    else if (NewPhase == EPhaseState::CoinReadyPhase)
+    if (NewPhase == EPhaseState::CoinReadyPhase)
     {
         ControlledPawn->MoveCameraToArea(DefaultCameraLocation, DefaultCameraRotation, DefaultCameraArmLength);
     }
@@ -440,6 +548,11 @@ void ABattlePlayerController_FlipSide::RefreshBattleCoinHUD()
         ReadyCoinViews.Add(BuildReadyCoinViewData(ReadyCoinData[ReadyCoinIndex], ReadyCoinIndex + 1));
     }
     BattleHUDWidget->SetReadyCoins(ReadyCoinViews);
+
+    if (HoveredReadyCoinInstanceID != INDEX_NONE)
+    {
+        RefreshHoveredBattleCoinInfo();
+    }
 }
 
 void ABattlePlayerController_FlipSide::RefreshBattleItemHUD()
@@ -509,6 +622,443 @@ void ABattlePlayerController_FlipSide::HandleReadyCoinClicked(int32 CoinInstance
     }
 }
 
+void ABattlePlayerController_FlipSide::HandleReadyCoinHovered(int32 CoinInstanceID)
+{
+    if (CoinInstanceID == INDEX_NONE)
+    {
+        return;
+    }
+
+    if (IsValid(LastHoveredActor))
+    {
+        if (IBattleHoverInterface* PreviousHover = Cast<IBattleHoverInterface>(LastHoveredActor))
+        {
+            PreviousHover->Execute_OnUnhover(LastHoveredActor);
+        }
+        LastHoveredActor = nullptr;
+    }
+    EndBattleCoinActorHover();
+
+    HoveredReadyCoinInstanceID = CoinInstanceID;
+    RefreshHoveredBattleCoinInfo();
+}
+
+void ABattlePlayerController_FlipSide::HandleReadyCoinUnhovered(int32 CoinInstanceID)
+{
+    if (CoinInstanceID == INDEX_NONE || HoveredReadyCoinInstanceID != CoinInstanceID)
+    {
+        return;
+    }
+
+    HoveredReadyCoinInstanceID = INDEX_NONE;
+    StopObservingBattleInfoCoin();
+    if (IsValid(BattleHUDWidget))
+    {
+        BattleHUDWidget->HideBattleCoinInfo();
+    }
+}
+
+void ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsStarted(
+    const FInputActionValue& InputActionValue)
+{
+    bShowAdditionalBuffsHeld = InputActionValue.Get<bool>();
+    if (IsValid(BattleHUDWidget) &&
+        (HoveredReadyCoinInstanceID != INDEX_NONE || HoveredBattleCoin.IsValid()))
+    {
+        BattleHUDWidget->SetAdditionalBattleCoinBuffsVisible(bShowAdditionalBuffsHeld);
+    }
+
+    if (IsValid(BattleHUDWidget))
+    {
+        // 이 Shift IA는 레디/필드 코인의 추가 버프와 코인 슬롯 설명의 상세 스탯을 같이 제어합니다.
+        BattleHUDWidget->SetCoinSlotDetailedStatsVisible(bShowAdditionalBuffsHeld);
+    }
+}
+
+void ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsCompleted(
+    const FInputActionValue& InputActionValue)
+{
+    static_cast<void>(InputActionValue);
+    bShowAdditionalBuffsHeld = false;
+    if (IsValid(BattleHUDWidget))
+    {
+        BattleHUDWidget->SetAdditionalBattleCoinBuffsVisible(false);
+        BattleHUDWidget->SetCoinSlotDetailedStatsVisible(false);
+    }
+}
+
+void ABattlePlayerController_FlipSide::BeginBattleCoinActorHover(ACoinActor* CoinActor)
+{
+    if (!IsValid(CoinActor) || !CoinActor->GetCoinOnBattle())
+    {
+        return;
+    }
+
+    HoveredBattleCoin = CoinActor;
+    ObserveBattleInfoCoin(CoinActor);
+    RefreshHoveredBattleCoinInfo();
+}
+
+void ABattlePlayerController_FlipSide::EndBattleCoinActorHover(ACoinActor* ExpectedCoin)
+{
+    ACoinActor* CurrentHoveredCoin = HoveredBattleCoin.Get();
+    if (IsValid(ExpectedCoin) && CurrentHoveredCoin != ExpectedCoin)
+    {
+        return;
+    }
+
+    HoveredBattleCoin.Reset();
+    if (HoveredReadyCoinInstanceID == INDEX_NONE)
+    {
+        StopObservingBattleInfoCoin();
+        if (IsValid(BattleHUDWidget))
+        {
+            BattleHUDWidget->HideBattleCoinInfo();
+        }
+    }
+}
+
+void ABattlePlayerController_FlipSide::ObserveBattleInfoCoin(ACoinActor* CoinActor)
+{
+    if (ObservedBattleInfoCoin.Get() == CoinActor)
+    {
+        return;
+    }
+
+    StopObservingBattleInfoCoin();
+    if (!IsValid(CoinActor) || !IsValid(CoinActor->StatComponent))
+    {
+        return;
+    }
+
+    ObservedBattleInfoCoin = CoinActor;
+    ObservedBattleInfoStatus = CoinActor->StatComponent;
+
+    UComponent_Status* StatusComponent = ObservedBattleInfoStatus.Get();
+    StatusComponent->OnWeaponStatsChanged.AddUObject(
+        this, &ABattlePlayerController_FlipSide::HandleObservedWeaponStatsChanged);
+    StatusComponent->OnStatusEffectsChanged.AddUObject(
+        this, &ABattlePlayerController_FlipSide::HandleObservedStatusEffectsChanged);
+    StatusComponent->OnHpChanged.AddUObject(
+        this, &ABattlePlayerController_FlipSide::HandleObservedHPChanged);
+    StatusComponent->OnMaxHPChanged.AddUObject(
+        this, &ABattlePlayerController_FlipSide::HandleObservedMaxHPChanged);
+    StatusComponent->OnShieldChanged.AddUObject(
+        this, &ABattlePlayerController_FlipSide::HandleObservedShieldChanged);
+    CoinActor->OnCoinDeathStarted.AddUObject(
+        this, &ABattlePlayerController_FlipSide::HandleObservedCoinDeath);
+}
+
+void ABattlePlayerController_FlipSide::StopObservingBattleInfoCoin()
+{
+    if (UComponent_Status* StatusComponent = ObservedBattleInfoStatus.Get())
+    {
+        StatusComponent->OnWeaponStatsChanged.RemoveAll(this);
+        StatusComponent->OnStatusEffectsChanged.RemoveAll(this);
+        StatusComponent->OnHpChanged.RemoveAll(this);
+        StatusComponent->OnMaxHPChanged.RemoveAll(this);
+        StatusComponent->OnShieldChanged.RemoveAll(this);
+    }
+    if (ACoinActor* CoinActor = ObservedBattleInfoCoin.Get())
+    {
+        CoinActor->OnCoinDeathStarted.RemoveAll(this);
+    }
+    ObservedBattleInfoStatus.Reset();
+    ObservedBattleInfoCoin.Reset();
+}
+
+void ABattlePlayerController_FlipSide::RefreshHoveredBattleCoinInfo()
+{
+    if (!IsValid(BattleHUDWidget) || !IsValid(GetWorld()))
+    {
+        return;
+    }
+
+    FBattleCoinInfoViewData ViewData;
+    if (HoveredReadyCoinInstanceID != INDEX_NONE)
+    {
+        UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>();
+        if (!IsValid(CoinManager))
+        {
+            BattleHUDWidget->HideBattleCoinInfo();
+            return;
+        }
+
+        const TArray<FReadyCoinData>& ReadyCoins = CoinManager->GetReadyCoinData();
+        const int32 ReadyCoinIndex = ReadyCoins.IndexOfByPredicate([this](const FReadyCoinData& ReadyCoin)
+        {
+            return ReadyCoin.CoinInstanceID == HoveredReadyCoinInstanceID;
+        });
+        if (!ReadyCoins.IsValidIndex(ReadyCoinIndex))
+        {
+            HoveredReadyCoinInstanceID = INDEX_NONE;
+            StopObservingBattleInfoCoin();
+            BattleHUDWidget->HideBattleCoinInfo();
+            return;
+        }
+
+        ACoinActor* RuntimeCoin = CoinManager->GetRuntimeCoinAtReadySlot(ReadyCoinIndex);
+        const bool bBuiltFromRuntimeCoin = IsValid(RuntimeCoin) &&
+            BuildBattleCoinInfoFromActor(RuntimeCoin, ViewData);
+        if (bBuiltFromRuntimeCoin)
+        {
+            ObserveBattleInfoCoin(RuntimeCoin);
+        }
+        else
+        {
+            StopObservingBattleInfoCoin();
+            if (!BuildBattleCoinInfoFromReadyData(ReadyCoins[ReadyCoinIndex], ViewData))
+            {
+                BattleHUDWidget->HideBattleCoinInfo();
+                return;
+            }
+        }
+
+        BattleHUDWidget->ShowBattleCoinInfo(ViewData, true);
+        BattleHUDWidget->SetAdditionalBattleCoinBuffsVisible(bShowAdditionalBuffsHeld);
+        return;
+    }
+
+    ACoinActor* FieldCoin = HoveredBattleCoin.Get();
+    if (IsValid(FieldCoin) && BuildBattleCoinInfoFromActor(FieldCoin, ViewData))
+    {
+        ObserveBattleInfoCoin(FieldCoin);
+        BattleHUDWidget->ShowBattleCoinInfo(ViewData, false);
+        BattleHUDWidget->SetAdditionalBattleCoinBuffsVisible(bShowAdditionalBuffsHeld);
+        return;
+    }
+
+    StopObservingBattleInfoCoin();
+    BattleHUDWidget->HideBattleCoinInfo();
+}
+
+void ABattlePlayerController_FlipSide::HandleObservedWeaponStatsChanged(
+    const FWeaponStatsChangedEvent& ChangedEvent)
+{
+    static_cast<void>(ChangedEvent);
+    RefreshHoveredBattleCoinInfo();
+}
+
+void ABattlePlayerController_FlipSide::HandleObservedStatusEffectsChanged(
+    const FStatusEffectsChangedEvent& ChangedEvent)
+{
+    static_cast<void>(ChangedEvent);
+    RefreshHoveredBattleCoinInfo();
+}
+
+void ABattlePlayerController_FlipSide::HandleObservedHPChanged(int32 DeltaHP)
+{
+    static_cast<void>(DeltaHP);
+    RefreshHoveredBattleCoinInfo();
+}
+
+void ABattlePlayerController_FlipSide::HandleObservedMaxHPChanged(int32 DeltaMaxHP)
+{
+    static_cast<void>(DeltaMaxHP);
+    RefreshHoveredBattleCoinInfo();
+}
+
+void ABattlePlayerController_FlipSide::HandleObservedShieldChanged(int32 DeltaShield)
+{
+    static_cast<void>(DeltaShield);
+    RefreshHoveredBattleCoinInfo();
+}
+
+void ABattlePlayerController_FlipSide::HandleObservedCoinDeath(ACoinActor* DeadCoin)
+{
+    if (HoveredBattleCoin.Get() == DeadCoin)
+    {
+        HoveredBattleCoin.Reset();
+    }
+    HoveredReadyCoinInstanceID = INDEX_NONE;
+    StopObservingBattleInfoCoin();
+    if (IsValid(BattleHUDWidget))
+    {
+        BattleHUDWidget->HideBattleCoinInfo();
+    }
+}
+
+bool ABattlePlayerController_FlipSide::BuildBattleCoinInfoFromActor(
+    ACoinActor* CoinActor,
+    FBattleCoinInfoViewData& OutViewData) const
+{
+    if (!IsValid(CoinActor) || !IsValid(CoinActor->StatComponent))
+    {
+        return false;
+    }
+
+    UComponent_Status* StatusComponent = CoinActor->StatComponent;
+    OutViewData = FBattleCoinInfoViewData();
+    OutViewData.CoinInstanceID = CoinActor->GetCoinID();
+    OutViewData.CurrentHP = StatusComponent->GetHP();
+    OutViewData.MaxHP = StatusComponent->GetMaxHP();
+    OutViewData.Shield = StatusComponent->GetShield();
+
+    const bool bFrontValid = BuildWeaponFaceInfo(
+        CoinActor->GetCoinFrontID(),
+        StatusComponent->ResolveFaceStats(EFaceState::Front),
+        BattleInfoFrontWeaponColor,
+        OutViewData.FrontFace
+    );
+    const bool bBackValid = BuildWeaponFaceInfo(
+        CoinActor->GetCoinBackID(),
+        StatusComponent->ResolveFaceStats(EFaceState::Back),
+        BattleInfoBackWeaponColor,
+        OutViewData.BackFace
+    );
+    BuildStatusEffectViewData(StatusComponent->GetStatusEffects(), OutViewData.StatusEffects);
+    return bFrontValid && bBackValid;
+}
+
+bool ABattlePlayerController_FlipSide::BuildBattleCoinInfoFromReadyData(
+    const FReadyCoinData& ReadyCoinData,
+    FBattleCoinInfoViewData& OutViewData) const
+{
+    UDataManagerSubsystem* DataManager = GetGameInstance()
+        ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>()
+        : nullptr;
+    if (!IsValid(DataManager) || ReadyCoinData.CoinInstanceID == INDEX_NONE)
+    {
+        return false;
+    }
+
+    FFaceData FrontWeaponData;
+    FFaceData BackWeaponData;
+    if (!DataManager->TryGetWeapon(ReadyCoinData.FrontWeaponID, FrontWeaponData) ||
+        !DataManager->TryGetWeapon(ReadyCoinData.BackWeaponID, BackWeaponData))
+    {
+        return false;
+    }
+
+    const FResolvedWeaponFaceStats FrontStats = UComponent_Status::ResolveFaceStatsFromData(
+        BuildTemporaryFaceStatsForUI(FrontWeaponData), ReadyCoinData.PersistentStatusEffects);
+    const FResolvedWeaponFaceStats BackStats = UComponent_Status::ResolveFaceStatsFromData(
+        BuildTemporaryFaceStatsForUI(BackWeaponData), ReadyCoinData.PersistentStatusEffects);
+
+    OutViewData = FBattleCoinInfoViewData();
+    OutViewData.CoinInstanceID = ReadyCoinData.CoinInstanceID;
+    OutViewData.CurrentHP = ReadyCoinData.CurrentHP;
+    OutViewData.MaxHP = CalculateReadyCoinMaxHP(ReadyCoinData);
+    OutViewData.Shield = ReadyCoinData.Shield;
+
+    const bool bFrontValid = BuildWeaponFaceInfo(
+        ReadyCoinData.FrontWeaponID,
+        FrontStats,
+        BattleInfoFrontWeaponColor,
+        OutViewData.FrontFace
+    );
+    const bool bBackValid = BuildWeaponFaceInfo(
+        ReadyCoinData.BackWeaponID,
+        BackStats,
+        BattleInfoBackWeaponColor,
+        OutViewData.BackFace
+    );
+    BuildStatusEffectViewData(ReadyCoinData.PersistentStatusEffects, OutViewData.StatusEffects);
+    return bFrontValid && bBackValid;
+}
+
+bool ABattlePlayerController_FlipSide::BuildWeaponFaceInfo(
+    int32 WeaponID,
+    const FResolvedWeaponFaceStats& ResolvedStats,
+    const FLinearColor& WeaponColor,
+    FBattleWeaponFaceInfoViewData& OutFaceInfo) const
+{
+    UDataManagerSubsystem* DataManager = GetGameInstance()
+        ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>()
+        : nullptr;
+    if (!IsValid(DataManager))
+    {
+        return false;
+    }
+
+    FFaceData WeaponData;
+    if (!DataManager->TryGetWeapon(WeaponID, WeaponData) || !IsValid(WeaponData.WeaponIcon))
+    {
+        return false;
+    }
+
+    OutFaceInfo.WeaponID = WeaponID;
+    OutFaceInfo.WeaponIcon = WeaponData.WeaponIcon;
+    OutFaceInfo.WeaponName = FText::FromString(WeaponData.WeaponName);
+    OutFaceInfo.WeaponDescription = FText::FromString(WeaponData.KOR_DES);
+    OutFaceInfo.BaseStats = ResolvedStats.BaseNumericStats;
+    OutFaceInfo.FinalStats = ResolvedStats.FinalNumericStats;
+    OutFaceInfo.WeaponColor = WeaponColor;
+    return true;
+}
+
+void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
+    const TArray<FStatusEffectInstance>& StatusEffects,
+    TArray<FBattleStatusEffectViewData>& OutStatusEffects) const
+{
+    OutStatusEffects.Reset();
+    UDataManagerSubsystem* DataManager = GetGameInstance()
+        ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>()
+        : nullptr;
+    if (!IsValid(DataManager))
+    {
+        return;
+    }
+
+    for (const FStatusEffectInstance& StatusEffect : StatusEffects)
+    {
+        FBattleStatusEffectViewData* ExistingView = OutStatusEffects.FindByPredicate(
+            [&StatusEffect](const FBattleStatusEffectViewData& ViewData)
+            {
+                return ViewData.BuffTypeID == StatusEffect.BuffTypeID &&
+                    ViewData.SourceType == StatusEffect.SourceType &&
+                    ViewData.SourceDataID == StatusEffect.SourceDataID &&
+                    ViewData.Polarity == StatusEffect.Polarity;
+            });
+        if (ExistingView)
+        {
+            ++ExistingView->StackCount;
+            continue;
+        }
+
+        UTexture2D* SourceIcon = nullptr;
+        switch (StatusEffect.SourceType)
+        {
+        case EStatusEffectSourceType::Coin:
+        {
+            FFaceData WeaponData;
+            if (DataManager->TryGetWeapon(StatusEffect.SourceDataID, WeaponData))
+            {
+                SourceIcon = WeaponData.WeaponIcon;
+            }
+            break;
+        }
+        case EStatusEffectSourceType::Item:
+        {
+            FItemData ItemData;
+            if (DataManager->TryGetItem(StatusEffect.SourceDataID, ItemData))
+            {
+                SourceIcon = ItemData.ItemIcon;
+            }
+            break;
+        }
+        case EStatusEffectSourceType::Boss:
+            // TODO: 보스 주체 버프와 아이콘 데이터가 생기면 기존 DataManager 조회 API를 이 분기에 연결합니다.
+            break;
+        default:
+            break;
+        }
+
+        if (!IsValid(SourceIcon))
+        {
+            continue;
+        }
+
+        FBattleStatusEffectViewData& NewViewData = OutStatusEffects.AddDefaulted_GetRef();
+        NewViewData.BuffTypeID = StatusEffect.BuffTypeID;
+        NewViewData.SourceType = StatusEffect.SourceType;
+        NewViewData.SourceDataID = StatusEffect.SourceDataID;
+        NewViewData.Polarity = StatusEffect.Polarity;
+        NewViewData.Icon = SourceIcon;
+        NewViewData.StackCount = 1;
+    }
+}
+
 void ABattlePlayerController_FlipSide::HandleBattleItemSlotClicked(int32 ItemID)
 {
 	if (!IsValid(GetWorld()))
@@ -544,6 +1094,22 @@ FBattleCoinSlotViewData ABattlePlayerController_FlipSide::BuildCoinSlotViewData(
     ViewData.HP = CoinSlotData.HP;
     ViewData.FrontWeaponID = CoinSlotData.FrontWeaponID;
     ViewData.BackWeaponID = CoinSlotData.BackWeaponID;
+    ViewData.FrontWeaponDisplay = CoinSlotData.FrontWeaponDisplay;
+    ViewData.BackWeaponDisplay = CoinSlotData.BackWeaponDisplay;
+    ViewData.FrontWeaponColor = BattleInfoFrontWeaponColor;
+    ViewData.BackWeaponColor = BattleInfoBackWeaponColor;
+
+    /*
+     * TODO(DB_KEYWORD_RECONNECT): DB/DataManager 팀 작업 후 아래 연결을 복구합니다.
+     * - 무기 ID로 토큰 설명 + AttackPower/WeaponPower/Count 조회
+     * - 활성 키워드 일괄 조회 결과를 포매터 캐시에 전달
+     * - AttackRange/AbilityRange Spec은 TODO(DB_RANGE_PREVIEW_RECONNECT) 완성 전까지 요청하지 않음
+     *
+     * FWeaponDescriptionDisplayData FrontDisplayData;
+     * FWeaponDescriptionDisplayData BackDisplayData;
+     * DataManager->TryGetWeaponDescriptionDisplayData(CoinSlotData.FrontWeaponID, FrontDisplayData);
+     * DataManager->TryGetWeaponDescriptionDisplayData(CoinSlotData.BackWeaponID, BackDisplayData);
+     */
 
     UDataManagerSubsystem* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>() : nullptr;
     if (!IsValid(DataManager))
@@ -556,10 +1122,6 @@ FBattleCoinSlotViewData ABattlePlayerController_FlipSide::BuildCoinSlotViewData(
     {
         ViewData.FrontIcon = FrontWeaponData.WeaponIcon;
         ViewData.FrontWeaponName = FText::FromString(FrontWeaponData.WeaponName);
-        ViewData.FrontWeaponDescription = FText::FromString(FrontWeaponData.KOR_DES);
-        ViewData.FrontBehaviorPoint = FrontWeaponData.BehaviorPoint;
-        ViewData.FrontAttackPoint = FrontWeaponData.AttackPoint;
-        ViewData.FrontWeaponColor = FrontWeaponData.TypeColor;
     }
 
     FFaceData BackWeaponData;
@@ -567,10 +1129,6 @@ FBattleCoinSlotViewData ABattlePlayerController_FlipSide::BuildCoinSlotViewData(
     {
         ViewData.BackIcon = BackWeaponData.WeaponIcon;
         ViewData.BackWeaponName = FText::FromString(BackWeaponData.WeaponName);
-        ViewData.BackWeaponDescription = FText::FromString(BackWeaponData.KOR_DES);
-        ViewData.BackBehaviorPoint = BackWeaponData.BehaviorPoint;
-        ViewData.BackAttackPoint = BackWeaponData.AttackPoint;
-        ViewData.BackWeaponColor = BackWeaponData.TypeColor;
     }
 
     return ViewData;

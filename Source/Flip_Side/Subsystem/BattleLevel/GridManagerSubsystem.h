@@ -51,6 +51,8 @@ public:
 
 	float Phase1StartTime = 0.f;
 	float Phase2StartTime = 0.f;
+
+	FSimpleDelegate CompletionDelegate;
 };
 
 UENUM(BlueprintType)
@@ -97,6 +99,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, float PhaseDuration = 1.5f);
 
+	/** C++ 진입 연출에서 실제 문 닫힘 완료를 집계할 때 사용합니다. */
+	bool PlaySingleCellDoorOpenFxTracked(int32 GridX, int32 GridY, float PhaseDuration, FSimpleDelegate OnFinished);
+
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void CollectOccupiedCoins(TArray<FCoinOnGridInfo>& OutCoins) const;
 
@@ -108,6 +113,17 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	AGridActor* GetGridActor(const FGridPoint& P) const;
+
+	/** 보스가 사용할 수 있는 뒤쪽 9x3 영역입니다. 9x9 기준 X=0~8, Y=6~8입니다. */
+	UFUNCTION(BlueprintPure, Category = "Grid|Boss")
+	bool IsBossAreaCell(const FGridPoint& P) const;
+
+	/** CoinActor가 현재 해당 셀을 새로 점유할 수 있는지 검사합니다. */
+	UFUNCTION(BlueprintPure, Category = "Grid|Coin")
+	bool CanCoinOccupyCell(const FGridPoint& P) const;
+
+	bool TryOccupyCoinCell(const FGridPoint& P, ACoinActor* Coin);
+	void ReleaseCoinCell(const FGridPoint& P, ACoinActor* Coin);
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void InitGrids();
@@ -153,7 +169,8 @@ private:
 
 	AGridActor* GetGridActorAt(int32 X, int32 Y) const;
 
-	void StopDoorFx(const FGridPoint& Cell);
+	bool StartSingleCellDoorOpenFx(int32 GridX, int32 GridY, float PhaseDuration, FSimpleDelegate OnFinished);
+	void StopDoorFx(const FGridPoint& Cell, bool bNotifyCompletion = false);
 
 	void TickPhase1(FGridPoint Cell);
 	void StartPhase2(FGridPoint Cell);

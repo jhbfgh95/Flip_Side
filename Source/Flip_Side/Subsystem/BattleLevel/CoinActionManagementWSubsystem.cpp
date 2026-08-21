@@ -6,14 +6,13 @@
 #include "Base_OtherActor.h"
 #include "GridActor.h"
 #include "Weapon_Action.h"
-#include "W_BattleCoinInfo.h"
 #include "Component_Status.h"
 #include "GridManagerSubsystem.h"
-#include "FlipSideDevloperSettings.h"
 #include "DataManagerSubsystem.h"
 #include "BattleLevelActingWSubsystem.h"
 #include "SoundManagerWSubsystem.h"
 #include "BossActor.h"
+#include "FlipSideDevloperSettings.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 
@@ -34,25 +33,6 @@ void UCoinActionManagementWSubsystem::Initialize(FSubsystemCollectionBase& Colle
 void UCoinActionManagementWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
     Super::OnWorldBeginPlay(InWorld);
-
-    if(!BattleCoinInfoWidgetInstance)
-    {
-        const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
-        if (Settings && !Settings->BattleCoinInfoWidget.IsNull())
-        {
-            UClass* BattleCoinWidgetClass = Settings->BattleCoinInfoWidget.LoadSynchronous();
-                
-            if (BattleCoinWidgetClass)
-            {
-                BattleCoinInfoWidgetInstance = CreateWidget<UW_BattleCoinInfo>(GetWorld(), BattleCoinWidgetClass);
-                if ( BattleCoinInfoWidgetInstance)
-                {
-                    BattleCoinInfoWidgetInstance->AddToViewport();
-                    BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
-                }
-            }
-        }
-    }
 
     if(GridManager)
     {
@@ -149,7 +129,6 @@ void UCoinActionManagementWSubsystem::InitWeaponAction()
         GridManager->SetGridClickFlag(EGridClickFlag::None);
     }
 
-    HideBattleCoinInfo();
 }
 
 bool UCoinActionManagementWSubsystem::ApplyRangedThings(const FGridPoint& TargetGridPoint)
@@ -251,14 +230,6 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
             {
                 AreaSpec.ParamB += ActionTask.ModifiedRange.GridY;
             }
-
-            SetBattleCoinInfo(
-                SelectWeapon.WeaponIcon, FText::FromString(SelectWeapon.WeaponName), FText::FromString(SelectWeapon.KOR_DES), 
-                SelectWeapon.BehaviorPoint, ActionTask.ModifiedBehaviorPoint, 
-                SelectWeapon.AttackPoint, ActionTask.ModifiedAttackPoint, SelectWeapon.TypeColor,
-                HoveredCoin->StatComponent->GetHP(), HoveredCoin->StatComponent->GetMaxHP(),
-                HoveredCoin->StatComponent->ActiveBuffs
-            );
 
             SetCasterCoin(HoveredCoin);
 
@@ -404,40 +375,9 @@ void UCoinActionManagementWSubsystem::ExecuteGridAction(AGridActor* targetGrid)
     RunCoinActionStep();
 }
 
-//호버링 시 UI세팅
-void UCoinActionManagementWSubsystem::SetBattleCoinInfo(
-        UTexture2D* Icon, const FText& WeaponName, const FText& RawDescription, 
-		int32 DefaultBP, int32 ModifiedBP, 
-		int32 DefaultAP, int32 ModifiedAP, FLinearColor WeaponColor,
-        int32 CurrentHP, int32 MaxHP,
-        const TArray<FBuffInfo>& ActiveBuffs)
-{
-    if(BattleCoinInfoWidgetInstance)
-    {
-        BattleCoinInfoWidgetInstance->UpdateBattleCoinInfo(
-            Icon, WeaponName, RawDescription,
-            DefaultBP, ModifiedBP,
-            DefaultAP, ModifiedAP,
-            CurrentHP, MaxHP, WeaponColor,
-            ActiveBuffs
-        );
-        BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Visible);
-    }
-}
-
-void UCoinActionManagementWSubsystem::HideBattleCoinInfo()
-{
-    if (BattleCoinInfoWidgetInstance)
-    {
-        BattleCoinInfoWidgetInstance->SetVisibility(ESlateVisibility::Collapsed);
-    }
-}
-
 void UCoinActionManagementWSubsystem::HandleCoinUnHovered()
 {
     if(!bIsCorrectPhase) return;
-
-    HideBattleCoinInfo();
 
     if(bActionSequenceActive) return;
 

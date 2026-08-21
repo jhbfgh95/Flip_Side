@@ -10,6 +10,7 @@
 #include "UI/BattleItemSlotWidget.h"
 #include "UI/BattleReadyCoinWidget.h"
 #include "UI/W_CoinSlotInfo.h"
+#include "UI/W_BattleCoinInfo.h"
 #include "UI/W_ItemInfo.h"
 #include "UI/W_CardWidget.h"
 #include "UI/W_BossHP.h"
@@ -22,7 +23,12 @@ void UBattlePlayerHUDWidget::NativeConstruct()
 
 	if (IsValid(BattleReadyCoinWidget))
 	{
+		BattleReadyCoinWidget->OnReadyCoinClicked.RemoveAll(this);
+		BattleReadyCoinWidget->OnReadyCoinHovered.RemoveAll(this);
+		BattleReadyCoinWidget->OnReadyCoinUnhovered.RemoveAll(this);
 		BattleReadyCoinWidget->OnReadyCoinClicked.AddUObject(this, &UBattlePlayerHUDWidget::HandleReadyCoinClicked);
+		BattleReadyCoinWidget->OnReadyCoinHovered.AddUObject(this, &UBattlePlayerHUDWidget::HandleReadyCoinHovered);
+		BattleReadyCoinWidget->OnReadyCoinUnhovered.AddUObject(this, &UBattlePlayerHUDWidget::HandleReadyCoinUnhovered);
 	}
 
 	if (IsValid(PhaseAndTurnDisplayWidget))
@@ -147,6 +153,55 @@ void UBattlePlayerHUDWidget::PlayBossPhaseCompletionAnimation()
 	}
 }
 
+void UBattlePlayerHUDWidget::ShowBattleCoinInfo(
+	const FBattleCoinInfoViewData& InData,
+	bool bUseReadyCoinAnchor)
+{
+	if (!IsValid(PopupLayer) || !BattleCoinInfoWidgetClass)
+	{
+		return;
+	}
+
+	if (!IsValid(BattleCoinInfoWidget))
+	{
+		BattleCoinInfoWidget = CreateWidget<UW_BattleCoinInfo>(this, BattleCoinInfoWidgetClass);
+		if (IsValid(BattleCoinInfoWidget))
+		{
+			PopupLayer->AddChild(BattleCoinInfoWidget);
+		}
+	}
+
+	if (!IsValid(BattleCoinInfoWidget))
+	{
+		return;
+	}
+
+	BattleCoinInfoWidget->SetBattleCoinInfo(InData);
+	UWidget* PopupAnchor = bUseReadyCoinAnchor ? ReadyCoinPopupAnchor.Get() : BattleCoinPopupAnchor.Get();
+	if (!IsValid(PopupAnchor))
+	{
+		PopupAnchor = ReadyCoinPopupAnchor.Get();
+	}
+	ApplyPopupAnchorLayout(BattleCoinInfoWidget, PopupAnchor);
+	BattleCoinInfoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
+void UBattlePlayerHUDWidget::HideBattleCoinInfo()
+{
+	if (IsValid(BattleCoinInfoWidget))
+	{
+		BattleCoinInfoWidget->ClearBattleCoinInfo();
+	}
+}
+
+void UBattlePlayerHUDWidget::SetAdditionalBattleCoinBuffsVisible(bool bVisible)
+{
+	if (IsValid(BattleCoinInfoWidget))
+	{
+		BattleCoinInfoWidget->SetAdditionalBuffsVisible(bVisible);
+	}
+}
+
 void UBattlePlayerHUDWidget::EnsureCoinSlotWidgets(int32 RequiredCount)
 {
 	if (!IsValid(CoinSlotContainer) || !BattleCoinSlotWidgetClass)
@@ -228,6 +283,7 @@ void UBattlePlayerHUDWidget::HandleCoinSlotHovered(int32 SlotNumber)
 		if (IsValid(CoinSlotInfoWidget))
 		{
 			CoinSlotInfoWidget->SetCoinSlotInfo(*CoinSlotData);
+			CoinSlotInfoWidget->SetDetailedStatsVisible(bShowCoinSlotDetailedStats);
 			CoinSlotInfoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 			ApplyPopupAnchorLayout(CoinSlotInfoWidget, CoinSlotPopupAnchor);
 		}
@@ -246,9 +302,34 @@ void UBattlePlayerHUDWidget::HandleCoinSlotUnhovered(int32 SlotNumber)
 	OnCoinSlotUnhovered.Broadcast(SlotNumber);
 }
 
+void UBattlePlayerHUDWidget::SetCoinSlotDetailedStatsVisible(bool bVisible)
+{
+	bShowCoinSlotDetailedStats = bVisible;
+	if (IsValid(CoinSlotInfoWidget) && CoinSlotInfoWidget->IsVisible())
+	{
+		CoinSlotInfoWidget->SetDetailedStatsVisible(bShowCoinSlotDetailedStats);
+	}
+}
+
 void UBattlePlayerHUDWidget::HandleReadyCoinClicked(int32 CoinInstanceID)
 {
 	OnReadyCoinClicked.Broadcast(CoinInstanceID);
+}
+
+void UBattlePlayerHUDWidget::HandleReadyCoinHovered(int32 CoinInstanceID)
+{
+	if (CoinInstanceID != INDEX_NONE)
+	{
+		OnReadyCoinHovered.Broadcast(CoinInstanceID);
+	}
+}
+
+void UBattlePlayerHUDWidget::HandleReadyCoinUnhovered(int32 CoinInstanceID)
+{
+	if (CoinInstanceID != INDEX_NONE)
+	{
+		OnReadyCoinUnhovered.Broadcast(CoinInstanceID);
+	}
 }
 
 void UBattlePlayerHUDWidget::HandlePhaseProgressRequested()

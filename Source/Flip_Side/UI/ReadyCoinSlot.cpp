@@ -23,7 +23,12 @@ void UReadyCoinSlot::NativeConstruct()
 
 	if (IsValid(ReadyCoinButton))
 	{
+		ReadyCoinButton->OnClicked.RemoveDynamic(this, &UReadyCoinSlot::HandleReadyCoinClicked);
+		ReadyCoinButton->OnHovered.RemoveDynamic(this, &UReadyCoinSlot::HandleReadyCoinHovered);
+		ReadyCoinButton->OnUnhovered.RemoveDynamic(this, &UReadyCoinSlot::HandleReadyCoinUnhovered);
 		ReadyCoinButton->OnClicked.AddDynamic(this, &UReadyCoinSlot::HandleReadyCoinClicked);
+		ReadyCoinButton->OnHovered.AddDynamic(this, &UReadyCoinSlot::HandleReadyCoinHovered);
+		ReadyCoinButton->OnUnhovered.AddDynamic(this, &UReadyCoinSlot::HandleReadyCoinUnhovered);
 	}
 }
 
@@ -96,6 +101,10 @@ void UReadyCoinSlot::SetReadyCoinData(const FBattleReadyCoinViewData& InData)
 
 void UReadyCoinSlot::ClearReadyCoinData()
 {
+	if (CoinInstanceID != INDEX_NONE)
+	{
+		OnReadyCoinSlotUnhovered.Broadcast(CoinInstanceID);
+	}
 	CoinInstanceID = INDEX_NONE;
 	bCanCancel = false;
 
@@ -135,6 +144,22 @@ void UReadyCoinSlot::HandleReadyCoinClicked()
 	if (CoinInstanceID != INDEX_NONE && bCanCancel)
 	{
 		OnReadyCoinSlotClicked.Broadcast(CoinInstanceID);
+	}
+}
+
+void UReadyCoinSlot::HandleReadyCoinHovered()
+{
+	if (CoinInstanceID != INDEX_NONE)
+	{
+		OnReadyCoinSlotHovered.Broadcast(CoinInstanceID);
+	}
+}
+
+void UReadyCoinSlot::HandleReadyCoinUnhovered()
+{
+	if (CoinInstanceID != INDEX_NONE)
+	{
+		OnReadyCoinSlotUnhovered.Broadcast(CoinInstanceID);
 	}
 }
 

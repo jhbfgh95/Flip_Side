@@ -124,6 +124,62 @@ AGridActor* UGridManagerSubsystem::GetGridActor(const FGridPoint& P) const
 	return nullptr;
 }
 
+bool UGridManagerSubsystem::IsBossAreaCell(const FGridPoint& P) const
+{
+	if (!IsInGrid(P.GridX, P.GridY))
+	{
+		return false;
+	}
+
+	constexpr int32 BossAreaDepth = 3;
+	const int32 BossAreaStartY = FMath::Max(0, GridYSize - BossAreaDepth);
+	return P.GridY >= BossAreaStartY;
+}
+
+bool UGridManagerSubsystem::CanCoinOccupyCell(const FGridPoint& P) const
+{
+	if (!IsInGrid(P.GridX, P.GridY) || IsBossAreaCell(P))
+	{
+		return false;
+	}
+
+	AGridActor* Grid = GetGridActor(P);
+	return IsValid(Grid) && !Grid->GetIsOccupied();
+}
+
+bool UGridManagerSubsystem::TryOccupyCoinCell(const FGridPoint& P, ACoinActor* Coin)
+{
+	if (!IsValid(Coin) || !CanCoinOccupyCell(P))
+	{
+		return false;
+	}
+
+	AGridActor* Grid = GetGridActor(P);
+	if (!IsValid(Grid))
+	{
+		return false;
+	}
+
+	Grid->SetOccupied(true, EGridOccupyingType::Coin, Coin);
+	return Grid->GetIsOccupied() && Grid->GetCurrentOccupied() == Coin;
+}
+
+void UGridManagerSubsystem::ReleaseCoinCell(const FGridPoint& P, ACoinActor* Coin)
+{
+	AGridActor* Grid = GetGridActor(P);
+	if (!IsValid(Grid) || Grid->GetCurrentOccupyingThing() != EGridOccupyingType::Coin)
+	{
+		return;
+	}
+
+	if (IsValid(Coin) && Grid->GetCurrentOccupied() != Coin)
+	{
+		return;
+	}
+
+	Grid->ClearOccupiedOnly();
+}
+
 AGridActor* UGridManagerSubsystem::GetGridActorAt(int32 X, int32 Y) const
 {
     const FGridPoint P{ X, Y };
@@ -592,25 +648,49 @@ void UGridManagerSubsystem::BindForGridClick(AGridActor* targetGrid)
     }
 }
 
-void UGridManagerSubsystem::StopDoorFx(const FGridPoint& Cell)
+void UGridManagerSubsystem::StopDoorFx(const FGridPoint& Cell, bool bNotifyCompletion)
 {
-    if (!GetWorld()) return;
-
     if (FCellDoorFxState* State = DoorFxByCell.Find(Cell))
     {
-        GetWorld()->GetTimerManager().ClearTimer(State->Phase1Tick);
-        GetWorld()->GetTimerManager().ClearTimer(State->Phase2Tick);
+        FSimpleDelegate CompletionDelegate = State->CompletionDelegate;
+        if (UWorld* World = GetWorld())
+        {
+            World->GetTimerManager().ClearTimer(State->Phase1Tick);
+            World->GetTimerManager().ClearTimer(State->Phase2Tick);
+        }
         DoorFxByCell.Remove(Cell);
+
+		if (bNotifyCompletion)
+		{
+			CompletionDelegate.ExecuteIfBound();
+		}
     }
 }
 
 void UGridManagerSubsystem::PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, float PhaseDuration)
 {
-    if (!GetWorld()) return;
-    if (!IsInGrid(GridX, GridY)) return;
+	StartSingleCellDoorOpenFx(GridX, GridY, PhaseDuration, FSimpleDelegate());
+}
+
+bool UGridManagerSubsystem::PlaySingleCellDoorOpenFxTracked(
+	int32 GridX,
+	int32 GridY,
+	float PhaseDuration,
+	FSimpleDelegate OnFinished)
+{
+	return StartSingleCellDoorOpenFx(GridX, GridY, PhaseDuration, MoveTemp(OnFinished));
+}
+
+bool UGridManagerSubsystem::StartSingleCellDoorOpenFx(
+	int32 GridX,
+	int32 GridY,
+	float PhaseDuration,
+	FSimpleDelegate OnFinished)
+{
+    if (!GetWorld() || !IsInGrid(GridX, GridY)) return false;
 
     AGridActor* CellActor = GetGridActorAt(GridX, GridY);
-    if (!CellActor) return;
+    if (!IsValid(CellActor)) return false;
 
     const FGridPoint Cell{ GridX, GridY };
 
@@ -620,6 +700,7 @@ void UGridManagerSubsystem::PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, f
     FCellDoorFxState State;
     State.PhaseDuration = FMath::Max(0.01f, PhaseDuration);
     State.Phase1StartTime = GetWorld()->GetTimeSeconds();
+	State.CompletionDelegate = MoveTemp(OnFinished);
     DoorFxByCell.Add(Cell, State);
 
     CellActor->ApplyCellMaterialParams(
@@ -635,17 +716,19 @@ void UGridManagerSubsystem::PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, f
         0.016f,
         true
     );
+
+	return true;
 }
 
 void UGridManagerSubsystem::TickPhase1(FGridPoint Cell)
 {
-    if (!GetWorld()) { StopDoorFx(Cell); return; }
+    if (!GetWorld()) { StopDoorFx(Cell, true); return; }
 
     FCellDoorFxState* State = DoorFxByCell.Find(Cell);
     if (!State) return;
 
     AGridActor* CellActor = GetGridActorAt(Cell.GridX, Cell.GridY);
-    if (!CellActor) { StopDoorFx(Cell); return; }
+    if (!CellActor) { StopDoorFx(Cell, true); return; }
 
     const float Now = GetWorld()->GetTimeSeconds();
     const float Alpha = FMath::Clamp((Now - State->Phase1StartTime) / State->PhaseDuration, 0.f, 1.f);
@@ -668,13 +751,13 @@ void UGridManagerSubsystem::TickPhase1(FGridPoint Cell)
 
 void UGridManagerSubsystem::StartPhase2(FGridPoint Cell)
 {
-    if (!GetWorld()) { StopDoorFx(Cell); return; }
+    if (!GetWorld()) { StopDoorFx(Cell, true); return; }
 
     FCellDoorFxState* State = DoorFxByCell.Find(Cell);
     if (!State) return;
 
     AGridActor* CellActor = GetGridActorAt(Cell.GridX, Cell.GridY);
-    if (!CellActor) { StopDoorFx(Cell); return; }
+    if (!CellActor) { StopDoorFx(Cell, true); return; }
 
     // Phase2 ���� �ð� ���
     State->Phase2StartTime = GetWorld()->GetTimeSeconds();
@@ -690,13 +773,13 @@ void UGridManagerSubsystem::StartPhase2(FGridPoint Cell)
 
 void UGridManagerSubsystem::TickPhase2(FGridPoint Cell)
 {
-    if (!GetWorld()) { StopDoorFx(Cell); return; }
+    if (!GetWorld()) { StopDoorFx(Cell, true); return; }
 
     FCellDoorFxState* State = DoorFxByCell.Find(Cell);
     if (!State) return;
 
     AGridActor* CellActor = GetGridActorAt(Cell.GridX, Cell.GridY);
-    if (!CellActor) { StopDoorFx(Cell); return; }
+    if (!CellActor) { StopDoorFx(Cell, true); return; }
 
     const float Now = GetWorld()->GetTimeSeconds();
     const float Alpha = FMath::Clamp((Now - State->Phase2StartTime) / State->PhaseDuration, 0.f, 1.f);
@@ -720,7 +803,7 @@ void UGridManagerSubsystem::TickPhase2(FGridPoint Cell)
 
     if (Alpha >= 1.f)
     {
-        StopDoorFx(Cell);
+        StopDoorFx(Cell, true);
     }
 }
 
