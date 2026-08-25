@@ -12,6 +12,7 @@
 #include "UI/ShopCoinManage/W_ShopCoinWeaponSlot.h"
 #include "UI/ShopCoinManage/W_ShopCoinSlotBuyButton.h"
 #include "UI/ShopCoinManage/W_ShopSelectCoin.h"
+#include "UI/W_WeaponDescription.h"
 
 void UShopCoinPresenter::InitPresenter(UW_ShopCoinWidget* InShopCoinWidget, UShopCoinWSubsystem* InCoinSubsystem
 	,UDataManagerSubsystem* InDataManager, UUnlockGISubsystem* InUnlockSubsystem)
@@ -139,15 +140,19 @@ void UShopCoinPresenter::SelectWeapon(int32 WeaponID)
 {
 	if(CurrentSelectedSlotIndex == -1)
 		return;
+
+	const FFaceData WeaponData = GetWeaponData(WeaponID);
+	UpdateWeaponDescription(WeaponData);
+
 	if(IsCurrentCoinSideFront)
 	{
 		CoinSubsystem->SetCoinSlotFrontWeapon(CurrentSelectedSlotIndex, WeaponID);
-		CoinSlotViews[CurrentSelectedSlotIndex]->SetFrontWeaponImage(GetWeaponData(WeaponID));
+		CoinSlotViews[CurrentSelectedSlotIndex]->SetFrontWeaponImage(WeaponData);
 	}
 	else
 	{
 		CoinSubsystem->SetCoinSlotBackWeapon(CurrentSelectedSlotIndex, WeaponID);
-		CoinSlotViews[CurrentSelectedSlotIndex]->SetBackWeaponImage(GetWeaponData(WeaponID));
+		CoinSlotViews[CurrentSelectedSlotIndex]->SetBackWeaponImage(WeaponData);
 	}
 	
 	SetSlectCoinSideData(CurrentSelectedSlotIndex);
@@ -157,15 +162,22 @@ void UShopCoinPresenter::SelectWeapon(int32 WeaponID)
 void UShopCoinPresenter::HoverWeapon(int32 WeaponID)
 {
 	UE_LOG(LogTemp,Warning, TEXT("호버링 중인 무기 %d"), WeaponID);
+	const FFaceData WeaponData = GetWeaponData(WeaponID);
+	UpdateWeaponDescription(WeaponData);
+
 	if(IsCurrentCoinSideFront)
-		ShopCoinWidget->GetShopSelectCoin()->SetFrontWeapon(GetWeaponData(WeaponID));
+		ShopCoinWidget->GetShopSelectCoin()->SetFrontWeapon(WeaponData);
 	else
-		ShopCoinWidget->GetShopSelectCoin()->SetBackWeapon(GetWeaponData(WeaponID));
+		ShopCoinWidget->GetShopSelectCoin()->SetBackWeapon(WeaponData);
 
 }
 
 void UShopCoinPresenter::UnhoverWeapon()
 {
+	HideWeaponDescription();
+	if(CurrentSelectedSlotIndex == -1)
+		return;
+
 	FCoinTypeStructure IndexCoin = CoinSubsystem->GetCoinSlotCoinType(CurrentSelectedSlotIndex);
 	
 	if(IsCurrentCoinSideFront)
@@ -245,6 +257,35 @@ FFaceData UShopCoinPresenter::GetWeaponData(int32 WeaponID)
 	ReturnData.WeaponID = -1;
 	DataManager->TryGetWeapon(WeaponID, ReturnData);
 	return ReturnData;
+}
+
+void UShopCoinPresenter::UpdateWeaponDescription(const FFaceData& WeaponData)
+{
+	if(!IsValid(ShopCoinWidget) || WeaponData.WeaponID == -1)
+	{
+		HideWeaponDescription();
+		return;
+	}
+
+	if(UW_WeaponDescription* DescriptionWidget = ShopCoinWidget->GetWeaponDescription())
+	{
+		DescriptionWidget->SetExplainText(
+			WeaponData.WeaponName,
+			WeaponData.KOR_DES,
+			WeaponData.BehaviorPoint,
+			WeaponData.AttackPoint);
+	}
+}
+
+void UShopCoinPresenter::HideWeaponDescription()
+{
+	if(IsValid(ShopCoinWidget))
+	{
+		if(UW_WeaponDescription* DescriptionWidget = ShopCoinWidget->GetWeaponDescription())
+		{
+			DescriptionWidget->SetExplainTextEmpty();
+		}
+	}
 }
 	
 void UShopCoinPresenter::SetCoinSideFront(bool SetFront)

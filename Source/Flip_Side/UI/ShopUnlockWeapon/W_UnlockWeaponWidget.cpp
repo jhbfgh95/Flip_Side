@@ -6,6 +6,7 @@
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponSlotContainer.h"
 #include "UI/ShopUnlockWeapon/W_SelectedUnlockWeapon.h"
 #include "UI/ShopUnlockWeapon/W_UnlockSelectWeaponButton.h"
+#include "UI/W_WeaponDescription.h"
 void UW_UnlockWeaponWidget::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -34,4 +35,9 @@ UW_UnlockSelectWeaponButton* UW_UnlockWeaponWidget::GetUnlockButton() const
 UW_PriceWidget* UW_UnlockWeaponWidget::GetWeaponPriceWidget() const
 {
     return WeaponPriceText;
+}
+
+UW_WeaponDescription* UW_UnlockWeaponWidget::GetWeaponDescription() const
+{
+    return WeaponDes;
 }

@@ -89,6 +89,8 @@ protected:
 	void AddWeaponSlot(int32 WeaponID);
 	
 	FFaceData GetWeaponData(int32 WeaponID);
+	void UpdateWeaponDescription(const FFaceData& WeaponData);
+	void HideWeaponDescription();
 
 	void SetSlectCoinSideData(int32 SlotIndex);
 protected:

@@ -42,4 +42,5 @@ public:
 	UW_SelectedUnlockWeapon* GetSelectedUnlockWeapon() const;
 	UW_UnlockSelectWeaponButton* GetUnlockButton() const;
 	UW_PriceWidget* GetWeaponPriceWidget() const;
+	UW_WeaponDescription* GetWeaponDescription() const;
 };

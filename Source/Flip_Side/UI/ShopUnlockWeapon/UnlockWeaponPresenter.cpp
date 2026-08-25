@@ -7,6 +7,7 @@
 #include "UI/ShopUnlockWeapon/W_SelectedUnlockWeapon.h"
 #include "UI/ShopUnlockWeapon/W_UnlockSelectWeaponButton.h"
 #include "UI/W_PriceWidget.h"
+#include "UI/W_WeaponDescription.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/UnlockGISubsystem.h"
 
@@ -78,17 +79,20 @@ void UUnlockWeaponPresenter::SelectWeapon(int32 WeaponID)
 {
 	CurrentSelectedWeaponID = WeaponID;
 	UpdateSelectedWeapon(CurrentSelectedWeaponID);
+	UpdateWeaponDescription(CurrentSelectedWeaponID);
 	UpdateUnlockControls(CurrentSelectedWeaponID);
 }
 
 void UUnlockWeaponPresenter::HoverWeapon(int32 WeaponID)
 {
 	UpdateSelectedWeapon(WeaponID);
+	UpdateWeaponDescription(WeaponID);
 	UpdateUnlockControls(WeaponID);
 }
 
 void UUnlockWeaponPresenter::UnhoverWeapon()
 {
+	HideWeaponDescription();
 	UpdateSelectedWeapon(CurrentSelectedWeaponID);
 	if(CurrentSelectedWeaponID == -1)
 		HideUnlockControls();
@@ -116,6 +120,7 @@ void UUnlockWeaponPresenter::RemoveUnlockedWeaponSlot(int32 WeaponID)
 	if(CurrentSelectedWeaponID == WeaponID)
 	{
 		CurrentSelectedWeaponID = -1;
+		HideWeaponDescription();
 		UpdateSelectedWeapon(CurrentSelectedWeaponID);
 		HideUnlockControls();
 	}
@@ -133,6 +138,43 @@ void UUnlockWeaponPresenter::UpdateSelectedWeapon(int32 WeaponID)
 		DataManager->TryGetWeapon(WeaponID, WeaponData);
 
 	SelectedWeaponWidget->SetSelectedImage(WeaponData);
+}
+
+void UUnlockWeaponPresenter::UpdateWeaponDescription(int32 WeaponID)
+{
+	if(!IsValid(UnlockWeaponWidget) || !IsValid(DataManager) || WeaponID == -1)
+	{
+		HideWeaponDescription();
+		return;
+	}
+
+	FFaceData WeaponData;
+	WeaponData.WeaponID = -1;
+	if(!DataManager->TryGetWeapon(WeaponID, WeaponData))
+	{
+		HideWeaponDescription();
+		return;
+	}
+
+	if(UW_WeaponDescription* DescriptionWidget = UnlockWeaponWidget->GetWeaponDescription())
+	{
+		DescriptionWidget->SetExplainText(
+			WeaponData.WeaponName,
+			WeaponData.KOR_DES,
+			WeaponData.BehaviorPoint,
+			WeaponData.AttackPoint);
+	}
+}
+
+void UUnlockWeaponPresenter::HideWeaponDescription()
+{
+	if(IsValid(UnlockWeaponWidget))
+	{
+		if(UW_WeaponDescription* DescriptionWidget = UnlockWeaponWidget->GetWeaponDescription())
+		{
+			DescriptionWidget->SetExplainTextEmpty();
+		}
+	}
 }
 
 void UUnlockWeaponPresenter::UpdateUnlockControls(int32 WeaponID)

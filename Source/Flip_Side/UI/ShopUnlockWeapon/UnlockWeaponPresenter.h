@@ -56,6 +56,8 @@ private:
 	void RemoveUnlockedWeaponSlot(int32 WeaponID);
 
 	void UpdateSelectedWeapon(int32 WeaponID);
+	void UpdateWeaponDescription(int32 WeaponID);
+	void HideWeaponDescription();
 	void UpdateUnlockControls(int32 WeaponID);
 	void HideUnlockControls();
 

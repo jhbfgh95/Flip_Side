@@ -3,6 +3,8 @@
 
 #include "UI/ShopCoinManage/W_ShopCoinWidget.h"
 
+#include "UI/W_WeaponDescription.h"
+
 UW_ShopWeaponSlotContainer* UW_ShopCoinWidget::GetShopWeaponSlotContainer() const
 {
 	return ShopWeaponSlotContainer;
@@ -34,4 +36,9 @@ UW_ShopCoinSlotBuyButton* UW_ShopCoinWidget::GetShopCoinSlotBuyButton(int32 GetB
 UW_ShopSelectCoin* UW_ShopCoinWidget::GetShopSelectCoin()
 {
 	return ShopSelectCoin;
+}
+
+UW_WeaponDescription* UW_ShopCoinWidget::GetWeaponDescription() const
+{
+	return WeaponDes;
 }

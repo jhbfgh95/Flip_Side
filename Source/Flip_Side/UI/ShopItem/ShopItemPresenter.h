@@ -81,6 +81,8 @@ private:
 	void SetShopSlotItemViews();
 	void SetPlayerSlotItemViews();
 	void SetSelectedItemImage(const FItemData& ItemData);
+	void SetItemDescription(const FItemData& ItemData);
+	void HideItemDescription();
 
 	FItemData GetItemData(int32 ID);
 };
