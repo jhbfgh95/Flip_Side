@@ -1,0 +1,62 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "UI/ShopUISelectActor.h"
+#include "Components/BoxComponent.h"
+#include "Components/SceneComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/WidgetComponent.h"
+
+// Sets default values
+AShopUISelectActor::AShopUISelectActor()
+{
+	PrimaryActorTick.bCanEverTick = false;
+
+	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
+	SetRootComponent(SceneRoot);
+
+	SelectMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SelectMesh"));
+	SelectMesh->SetupAttachment(SceneRoot);
+
+	ClickCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("ClickCollision"));
+	ClickCollision->SetupAttachment(SceneRoot);
+	ClickCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	ClickCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+	ClickCollision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	ClickCollision->ComponentTags.Add(TEXT("LClickAble"));
+
+	SelectWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("SelectWidget"));
+	SelectWidget->SetupAttachment(SceneRoot);
+	SelectWidget->SetVisibility(false);
+
+}
+
+// Called when the game starts or when spawned
+void AShopUISelectActor::BeginPlay()
+{
+	Super::BeginPlay();
+	
+}
+
+void AShopUISelectActor::InteractLeftClick_Implementation()
+{
+	UE_LOG(LogTemp, Log, TEXT("Shop UI Select Actor Left Click"));
+	OnClickShopPageChangeActor.Broadcast(ConnectedPage);
+}
+
+void AShopUISelectActor::InteractRightClick_Implementation()
+{
+	UE_LOG(LogTemp, Log, TEXT("Shop UI Select Actor Right Click"));
+}
+
+void AShopUISelectActor::InteractHover_Implementation()
+{
+	UE_LOG(LogTemp, Log, TEXT("Shop UI Select Actor Hover"));
+	SelectWidget->SetVisibility(true);
+}
+
+void AShopUISelectActor::InteractUnHover_Implementation()
+{
+	UE_LOG(LogTemp, Log, TEXT("Shop UI Select Actor UnHover"));
+	SelectWidget->SetVisibility(false);
+}

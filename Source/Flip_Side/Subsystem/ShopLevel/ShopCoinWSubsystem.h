@@ -115,7 +115,7 @@ public:
 /*그 외 */
 public:
 
-	void ChangeCoinSlotOrder();
+	bool MoveCoinSlot(int32 SourceIndex, int32 TargetIndex);
 	void ExecuteWarning(int32 WarningCode);
 	bool GetIsCoinEmpty();
 public:

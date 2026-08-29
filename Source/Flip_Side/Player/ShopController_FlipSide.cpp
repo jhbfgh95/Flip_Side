@@ -16,12 +16,16 @@
 #include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
 
 #include "UI/ShopItem/ShopItemPresenter.h"
+#include "UI/ShopItem/ShopItemUIActor.h"
 #include "UI/ShopCard/ShopCardPresenter.h"
 #include "UI/ShopCoinManage/ShopCoinPresenter.h"
 #include "UI/ShopUnlockWeapon/UnlockWeaponPresenter.h"
+#include "UI/ShopPageChangePresenter.h"
+#include "UI/ShopUISelectRegistry.h"
 
 #include "Interface/ShopMouseInterface.h"
 #include "UI/W_ShopWidgetContainer.h"
+#include "Kismet/GameplayStatics.h"
 AShopController_FlipSide::AShopController_FlipSide()
 {
     bShowMouseCursor = true;
@@ -33,6 +37,7 @@ void AShopController_FlipSide::BeginPlay()
     
     this->bShowMouseCursor = true;
     this->bEnableMouseOverEvents = true;
+    CanClick = true;
 ////////////////////////////
     UDataManagerSubsystem* DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
     UShopItemWSubsystem* ItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
@@ -42,9 +47,33 @@ void AShopController_FlipSide::BeginPlay()
     UShopUnlockWeaponWSubsystem* UnlockWeaponWSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
     ShopWidgetContainer = Cast<UW_ShopWidgetContainer>(CreateWidget<UUserWidget>(this, ShopWidgetContainerClass));
     
-    
-    ItemPresenter = NewObject<UShopItemPresenter>();
-    ItemPresenter->InitPresenter(ShopWidgetContainer->GetShopItemWidget(), ItemSubsystem, DataManager);
+    ShopUISelectRegistry = Cast<AShopUISelectRegistry>(
+        UGameplayStatics::GetActorOfClass(this, AShopUISelectRegistry::StaticClass()));
+
+    if (!ensure(ShopWidgetContainer))
+    {
+        return;
+    }
+
+    if (!ensure(ShopItemUIActorClass))
+    {
+        return;
+    }
+
+    FActorSpawnParameters ItemActorSpawnParameters;
+    ItemActorSpawnParameters.Owner = this;
+    ItemActorSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    ShopItemUIActor = GetWorld()->SpawnActor<AShopItemUIActor>(
+        ShopItemUIActorClass, ShopItemUIActorSpawnTransform, ItemActorSpawnParameters);
+
+    if (!ensure(IsValid(ShopItemUIActor)))
+    {
+        return;
+    }
+
+    ItemPresenter = NewObject<UShopItemPresenter>(this);
+    ItemPresenter->InitPresenter(
+        ShopWidgetContainer->GetShopItemWidget(), ItemSubsystem, DataManager, ShopItemUIActor);
     
     CardPresenter = NewObject<UShopCardPresenter>();
     CardPresenter->InitPresenter(ShopWidgetContainer->GetShopCardWidget(), CardSubsystem, DataManager, UnlockSubsystem);
@@ -55,6 +84,9 @@ void AShopController_FlipSide::BeginPlay()
     UnlockWeaponPresenter = NewObject<UUnlockWeaponPresenter>(this);
     UnlockWeaponPresenter->InitPresenter(ShopWidgetContainer->GetShopUnlockWeaponWidget(),
         UnlockWeaponWSubsystem, DataManager, UnlockSubsystem);
+
+    UE_LOG(LogTemp, Warning, TEXT("에서 시작 "));
+    TryInitPageChangePresenter();
     
     ShopWidgetContainer->AddToViewport();
     UMoneyGISubsystem* MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
@@ -109,6 +141,22 @@ void AShopController_FlipSide::OnPossess(APawn* InPawn)
 
     ControlledPawn = Cast<AShopPlayerPawn_FlipSide>(InPawn);
     check(ControlledPawn);
+
+	TryInitPageChangePresenter();
+    UE_LOG(LogTemp, Warning, TEXT("폰에서 시작 "));
+}
+
+void AShopController_FlipSide::TryInitPageChangePresenter()
+{
+    if (IsValid(PageChangePresenter) ||
+        !IsValid(ShopWidgetContainer) || !IsValid(ControlledPawn) || !IsValid(ShopUISelectRegistry))
+    {
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("찾음 초기화 시작 "));
+    PageChangePresenter = NewObject<UShopPageChangePresenter>(this);
+    PageChangePresenter->InitPresenter(ShopUISelectRegistry, ShopWidgetContainer, ControlledPawn);
 }
 
 
@@ -161,6 +209,15 @@ void AShopController_FlipSide::SetShopMainModeWidget()
     ViewWidgetList();
     ShopModeWidget->SetVisibility(ESlateVisibility::Hidden);
 }
+
+
+void AShopController_FlipSide::InitShopUISelectActor()
+{
+
+}
+
+
+
 
 void AShopController_FlipSide::OnLeftClick()
 {   

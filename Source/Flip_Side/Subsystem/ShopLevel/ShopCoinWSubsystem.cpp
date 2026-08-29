@@ -377,8 +377,31 @@ bool UShopCoinWSubsystem::GetIsCoinSlotUnlockByIndex(int32 index)
     return GetCoinSlotUnlock(index);
 }
 
-void UShopCoinWSubsystem::ChangeCoinSlotOrder()
+bool UShopCoinWSubsystem::MoveCoinSlot(int32 SourceIndex, int32 TargetIndex)
 {
+    if(!ShopCoinSlotArray.IsValidIndex(SourceIndex) ||
+        !ShopCoinSlotArray.IsValidIndex(TargetIndex) ||
+        SourceIndex == TargetIndex)
+    {
+        return false;
+    }
+
+    if(!ShopCoinSlotArray[SourceIndex].IsUnlock ||
+        !ShopCoinSlotArray[TargetIndex].IsUnlock)
+    {
+        return false;
+    }
+
+    FShopCoinSlotData MovedSlot = ShopCoinSlotArray[SourceIndex];
+    ShopCoinSlotArray.RemoveAt(SourceIndex);
+    ShopCoinSlotArray.Insert(MovedSlot, TargetIndex);
+
+    for(int32 Index = 0; Index < ShopCoinSlotArray.Num(); ++Index)
+    {
+        ShopCoinSlotArray[Index].CoinData.SlotNum = Index;
+    }
+
+    return true;
 }
 
 

@@ -67,25 +67,6 @@ void UShopItemWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
     }
 }
 
-void UShopItemWSubsystem::HoverItem(FItemData ItemData)
-{
-    OnItemHovered.Broadcast(ItemData);
-}
-void UShopItemWSubsystem::UnHoverItem()
-{
-    OnItemUnHovered.Broadcast();
-}
-	
-void UShopItemWSubsystem::HoverPlayerItem(FItemData ItemData)
-{
-    OnPlayerItemHovered.Broadcast(ItemData);
-}
-
-void UShopItemWSubsystem::UnHoverPlayerItem()
-{
-    OnPlayerItemUnHovered.Broadcast();
-}
-
 bool UShopItemWSubsystem::BuyItem(FItemData ItemData, int32 ItemCount)
 {
     int32 InvenIndex = GetAddItemInvenIndex(ItemData.ItemID);
@@ -196,7 +177,6 @@ bool UShopItemWSubsystem::SellItem(FItemData ItemData, int32 ItemCount)
                 PlayerItemArray[i].ItemID = -1;
             }
             MoneySubsystem->AddSaleMoney(EMoneyRecordType::Item, ItemData.Price*ItemCount);
-            OnItemSell.Broadcast(i);
             return true;
         }
     }

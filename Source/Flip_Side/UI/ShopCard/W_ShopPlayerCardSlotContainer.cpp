@@ -31,7 +31,7 @@ void UW_ShopPlayerCardSlotContainer::InitWidget(const TArray<FCardData> UnlockCa
             SelectedPlayerCardSlots.Add(CardSlotWidget);
             UVerticalBoxSlot* VSlot = PlayerSelectSlotBox->AddChildToVerticalBox(CardSlotWidget);
             if(VSlot)
-                VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+                VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
 
             CardSlotWidget->SetVisibility(ESlateVisibility::Collapsed);
             CardSlotWidget->InitCardSlot(i);
@@ -48,7 +48,7 @@ UW_ShopPlayerCardSlot* UW_ShopPlayerCardSlotContainer::AddPlayerCardSlot(FCardDa
         PlayerCardSlots.Add(CardSlotWidget);
         UVerticalBoxSlot* VSlot = SlotBox->AddChildToVerticalBox(CardSlotWidget);
         if(VSlot)
-            VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+            VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
 
         CardSlotWidget->InitCardSlot(AddCardData);
     }

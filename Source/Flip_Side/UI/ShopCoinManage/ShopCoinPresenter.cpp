@@ -42,6 +42,8 @@ void UShopCoinPresenter::InitSlotWidget()
 			CoinSlot->OnClickedShopCoinSlotBackCoin.AddDynamic(this, &UShopCoinPresenter::SelectSlotBackWeapon);
 			CoinSlot->OnBuyShopCoinSlotCoin.AddDynamic(this, &UShopCoinPresenter::BuyCoinSlotCoin);
 			CoinSlot->OnSellShopCoinSlotCoin.AddDynamic(this, &UShopCoinPresenter::SellCoinSlotCoin);
+			CoinSlot->OnDropShopCoinSlot.AddDynamic(this, &UShopCoinPresenter::ReorderCoinSlot);
+			CoinSlot->OnCancelShopCoinSlotDrag.AddDynamic(this, &UShopCoinPresenter::CancelCoinSlotReorder);
 		}
 	}
 }
@@ -249,6 +251,70 @@ void UShopCoinPresenter::AddWeaponSlot(int32 WeaponID)
 		this, &UShopCoinPresenter::HoverWeapon);
 	NewWeaponSlot->OnUnhoveredShopCoinWeaponSlot.AddDynamic(
 		this, &UShopCoinPresenter::UnhoverWeapon);
+}
+
+void UShopCoinPresenter::ReorderCoinSlot(int32 SourceIndex, int32 TargetIndex)
+{
+	ShopCoinWidget->GetShopCoinSlotContainer()->ResetSlotPreview();
+
+	if(!CoinSubsystem->MoveCoinSlot(SourceIndex, TargetIndex))
+		return;
+
+	UE_LOG(LogTemp, Warning, TEXT("변경전 인덱스 %d, 변경 후 인덱스 %d"), SourceIndex, TargetIndex);
+	if(CurrentSelectedSlotIndex == SourceIndex)
+	{
+		CurrentSelectedSlotIndex = TargetIndex;
+	}
+	else if(SourceIndex < TargetIndex &&
+		CurrentSelectedSlotIndex > SourceIndex &&
+		CurrentSelectedSlotIndex <= TargetIndex)
+	{
+		--CurrentSelectedSlotIndex;
+	}
+	else if(TargetIndex < SourceIndex &&
+		CurrentSelectedSlotIndex >= TargetIndex &&
+		CurrentSelectedSlotIndex < SourceIndex)
+	{
+		++CurrentSelectedSlotIndex;
+	}
+
+	RefreshCoinSlots();
+}
+
+void UShopCoinPresenter::CancelCoinSlotReorder()
+{
+	if(IsValid(ShopCoinWidget))
+	{
+		ShopCoinWidget->GetShopCoinSlotContainer()->ResetSlotPreview();
+	}
+}
+
+void UShopCoinPresenter::RefreshCoinSlots()
+{
+	for(int32 Index = 0; Index < CoinSlotViews.Num(); ++Index)
+	{
+		UW_ShopCoinSlot* SlotView = CoinSlotViews[Index];
+		if(!IsValid(SlotView) || !CoinSubsystem->GetIsCoinSlotUnlockByIndex(Index))
+			continue;
+
+		const FCoinTypeStructure CoinData = CoinSubsystem->GetCoinSlotCoinType(Index);
+		SlotView->InitSlotWidget(Index);
+		SlotView->SetCountText(CoinData.SameTypeCoinNum);
+		SlotView->SetFrontWeaponImage(GetWeaponData(CoinData.FrontWeaponID));
+		SlotView->SetBackWeaponImage(GetWeaponData(CoinData.BackWeaponID));
+
+		int32 Price = 0;
+		int32 Hp = 0;
+		if(DataManager->GetCoinSlotLevelStats(CoinData, Price, Hp))
+		{
+			SlotView->SetCoinSlot(Hp);
+		}
+	}
+
+	if(CurrentSelectedSlotIndex != INDEX_NONE)
+	{
+		SetSlectCoinSideData(CurrentSelectedSlotIndex);
+	}
 }
 
 FFaceData UShopCoinPresenter::GetWeaponData(int32 WeaponID)

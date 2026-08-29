@@ -10,19 +10,7 @@
 /**
  * 
  */
-//코인이 클래스가 선택 됬을 때 델리게이트
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemSelect, FItemData, ItemInfo);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemHover, FItemData, ItemInfo);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemBuy, int32, InvenIndex);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemSell, int32, InvenIndex);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FItemUnHovered);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerItemHovered, FItemData, ItemInfo);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerItemUnHovered);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FShopItemWarning, int32, WarningCode);
 
@@ -41,20 +29,7 @@ private:
 	class UMoneyGISubsystem* MoneySubsystem;
 
 public:
-	//아이템 선택 됬을때 델리게이트
-	FItemSelect OnItemSelected;
-	//아이템을 올려둘 시
-	FItemHover OnItemHovered;
-	//아이템에서 마우스를 땔때
-	FItemUnHovered OnItemUnHovered;
-
-	FPlayerItemHovered OnPlayerItemHovered;
-	//아이템에서 마우스를 땔때
-	FPlayerItemUnHovered OnPlayerItemUnHovered;
-
 	FItemBuy OnItemBuy;
-
-	FItemSell OnItemSell;
 	FShopItemWarning OnShopItemWarning;
 private:
 	//상점 아이템 구매 목록
@@ -70,16 +45,6 @@ private:
 private:
 	//해당 아이디를 가진 아이템이 플레이어의 인벤토리에 있는지
 	int32 GetAddItemInvenIndex(int32 ItemID);
-public:
-	//상점 아이템에 마우스를 올려놧을 때
-	void HoverItem(FItemData ItemData);
-	//상점 아이템에서 마우스를 땠을떄
-	void UnHoverItem();
-
-	void HoverPlayerItem(FItemData ItemNum);
-	//상점 아이템에서 마우스를 땠을떄
-	void UnHoverPlayerItem();
-
 public:
 
 	bool CanBuyItem(int32 Price, int32 ItemCount);

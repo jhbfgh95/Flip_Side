@@ -12,14 +12,28 @@ void UW_ShopWidgetContainer::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
-    ShopNavigationBar->OnShopPageRequested.AddDynamic(this, &UW_ShopWidgetContainer::ShowShopPage);
-    ShowShopPage(EShopPage::Coin);
+    ShopNavigationBar->OnShopPageRequested.AddDynamic(
+        this, &UW_ShopWidgetContainer::HandleShopPageRequested);
+    HideShopContent();
+}
+
+void UW_ShopWidgetContainer::HandleShopPageRequested(EShopPage Page)
+{
+	OnShopPageRequested.Broadcast(Page);
+}
+
+void UW_ShopWidgetContainer::HideShopContent()
+{
+	ShopContentSwitcher->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UW_ShopWidgetContainer::ShowShopPage(EShopPage Page)
 {
 	switch(Page)
 	{
+	case EShopPage::Main:
+		ShopContentSwitcher->SetActiveWidget(ShopMainWidget);
+		break;
 	case EShopPage::Coin:
 		ShopContentSwitcher->SetActiveWidget(ShopCoinWidget);
 		break;
@@ -36,8 +50,10 @@ void UW_ShopWidgetContainer::ShowShopPage(EShopPage Page)
 		ShopContentSwitcher->SetActiveWidget(ShopBossWidget);
 		break;
 	default:
-		break;
+		return;
 	}
+
+	ShopContentSwitcher->SetVisibility(ESlateVisibility::Visible);
 }
 	
 

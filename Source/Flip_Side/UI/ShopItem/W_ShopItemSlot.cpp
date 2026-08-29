@@ -40,6 +40,7 @@ void UW_ShopItemSlot::SetItemSlotImage(FItemData SetItemData)
 void UW_ShopItemSlot::AddBuyItemCount(int32 Count)
 {
     CurrentItemCount++;
+    ItemPriceTextBlock->SetText(FText::AsNumber(CurrentItemCount*WidgetItemData.Price));
     ItemCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
 }
 
@@ -63,6 +64,15 @@ void UW_ShopItemSlot::ClickItemCountMinusButton()
 
     CurrentItemCount--;
 
+    ItemPriceTextBlock->SetText(FText::AsNumber(CurrentItemCount*WidgetItemData.Price));
+    ItemCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
+}
+
+void UW_ShopItemSlot::SetItemCount(int32 Count)
+{
+    
+    CurrentItemCount = Count;
+    ItemPriceTextBlock->SetText(FText::AsNumber(CurrentItemCount*WidgetItemData.Price));
     ItemCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
 }
 

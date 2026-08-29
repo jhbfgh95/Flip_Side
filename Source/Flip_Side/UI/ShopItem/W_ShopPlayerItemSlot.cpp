@@ -46,8 +46,11 @@ void UW_ShopPlayerItemSlot::SetItemWidget(FItemData InItemData, FSelectItem InSe
 
 void UW_ShopPlayerItemSlot::UpdateItemCount(int32 SameItemCount)
 {
-    CurrentItemCount=0;
-    ItemSellCountTextBlock->SetText(FText::AsNumber(0));
+    CurrentItemCount=1;
+    ItemSellCountTextBlock->SetText(FText::AsNumber(1));
+
+    ItemCountTextBlock->SetText(FText::AsNumber(SameItemCount));
+    ItemPriceTextBlock->SetText(FText::AsNumber(WidgetItemData.Price));
     WidgetSelectItemData.SameItemNum = SameItemCount;
 }
 
@@ -64,6 +67,7 @@ void UW_ShopPlayerItemSlot::ClickItemCountPlusButton()
     
     UE_LOG(LogTemp, Warning, TEXT("개수증가"));
     CurrentItemCount++;
+    ItemPriceTextBlock->SetText(FText::AsNumber(CurrentItemCount* WidgetItemData.Price));
     ItemSellCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
 }
 	
@@ -74,6 +78,7 @@ void UW_ShopPlayerItemSlot::ClickItemCountMinusButton()
     
         UE_LOG(LogTemp, Warning, TEXT("개수감소"));
     CurrentItemCount--;
+    ItemPriceTextBlock->SetText(FText::AsNumber(CurrentItemCount* WidgetItemData.Price));
     ItemSellCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
 }
 

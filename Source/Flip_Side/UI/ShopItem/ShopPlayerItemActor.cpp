@@ -114,12 +114,10 @@ void AShopPlayerItemActor::SetItemMaterial()
 
 void AShopPlayerItemActor::HoverdItem()
 {
-	ShopItemSubsystem->HoverItem(PlayerItemData);
 	ItemMeshTimeline->Play();
 }
 void AShopPlayerItemActor::UnHoverdItem()
 {
-	ShopItemSubsystem->UnHoverItem();
 	ItemMeshTimeline->Reverse();
 }
 	
@@ -158,4 +156,3 @@ void AShopPlayerItemActor::ShowItem()
 	this->SetActorHiddenInGame(false);
 	this->SetActorEnableCollision(true);
 }
-	

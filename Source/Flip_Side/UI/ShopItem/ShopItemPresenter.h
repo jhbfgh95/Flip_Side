@@ -17,6 +17,7 @@ class UDataManagerSubsystem;
 class UW_ShopItemSlotContainer;
 class UW_ShopPlayerItemSlotContainer;
 class UW_ShopItemWidget;
+class AShopItemUIActor;
 USTRUCT(BlueprintType)
 struct FShopItemWidgets
 {
@@ -37,7 +38,8 @@ class FLIP_SIDE_API UShopItemPresenter : public UObject
 	GENERATED_BODY()
 	
 public:
-    void InitPresenter(UW_ShopItemWidget* InShopItemWidget, UShopItemWSubsystem* InItemSubsystem, UDataManagerSubsystem* InDataManager);
+    void InitPresenter(UW_ShopItemWidget* InShopItemWidget, UShopItemWSubsystem* InItemSubsystem,
+        UDataManagerSubsystem* InDataManager, AShopItemUIActor* InShopItemUIActor);
 
 protected:
 	UPROPERTY()
@@ -49,6 +51,9 @@ protected:
 protected:
 	UPROPERTY()
 	TObjectPtr<UW_ShopItemWidget> ShopItemWidget;
+
+	UPROPERTY()
+	TObjectPtr<AShopItemUIActor> ShopItemUIActor;
 
 	UPROPERTY()
 	TArray<TObjectPtr<UW_ShopItemSlot>> ShopItemSlotViews;

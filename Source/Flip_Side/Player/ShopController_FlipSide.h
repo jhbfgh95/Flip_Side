@@ -8,6 +8,7 @@ class UInputMappingContext;
 class AShopPlayerPawn_FlipSide;
 class UW_ShopWidget;
 class UUserWidget;
+class AShopItemUIActor;
 UCLASS(abstract)
 class AShopController_FlipSide : public APlayerController
 {
@@ -42,6 +43,14 @@ protected:
 	TSubclassOf<UUserWidget> ShopWidgetContainerClass;
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Shop Item")
+	TSubclassOf<AShopItemUIActor> ShopItemUIActorClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Shop Item")
+	FTransform ShopItemUIActorSpawnTransform = FTransform::Identity;
+
+	UPROPERTY()
+	TObjectPtr<AShopItemUIActor> ShopItemUIActor;
 
 	UPROPERTY()
 	TObjectPtr<class UShopItemPresenter> ItemPresenter;
@@ -53,6 +62,12 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class UUnlockWeaponPresenter> UnlockWeaponPresenter;
+
+	UPROPERTY()
+	TObjectPtr<class UShopPageChangePresenter> PageChangePresenter;
+
+	UPROPERTY()
+	TObjectPtr<class AShopUISelectRegistry> ShopUISelectRegistry;
 
 //UI 스크립트
 private:
@@ -74,7 +89,11 @@ public:
 	virtual void SetupInputComponent() override;
 
 	virtual void OnPossess(APawn* InPawn);
-	
+
+private:
+	void TryInitPageChangePresenter();
+
+public:
 	UFUNCTION()
 	void ViewWidgetList();
 
@@ -90,6 +109,9 @@ public:
 	void SetShopMainModeWidget();
 
 	void SetLockMouse(bool IsMouseLock);
+
+protected:
+	void InitShopUISelectActor();
 	
 private:
     FVector DefaultCameraLocation;

@@ -21,6 +21,10 @@ class FLIP_SIDE_API UW_ShopCoinSlotContainer : public UUserWidget
 
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
+	virtual bool NativeOnDragOver(
+		const FGeometry& InGeometry,
+		const FDragDropEvent& InDragDropEvent,
+		UDragDropOperation* InOperation) override;
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -35,6 +39,7 @@ protected:
 	UPROPERTY(meta  =(BindWidget))
 	class UTextBlock* SlotInfoText;
 */
+protected:
 	UFUNCTION()
 	void SetTotalCoinText(int32 ChangedSlotIndex, int32 Count);
 
@@ -45,6 +50,8 @@ public:
 	
 	void RemoveCoinSlot(int32 RemoveSlotIndex);
 
+	void ResetSlotPreview();
+
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	TSubclassOf<class UUserWidget> CoinSlotWidget;
@@ -54,6 +61,7 @@ private:
 
 private:
 	void UpdateSlotText(bool IsIncrease);
+	void RebuildSlotBox(const TArray<TObjectPtr<UW_ShopCoinSlot>>& OrderedSlots);
 
 
 public:

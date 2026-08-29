@@ -2,19 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "DataTypes/ShopPageTypes.h"
 #include "W_ShopNavigationBar.generated.h"
 
 class UButton;
-
-UENUM(BlueprintType)
-enum class EShopPage : uint8
-{
-	Coin,
-	Item,
-	Card,
-	UnlockWeapon,
-	Boss
-};
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopPageRequested, EShopPage, Page);
 
@@ -25,6 +16,9 @@ class FLIP_SIDE_API UW_ShopNavigationBar : public UUserWidget
 
 protected:
 	virtual void NativeOnInitialized() override;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> MainButton;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> CoinButton;
@@ -59,4 +53,7 @@ private:
 
 	UFUNCTION()
 	void ShowBossPage();
+
+	UFUNCTION()
+	void ShowMainPage();
 };

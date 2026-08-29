@@ -87,8 +87,15 @@ protected:
 
 	UFUNCTION()
 	void AddWeaponSlot(int32 WeaponID);
+
+	UFUNCTION()
+	void ReorderCoinSlot(int32 SourceIndex, int32 TargetIndex);
+
+	UFUNCTION()
+	void CancelCoinSlotReorder();
 	
 	FFaceData GetWeaponData(int32 WeaponID);
+	void RefreshCoinSlots();
 	void UpdateWeaponDescription(const FFaceData& WeaponData);
 	void HideWeaponDescription();
 

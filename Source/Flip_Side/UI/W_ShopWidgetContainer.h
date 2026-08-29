@@ -15,6 +15,7 @@ class UW_ShopCardMainWidget;
 class UW_ShopCoinWidget;
 class UW_UnlockWeaponWidget;
 class UWidgetSwitcher;
+
 UCLASS()
 class FLIP_SIDE_API UW_ShopWidgetContainer : public UUserWidget
 {
@@ -29,6 +30,9 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UWidgetSwitcher> ShopContentSwitcher;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UUserWidget> ShopMainWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UW_ShopItemWidget> ShopItemWidget;
@@ -47,9 +51,15 @@ private:
 
 private:
 	UFUNCTION()
-	void ShowShopPage(EShopPage Page);
+	void HandleShopPageRequested(EShopPage Page);
 
 public:
+	UPROPERTY(BlueprintAssignable)
+	FOnShopPageRequested OnShopPageRequested;
+
+	void HideShopContent();
+	void ShowShopPage(EShopPage Page);
+
 	UW_ShopItemWidget* GetShopItemWidget();
 	
 	UW_ShopCardMainWidget* GetShopCardWidget();

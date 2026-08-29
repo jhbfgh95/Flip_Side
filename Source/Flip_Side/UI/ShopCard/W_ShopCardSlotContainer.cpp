@@ -16,7 +16,7 @@ void UW_ShopCardSlotContainer::InitWidget(TArray<FCardData> InCardData)
             ShopCardSlots.Add(CardSlotWidget);
             UVerticalBoxSlot* VSlot = SlotBox->AddChildToVerticalBox(CardSlotWidget);
             if(VSlot)
-                VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+                VSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
             
             CardSlotWidget->InitCardSlot(InCardData[i]);
         }

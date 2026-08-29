@@ -9,6 +9,9 @@
 
 #include "WeaponDataTypes.h"
 #include "Components/Border.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Input/Reply.h"
+#include "UI/ShopCoinManage/ShopCoinSlotDragDropOperation.h"
 
 void UW_ShopCoinSlot::NativeOnInitialized()
 {
@@ -18,7 +21,7 @@ void UW_ShopCoinSlot::NativeOnInitialized()
     
     BackWeaponImageButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlot::ClickBackWeaponButton);
 
-    SlotButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlot::PressSlotButton);
+    //SlotButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlot::PressSlotButton);
 
     IncreaseButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlot::BuyCoin);
     DecreaseButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlot::SellCoin);
@@ -38,6 +41,7 @@ void UW_ShopCoinSlot::InitSlotWidget(int32 InSlotIndex)
 {
     SlotIndex = InSlotIndex;
     SlotIndexText->SetText(FText::AsNumber(SlotIndex+1));
+    SetCountText(0);
 }
 
 
@@ -134,6 +138,77 @@ void UW_ShopCoinSlot::ClickBackWeaponButton()
 void UW_ShopCoinSlot::ResetSlot()
 {
     SetCountText(0);
+}
+
+FReply UW_ShopCoinSlot::NativeOnMouseButtonDown(
+    const FGeometry& InGeometry,
+    const FPointerEvent& InMouseEvent)
+{
+    if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+    {
+        PressSlotButton();
+        return UWidgetBlueprintLibrary::DetectDragIfPressed(
+            InMouseEvent,
+            this,
+            EKeys::LeftMouseButton).NativeReply;
+    }
+    return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+}
+
+void UW_ShopCoinSlot::NativeOnDragDetected(
+    const FGeometry& InGeometry,
+    const FPointerEvent& InMouseEvent,
+    UDragDropOperation*& OutOperation)
+{
+    Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
+
+    UShopCoinSlotDragDropOperation* DragOperation =
+        NewObject<UShopCoinSlotDragDropOperation>(this);
+
+    if (!IsValid(DragOperation))
+    {
+        return;
+    }
+
+    DragOperation->SourceSlotIndex = SlotIndex;
+    DragOperation->TargetSlotIndex = SlotIndex;
+    DragOperation->Pivot = EDragPivot::MouseDown;
+    DragOperation->DefaultDragVisual = this;
+    OutOperation = DragOperation;
+}
+
+bool UW_ShopCoinSlot::NativeOnDrop(
+    const FGeometry& InGeometry,
+    const FDragDropEvent& InDragDropEvent,
+    UDragDropOperation* InOperation)
+{
+    UShopCoinSlotDragDropOperation* DragOperation =
+        Cast<UShopCoinSlotDragDropOperation>(InOperation);
+
+    if (!IsValid(DragOperation) ||
+        DragOperation->SourceSlotIndex == INDEX_NONE ||
+        DragOperation->TargetSlotIndex == INDEX_NONE ||
+        DragOperation->SourceSlotIndex == DragOperation->TargetSlotIndex)
+    {
+        return false;
+    }
+
+    OnDropShopCoinSlot.Broadcast(
+        DragOperation->SourceSlotIndex,
+        DragOperation->TargetSlotIndex);
+    return true;
+}
+
+void UW_ShopCoinSlot::NativeOnDragCancelled(
+    const FDragDropEvent& InDragDropEvent,
+    UDragDropOperation* InOperation)
+{
+    Super::NativeOnDragCancelled(InDragDropEvent, InOperation);
+
+    if(IsValid(Cast<UShopCoinSlotDragDropOperation>(InOperation)))
+    {
+        OnCancelShopCoinSlotDrag.Broadcast();
+    }
 }
 
 void UW_ShopCoinSlot::NativeOnMouseEnter(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent)

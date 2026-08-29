@@ -25,6 +25,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedShopCoinSlotBackCoin, int3
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBuyShopCoinSlotCoin, int32, SlotIndex, int32, Count);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSellShopCoinSlotCoin, int32, SlotIndex, int32, Count);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDropShopCoinSlot, int32, SourceIndex, int32, TargetIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCancelShopCoinSlotDrag);
 
 UCLASS()
 class FLIP_SIDE_API UW_ShopCoinSlot : public UUserWidget
@@ -36,8 +38,8 @@ protected:
 	virtual void NativeDestruct() override;
 
 protected:
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> SlotButton;
+	//UPROPERTY(meta = (BindWidget))
+	//TObjectPtr<UButton> SlotButton;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> FrontWeaponImageButton;
@@ -72,6 +74,8 @@ public:
 	FOnClickedShopCoinSlotBackCoin OnClickedShopCoinSlotBackCoin;
 	FOnBuyShopCoinSlotCoin OnBuyShopCoinSlotCoin;
 	FOnSellShopCoinSlotCoin OnSellShopCoinSlotCoin;
+	FOnDropShopCoinSlot OnDropShopCoinSlot;
+	FOnCancelShopCoinSlotDrag OnCancelShopCoinSlotDrag;
 
 protected:
 
@@ -116,6 +120,23 @@ public:
 	void ResetSlot();
 
 protected:
+	virtual FReply NativeOnMouseButtonDown(
+		const FGeometry& InGeometry,
+		const FPointerEvent& InMouseEvent) override;
+
+	virtual void NativeOnDragDetected(
+		const FGeometry& InGeometry,
+		const FPointerEvent& InMouseEvent,
+		UDragDropOperation*& OutOperation) override;
+
+	virtual bool NativeOnDrop(
+		const FGeometry& InGeometry,
+		const FDragDropEvent& InDragDropEvent,
+		UDragDropOperation* InOperation) override;
+
+	virtual void NativeOnDragCancelled(
+		const FDragDropEvent& InDragDropEvent,
+		UDragDropOperation* InOperation) override;
 	
     virtual void NativeOnMouseEnter(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent) override;
     virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;

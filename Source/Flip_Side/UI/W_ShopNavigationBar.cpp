@@ -6,6 +6,7 @@ void UW_ShopNavigationBar::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
+	MainButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowMainPage);
 	CoinButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowCoinPage);
 	ItemButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowItemPage);
 	CardButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowCardPage);
@@ -36,4 +37,9 @@ void UW_ShopNavigationBar::ShowUnlockWeaponPage()
 void UW_ShopNavigationBar::ShowBossPage()
 {
 	OnShopPageRequested.Broadcast(EShopPage::Boss);
+}
+
+void UW_ShopNavigationBar::ShowMainPage()
+{
+	OnShopPageRequested.Broadcast(EShopPage::Main);
 }

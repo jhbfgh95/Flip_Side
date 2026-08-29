@@ -64,6 +64,8 @@ public:
 	void InitItemWidget(FItemData SetItemData);
 	void SetItemSlotImage(FItemData SetItemData);
 	void AddBuyItemCount(int32 Count);
+
+	void SetItemCount(int32 Count);
 public:
 	UFUNCTION()
 	void ClickItemBuyButton();
