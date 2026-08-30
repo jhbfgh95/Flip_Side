@@ -36,15 +36,11 @@ struct FCoinTypeStructure
     int32 Level = 1;
 };
 
-/** 무기 설명 토큰을 HUD RichText로 표시할 때 필요한 최소 데이터입니다. */
+/** DB 연결 전 코인 슬롯의 기본 무기 스탯을 표시하기 위한 데이터입니다. */
 USTRUCT(BlueprintType)
-struct FWeaponDescriptionDisplayData
+struct FWeaponStatDisplayData
 {
     GENERATED_BODY()
-
-    /** DB에는 [KW:*], [STAT:*] 토큰을 유지한 원문으로 저장합니다. */
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FText TokenizedDescription;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 AttackPower = 0;
@@ -79,10 +75,10 @@ struct FBattleCoinSlotData
 
     /** DB 연결 전 UI 검증을 위해 CreateTestCoinSlots에서만 채우는 임시 데이터입니다. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FWeaponDescriptionDisplayData FrontWeaponDisplay;
+    FWeaponStatDisplayData FrontWeaponStats;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FWeaponDescriptionDisplayData BackWeaponDisplay;
+    FWeaponStatDisplayData BackWeaponStats;
 };
 
 /** ReadyCoin UI부터 CoinBehaviorPhase의 CoinActor까지 이어지는 논리 코인 데이터입니다. */
@@ -156,10 +152,10 @@ struct FBattleCoinSlotViewData
     FText BackWeaponName;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FWeaponDescriptionDisplayData FrontWeaponDisplay;
+    FWeaponStatDisplayData FrontWeaponStats;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FWeaponDescriptionDisplayData BackWeaponDisplay;
+    FWeaponStatDisplayData BackWeaponStats;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FLinearColor FrontWeaponColor = FLinearColor::White;

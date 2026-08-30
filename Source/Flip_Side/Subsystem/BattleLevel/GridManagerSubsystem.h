@@ -114,9 +114,34 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	AGridActor* GetGridActor(const FGridPoint& P) const;
 
+	/** GridActor 참조 없이 그리드 좌표를 InstanceGrid와 동일한 월드 좌표로 변환합니다. */
+	UFUNCTION(BlueprintPure, Category = "Grid|Coordinates")
+	bool TryGetGridWorldLocation(const FGridPoint& P, FVector& OutWorldLocation) const;
+
+	/** 시전자 좌표를 기준으로 상대 Spec을 해석해 보드 안의 셀만 반환합니다. */
+	UFUNCTION(BlueprintCallable, Category = "Grid|Range")
+	void BuildAreaCellsFromOrigin(
+		const FGridPoint& Origin,
+		const FAttackAreaSpec& Spec,
+		TArray<FGridPoint>& OutCells
+	) const;
+
+	/** 직선 공격의 첫 셀과 끝 셀을 계산하며, 현재 고정 3x3 보스 발판에서 선택적으로 자릅니다. */
+	bool TryBuildStraightRangeEndpoints(
+		const FGridPoint& Origin,
+		const FAttackAreaSpec& Spec,
+		bool bStopAtBossFootprint,
+		FGridPoint& OutStart,
+		FGridPoint& OutEnd
+	) const;
+
 	/** 보스가 사용할 수 있는 뒤쪽 9x3 영역입니다. 9x9 기준 X=0~8, Y=6~8입니다. */
 	UFUNCTION(BlueprintPure, Category = "Grid|Boss")
 	bool IsBossAreaCell(const FGridPoint& P) const;
+
+	/** 현재 보스 코인 발판이 실제로 차지하는 뒤쪽 가운데 3x3 셀입니다. */
+	UFUNCTION(BlueprintPure, Category = "Grid|Boss")
+	bool IsFixedBossFootprintCell(const FGridPoint& P) const;
 
 	/** CoinActor가 현재 해당 셀을 새로 점유할 수 있는지 검사합니다. */
 	UFUNCTION(BlueprintPure, Category = "Grid|Coin")
@@ -129,7 +154,7 @@ public:
 	void InitGrids();
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
-	void GetValidGridsForSingleCell(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, TArray<FGridPoint>& VadlidCells);
+	void GetValidGridsForSingleCell(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, TArray<FGridPoint>& VadlidCells) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void PreviewHoveredCoinRange(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, const FGridPoint& finalRange);

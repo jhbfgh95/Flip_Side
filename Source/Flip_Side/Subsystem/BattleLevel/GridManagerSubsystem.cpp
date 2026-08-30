@@ -124,6 +124,110 @@ AGridActor* UGridManagerSubsystem::GetGridActor(const FGridPoint& P) const
 	return nullptr;
 }
 
+bool UGridManagerSubsystem::TryGetGridWorldLocation(const FGridPoint& P, FVector& OutWorldLocation) const
+{
+	if (!IsInGrid(P.GridX, P.GridY))
+	{
+		OutWorldLocation = FVector::ZeroVector;
+		return false;
+	}
+
+	// InstanceGrid의 X/Y 축 교환 규칙과 반드시 동일해야 합니다.
+	OutWorldLocation = GridOrigin + FVector(P.GridY * SpacingY, P.GridX * SpacingX, 0.0f);
+	return true;
+}
+
+void UGridManagerSubsystem::BuildAreaCellsFromOrigin(
+	const FGridPoint& Origin,
+	const FAttackAreaSpec& Spec,
+	TArray<FGridPoint>& OutCells) const
+{
+	OutCells.Reset();
+	if (!IsInGrid(Origin.GridX, Origin.GridY))
+	{
+		return;
+	}
+
+	FAttackAreaSpec ResolvedSpec = Spec;
+	if (ResolvedSpec.AnchorMode == EAreaAnchor::UseAnchorCell)
+	{
+		ResolvedSpec.AnchorCell.GridX = Origin.GridX + Spec.AnchorCell.GridX;
+		ResolvedSpec.AnchorCell.GridY = Origin.GridY + Spec.AnchorCell.GridY;
+	}
+
+	if (ResolvedSpec.Pattern == EAttackAreaPattern::SingleCell)
+	{
+		GetValidGridsForSingleCell(Origin, ResolvedSpec, OutCells);
+		return;
+	}
+
+	FGridAreaBuilder::BuildCells(ResolvedSpec, GridXSize, GridYSize, OutCells);
+}
+
+bool UGridManagerSubsystem::TryBuildStraightRangeEndpoints(
+	const FGridPoint& Origin,
+	const FAttackAreaSpec& Spec,
+	bool bStopAtBossFootprint,
+	FGridPoint& OutStart,
+	FGridPoint& OutEnd) const
+{
+	OutStart = FGridPoint{ -1, -1 };
+	OutEnd = FGridPoint{ -1, -1 };
+
+	if (!IsInGrid(Origin.GridX, Origin.GridY) ||
+		Spec.Pattern != EAttackAreaPattern::RectFromCell || Spec.ParamA != 1)
+	{
+		return false;
+	}
+
+	FGridPoint Direction;
+	switch (Spec.Side)
+	{
+	case EAreaSide::Up:
+		Direction = FGridPoint{ 0, 1 };
+		break;
+	case EAreaSide::Down:
+		Direction = FGridPoint{ 0, -1 };
+		break;
+	case EAreaSide::Left:
+		Direction = FGridPoint{ -1, 0 };
+		break;
+	case EAreaSide::Right:
+		Direction = FGridPoint{ 1, 0 };
+		break;
+	default:
+		return false;
+	}
+
+	const int32 Depth = FMath::Max(0, Spec.ParamB);
+	for (int32 Step = 1; Step <= Depth; ++Step)
+	{
+		const FGridPoint Cell{
+			Origin.GridX + Direction.GridX * Step,
+			Origin.GridY + Direction.GridY * Step
+		};
+
+		if (!IsInGrid(Cell.GridX, Cell.GridY))
+		{
+			break;
+		}
+
+		if (Step == 1)
+		{
+			OutStart = Cell;
+		}
+		OutEnd = Cell;
+
+		if (bStopAtBossFootprint && IsFixedBossFootprintCell(Cell))
+		{
+			break;
+		}
+	}
+
+	return OutStart.GridX >= 0 && OutStart.GridY >= 0 &&
+		OutEnd.GridX >= 0 && OutEnd.GridY >= 0;
+}
+
 bool UGridManagerSubsystem::IsBossAreaCell(const FGridPoint& P) const
 {
 	if (!IsInGrid(P.GridX, P.GridY))
@@ -134,6 +238,23 @@ bool UGridManagerSubsystem::IsBossAreaCell(const FGridPoint& P) const
 	constexpr int32 BossAreaDepth = 3;
 	const int32 BossAreaStartY = FMath::Max(0, GridYSize - BossAreaDepth);
 	return P.GridY >= BossAreaStartY;
+}
+
+bool UGridManagerSubsystem::IsFixedBossFootprintCell(const FGridPoint& P) const
+{
+	if (!IsInGrid(P.GridX, P.GridY) || GridXSize < 3 || GridYSize < 3)
+	{
+		return false;
+	}
+
+	// TODO(BOSS_GRID_RECONNECT): 보스 이동/크기 데이터가 생기면 고정 발판 대신 런타임 점유 셀을 사용합니다.
+	constexpr int32 BossFootprintHalfWidth = 1;
+	constexpr int32 BossFootprintDepth = 3;
+	const int32 BossCenterX = GridXSize / 2;
+	const int32 BossFrontY = GridYSize - BossFootprintDepth;
+	return P.GridX >= BossCenterX - BossFootprintHalfWidth &&
+		P.GridX <= BossCenterX + BossFootprintHalfWidth &&
+		P.GridY >= BossFrontY;
 }
 
 bool UGridManagerSubsystem::CanCoinOccupyCell(const FGridPoint& P) const
@@ -307,7 +428,7 @@ void UGridManagerSubsystem::GetObjectsAtRange(
     if (Spec.Pattern == EAttackAreaPattern::SingleCell)
     {
         // SingleCell은 범위 공격이 아니라 "선택 가능한 셀" 개념
-        const_cast<UGridManagerSubsystem*>(this)->GetValidGridsForSingleCell(
+        GetValidGridsForSingleCell(
             FinalRange,
             Spec,
             OutCells
@@ -391,7 +512,7 @@ void UGridManagerSubsystem::GetObjectsAtRange(
 void UGridManagerSubsystem::GetValidGridsForSingleCell(
     const FGridPoint& CoinXY,
     const FAttackAreaSpec& Spec,
-    TArray<FGridPoint>& ValidCells)
+    TArray<FGridPoint>& ValidCells) const
 {
     ValidCells.Reset();
 

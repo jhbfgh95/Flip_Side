@@ -29,6 +29,14 @@ class ACoinActor : public AActor, public IBattleHoverInterface, public IBattleCl
 	UPROPERTY(EditAnywhere, Category = "Coin | Component", meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* CoinRootComp;
 
+	/** 코인 메시 애니메이션과 분리된 공격 사거리 시작 괄호 기준점입니다. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Coin | Range Preview", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class USceneComponent> AttackRangeBracketAnchor;
+
+	/** BP_CoinActor에서 코인 바로 앞 위치에 맞추고 메시·머테리얼을 지정합니다. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Coin | Range Preview", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UStaticMeshComponent> AttackRangeBracketMesh;
+
 	//실 함수는 이거 써야함 (캐싱)
 	UPROPERTY()
 	class UW_CoinHPWidget* HPWidget = nullptr;
@@ -221,6 +229,10 @@ public:
 	bool DoCoinActAtBattleStart(float XLocation, float YLocation, FSimpleDelegate OnLanded = FSimpleDelegate());
 
 	void SetUIVisibility(const bool bUIVisibile);
+
+	/** PlayerController의 필드 코인 호버 미리보기에서만 호출합니다. */
+	UFUNCTION(BlueprintCallable, Category = "Coin | Range Preview")
+	void SetAttackRangeBracketVisible(bool bVisible);
 
 protected:
 	/* 레디 코인 튀어 오름 */

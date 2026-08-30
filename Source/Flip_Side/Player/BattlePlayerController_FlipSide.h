@@ -19,6 +19,8 @@ class IBattleClickInterface;
 class UBattlePlayerHUDWidget;
 class ABossActor;
 class ACoinActor;
+class ACoinAttackRangeIndicatorActor;
+class AAbilityRangeActor;
 class UComponent_Status;
 class UInputAction;
 struct FInputActionValue;
@@ -91,6 +93,10 @@ private:
     void HandleShowAdditionalBuffsCompleted(const FInputActionValue& InputActionValue);
     void BeginBattleCoinActorHover(ACoinActor* CoinActor);
     void EndBattleCoinActorHover(ACoinActor* ExpectedCoin = nullptr);
+    void SpawnBattleRangePreviewActors();
+    void RefreshBattleCoinRangePreviews();
+    void ShowBattleCoinRangePreviews(ACoinActor* CoinActor);
+    void HideBattleCoinRangePreviews(ACoinActor* CoinActor = nullptr);
     void ObserveBattleInfoCoin(ACoinActor* CoinActor);
     void StopObservingBattleInfoCoin();
     void RefreshHoveredBattleCoinInfo();
@@ -130,6 +136,20 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UBattlePlayerHUDWidget> BattleHUDWidget;
+
+	/** BP_PlayerController에서 직선 몸통·끝 메시를 설정한 자식 클래스를 지정합니다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Range Preview")
+	TSubclassOf<ACoinAttackRangeIndicatorActor> AttackRangeIndicatorClass;
+
+	/** BP_PlayerController에서 윤곽선 Plane ISM을 설정한 자식 클래스를 지정합니다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Range Preview")
+	TSubclassOf<AAbilityRangeActor> AbilityRangeActorClass;
+
+	UPROPERTY(Transient)
+	TObjectPtr<ACoinAttackRangeIndicatorActor> AttackRangeIndicatorActor;
+
+	UPROPERTY(Transient)
+	TObjectPtr<AAbilityRangeActor> AbilityRangeActor;
 
 	UPROPERTY()
 	TObjectPtr<ABossActor> ObservedBoss;

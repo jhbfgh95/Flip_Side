@@ -40,7 +40,6 @@ public:
 	void ShowBattleCoinInfo(const FBattleCoinInfoViewData& InData, bool bUseReadyCoinAnchor);
 	void HideBattleCoinInfo();
 	void SetAdditionalBattleCoinBuffsVisible(bool bVisible);
-	void SetCoinSlotDetailedStatsVisible(bool bVisible);
 
 	FOnBattleHUDCoinSlotClicked OnCoinSlotClicked;
 	FOnBattleHUDCoinSlotHovered OnCoinSlotHovered;
@@ -160,5 +159,4 @@ private:
 	TMap<int32, FBattleCoinSlotViewData> CoinSlotViewDataByNumber;
 	TMap<int32, FBattleItemSlotViewData> ItemSlotViewDataByID;
 	TMap<int32, FBattleCardSlotViewData> CardSlotViewDataByNumber;
-	bool bShowCoinSlotDetailedStats = false;
 };

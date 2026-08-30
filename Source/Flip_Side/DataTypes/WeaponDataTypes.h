@@ -74,6 +74,10 @@ struct FFaceData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FAttackAreaSpec AttackAreaSpec;
 
+    // DB 능력 사거리 API가 연결되기 전까지 CoinManager의 테스트 데이터가 채웁니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FAttackAreaSpec AbilityAreaSpec;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FIntPoint AttackAnchorOffset = FIntPoint(0, 0);
 

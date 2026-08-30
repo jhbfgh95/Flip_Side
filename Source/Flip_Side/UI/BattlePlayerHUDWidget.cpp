@@ -283,7 +283,6 @@ void UBattlePlayerHUDWidget::HandleCoinSlotHovered(int32 SlotNumber)
 		if (IsValid(CoinSlotInfoWidget))
 		{
 			CoinSlotInfoWidget->SetCoinSlotInfo(*CoinSlotData);
-			CoinSlotInfoWidget->SetDetailedStatsVisible(bShowCoinSlotDetailedStats);
 			CoinSlotInfoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 			ApplyPopupAnchorLayout(CoinSlotInfoWidget, CoinSlotPopupAnchor);
 		}
@@ -301,16 +300,6 @@ void UBattlePlayerHUDWidget::HandleCoinSlotUnhovered(int32 SlotNumber)
 
 	OnCoinSlotUnhovered.Broadcast(SlotNumber);
 }
-
-void UBattlePlayerHUDWidget::SetCoinSlotDetailedStatsVisible(bool bVisible)
-{
-	bShowCoinSlotDetailedStats = bVisible;
-	if (IsValid(CoinSlotInfoWidget) && CoinSlotInfoWidget->IsVisible())
-	{
-		CoinSlotInfoWidget->SetDetailedStatsVisible(bShowCoinSlotDetailedStats);
-	}
-}
-
 void UBattlePlayerHUDWidget::HandleReadyCoinClicked(int32 CoinInstanceID)
 {
 	OnReadyCoinClicked.Broadcast(CoinInstanceID);

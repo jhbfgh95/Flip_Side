@@ -200,13 +200,6 @@ void UReadyCoinSlot::UpdateCancelStateVisual()
 	}
 
 	CancelStateIconMaterialInstance->SetTextureParameterValue(CancelStateIconParameterName, CancelStateIconTexture);
-	UE_LOG(
-		LogTemp,
-		Log,
-		TEXT("[ReadyCoinSlot] Cancel state material applied. MID=%s, Texture=%s"),
-		*GetNameSafe(CancelStateIconMaterialInstance),
-		*GetNameSafe(CancelStateIconTexture)
-	);
 }
 
 void UReadyCoinSlot::UpdateWeaponIconMaterial(
@@ -243,14 +236,5 @@ void UReadyCoinSlot::UpdateWeaponIconMaterial(
 
 	DynamicMaterial->SetTextureParameterValue(ReadyCoinWeaponIconParameterName, WeaponIconTexture);
 	DynamicMaterial->SetVectorParameterValue(ReadyCoinWeaponColorParameterName, WeaponColor);
-	UE_LOG(
-		LogTemp,
-		Log,
-		TEXT("[ReadyCoinSlot] Weapon material applied. Image=%s, MID=%s, Texture=%s, Color=%s"),
-		*GetNameSafe(WeaponIconImage),
-		*GetNameSafe(DynamicMaterial),
-		*GetNameSafe(WeaponIconTexture),
-		*WeaponColor.ToString()
-	);
 }
 

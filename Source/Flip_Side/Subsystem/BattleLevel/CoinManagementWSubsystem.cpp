@@ -12,54 +12,86 @@
 
 namespace
 {
-	FWeaponDescriptionDisplayData MakeTestWeaponDisplayData(int32 TestWeaponIndex)
+	constexpr int32 BloodPoweredBloodCannonWeaponID = 4;
+	constexpr int32 ShellGameGauntletWeaponID = 11;
+	constexpr int32 AdrenalineInjectionPistolWeaponID = 14;
+
+	struct FTestCoinWeaponPair
 	{
-		struct FTestWeaponDescription
+		int32 FrontWeaponID;
+		int32 BackWeaponID;
+	};
+
+	// 기획서의 테스트 대상 세 무기만 사용하되, 코인의 앞/뒷면에는 서로 다른 무기를 배치합니다.
+	constexpr FTestCoinWeaponPair TestCoinWeaponPairs[] =
+	{
+		{ BloodPoweredBloodCannonWeaponID, ShellGameGauntletWeaponID },
+		{ ShellGameGauntletWeaponID, AdrenalineInjectionPistolWeaponID },
+		{ AdrenalineInjectionPistolWeaponID, BloodPoweredBloodCannonWeaponID }
+	};
+
+	FAttackAreaSpec MakeForwardAttackAreaSpec(int32 Depth)
+	{
+		FAttackAreaSpec Spec;
+		Spec.Pattern = EAttackAreaPattern::RectFromCell;
+		Spec.AnchorCell = FGridPoint{ 0, 0 };
+		Spec.AnchorMode = EAreaAnchor::UseAnchorCell;
+		Spec.ParamA = 1;
+		Spec.ParamB = FMath::Max(1, Depth);
+		Spec.Side = EAreaSide::Up;
+		Spec.Flags = 0;
+		return Spec;
+	}
+
+	FAttackAreaSpec MakeSquareAbilityAreaSpec(int32 Radius)
+	{
+		FAttackAreaSpec Spec;
+		Spec.Pattern = EAttackAreaPattern::CircleOnCell;
+		Spec.AnchorCell = FGridPoint{ 0, 0 };
+		Spec.AnchorMode = EAreaAnchor::UseAnchorCell;
+		Spec.ParamA = FMath::Max(0, Radius);
+		Spec.ParamB = 0;
+		// 대상 필터링은 실제 능력 로직 연결 시 결정하고, 여기서는 순수 사거리만 보유합니다.
+		Spec.Flags = 0;
+		return Spec;
+	}
+
+	FWeaponFaceStats MakeTestWeaponFaceStats(int32 WeaponID)
+	{
+		FWeaponFaceStats FaceStats;
+		FaceStats.WeaponID = WeaponID;
+
+		// 무기 기획서 기준 수치와 사거리입니다. 실제 표시·행동 연결은 후속 작업에서 진행합니다.
+		switch (WeaponID)
 		{
-			const TCHAR* Description;
-			int32 AttackPower;
-			int32 WeaponPower;
-			int32 Count;
-		};
+		case BloodPoweredBloodCannonWeaponID:
+			FaceStats.BaseNumericStats = { 2, 3, 0 };
+			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(3);
+			FaceStats.AbilityAreaSpec = MakeSquareAbilityAreaSpec(1);
+			break;
+		case ShellGameGauntletWeaponID:
+			FaceStats.BaseNumericStats = { 3, 3, 0 };
+			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(2);
+			// 9x9 어느 위치에서든 전체 보드를 포함하는 전 범위 Spec입니다.
+			FaceStats.AbilityAreaSpec = MakeSquareAbilityAreaSpec(8);
+			break;
+		case AdrenalineInjectionPistolWeaponID:
+			FaceStats.BaseNumericStats = { 1, 1, 2 };
+			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(2);
+			FaceStats.AbilityAreaSpec = MakeSquareAbilityAreaSpec(1);
+			break;
+		default:
+			return FWeaponFaceStats();
+		}
 
-		// DB 연결 전, 키워드/스탯 RichText 표시를 한번에 검증하기 위한 3슬롯 x 2면 더미입니다.
-		static const FTestWeaponDescription TestWeapons[] =
-		{
-			{
-				TEXT("[KW:Attack]\\n[STAT:AttackRange] 내 적 하나에게 [STAT:AttackPower] + [STAT:WeaponPower]만큼 피해를 줍니다."),
-				4, 2, 0
-			},
-			{
-				TEXT("[KW:Attack] [KW:Continuous] : [STAT:WeaponPower]\\n[STAT:AttackRange] 내 적에게 [STAT:AttackPower]만큼 피해를 줍니다."),
-				3, 2, 0
-			},
-			{
-				TEXT("[KW:Attack]\\n[KW:Absorb] 후에, [STAT:AttackRange] 내 적에게 [STAT:AttackPower] + [BUFF:Absorb]만큼 피해를 줍니다.\\n[KW:Mobility] [KW:Absorb]\\n[STAT:AbilityRange] 안의 모든 코인의 체력을 [STAT:WeaponPower]만큼 흡수합니다."),
-				5, 3, 0
-			},
-			{
-				TEXT("[KW:Attack] [KW:Strike]\\n[STAT:AttackRange] 내 적 하나에게 [STAT:AttackPower]만큼 피해를 줍니다.\\n[KW:Mobility] [KW:Continuous] : [STAT:Count]\\n[STAT:Count]만큼 코인을 선택합니다.\\n[BUFF:Strike] + [STAT:WeaponPower]만큼 선택한 코인의 체력을 회복합니다."),
-				2, 3, 2
-			},
-			{
-				TEXT("[KW:Attack]\\n[STAT:AttackRange] 내 적 하나에게 [STAT:AttackPower] + [BUFF:Absorb]만큼 피해를 줍니다.\\n[KW:Mobility] [KW:Absorb] [KW:Continuous] : [STAT:Count]\\n선택한 장애물을 [STAT:WeaponPower]만큼 [KW:Absorb]합니다."),
-				5, 2, 2
-			},
-			{
-				TEXT("[KW:Attack] [KW:Strike]\\n[STAT:AttackRange] 내 적 하나에게 [STAT:AttackPower]만큼 피해를 줍니다.\\n[KW:Hit] [KW:Continuous] : [STAT:Count]\\n선택한 코인은 이번 턴 동안 [STAT:WeaponPower] + [BUFF:Strike]만큼 [STAT:WeaponPower]이 증가합니다."),
-				3, 2, 2
-			}
-		};
+		return FaceStats;
+	}
 
-		const FTestWeaponDescription& TestWeapon = TestWeapons[
-			FMath::Clamp(TestWeaponIndex, 0, static_cast<int32>(UE_ARRAY_COUNT(TestWeapons)) - 1)];
-
-		FWeaponDescriptionDisplayData Result;
-		Result.TokenizedDescription = FText::FromString(TestWeapon.Description);
-		Result.AttackPower = TestWeapon.AttackPower;
-		Result.WeaponPower = TestWeapon.WeaponPower;
-		Result.Count = TestWeapon.Count;
-		return Result;
+	FWeaponStatDisplayData MakeTestWeaponStatData(int32 WeaponID)
+	{
+		const FWeaponFaceStats FaceStats = MakeTestWeaponFaceStats(WeaponID);
+		const FWeaponNumericStats& NumericStats = FaceStats.BaseNumericStats;
+		return { NumericStats.AttackPoint, NumericStats.WeaponPoint, NumericStats.WeaponCnt };
 	}
 }
 
@@ -118,6 +150,7 @@ bool UCoinManagementWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 
 void UCoinManagementWSubsystem::InitializeCoinSlots(const TArray<FCoinTypeStructure>& InCoinSlots)
 {
+	bUsingTestCoinData = false;
 	CoinSlots.Reset();
 	ReadyCoins.Init(FReadyCoinData(), MaxReadyCoinCount);
 
@@ -160,31 +193,40 @@ void UCoinManagementWSubsystem::CreateTestCoinSlots()
 		return;
 	}
 
-	TArray<int32> WeaponIDs;
-	DataManager->WeaponByID.GenerateKeyArray(WeaponIDs);
-	if (WeaponIDs.IsEmpty())
+	for (const FTestCoinWeaponPair& WeaponPair : TestCoinWeaponPairs)
 	{
-		return;
+		FFaceData FrontWeaponData;
+		FFaceData BackWeaponData;
+		if (!DataManager->TryGetWeapon(WeaponPair.FrontWeaponID, FrontWeaponData) ||
+			!DataManager->TryGetWeapon(WeaponPair.BackWeaponID, BackWeaponData))
+		{
+			UE_LOG(LogTemp, Warning,
+				TEXT("[CoinManager] 테스트 코인 생성 실패: 고정 무기 ID를 찾지 못했습니다. Front=%d Back=%d"),
+				WeaponPair.FrontWeaponID, WeaponPair.BackWeaponID);
+			return;
+		}
 	}
 
 	TArray<FCoinTypeStructure> TestCoinSlots;
-	for (int32 SlotIndex = 0; SlotIndex < 3; ++SlotIndex)
+	for (int32 SlotIndex = 0; SlotIndex < static_cast<int32>(UE_ARRAY_COUNT(TestCoinWeaponPairs)); ++SlotIndex)
 	{
+		const FTestCoinWeaponPair& WeaponPair = TestCoinWeaponPairs[SlotIndex];
 		FCoinTypeStructure& TestCoinSlot = TestCoinSlots.AddDefaulted_GetRef();
 		TestCoinSlot.SlotNum = SlotIndex + 1;
-		TestCoinSlot.FrontWeaponID = WeaponIDs[FMath::RandRange(0, WeaponIDs.Num() - 1)];
-		TestCoinSlot.BackWeaponID = WeaponIDs[FMath::RandRange(0, WeaponIDs.Num() - 1)];
+		TestCoinSlot.FrontWeaponID = WeaponPair.FrontWeaponID;
+		TestCoinSlot.BackWeaponID = WeaponPair.BackWeaponID;
 		TestCoinSlot.SameTypeCoinNum = 10;
 		TestCoinSlot.Level = SlotIndex + 1;
 	}
 
 	InitializeCoinSlots(TestCoinSlots);
+	bUsingTestCoinData = true;
 
 	for (int32 SlotIndex = 0; SlotIndex < CoinSlots.Num(); ++SlotIndex)
 	{
 		// 테스트 코인이 스탯과 설명을 소유하고, PlayerController는 값을 전달만 합니다.
-		CoinSlots[SlotIndex].FrontWeaponDisplay = MakeTestWeaponDisplayData(SlotIndex * 2);
-		CoinSlots[SlotIndex].BackWeaponDisplay = MakeTestWeaponDisplayData(SlotIndex * 2 + 1);
+		CoinSlots[SlotIndex].FrontWeaponStats = MakeTestWeaponStatData(CoinSlots[SlotIndex].FrontWeaponID);
+		CoinSlots[SlotIndex].BackWeaponStats = MakeTestWeaponStatData(CoinSlots[SlotIndex].BackWeaponID);
 	}
 	BroadcastCoinDataChanged();
 }
@@ -613,16 +655,20 @@ int32 UCoinManagementWSubsystem::ResolveCoinSlotHP(
 
 FWeaponFaceStats UCoinManagementWSubsystem::BuildTemporaryWeaponFaceStats(const FFaceData& LegacyFaceData) const
 {
+	if (bUsingTestCoinData)
+	{
+		return MakeTestWeaponFaceStats(LegacyFaceData.WeaponID);
+	}
+
 	FWeaponFaceStats FaceStats;
 	FaceStats.WeaponID = LegacyFaceData.WeaponID;
 	FaceStats.BaseNumericStats.AttackPoint = FMath::Max(0, LegacyFaceData.AttackPoint);
 	FaceStats.BaseNumericStats.WeaponPoint = FMath::Max(0, LegacyFaceData.BehaviorPoint);
 	// DB에 횟수 필드가 추가되기 전에는 기획대로 0으로 표시합니다.
 	FaceStats.BaseNumericStats.WeaponCnt = 0;
-	FaceStats.WeaponAttackSpec = LegacyFaceData.AttackAreaSpec;
-
-	// DataManager 스키마에 능력 전용 규격이 추가되기 전까지만 기존 단일 범위 규격을 임시로 공유합니다.
-	FaceStats.WeaponBehaviorSpec = LegacyFaceData.AttackAreaSpec;
+	FaceStats.AttackAreaSpec = LegacyFaceData.AttackAreaSpec;
+	// TODO(DB_ABILITY_AREA_RECONNECT): DataManager가 능력 사거리 컬럼을 읽기 시작하면 이 값이 채워집니다.
+	FaceStats.AbilityAreaSpec = LegacyFaceData.AbilityAreaSpec;
 	return FaceStats;
 }
 

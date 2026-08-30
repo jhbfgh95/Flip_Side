@@ -9,13 +9,13 @@ namespace
 		{
 			Flags |= EWeaponStatChangeFlags::NumericStats;
 		}
-		if (!Modifier.WeaponAttackSpec.IsZero())
+		if (!Modifier.AttackAreaSpec.IsZero())
 		{
-			Flags |= EWeaponStatChangeFlags::AttackSpec;
+			Flags |= EWeaponStatChangeFlags::AttackAreaSpec;
 		}
-		if (!Modifier.WeaponBehaviorSpec.IsZero())
+		if (!Modifier.AbilityAreaSpec.IsZero())
 		{
-			Flags |= EWeaponStatChangeFlags::BehaviorSpec;
+			Flags |= EWeaponStatChangeFlags::AbilityAreaSpec;
 		}
 		return Flags;
 	}
@@ -126,18 +126,18 @@ FResolvedWeaponFaceStats UComponent_Status::ResolveFaceStatsFromData(
 	ResolvedStats.WeaponID = FaceStats.WeaponID;
 	ResolvedStats.BaseNumericStats = FaceStats.BaseNumericStats;
 	ResolvedStats.FinalNumericStats = FaceStats.BaseNumericStats;
-	ResolvedStats.WeaponAttackSpec = FaceStats.WeaponAttackSpec;
-	ResolvedStats.WeaponBehaviorSpec = FaceStats.WeaponBehaviorSpec;
+	ResolvedStats.AttackAreaSpec = FaceStats.AttackAreaSpec;
+	ResolvedStats.AbilityAreaSpec = FaceStats.AbilityAreaSpec;
 
 	for (const FStatusEffectInstance& StatusEffect : StatusEffects)
 	{
 		AddScaledValue(ResolvedStats.AppliedModifier.AttackPoint, StatusEffect.Modifier.AttackPoint, 1);
 		AddScaledValue(ResolvedStats.AppliedModifier.WeaponPoint, StatusEffect.Modifier.WeaponPoint, 1);
 		AddScaledValue(ResolvedStats.AppliedModifier.WeaponCnt, StatusEffect.Modifier.WeaponCnt, 1);
-		AddScaledValue(ResolvedStats.AppliedModifier.WeaponAttackSpec.ParamA, StatusEffect.Modifier.WeaponAttackSpec.ParamA, 1);
-		AddScaledValue(ResolvedStats.AppliedModifier.WeaponAttackSpec.ParamB, StatusEffect.Modifier.WeaponAttackSpec.ParamB, 1);
-		AddScaledValue(ResolvedStats.AppliedModifier.WeaponBehaviorSpec.ParamA, StatusEffect.Modifier.WeaponBehaviorSpec.ParamA, 1);
-		AddScaledValue(ResolvedStats.AppliedModifier.WeaponBehaviorSpec.ParamB, StatusEffect.Modifier.WeaponBehaviorSpec.ParamB, 1);
+		AddScaledValue(ResolvedStats.AppliedModifier.AttackAreaSpec.ParamA, StatusEffect.Modifier.AttackAreaSpec.ParamA, 1);
+		AddScaledValue(ResolvedStats.AppliedModifier.AttackAreaSpec.ParamB, StatusEffect.Modifier.AttackAreaSpec.ParamB, 1);
+		AddScaledValue(ResolvedStats.AppliedModifier.AbilityAreaSpec.ParamA, StatusEffect.Modifier.AbilityAreaSpec.ParamA, 1);
+		AddScaledValue(ResolvedStats.AppliedModifier.AbilityAreaSpec.ParamB, StatusEffect.Modifier.AbilityAreaSpec.ParamB, 1);
 	}
 
 	AddScaledValue(ResolvedStats.FinalNumericStats.AttackPoint, ResolvedStats.AppliedModifier.AttackPoint, 1);
@@ -147,14 +147,14 @@ FResolvedWeaponFaceStats UComponent_Status::ResolveFaceStatsFromData(
 	ResolvedStats.FinalNumericStats.WeaponPoint = FMath::Max(0, ResolvedStats.FinalNumericStats.WeaponPoint);
 	ResolvedStats.FinalNumericStats.WeaponCnt = FMath::Max(0, ResolvedStats.FinalNumericStats.WeaponCnt);
 
-	AddScaledValue(ResolvedStats.WeaponAttackSpec.ParamA, ResolvedStats.AppliedModifier.WeaponAttackSpec.ParamA, 1);
-	AddScaledValue(ResolvedStats.WeaponAttackSpec.ParamB, ResolvedStats.AppliedModifier.WeaponAttackSpec.ParamB, 1);
-	AddScaledValue(ResolvedStats.WeaponBehaviorSpec.ParamA, ResolvedStats.AppliedModifier.WeaponBehaviorSpec.ParamA, 1);
-	AddScaledValue(ResolvedStats.WeaponBehaviorSpec.ParamB, ResolvedStats.AppliedModifier.WeaponBehaviorSpec.ParamB, 1);
-	ResolvedStats.WeaponAttackSpec.ParamA = FMath::Max(0, ResolvedStats.WeaponAttackSpec.ParamA);
-	ResolvedStats.WeaponAttackSpec.ParamB = FMath::Max(0, ResolvedStats.WeaponAttackSpec.ParamB);
-	ResolvedStats.WeaponBehaviorSpec.ParamA = FMath::Max(0, ResolvedStats.WeaponBehaviorSpec.ParamA);
-	ResolvedStats.WeaponBehaviorSpec.ParamB = FMath::Max(0, ResolvedStats.WeaponBehaviorSpec.ParamB);
+	AddScaledValue(ResolvedStats.AttackAreaSpec.ParamA, ResolvedStats.AppliedModifier.AttackAreaSpec.ParamA, 1);
+	AddScaledValue(ResolvedStats.AttackAreaSpec.ParamB, ResolvedStats.AppliedModifier.AttackAreaSpec.ParamB, 1);
+	AddScaledValue(ResolvedStats.AbilityAreaSpec.ParamA, ResolvedStats.AppliedModifier.AbilityAreaSpec.ParamA, 1);
+	AddScaledValue(ResolvedStats.AbilityAreaSpec.ParamB, ResolvedStats.AppliedModifier.AbilityAreaSpec.ParamB, 1);
+	ResolvedStats.AttackAreaSpec.ParamA = FMath::Max(0, ResolvedStats.AttackAreaSpec.ParamA);
+	ResolvedStats.AttackAreaSpec.ParamB = FMath::Max(0, ResolvedStats.AttackAreaSpec.ParamB);
+	ResolvedStats.AbilityAreaSpec.ParamA = FMath::Max(0, ResolvedStats.AbilityAreaSpec.ParamA);
+	ResolvedStats.AbilityAreaSpec.ParamB = FMath::Max(0, ResolvedStats.AbilityAreaSpec.ParamB);
 
 	return ResolvedStats;
 }
@@ -167,8 +167,8 @@ FWeaponActionSnapshot UComponent_Status::BuildActionSnapshot(EFaceState Face) co
 	const FResolvedWeaponFaceStats ResolvedStats = ResolveFaceStats(Snapshot.Face);
 	Snapshot.WeaponID = ResolvedStats.WeaponID;
 	Snapshot.FinalNumericStats = ResolvedStats.FinalNumericStats;
-	Snapshot.WeaponAttackSpec = ResolvedStats.WeaponAttackSpec;
-	Snapshot.WeaponBehaviorSpec = ResolvedStats.WeaponBehaviorSpec;
+	Snapshot.AttackAreaSpec = ResolvedStats.AttackAreaSpec;
+	Snapshot.AbilityAreaSpec = ResolvedStats.AbilityAreaSpec;
 	Snapshot.SourceStatRevision = WeaponStatRevision;
 	return Snapshot;
 }

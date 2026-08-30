@@ -7,7 +7,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "UI/BattleBuffIconWidget.h"
 
-namespace
+namespace BattleCoinInfoPrivate
 {
 	const FName WeaponIconParameterName(TEXT("Weapon_Icon"));
 	const FName WeaponColorParameterName(TEXT("Weapon_Color"));
@@ -128,8 +128,10 @@ void UW_BattleCoinInfo::SetWeaponFaceData(
 		}
 		if (IsValid(WeaponMaterial))
 		{
-			WeaponMaterial->SetTextureParameterValue(WeaponIconParameterName, FaceData.WeaponIcon);
-			WeaponMaterial->SetVectorParameterValue(WeaponColorParameterName, FaceData.WeaponColor);
+			WeaponMaterial->SetTextureParameterValue(
+				BattleCoinInfoPrivate::WeaponIconParameterName, FaceData.WeaponIcon);
+			WeaponMaterial->SetVectorParameterValue(
+				BattleCoinInfoPrivate::WeaponColorParameterName, FaceData.WeaponColor);
 		}
 		else
 		{
@@ -164,7 +166,7 @@ void UW_BattleCoinInfo::SetWeaponFaceData(
 
 void UW_BattleCoinInfo::RebuildBuffIcons(const TArray<FBattleStatusEffectViewData>& StatusEffects)
 {
-	if (FixedBuffIcons.Num() != FixedBuffIconCount)
+	if (FixedBuffIcons.Num() != BattleCoinInfoPrivate::FixedBuffIconCount)
 	{
 		CacheFixedBuffIcons();
 	}
@@ -192,7 +194,8 @@ void UW_BattleCoinInfo::RebuildBuffIcons(const TArray<FBattleStatusEffectViewDat
 		AdditionalBuffPanel->ClearChildren();
 		if (BattleBuffIconWidgetClass)
 		{
-			for (int32 StatusIndex = FixedBuffIconCount; StatusIndex < StatusEffects.Num(); ++StatusIndex)
+			for (int32 StatusIndex = BattleCoinInfoPrivate::FixedBuffIconCount;
+				StatusIndex < StatusEffects.Num(); ++StatusIndex)
 			{
 				UBattleBuffIconWidget* BuffIcon = CreateWidget<UBattleBuffIconWidget>(
 					this, BattleBuffIconWidgetClass);
@@ -206,7 +209,7 @@ void UW_BattleCoinInfo::RebuildBuffIcons(const TArray<FBattleStatusEffectViewDat
 		}
 	}
 
-	bHasAdditionalBuffs = StatusEffects.Num() > FixedBuffIconCount &&
+	bHasAdditionalBuffs = StatusEffects.Num() > BattleCoinInfoPrivate::FixedBuffIconCount &&
 		IsValid(AdditionalBuffPanel) && AdditionalBuffPanel->GetChildrenCount() > 0;
 	SetAdditionalBuffsVisible(bAdditionalBuffsRequested);
 }

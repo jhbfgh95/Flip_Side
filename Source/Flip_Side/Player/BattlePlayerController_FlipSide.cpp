@@ -29,6 +29,8 @@
 #include "WeaponDataTypes.h"
 #include "ItemDataTypes.h"
 #include "Actors/Component_Status.h"
+#include "Actors/CoinAttackRangeIndicatorActor.h"
+#include "Actors/AbilityRangeActor.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace
@@ -43,9 +45,9 @@ namespace
         FaceStats.BaseNumericStats.AttackPoint = FMath::Max(0, LegacyFaceData.AttackPoint);
         FaceStats.BaseNumericStats.WeaponPoint = FMath::Max(0, LegacyFaceData.BehaviorPoint);
         FaceStats.BaseNumericStats.WeaponCnt = 0;
-        FaceStats.WeaponAttackSpec = LegacyFaceData.AttackAreaSpec;
-        // TODO: DB에 능력 전용 범위가 추가되면 기존 단일 범위 공유를 교체합니다.
-        FaceStats.WeaponBehaviorSpec = LegacyFaceData.AttackAreaSpec;
+        FaceStats.AttackAreaSpec = LegacyFaceData.AttackAreaSpec;
+        // TODO(DB_ABILITY_AREA_RECONNECT): DataManager가 능력 사거리 컬럼을 읽기 시작하면 이 값이 채워집니다.
+        FaceStats.AbilityAreaSpec = LegacyFaceData.AbilityAreaSpec;
         return FaceStats;
     }
 
@@ -168,6 +170,8 @@ void ABattlePlayerController_FlipSide::BeginPlay()
         }
     }
 
+	SpawnBattleRangePreviewActors();
+
 	RefreshBattlePhaseHUD();
 
 	TryBindBossHUD();
@@ -193,6 +197,7 @@ void ABattlePlayerController_FlipSide::BeginPlay()
 
 void ABattlePlayerController_FlipSide::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+    HideBattleCoinRangePreviews();
     StopObservingBattleInfoCoin();
     HoveredBattleCoin.Reset();
     HoveredReadyCoinInstanceID = INDEX_NONE;
@@ -200,6 +205,17 @@ void ABattlePlayerController_FlipSide::EndPlay(const EEndPlayReason::Type EndPla
     {
         BattleHUDWidget->HideBattleCoinInfo();
     }
+
+	if (IsValid(AttackRangeIndicatorActor))
+	{
+		AttackRangeIndicatorActor->Destroy();
+		AttackRangeIndicatorActor = nullptr;
+	}
+	if (IsValid(AbilityRangeActor))
+	{
+		AbilityRangeActor->Destroy();
+		AbilityRangeActor = nullptr;
+	}
     Super::EndPlay(EndPlayReason);
 }
 
@@ -668,11 +684,6 @@ void ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsStarted(
         BattleHUDWidget->SetAdditionalBattleCoinBuffsVisible(bShowAdditionalBuffsHeld);
     }
 
-    if (IsValid(BattleHUDWidget))
-    {
-        // 이 Shift IA는 레디/필드 코인의 추가 버프와 코인 슬롯 설명의 상세 스탯을 같이 제어합니다.
-        BattleHUDWidget->SetCoinSlotDetailedStatsVisible(bShowAdditionalBuffsHeld);
-    }
 }
 
 void ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsCompleted(
@@ -683,7 +694,6 @@ void ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsCompleted(
     if (IsValid(BattleHUDWidget))
     {
         BattleHUDWidget->SetAdditionalBattleCoinBuffsVisible(false);
-        BattleHUDWidget->SetCoinSlotDetailedStatsVisible(false);
     }
 }
 
@@ -697,6 +707,7 @@ void ABattlePlayerController_FlipSide::BeginBattleCoinActorHover(ACoinActor* Coi
     HoveredBattleCoin = CoinActor;
     ObserveBattleInfoCoin(CoinActor);
     RefreshHoveredBattleCoinInfo();
+	ShowBattleCoinRangePreviews(CoinActor);
 }
 
 void ABattlePlayerController_FlipSide::EndBattleCoinActorHover(ACoinActor* ExpectedCoin)
@@ -707,6 +718,7 @@ void ABattlePlayerController_FlipSide::EndBattleCoinActorHover(ACoinActor* Expec
         return;
     }
 
+	HideBattleCoinRangePreviews(CurrentHoveredCoin);
     HoveredBattleCoin.Reset();
     if (HoveredReadyCoinInstanceID == INDEX_NONE)
     {
@@ -716,6 +728,168 @@ void ABattlePlayerController_FlipSide::EndBattleCoinActorHover(ACoinActor* Expec
             BattleHUDWidget->HideBattleCoinInfo();
         }
     }
+}
+
+void ABattlePlayerController_FlipSide::SpawnBattleRangePreviewActors()
+{
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
+	{
+		return;
+	}
+
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.Owner = this;
+	SpawnParameters.Instigator = GetPawn();
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	if (AttackRangeIndicatorClass)
+	{
+		AttackRangeIndicatorActor = World->SpawnActor<ACoinAttackRangeIndicatorActor>(
+			AttackRangeIndicatorClass,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			SpawnParameters
+		);
+		if (IsValid(AttackRangeIndicatorActor))
+		{
+			AttackRangeIndicatorActor->HideRange();
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[BattlePlayerController] AttackRangeIndicatorClass가 BP에 지정되지 않았습니다."));
+	}
+
+	if (AbilityRangeActorClass)
+	{
+		AbilityRangeActor = World->SpawnActor<AAbilityRangeActor>(
+			AbilityRangeActorClass,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			SpawnParameters
+		);
+		if (IsValid(AbilityRangeActor))
+		{
+			AbilityRangeActor->HideRange();
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[BattlePlayerController] AbilityRangeActorClass가 BP에 지정되지 않았습니다."));
+	}
+}
+
+void ABattlePlayerController_FlipSide::RefreshBattleCoinRangePreviews()
+{
+	if (ACoinActor* CoinActor = HoveredBattleCoin.Get(); IsValid(CoinActor))
+	{
+		ShowBattleCoinRangePreviews(CoinActor);
+	}
+}
+
+void ABattlePlayerController_FlipSide::ShowBattleCoinRangePreviews(ACoinActor* CoinActor)
+{
+	HideBattleCoinRangePreviews(CoinActor);
+
+	UWorld* World = GetWorld();
+	if (!IsValid(CoinActor) || !CoinActor->GetCoinOnBattle() ||
+		!IsValid(CoinActor->StatComponent) || !IsValid(World))
+	{
+		return;
+	}
+
+	UGridManagerSubsystem* GridManager = World->GetSubsystem<UGridManagerSubsystem>();
+	if (!IsValid(GridManager))
+	{
+		return;
+	}
+
+	const FGridPoint CoinCell = CoinActor->GetDecidedGrid();
+	const EFaceState CurrentFace = CoinActor->GetCoinDecidedFace();
+	if (CoinCell.GridX < 0 || CoinCell.GridY < 0 || CurrentFace == EFaceState::None)
+	{
+		return;
+	}
+
+	const FResolvedWeaponFaceStats ResolvedStats = CoinActor->StatComponent->ResolveFaceStats(CurrentFace);
+
+	bool bAttackRangeVisible = false;
+	if (IsValid(AttackRangeIndicatorActor))
+	{
+		UBossManagerSubsystem* BossManager = World->GetSubsystem<UBossManagerSubsystem>();
+		const bool bHasActiveBoss = IsValid(BossManager) && IsValid(BossManager->GetCurrentBoss());
+		FGridPoint AttackStartCell;
+		FGridPoint AttackEndCell;
+		if (GridManager->TryBuildStraightRangeEndpoints(
+			CoinCell,
+			ResolvedStats.AttackAreaSpec,
+			bHasActiveBoss,
+			AttackStartCell,
+			AttackEndCell))
+		{
+			FVector CoinWorldLocation;
+			FVector AttackStartWorldLocation;
+			FVector AttackEndWorldLocation;
+			if (GridManager->TryGetGridWorldLocation(CoinCell, CoinWorldLocation) &&
+				GridManager->TryGetGridWorldLocation(AttackStartCell, AttackStartWorldLocation) &&
+				GridManager->TryGetGridWorldLocation(AttackEndCell, AttackEndWorldLocation))
+			{
+				// 셀 중심 사이의 간격은 방향으로만 쓰고, 실제 메시 경계는 Indicator가 계산합니다.
+				const FVector GridStepWorld = AttackStartWorldLocation - CoinWorldLocation;
+
+				bAttackRangeVisible = AttackRangeIndicatorActor->ShowRange(
+					AttackStartWorldLocation,
+					AttackEndWorldLocation,
+					GridStepWorld
+				);
+			}
+		}
+	}
+	CoinActor->SetAttackRangeBracketVisible(bAttackRangeVisible);
+
+	if (IsValid(AbilityRangeActor))
+	{
+		TArray<FGridPoint> AbilityCells;
+		GridManager->BuildAreaCellsFromOrigin(
+			CoinCell,
+			ResolvedStats.AbilityAreaSpec,
+			AbilityCells
+		);
+
+		TArray<FVector> AbilityWorldLocations;
+		AbilityWorldLocations.Reserve(AbilityCells.Num());
+		for (const FGridPoint& AbilityCell : AbilityCells)
+		{
+			FVector WorldLocation;
+			if (GridManager->TryGetGridWorldLocation(AbilityCell, WorldLocation))
+			{
+				AbilityWorldLocations.Add(WorldLocation);
+			}
+		}
+		AbilityRangeActor->ShowRangeAtWorldLocations(AbilityWorldLocations);
+	}
+}
+
+void ABattlePlayerController_FlipSide::HideBattleCoinRangePreviews(ACoinActor* CoinActor)
+{
+	ACoinActor* TargetCoin = IsValid(CoinActor) ? CoinActor : HoveredBattleCoin.Get();
+	if (IsValid(TargetCoin))
+	{
+		TargetCoin->SetAttackRangeBracketVisible(false);
+	}
+
+	if (IsValid(AttackRangeIndicatorActor))
+	{
+		AttackRangeIndicatorActor->HideRange();
+	}
+
+	if (IsValid(AbilityRangeActor))
+	{
+		AbilityRangeActor->HideRange();
+	}
 }
 
 void ABattlePlayerController_FlipSide::ObserveBattleInfoCoin(ACoinActor* CoinActor)
@@ -837,6 +1011,7 @@ void ABattlePlayerController_FlipSide::HandleObservedWeaponStatsChanged(
 {
     static_cast<void>(ChangedEvent);
     RefreshHoveredBattleCoinInfo();
+	RefreshBattleCoinRangePreviews();
 }
 
 void ABattlePlayerController_FlipSide::HandleObservedStatusEffectsChanged(
@@ -866,6 +1041,7 @@ void ABattlePlayerController_FlipSide::HandleObservedShieldChanged(int32 DeltaSh
 
 void ABattlePlayerController_FlipSide::HandleObservedCoinDeath(ACoinActor* DeadCoin)
 {
+	HideBattleCoinRangePreviews(DeadCoin);
     if (HoveredBattleCoin.Get() == DeadCoin)
     {
         HoveredBattleCoin.Reset();
@@ -1094,22 +1270,10 @@ FBattleCoinSlotViewData ABattlePlayerController_FlipSide::BuildCoinSlotViewData(
     ViewData.HP = CoinSlotData.HP;
     ViewData.FrontWeaponID = CoinSlotData.FrontWeaponID;
     ViewData.BackWeaponID = CoinSlotData.BackWeaponID;
-    ViewData.FrontWeaponDisplay = CoinSlotData.FrontWeaponDisplay;
-    ViewData.BackWeaponDisplay = CoinSlotData.BackWeaponDisplay;
+    ViewData.FrontWeaponStats = CoinSlotData.FrontWeaponStats;
+    ViewData.BackWeaponStats = CoinSlotData.BackWeaponStats;
     ViewData.FrontWeaponColor = BattleInfoFrontWeaponColor;
     ViewData.BackWeaponColor = BattleInfoBackWeaponColor;
-
-    /*
-     * TODO(DB_KEYWORD_RECONNECT): DB/DataManager 팀 작업 후 아래 연결을 복구합니다.
-     * - 무기 ID로 토큰 설명 + AttackPower/WeaponPower/Count 조회
-     * - 활성 키워드 일괄 조회 결과를 포매터 캐시에 전달
-     * - AttackRange/AbilityRange Spec은 TODO(DB_RANGE_PREVIEW_RECONNECT) 완성 전까지 요청하지 않음
-     *
-     * FWeaponDescriptionDisplayData FrontDisplayData;
-     * FWeaponDescriptionDisplayData BackDisplayData;
-     * DataManager->TryGetWeaponDescriptionDisplayData(CoinSlotData.FrontWeaponID, FrontDisplayData);
-     * DataManager->TryGetWeaponDescriptionDisplayData(CoinSlotData.BackWeaponID, BackDisplayData);
-     */
 
     UDataManagerSubsystem* DataManager = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>() : nullptr;
     if (!IsValid(DataManager))

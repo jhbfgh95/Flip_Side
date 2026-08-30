@@ -20,6 +20,18 @@ ACoinActor::ACoinActor()
 	CoinMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Coin Mesh"));
 	CoinMesh->SetupAttachment(RootComponent);
 
+	AttackRangeBracketAnchor = CreateDefaultSubobject<USceneComponent>(TEXT("Attack Range Bracket Anchor"));
+	AttackRangeBracketAnchor->SetupAttachment(RootComponent);
+
+	AttackRangeBracketMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Attack Range Bracket Mesh"));
+	AttackRangeBracketMesh->SetupAttachment(AttackRangeBracketAnchor);
+	AttackRangeBracketMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	AttackRangeBracketMesh->SetGenerateOverlapEvents(false);
+	AttackRangeBracketMesh->SetCastShadow(false);
+	AttackRangeBracketMesh->SetReceivesDecals(false);
+	AttackRangeBracketMesh->SetTranslucentSortPriority(102);
+	AttackRangeBracketMesh->SetVisibility(false);
+
 	CoinActedMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Acted Coin Mesh"));
 	CoinActedMesh->SetupAttachment(RootComponent);
 	CoinActedMesh->SetVisibility(false);
@@ -241,6 +253,17 @@ void ACoinActor::SetUIVisibility(const bool bUIVisibile)
 	}
 }
 
+void ACoinActor::SetAttackRangeBracketVisible(bool bVisible)
+{
+	if (!IsValid(AttackRangeBracketMesh))
+	{
+		return;
+	}
+
+	const bool bHasConfiguredMesh = IsValid(AttackRangeBracketMesh->GetStaticMesh());
+	AttackRangeBracketMesh->SetVisibility(bVisible && bHasConfiguredMesh);
+}
+
 void ACoinActor::RefreshCoinMaterial()
 {
 	if (!IsValid(CoinMesh) || !IsValid(FrontIconTexture) || !IsValid(BackIconTexture))
@@ -389,6 +412,7 @@ void ACoinActor::OnHover_Implementation()
 
 void ACoinActor::OnUnhover_Implementation()
 {
+	SetAttackRangeBracketVisible(false);
 	OnUnhoverCoin.Broadcast();
 	CoinUnHoverOutline();
 }
@@ -431,6 +455,7 @@ void ACoinActor::CoinDead()
 	}
 
 	bDeathStarted = true;
+	SetAttackRangeBracketVisible(false);
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(JumpTimerHandle);

@@ -45,10 +45,10 @@ enum class EWeaponStatChangeFlags : uint8
 {
 	None = 0,
 	NumericStats = 1 << 0,
-	AttackSpec = 1 << 1,
-	BehaviorSpec = 1 << 2,
+	AttackAreaSpec = 1 << 1,
+	AbilityAreaSpec = 1 << 2,
 	CurrentFace = 1 << 3,
-	All = NumericStats | AttackSpec | BehaviorSpec | CurrentFace
+	All = NumericStats | AttackAreaSpec | AbilityAreaSpec | CurrentFace
 };
 ENUM_CLASS_FLAGS(EWeaponStatChangeFlags);
 
@@ -81,10 +81,10 @@ struct FWeaponFaceStats
 	FWeaponNumericStats BaseNumericStats;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FAttackAreaSpec WeaponAttackSpec;
+	FAttackAreaSpec AttackAreaSpec;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FAttackAreaSpec WeaponBehaviorSpec;
+	FAttackAreaSpec AbilityAreaSpec;
 };
 
 /** 범위형 버프가 공격·능력 규격의 ParamA/ParamB를 독립적으로 수정합니다. */
@@ -125,15 +125,15 @@ struct FWeaponStatModifier
 	int32 MaxHP = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FAttackAreaSpecModifier WeaponAttackSpec;
+	FAttackAreaSpecModifier AttackAreaSpec;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FAttackAreaSpecModifier WeaponBehaviorSpec;
+	FAttackAreaSpecModifier AbilityAreaSpec;
 
 	bool IsZero() const
 	{
 		return AttackPoint == 0 && WeaponPoint == 0 && WeaponCnt == 0 && MaxHP == 0 &&
-			WeaponAttackSpec.IsZero() && WeaponBehaviorSpec.IsZero();
+			AttackAreaSpec.IsZero() && AbilityAreaSpec.IsZero();
 	}
 };
 
@@ -191,10 +191,10 @@ struct FResolvedWeaponFaceStats
 	FWeaponNumericStats FinalNumericStats;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FAttackAreaSpec WeaponAttackSpec;
+	FAttackAreaSpec AttackAreaSpec;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FAttackAreaSpec WeaponBehaviorSpec;
+	FAttackAreaSpec AbilityAreaSpec;
 };
 
 /** 클릭 시 UWeapon_Action으로 넘길 현재 면의 불변 행동 후보 스냅숏입니다. */
@@ -213,10 +213,10 @@ struct FWeaponActionSnapshot
 	FWeaponNumericStats FinalNumericStats;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FAttackAreaSpec WeaponAttackSpec;
+	FAttackAreaSpec AttackAreaSpec;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FAttackAreaSpec WeaponBehaviorSpec;
+	FAttackAreaSpec AbilityAreaSpec;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 SourceStatRevision = 0;

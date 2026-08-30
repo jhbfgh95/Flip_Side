@@ -100,4 +100,7 @@ private:
 
 	// BattleManager의 CoinReadyPhase 연결은 현재 주석 처리되어 있으므로 UI 테스트 중에는 활성 상태로 둡니다.
 	bool bIsCoinReadyPhase = true;
+
+	// 보유 코인이 없어 CreateTestCoinSlots의 기획서 기반 스탯·사거리를 사용하는지 구분합니다.
+	bool bUsingTestCoinData = false;
 };
