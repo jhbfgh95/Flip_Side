@@ -1,135 +1,131 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DataTypes/FlipSide_Enum.h"
+#include "DataTypes/GridTypes.h"
+#include "DataTypes/WeaponDataTypes.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "DataTypes/AttackAreaTypes.h"
-#include "FlipSide_Enum.h"
-#include "GridTypes.h"
-#include "Objects/Weapon_Action.h"
 #include "CoinActionManagementWSubsystem.generated.h"
 
+class ABase_OtherActor;
+class ABossActor;
+class ACoinActor;
+class AGridActor;
+class UActionLogicRegistryGISubsystem;
+class UBattleLevelActingWSubsystem;
+class UGridManagerSubsystem;
+class UWeapon_Action;
+struct FRegisteredAbilityLogic;
+struct FWeaponLogicSet;
+
+/** 한 코인 행동 안에서 공격과 각 능력 타이밍을 순서대로 진행합니다. */
+enum class ECoinWeaponPipelineStage : uint8
+{
+	None,
+	BeforeAttack,
+	Attack,
+	OnHit,
+	AfterAttackAlways,
+	Finishing
+};
 
 UCLASS()
 class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
-	bool bIsCorrectPhase = false;
-
-	//캐싱
-	FAttackAreaSpec AreaSpec;
-
-	//반복
-	int32 RepeatActionCnt = 1;
-
-	//이거로 공격범위 표시 ㄱㄱ
-	TArray<struct FGridPoint> OutCells;
-
-	UPROPERTY()
-	class UWeapon_Action* SelectedAction;
-
-	UPROPERTY()
-	TArray<FGridPoint> ValidTargetGrids;
-
-	UPROPERTY()
-	TArray<class ACoinActor*> ValidTargetCoins;
-
-	UPROPERTY()
-	TArray<class AGridActor*> ValidTargetGridActors;
-
-	UPROPERTY()
-	TArray<class ABase_OtherActor*> ValidTargetOthers;
-
-	//이거로 이펙트 타이머함
-	FTimerHandle AutoActionHandler;
-
-	FTimerHandle CommonVFXTimerHandle;
-
-	bool bActionSequenceActive = false;
-
-	bool bCurrentStepTargetValid = true;
-
-	bool bPendingFailedVFX = false;
-
-	UPROPERTY()
-    class UGridManagerSubsystem* GridManager;
-
 public:
-	//이거로 코인 선택하는거 잠궜습니다.
-	void SetPhase(const bool bIsPhase);
-
+	void SetPhase(bool bIsPhase);
 	void StopActionSequenceForStageEnd();
-
 	bool IsActionSequenceActive() const { return bActionSequenceActive; }
 
 	UFUNCTION()
-	void SetSelectedWeapon(class ACoinActor* HoveredCoin);
+	void SetSelectedWeapon(ACoinActor* HoveredCoin);
 
 	UFUNCTION()
 	void ExecuteSelectedWeapon(ACoinActor* ClickedCoin);
 
-	void SetCasterCoin(class ACoinActor* CasterCoin);
-
-	void CancelSelectWeapon();
-
 	UFUNCTION()
 	void HandleCoinUnHovered();
 
-	bool TryExecuteOtherAction(class ABase_OtherActor* TargetOther);
+	bool TryExecuteOtherAction(ABase_OtherActor* TargetOther);
 
 	UFUNCTION()
-	void CancelSingleCellAction(class ACoinActor* ClickedCoin);
+	void CancelSingleCellAction(ACoinActor* ClickedCoin);
 
 	void TryCancelCurrentAction();
-public:
+	void CancelSelectWeapon();
+
 	EActionInputState CurrentInputState = EActionInputState::None;
 
-	//코인 이펙트 시간
+	UPROPERTY(EditAnywhere, Category = "Coin Action|VFX")
 	float CoinNaiagaraTime = 0.5f;
 
 protected:
-	//GridManager에서 Range 넣어서 뭐있는지 알아서 UWeaponAction에 넣어줌.
-	bool ApplyRangedThings(const FGridPoint& TargetGridPoint);
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 
-	void InitWeaponAction();
+private:
+	void ResetActionState(bool bResetSelectedAction = true);
+	bool RebuildSelectedAction(ACoinActor* CasterCoin);
+	bool RefreshSnapshotIfStale();
+	bool RefreshRangeTargets();
+	const FWeaponLogicSet* GetCurrentLogicSet() const;
+	UActionLogicRegistryGISubsystem* GetLogicRegistry() const;
+	UBattleLevelActingWSubsystem* GetActingManager() const;
 
-	void ExecuteNowAction();
-
-	void ExecuteTimeAction(ACoinActor* TargetCoin);
-
-	UFUNCTION()
-	void ExecuteGridAction(AGridActor* targetGrid);
-
-	void SetCoinActorForGrid();
-
-	void StartCoinActionSequence(ACoinActor* CasterCoin);
-
-	void RunCoinActionStep();
-
-	void ResolveCurrentActionStep();
-
+	void StartCoinActionSequence();
+	void BeginRaisedAction();
+	void AdvancePipeline();
+	bool AdvanceAbilitiesForTiming(EAbilityTiming Timing);
+	void BeginAttackStep();
+	void ResolveAttackStep();
+	void ExecuteAbilityImmediately(const FRegisteredAbilityLogic& AbilityLogic);
+	bool BeginManualAbilitySelection(const FRegisteredAbilityLogic& AbilityLogic);
+	void CompleteManualAbilitySelection();
 	void FinishCoinActionSequence();
-
 	void HandleCoinActionLowerFinished();
 
+	void BuildValidAbilityTargets(const FAbilityTargetRule& Rule);
+	void ClearValidAbilityTargets();
+	bool IsValidCoinTarget(const ACoinActor* Coin, const FAbilityTargetRule& Rule) const;
+	bool IsValidOtherTarget(const ABase_OtherActor* Other, const FAbilityTargetRule& Rule) const;
+	int32 ResolveRepeatCount(ERepeatCountSource Source) const;
+	void ConfigureInputForRule(const FAbilityTargetRule& Rule);
+
+	UFUNCTION()
+	void ExecuteGridAction(AGridActor* TargetGrid);
+
 	void PlayCoinSpecificVFX();
-
-	void PlayCommonVFX(const FWeaponActionResolveResult& Result);
-
+	void PlayCommonVFX(const FWeaponAttackResult& AttackResult);
 	void PlayFailedVFX();
-
 	void SpawnVFXAtLocation(class UNiagaraSystem* VFX, const FVector& Location) const;
+	void ClearBossOutline();
 
-	class UBattleLevelActingWSubsystem* GetActingManager() const;
+	bool bIsCorrectPhase = false;
+	bool bActionSequenceActive = false;
+	bool bPendingFailedVFX = false;
+	ECoinWeaponPipelineStage PipelineStage = ECoinWeaponPipelineStage::None;
+	int32 CurrentAbilityIndex = 0;
+	int32 PendingAbilityIndex = INDEX_NONE;
+	int32 PendingSelectionCount = 0;
+	int32 RemainingAttackCount = 0;
 
-	void BuildValidSingleCellTargets();
+	FTimerHandle CommonVFXTimerHandle;
 
-	void ClearValidSingleCellTargets();
+	UPROPERTY(Transient)
+	TObjectPtr<UWeapon_Action> SelectedAction = nullptr;
 
-protected:
-	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	UPROPERTY(Transient)
+	TObjectPtr<UGridManagerSubsystem> GridManager = nullptr;
 
-	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<ACoinActor>> ValidTargetCoins;
 
-	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<AGridActor>> ValidTargetGrids;
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<ABase_OtherActor>> ValidTargetOthers;
 };

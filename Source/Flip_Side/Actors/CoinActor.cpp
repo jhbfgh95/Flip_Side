@@ -240,6 +240,27 @@ bool ACoinActor::SetCoinValues(
 	return true;
 }
 
+void ACoinActor::SetWeaponDefinitions(
+	const FFaceData& FrontDefinition,
+	const FFaceData& BackDefinition)
+{
+	FrontWeaponDefinition = FrontDefinition;
+	BackWeaponDefinition = BackDefinition;
+}
+
+const FFaceData* ACoinActor::GetCurrentWeaponDefinition() const
+{
+	switch (CurrentFace)
+	{
+	case EFaceState::Front:
+		return FrontWeaponDefinition.WeaponID == DecidedWeaponID ? &FrontWeaponDefinition : nullptr;
+	case EFaceState::Back:
+		return BackWeaponDefinition.WeaponID == DecidedWeaponID ? &BackWeaponDefinition : nullptr;
+	default:
+		return nullptr;
+	}
+}
+
 void ACoinActor::SetCoinOnBattle(const bool IsOnBattle)
 {
 	bIsOnBattle = IsOnBattle;
@@ -433,8 +454,7 @@ void ACoinActor::OnClicked_Implementation()
 		}
 		else
 		{
-			// TODO: DB 기반 CoinBehaviorPhase 행동 리팩터링이 끝나면 다시 연결합니다.
-			// OnClickBattleCoin.Broadcast(this);
+			OnClickBattleCoin.Broadcast(this);
 		}
 	}
 }

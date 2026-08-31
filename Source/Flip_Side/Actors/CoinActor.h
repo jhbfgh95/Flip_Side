@@ -10,6 +10,7 @@
 #include "DataTypes/CoinDataTypes.h"
 #include "DataTypes/GridTypes.h"
 #include "DataTypes/FlipSide_Enum.h"
+#include "DataTypes/WeaponDataTypes.h"
 #include "CoinActor.generated.h"
 
 
@@ -66,6 +67,13 @@ class ACoinActor : public AActor, public IBattleHoverInterface, public IBattleCl
 
 	UPROPERTY(VisibleAnywhere)
 	UTexture2D* BackIconTexture;
+
+	// CoinManager가 생성 시 이미 조회한 정의를 보관해 행동 중 DataManager 재조회를 없앱니다.
+	UPROPERTY(VisibleAnywhere, Category = "Coin | WeaponData")
+	FFaceData FrontWeaponDefinition;
+
+	UPROPERTY(VisibleAnywhere, Category = "Coin | WeaponData")
+	FFaceData BackWeaponDefinition;
 
 /* Battle상태 변수들 */
 protected:
@@ -161,6 +169,9 @@ public:
 		UTexture2D* BackTexture,
 		const FCoinStatInitializeData& StatInitializeData
 	);
+
+	void SetWeaponDefinitions(const FFaceData& FrontDefinition, const FFaceData& BackDefinition);
+	const FFaceData* GetCurrentWeaponDefinition() const;
 
 	/* 앞,뒤 결정 */
 	int32 GetCoinFaceID() const;

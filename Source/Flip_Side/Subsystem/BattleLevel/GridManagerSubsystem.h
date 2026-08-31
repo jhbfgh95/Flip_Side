@@ -126,6 +126,29 @@ public:
 		TArray<FGridPoint>& OutCells
 	) const;
 
+	/** 능력 Spec을 시전자 기준으로 해석하고 모든 무기에 공통인 보스 영역을 제외합니다. */
+	void BuildAbilityAreaCellsFromOrigin(
+		const FGridPoint& Origin,
+		const FAttackAreaSpec& AbilitySpec,
+		TArray<FGridPoint>& OutCells
+	) const;
+
+	/** 공격 셀과 고정 보스 3x3 점유 영역의 실제 교차 여부로 현재 보스를 수집합니다. */
+	void CollectAttackRangeTargets(
+		const FGridPoint& Origin,
+		const FAttackAreaSpec& AttackSpec,
+		TArray<FGridPoint>& OutCells,
+		class ABossActor*& OutBoss
+	) const;
+
+	/** 능력 셀 안의 코인·장애물·설치물을 한 번 수집하며 보스는 포함하지 않습니다. */
+	void CollectAbilityRangeTargets(
+		const FGridPoint& Origin,
+		const FAttackAreaSpec& AbilitySpec,
+		TArray<FGridPoint>& OutCells,
+		FObjectOnGridInfo& OutObjects
+	) const;
+
 	/** 직선 공격의 첫 셀과 끝 셀을 계산하며, 현재 고정 3x3 보스 발판에서 선택적으로 자릅니다. */
 	bool TryBuildStraightRangeEndpoints(
 		const FGridPoint& Origin,

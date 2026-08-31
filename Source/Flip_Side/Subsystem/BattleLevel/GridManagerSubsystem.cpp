@@ -164,6 +164,84 @@ void UGridManagerSubsystem::BuildAreaCellsFromOrigin(
 	FGridAreaBuilder::BuildCells(ResolvedSpec, GridXSize, GridYSize, OutCells);
 }
 
+void UGridManagerSubsystem::BuildAbilityAreaCellsFromOrigin(
+	const FGridPoint& Origin,
+	const FAttackAreaSpec& AbilitySpec,
+	TArray<FGridPoint>& OutCells) const
+{
+	BuildAreaCellsFromOrigin(Origin, AbilitySpec, OutCells);
+	OutCells.RemoveAll([this](const FGridPoint& Cell)
+	{
+		return IsBossAreaCell(Cell);
+	});
+}
+
+void UGridManagerSubsystem::CollectAttackRangeTargets(
+	const FGridPoint& Origin,
+	const FAttackAreaSpec& AttackSpec,
+	TArray<FGridPoint>& OutCells,
+	ABossActor*& OutBoss) const
+{
+	OutBoss = nullptr;
+	BuildAreaCellsFromOrigin(Origin, AttackSpec, OutCells);
+	const bool bIntersectsBossFootprint = OutCells.ContainsByPredicate([this](const FGridPoint& Cell)
+	{
+		return IsFixedBossFootprintCell(Cell);
+	});
+	if (!bIntersectsBossFootprint)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	UBossManagerSubsystem* BossManager = IsValid(World)
+		? World->GetSubsystem<UBossManagerSubsystem>()
+		: nullptr;
+	ABossActor* Boss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
+	OutBoss = IsValid(Boss) ? Boss : nullptr;
+}
+
+void UGridManagerSubsystem::CollectAbilityRangeTargets(
+	const FGridPoint& Origin,
+	const FAttackAreaSpec& AbilitySpec,
+	TArray<FGridPoint>& OutCells,
+	FObjectOnGridInfo& OutObjects) const
+{
+	OutObjects.Coins.Reset();
+	OutObjects.Others.Reset();
+	OutObjects.Boss = nullptr;
+	BuildAbilityAreaCellsFromOrigin(Origin, AbilitySpec, OutCells);
+
+	for (const FGridPoint& Cell : OutCells)
+	{
+		AGridActor* Grid = GetGridActor(Cell);
+		if (!IsValid(Grid) || !Grid->GetIsOccupied())
+		{
+			continue;
+		}
+
+		AActor* Occupant = Grid->GetCurrentOccupied();
+		switch (Grid->GetCurrentOccupyingThing())
+		{
+		case EGridOccupyingType::Coin:
+			if (IsValid(Occupant))
+			{
+				OutObjects.Coins.AddUnique(Occupant);
+			}
+			break;
+		case EGridOccupyingType::Wall:
+		case EGridOccupyingType::Turret:
+			if (IsValid(Occupant))
+			{
+				OutObjects.Others.AddUnique(Occupant);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+}
+
 bool UGridManagerSubsystem::TryBuildStraightRangeEndpoints(
 	const FGridPoint& Origin,
 	const FAttackAreaSpec& Spec,

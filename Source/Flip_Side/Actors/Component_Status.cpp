@@ -1,4 +1,5 @@
 #include "Actors/Component_Status.h"
+#include "DataTypes/WeaponDataTypes.h"
 
 namespace
 {
@@ -128,6 +129,7 @@ FResolvedWeaponFaceStats UComponent_Status::ResolveFaceStatsFromData(
 	ResolvedStats.FinalNumericStats = FaceStats.BaseNumericStats;
 	ResolvedStats.AttackAreaSpec = FaceStats.AttackAreaSpec;
 	ResolvedStats.AbilityAreaSpec = FaceStats.AbilityAreaSpec;
+	ResolvedStats.bHasAbilityArea = FaceStats.bHasAbilityArea;
 
 	for (const FStatusEffectInstance& StatusEffect : StatusEffects)
 	{
@@ -169,6 +171,7 @@ FWeaponActionSnapshot UComponent_Status::BuildActionSnapshot(EFaceState Face) co
 	Snapshot.FinalNumericStats = ResolvedStats.FinalNumericStats;
 	Snapshot.AttackAreaSpec = ResolvedStats.AttackAreaSpec;
 	Snapshot.AbilityAreaSpec = ResolvedStats.AbilityAreaSpec;
+	Snapshot.bHasAbilityArea = ResolvedStats.bHasAbilityArea;
 	Snapshot.SourceStatRevision = WeaponStatRevision;
 	return Snapshot;
 }
@@ -195,6 +198,18 @@ bool UComponent_Status::AddStatusEffect(FStatusEffectInstance StatusEffect)
 		{
 			return false;
 		}
+	}
+
+	if (StatusEffect.ReactiveBehavior == EStatusReactiveBehavior::TemporaryShield)
+	{
+		const int32 PreviousShield = Shield;
+		Shield = FMath::Clamp(Shield + FMath::Max(0, StatusEffect.ReactiveMagnitude), 0, MAX_SHIELD);
+		StatusEffect.RuntimeValue = Shield - PreviousShield;
+		if (StatusEffect.RuntimeValue <= 0)
+		{
+			return false;
+		}
+		OnShieldChanged.Broadcast(StatusEffect.RuntimeValue);
 	}
 
 	if (NextBuffInstanceSerial <= 0)
@@ -226,23 +241,12 @@ bool UComponent_Status::RemoveStatusEffectByInstanceSerial(int32 BuffInstanceSer
 		return false;
 	}
 
-	const FStatusEffectInstance RemovedEffect = ActiveStatusEffects[EffectIndex];
-	ActiveStatusEffects.RemoveAt(EffectIndex);
-	RecalculateMaxHPFromEffects(false);
-
-	const EWeaponStatChangeFlags ChangeFlags = GetModifierChangeFlags(RemovedEffect.Modifier);
-	if (ChangeFlags != EWeaponStatChangeFlags::None)
-	{
-		MarkWeaponStatsDirty(ChangeFlags);
-	}
-	BroadcastStatusEffectChanged(RemovedEffect);
-	return true;
+	return RemoveStatusEffectAtIndex(EffectIndex);
 }
 
 int32 UComponent_Status::RemoveTurnOnlyStatusEffects()
 {
-	TArray<FStatusEffectInstance> RemovedEffects;
-	EWeaponStatChangeFlags ChangeFlags = EWeaponStatChangeFlags::None;
+	int32 RemovedCount = 0;
 	for (int32 EffectIndex = ActiveStatusEffects.Num() - 1; EffectIndex >= 0; --EffectIndex)
 	{
 		if (ActiveStatusEffects[EffectIndex].DurationType != EBuffDurationType::TurnOnly)
@@ -250,34 +254,64 @@ int32 UComponent_Status::RemoveTurnOnlyStatusEffects()
 			continue;
 		}
 
-		ChangeFlags |= GetModifierChangeFlags(ActiveStatusEffects[EffectIndex].Modifier);
-		RemovedEffects.Add(ActiveStatusEffects[EffectIndex]);
-		ActiveStatusEffects.RemoveAt(EffectIndex);
+		RemovedCount += RemoveStatusEffectAtIndex(EffectIndex) ? 1 : 0;
 	}
-	RecalculateMaxHPFromEffects(false);
+	return RemovedCount;
+}
 
-	if (ChangeFlags != EWeaponStatChangeFlags::None)
+int32 UComponent_Status::RemoveStatusEffectsByTypeAndSource(
+	int32 BuffTypeID,
+	EStatusEffectSourceType SourceType,
+	int32 SourceDataID)
+{
+	int32 RemovedCount = 0;
+	for (int32 EffectIndex = ActiveStatusEffects.Num() - 1; EffectIndex >= 0; --EffectIndex)
 	{
-		MarkWeaponStatsDirty(ChangeFlags);
-	}
-
-	TArray<FStatusEffectInstance> BroadcastedEffects;
-	for (const FStatusEffectInstance& RemovedEffect : RemovedEffects)
-	{
-		const bool bAlreadyBroadcast = BroadcastedEffects.ContainsByPredicate([&RemovedEffect](const FStatusEffectInstance& Effect)
+		const FStatusEffectInstance& Effect = ActiveStatusEffects[EffectIndex];
+		if (Effect.BuffTypeID == BuffTypeID && Effect.SourceType == SourceType &&
+			Effect.SourceDataID == SourceDataID)
 		{
-			return Effect.BuffTypeID == RemovedEffect.BuffTypeID &&
-				Effect.SourceType == RemovedEffect.SourceType &&
-				Effect.SourceDataID == RemovedEffect.SourceDataID &&
-				Effect.Polarity == RemovedEffect.Polarity;
-		});
-		if (!bAlreadyBroadcast)
-		{
-			BroadcastedEffects.Add(RemovedEffect);
-			BroadcastStatusEffectChanged(RemovedEffect);
+			RemovedCount += RemoveStatusEffectAtIndex(EffectIndex) ? 1 : 0;
 		}
 	}
-	return RemovedEffects.Num();
+	return RemovedCount;
+}
+
+int32 UComponent_Status::GetStatusEffectStackCount(
+	int32 BuffTypeID,
+	EStatusEffectSourceType SourceType,
+	int32 SourceDataID) const
+{
+	int32 StackCount = 0;
+	for (const FStatusEffectInstance& Effect : ActiveStatusEffects)
+	{
+		if (Effect.BuffTypeID == BuffTypeID && Effect.SourceType == SourceType &&
+			Effect.SourceDataID == SourceDataID)
+		{
+			++StackCount;
+		}
+	}
+	return StackCount;
+}
+
+int32 UComponent_Status::AdvancePersistentStatusEffectsAtTurnEnd()
+{
+	int32 RemovedCount = 0;
+	for (int32 EffectIndex = ActiveStatusEffects.Num() - 1; EffectIndex >= 0; --EffectIndex)
+	{
+		FStatusEffectInstance& Effect = ActiveStatusEffects[EffectIndex];
+		if (Effect.DurationType != EBuffDurationType::PersistentInBattle || Effect.RemainingTurns <= 0)
+		{
+			continue;
+		}
+
+		--Effect.RemainingTurns;
+		if (Effect.RemainingTurns <= 0)
+		{
+			RemovedCount += RemoveStatusEffectAtIndex(EffectIndex) ? 1 : 0;
+		}
+	}
+	return RemovedCount;
 }
 
 FCoinRuntimeStateSnapshot UComponent_Status::ExportRuntimeState() const
@@ -436,6 +470,53 @@ void UComponent_Status::RecalculateMaxHPFromEffects(bool bIncreaseCurrentHPForPo
 	HandleDeathIfNeeded();
 }
 
+bool UComponent_Status::RemoveStatusEffectAtIndex(int32 EffectIndex)
+{
+	if (!ActiveStatusEffects.IsValidIndex(EffectIndex))
+	{
+		return false;
+	}
+
+	const FStatusEffectInstance RemovedEffect = ActiveStatusEffects[EffectIndex];
+	if (RemovedEffect.ReactiveBehavior == EStatusReactiveBehavior::TemporaryShield &&
+		RemovedEffect.RuntimeValue > 0 && Shield > 0)
+	{
+		const int32 RemovedShield = FMath::Min(Shield, RemovedEffect.RuntimeValue);
+		Shield -= RemovedShield;
+		OnShieldChanged.Broadcast(-RemovedShield);
+	}
+
+	ActiveStatusEffects.RemoveAt(EffectIndex);
+	RecalculateMaxHPFromEffects(false);
+	const EWeaponStatChangeFlags ChangeFlags = GetModifierChangeFlags(RemovedEffect.Modifier);
+	if (ChangeFlags != EWeaponStatChangeFlags::None)
+	{
+		MarkWeaponStatsDirty(ChangeFlags);
+	}
+	BroadcastStatusEffectChanged(RemovedEffect);
+	return true;
+}
+
+void UComponent_Status::ConsumeTemporaryShieldContribution(int32 AbsorbedDamage)
+{
+	int32 RemainingAbsorbedDamage = FMath::Max(0, AbsorbedDamage);
+	for (FStatusEffectInstance& Effect : ActiveStatusEffects)
+	{
+		if (RemainingAbsorbedDamage <= 0)
+		{
+			break;
+		}
+		if (Effect.ReactiveBehavior != EStatusReactiveBehavior::TemporaryShield || Effect.RuntimeValue <= 0)
+		{
+			continue;
+		}
+
+		const int32 ConsumedValue = FMath::Min(Effect.RuntimeValue, RemainingAbsorbedDamage);
+		Effect.RuntimeValue -= ConsumedValue;
+		RemainingAbsorbedDamage -= ConsumedValue;
+	}
+}
+
 FActionTask UComponent_Status::GetModifiedStats()
 {
 	FActionTask FinalTask;
@@ -523,18 +604,88 @@ void UComponent_Status::ApplyDamage(int32 Damage, AActor* DamageCauser)
 		return;
 	}
 
+
+	TArray<FStatusEffectInstance> TriggeredArmorEffects;
+	TArray<int32> ConsumedEffectSerials;
+	for (const FStatusEffectInstance& Effect : ActiveStatusEffects)
+	{
+		switch (Effect.ReactiveBehavior)
+		{
+		case EStatusReactiveBehavior::DodgeChance:
+			if (FMath::RandRange(1, 100) <= FMath::Clamp(Effect.ReactiveMagnitude, 0, 100))
+			{
+				return;
+			}
+			break;
+		case EStatusReactiveBehavior::ReduceNextDamageAndGrantAttack:
+			FinalDamage = FMath::Max(0, FinalDamage - FMath::Max(0, Effect.ReactiveMagnitude));
+			TriggeredArmorEffects.Add(Effect);
+			if (Effect.RemainingTriggers > 0)
+			{
+				ConsumedEffectSerials.AddUnique(Effect.BuffInstanceSerial);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
 	FinalDamage = FMath::Max(0, FinalDamage);
+	int32 AbsorbedDamage = 0;
 	if (Shield > 0 && FinalDamage > 0)
 	{
-		const int32 AbsorbedDamage = FMath::Min(Shield, FinalDamage);
+		AbsorbedDamage = FMath::Min(Shield, FinalDamage);
 		Shield -= AbsorbedDamage;
 		FinalDamage -= AbsorbedDamage;
+		ConsumeTemporaryShieldContribution(AbsorbedDamage);
 		OnShieldChanged.Broadcast(-AbsorbedDamage);
 	}
 
+	for (const FStatusEffectInstance& Effect : ActiveStatusEffects)
+	{
+		if (Effect.ReactiveBehavior == EStatusReactiveBehavior::SurviveLethalOnce &&
+			FinalDamage >= HP && HP > 0)
+		{
+			FinalDamage = FMath::Max(0, HP - 1);
+			ConsumedEffectSerials.AddUnique(Effect.BuffInstanceSerial);
+			break;
+		}
+	}
+
+	const int32 PreviousHP = HP;
 	if (FinalDamage > 0)
 	{
 		HPChanged(FinalDamage);
+	}
+	const int32 ActualHPDamage = FMath::Max(0, PreviousHP - HP);
+	const bool bTookDamage = AbsorbedDamage + ActualHPDamage > 0;
+
+	for (int32 BuffInstanceSerial : ConsumedEffectSerials)
+	{
+		RemoveStatusEffectByInstanceSerial(BuffInstanceSerial);
+	}
+
+	if (bTookDamage)
+	{
+		for (const FStatusEffectInstance& ArmorEffect : TriggeredArmorEffects)
+		{
+			const int32 NextTurnAttack = FMath::Max(0, FMath::RoundToInt(Damage * 0.5f));
+			if (NextTurnAttack <= 0)
+			{
+				continue;
+			}
+
+			FStatusEffectInstance AttackBuff;
+			AttackBuff.BuffTypeID = WeaponBuffTypeID::ArmorNextTurnAttack;
+			AttackBuff.SourceType = ArmorEffect.SourceType;
+			AttackBuff.SourceDataID = ArmorEffect.SourceDataID;
+			AttackBuff.Polarity = EStatusPolarity::Buff;
+			AttackBuff.DurationType = EBuffDurationType::PersistentInBattle;
+			// 현재 BossPhase 종료와 다음 턴 종료를 통과한 뒤 제거됩니다.
+			AttackBuff.RemainingTurns = 2;
+			AttackBuff.Modifier.AttackPoint = NextTurnAttack;
+			AddStatusEffect(AttackBuff);
+		}
 	}
 }
 
@@ -652,27 +803,13 @@ void UComponent_Status::RemoveLegacyBuffAt(int32 Index)
 
 void UComponent_Status::ClearDebuffs()
 {
-	TArray<FStatusEffectInstance> RemovedStatusEffects;
-	EWeaponStatChangeFlags ChangeFlags = EWeaponStatChangeFlags::None;
 	for (int32 EffectIndex = ActiveStatusEffects.Num() - 1; EffectIndex >= 0; --EffectIndex)
 	{
 		if (ActiveStatusEffects[EffectIndex].Polarity != EStatusPolarity::Debuff)
 		{
 			continue;
 		}
-		ChangeFlags |= GetModifierChangeFlags(ActiveStatusEffects[EffectIndex].Modifier);
-		RemovedStatusEffects.Add(ActiveStatusEffects[EffectIndex]);
-		ActiveStatusEffects.RemoveAt(EffectIndex);
-	}
-	RecalculateMaxHPFromEffects(false);
-
-	if (ChangeFlags != EWeaponStatChangeFlags::None)
-	{
-		MarkWeaponStatsDirty(ChangeFlags);
-	}
-	for (const FStatusEffectInstance& RemovedStatusEffect : RemovedStatusEffects)
-	{
-		BroadcastStatusEffectChanged(RemovedStatusEffect);
+		RemoveStatusEffectAtIndex(EffectIndex);
 	}
 
 	bool bRemovedLegacyDebuff = false;

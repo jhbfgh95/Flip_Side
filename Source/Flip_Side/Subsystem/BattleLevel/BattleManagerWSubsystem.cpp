@@ -383,6 +383,12 @@ void UBattleManagerWSubsystem::HandleCoinBehaviorEntryFinished()
         return;
     }
 
+    // 코인의 실제 착지가 모두 끝난 뒤부터만 호버·클릭 행동 입력을 허용합니다.
+    if (IsValid(CoinActionManager))
+    {
+        CoinActionManager->SetPhase(true);
+    }
+
     if (IsValid(ItemManager))
     {
         ItemManager->SetPhase(true);

@@ -39,6 +39,17 @@ enum class EStatusEffectSourceType : uint8
 	Boss
 };
 
+/** 단순 수치 Modifier 외에 피해 시점에 반응해야 하는 상태효과 동작입니다. */
+UENUM(BlueprintType)
+enum class EStatusReactiveBehavior : uint8
+{
+	None,
+	DodgeChance,
+	ReduceNextDamageAndGrantAttack,
+	SurviveLethalOnce,
+	TemporaryShield
+};
+
 /** 호버 UI와 행동 후보 스냅숏이 어느 값의 변경으로 무효화됐는지 알려줍니다. */
 UENUM(BlueprintType, meta = (Bitflags))
 enum class EWeaponStatChangeFlags : uint8
@@ -85,6 +96,10 @@ struct FWeaponFaceStats
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FAttackAreaSpec AbilityAreaSpec;
+
+	// DB에 능력 사거리 None이 추가되기 전까지 공격 전용 무기와 능력 사거리 보유 무기를 구분합니다.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bHasAbilityArea = false;
 };
 
 /** 범위형 버프가 공격·능력 규격의 ParamA/ParamB를 독립적으로 수정합니다. */
@@ -170,6 +185,21 @@ struct FStatusEffectInstance
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FWeaponStatModifier Modifier;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EStatusReactiveBehavior ReactiveBehavior = EStatusReactiveBehavior::None;
+
+	// 확률, 피해 감소량 또는 최초 보호막 부여량처럼 반응 로직의 고정 수치입니다.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ReactiveMagnitude = 0;
+
+	// 남은 임시 보호막처럼 실행 도중 감소하는 런타임 수치입니다.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 RuntimeValue = 0;
+
+	// 0은 횟수 제한 없음이며, 1 이상이면 반응할 때마다 감소합니다.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 RemainingTriggers = 0;
 };
 
 /** 한 면의 기본값과 모든 활성 수정치를 합친 호버 표시용 계산 결과입니다. */
@@ -195,6 +225,9 @@ struct FResolvedWeaponFaceStats
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FAttackAreaSpec AbilityAreaSpec;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bHasAbilityArea = false;
 };
 
 /** 클릭 시 UWeapon_Action으로 넘길 현재 면의 불변 행동 후보 스냅숏입니다. */
@@ -217,6 +250,9 @@ struct FWeaponActionSnapshot
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FAttackAreaSpec AbilityAreaSpec;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bHasAbilityArea = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 SourceStatRevision = 0;

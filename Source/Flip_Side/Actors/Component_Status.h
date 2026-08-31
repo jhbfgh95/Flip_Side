@@ -101,6 +101,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status|Effect")
 	int32 RemoveTurnOnlyStatusEffects();
 
+	int32 RemoveStatusEffectsByTypeAndSource(
+		int32 BuffTypeID,
+		EStatusEffectSourceType SourceType,
+		int32 SourceDataID
+	);
+
+	int32 GetStatusEffectStackCount(
+		int32 BuffTypeID,
+		EStatusEffectSourceType SourceType,
+		int32 SourceDataID
+	) const;
+
+	/** SettingPhase 저장 직전에 유한 지속 효과의 남은 턴을 한 번 진행합니다. */
+	int32 AdvancePersistentStatusEffectsAtTurnEnd();
+
 	// CoinManager가 Actor 파괴 전에 HP·보호막·전투 지속 효과만 가져갑니다.
 	FCoinRuntimeStateSnapshot ExportRuntimeState() const;
 
@@ -162,6 +177,8 @@ private:
 	void BroadcastStatusEffectChanged(const FStatusEffectInstance& StatusEffect) const;
 	int32 CountStatusEffectStacks(const FStatusEffectInstance& StatusEffect) const;
 	void RecalculateMaxHPFromEffects(bool bIncreaseCurrentHPForPositiveDelta);
+	bool RemoveStatusEffectAtIndex(int32 EffectIndex);
+	void ConsumeTemporaryShieldContribution(int32 AbsorbedDamage);
 	void RemoveLegacyBuffAt(int32 Index);
 	void HandleDeathIfNeeded();
 	void RemoveCC();

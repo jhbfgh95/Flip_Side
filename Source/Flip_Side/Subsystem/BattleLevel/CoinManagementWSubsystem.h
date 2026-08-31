@@ -9,6 +9,7 @@
 
 class ACoinActor;
 class UGridManagerSubsystem;
+class UCoinActionManagementWSubsystem;
 class UDataManagerSubsystem;
 struct FFaceData;
 
@@ -82,6 +83,8 @@ private:
 	int32 ResolveCoinSlotHP(const FCoinTypeStructure& CoinSlot, const UDataManagerSubsystem* DataManager) const;
 	FWeaponFaceStats BuildTemporaryWeaponFaceStats(const FFaceData& LegacyFaceData) const;
 	void BroadcastCoinDataChanged();
+	void BindRuntimeCoinInteraction(ACoinActor* RuntimeCoin);
+	void UnbindRuntimeCoinInteraction(ACoinActor* RuntimeCoin);
 	void HandleRuntimeCoinDeathStarted(ACoinActor* DeadCoin);
 	void ReleaseAndDestroyRuntimeCoin(int32 ReadySlotIndex);
 
@@ -97,6 +100,10 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UGridManagerSubsystem> GridManager = nullptr;
+
+	// 생성된 필드 코인의 호버·클릭 입력을 전투 행동 파이프라인에 한 번만 연결합니다.
+	UPROPERTY(Transient)
+	TObjectPtr<UCoinActionManagementWSubsystem> CoinActionManager = nullptr;
 
 	// BattleManager의 CoinReadyPhase 연결은 현재 주석 처리되어 있으므로 UI 테스트 중에는 활성 상태로 둡니다.
 	bool bIsCoinReadyPhase = true;

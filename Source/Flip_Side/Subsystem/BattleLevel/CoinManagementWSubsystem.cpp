@@ -4,6 +4,7 @@
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/FlipSideDevloperSettings.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
+#include "Subsystem/BattleLevel/CoinActionManagementWSubsystem.h"
 #include "Actors/CoinActor.h"
 #include "Actors/Component_Status.h"
 #include "DataTypes/WeaponDataTypes.h"
@@ -13,8 +14,11 @@
 namespace
 {
 	constexpr int32 BloodPoweredBloodCannonWeaponID = 4;
+	constexpr int32 RapidFreezerWeaponID = 7;
 	constexpr int32 ShellGameGauntletWeaponID = 11;
 	constexpr int32 AdrenalineInjectionPistolWeaponID = 14;
+	constexpr int32 EmergencyResuscitationDeviceWeaponID = 16;
+	constexpr int32 CrushingDrillWeaponID = 17;
 
 	struct FTestCoinWeaponPair
 	{
@@ -22,12 +26,15 @@ namespace
 		int32 BackWeaponID;
 	};
 
-	// 기획서의 테스트 대상 세 무기만 사용하되, 코인의 앞/뒷면에는 서로 다른 무기를 배치합니다.
+	// 기존 테스트 코인 3종을 유지하고, 신규 테스트 무기 3종은 별도 코인 슬롯으로 뒤에 추가합니다.
 	constexpr FTestCoinWeaponPair TestCoinWeaponPairs[] =
 	{
 		{ BloodPoweredBloodCannonWeaponID, ShellGameGauntletWeaponID },
 		{ ShellGameGauntletWeaponID, AdrenalineInjectionPistolWeaponID },
-		{ AdrenalineInjectionPistolWeaponID, BloodPoweredBloodCannonWeaponID }
+		{ AdrenalineInjectionPistolWeaponID, BloodPoweredBloodCannonWeaponID },
+		{ EmergencyResuscitationDeviceWeaponID, CrushingDrillWeaponID },
+		{ CrushingDrillWeaponID, RapidFreezerWeaponID },
+		{ RapidFreezerWeaponID, EmergencyResuscitationDeviceWeaponID }
 	};
 
 	FAttackAreaSpec MakeForwardAttackAreaSpec(int32 Depth)
@@ -68,17 +75,36 @@ namespace
 			FaceStats.BaseNumericStats = { 2, 3, 0 };
 			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(3);
 			FaceStats.AbilityAreaSpec = MakeSquareAbilityAreaSpec(1);
+			FaceStats.bHasAbilityArea = true;
+			break;
+		case RapidFreezerWeaponID:
+			FaceStats.BaseNumericStats = { 1, 3, 0 };
+			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(4);
 			break;
 		case ShellGameGauntletWeaponID:
 			FaceStats.BaseNumericStats = { 3, 3, 0 };
 			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(2);
 			// 9x9 어느 위치에서든 전체 보드를 포함하는 전 범위 Spec입니다.
 			FaceStats.AbilityAreaSpec = MakeSquareAbilityAreaSpec(8);
+			FaceStats.bHasAbilityArea = true;
 			break;
 		case AdrenalineInjectionPistolWeaponID:
 			FaceStats.BaseNumericStats = { 1, 1, 2 };
 			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(2);
 			FaceStats.AbilityAreaSpec = MakeSquareAbilityAreaSpec(1);
+			FaceStats.bHasAbilityArea = true;
+			break;
+		case EmergencyResuscitationDeviceWeaponID:
+			FaceStats.BaseNumericStats = { 1, 1, 0 };
+			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(2);
+			FaceStats.AbilityAreaSpec = MakeSquareAbilityAreaSpec(1);
+			FaceStats.bHasAbilityArea = true;
+			break;
+		case CrushingDrillWeaponID:
+			FaceStats.BaseNumericStats = { 1, 1, 2 };
+			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(2);
+			FaceStats.AbilityAreaSpec = MakeSquareAbilityAreaSpec(1);
+			FaceStats.bHasAbilityArea = true;
 			break;
 		default:
 			return FWeaponFaceStats();
@@ -100,6 +126,7 @@ void UCoinManagementWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	GridManager = Collection.InitializeDependency<UGridManagerSubsystem>();
+	CoinActionManager = Collection.InitializeDependency<UCoinActionManagementWSubsystem>();
 	ReadyCoins.Init(FReadyCoinData(), MaxReadyCoinCount);
 	RuntimeCoinsByReadySlot.SetNum(MaxReadyCoinCount);
 }
@@ -450,7 +477,9 @@ int32 UCoinManagementWSubsystem::InstantiateReadyCoinActors()
 
 		SpawnedCoin->SetActorHiddenInGame(true);
 		SpawnedCoin->SetActorEnableCollision(false);
+		SpawnedCoin->SetWeaponDefinitions(FrontWeaponData, BackWeaponData);
 		SpawnedCoin->OnCoinDeathStarted.AddUObject(this, &UCoinManagementWSubsystem::HandleRuntimeCoinDeathStarted);
+		BindRuntimeCoinInteraction(SpawnedCoin);
 		RuntimeCoinsByReadySlot[ReadySlotIndex] = SpawnedCoin;
 		++SpawnedCoinCount;
 	}
@@ -471,6 +500,7 @@ void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
 			{
 				// SettingPhase에서는 방금 끝난 턴의 효과를 먼저 버리고 전투 지속 효과만 저장합니다.
 				StatusComponent->RemoveTurnOnlyStatusEffects();
+				StatusComponent->AdvancePersistentStatusEffectsAtTurnEnd();
 			}
 			const FCoinRuntimeStateSnapshot RuntimeState = IsValid(StatusComponent)
 				? StatusComponent->ExportRuntimeState()
@@ -669,12 +699,47 @@ FWeaponFaceStats UCoinManagementWSubsystem::BuildTemporaryWeaponFaceStats(const 
 	FaceStats.AttackAreaSpec = LegacyFaceData.AttackAreaSpec;
 	// TODO(DB_ABILITY_AREA_RECONNECT): DataManager가 능력 사거리 컬럼을 읽기 시작하면 이 값이 채워집니다.
 	FaceStats.AbilityAreaSpec = LegacyFaceData.AbilityAreaSpec;
+	FaceStats.bHasAbilityArea = false;
 	return FaceStats;
 }
 
 void UCoinManagementWSubsystem::BroadcastCoinDataChanged()
 {
 	OnBattleCoinDataChanged.Broadcast();
+}
+
+void UCoinManagementWSubsystem::BindRuntimeCoinInteraction(ACoinActor* RuntimeCoin)
+{
+	if (!IsValid(RuntimeCoin) || !IsValid(CoinActionManager))
+	{
+		return;
+	}
+
+	RuntimeCoin->OnHoverBattleCoin.AddUniqueDynamic(
+		CoinActionManager, &UCoinActionManagementWSubsystem::SetSelectedWeapon);
+	RuntimeCoin->OnClickBattleCoin.AddUniqueDynamic(
+		CoinActionManager, &UCoinActionManagementWSubsystem::ExecuteSelectedWeapon);
+	RuntimeCoin->OnUnhoverCoin.AddUniqueDynamic(
+		CoinActionManager, &UCoinActionManagementWSubsystem::HandleCoinUnHovered);
+	RuntimeCoin->OnCoinRightClicked.AddUniqueDynamic(
+		CoinActionManager, &UCoinActionManagementWSubsystem::CancelSingleCellAction);
+}
+
+void UCoinManagementWSubsystem::UnbindRuntimeCoinInteraction(ACoinActor* RuntimeCoin)
+{
+	if (!IsValid(RuntimeCoin) || !IsValid(CoinActionManager))
+	{
+		return;
+	}
+
+	RuntimeCoin->OnHoverBattleCoin.RemoveDynamic(
+		CoinActionManager, &UCoinActionManagementWSubsystem::SetSelectedWeapon);
+	RuntimeCoin->OnClickBattleCoin.RemoveDynamic(
+		CoinActionManager, &UCoinActionManagementWSubsystem::ExecuteSelectedWeapon);
+	RuntimeCoin->OnUnhoverCoin.RemoveDynamic(
+		CoinActionManager, &UCoinActionManagementWSubsystem::HandleCoinUnHovered);
+	RuntimeCoin->OnCoinRightClicked.RemoveDynamic(
+		CoinActionManager, &UCoinActionManagementWSubsystem::CancelSingleCellAction);
 }
 
 void UCoinManagementWSubsystem::HandleRuntimeCoinDeathStarted(ACoinActor* DeadCoin)
@@ -695,6 +760,7 @@ void UCoinManagementWSubsystem::HandleRuntimeCoinDeathStarted(ACoinActor* DeadCo
 		GridManager->ReleaseCoinCell(DeadCoin->GetDecidedGrid(), DeadCoin);
 	}
 
+	UnbindRuntimeCoinInteraction(DeadCoin);
 	DeadCoin->OnCoinDeathStarted.RemoveAll(this);
 	RuntimeCoinsByReadySlot[ReadySlotIndex] = nullptr;
 	if (ReadyCoins.IsValidIndex(ReadySlotIndex))
@@ -729,6 +795,7 @@ void UCoinManagementWSubsystem::ReleaseAndDestroyRuntimeCoin(int32 ReadySlotInde
 		GridManager->ReleaseCoinCell(RuntimeCoin->GetDecidedGrid(), RuntimeCoin);
 	}
 
+	UnbindRuntimeCoinInteraction(RuntimeCoin);
 	RuntimeCoin->OnCoinDeathStarted.RemoveAll(this);
 	RuntimeCoin->Destroy();
 }

@@ -814,7 +814,12 @@ void ABattlePlayerController_FlipSide::ShowBattleCoinRangePreviews(ACoinActor* C
 		return;
 	}
 
-	const FResolvedWeaponFaceStats ResolvedStats = CoinActor->StatComponent->ResolveFaceStats(CurrentFace);
+	// 실제 클릭 시 UWeapon_Action이 받는 것과 같은 최신 스탯 스냅숏으로 두 미리보기를 계산합니다.
+	const FWeaponActionSnapshot PreviewSnapshot = CoinActor->StatComponent->BuildActionSnapshot(CurrentFace);
+	if (PreviewSnapshot.WeaponID == INDEX_NONE)
+	{
+		return;
+	}
 
 	bool bAttackRangeVisible = false;
 	if (IsValid(AttackRangeIndicatorActor))
@@ -825,7 +830,7 @@ void ABattlePlayerController_FlipSide::ShowBattleCoinRangePreviews(ACoinActor* C
 		FGridPoint AttackEndCell;
 		if (GridManager->TryBuildStraightRangeEndpoints(
 			CoinCell,
-			ResolvedStats.AttackAreaSpec,
+			PreviewSnapshot.AttackAreaSpec,
 			bHasActiveBoss,
 			AttackStartCell,
 			AttackEndCell))
@@ -850,12 +855,12 @@ void ABattlePlayerController_FlipSide::ShowBattleCoinRangePreviews(ACoinActor* C
 	}
 	CoinActor->SetAttackRangeBracketVisible(bAttackRangeVisible);
 
-	if (IsValid(AbilityRangeActor))
+	if (PreviewSnapshot.bHasAbilityArea && IsValid(AbilityRangeActor))
 	{
 		TArray<FGridPoint> AbilityCells;
-		GridManager->BuildAreaCellsFromOrigin(
+		GridManager->BuildAbilityAreaCellsFromOrigin(
 			CoinCell,
-			ResolvedStats.AbilityAreaSpec,
+			PreviewSnapshot.AbilityAreaSpec,
 			AbilityCells
 		);
 
