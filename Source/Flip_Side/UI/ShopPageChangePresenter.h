@@ -8,6 +8,7 @@
 class AShopPlayerPawn_FlipSide;
 class UW_ShopWidgetContainer;
 class AShopUISelectRegistry;
+class AShopUISelectActor;
 UCLASS()
 class FLIP_SIDE_API UShopPageChangePresenter : public UObject
 {
@@ -28,6 +29,9 @@ protected:
 	UPROPERTY()
 	TObjectPtr<AShopUISelectRegistry> ShopUISelectRegistry;
 
+	UPROPERTY()
+	TArray<TObjectPtr<AShopUISelectActor>> SelectActors;
+
 private:
 	UFUNCTION()
 	void HandlePageRequested(EShopPage Page);
@@ -37,6 +41,7 @@ private:
 
 private:
 	void InitShopUISelectActor();
+	void SetShopUISelectActorsEnabled(bool bEnabled);
 
 	EShopPage PendingPage = EShopPage::Main;
 	bool bIsTransitioning = false;

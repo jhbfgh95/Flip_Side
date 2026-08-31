@@ -80,6 +80,9 @@ protected:
 	void BuySlot(int32 Level);
 
 	UFUNCTION()
+	void CloseSlotBuyPopup();
+
+	UFUNCTION()
 	void BuyCoinSlotCoin(int32 SlotIndex, int32 Count);
 
 	UFUNCTION()

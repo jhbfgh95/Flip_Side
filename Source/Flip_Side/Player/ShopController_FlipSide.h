@@ -43,12 +43,6 @@ protected:
 	TSubclassOf<UUserWidget> ShopWidgetContainerClass;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "UI|Shop Item")
-	TSubclassOf<AShopItemUIActor> ShopItemUIActorClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "UI|Shop Item")
-	FTransform ShopItemUIActorSpawnTransform = FTransform::Identity;
-
 	UPROPERTY()
 	TObjectPtr<AShopItemUIActor> ShopItemUIActor;
 

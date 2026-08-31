@@ -13,6 +13,7 @@ class UW_ShopPlayerItemSlotContainer;
 class UW_ShopItemSlotContainer;
 class UW_ShopSelectedItem;
 class UW_ShopItemDescription;
+class UW_ShopItemPurchasePopup;
 UCLASS()
 class FLIP_SIDE_API UW_ShopItemWidget : public UUserWidget
 {
@@ -30,6 +31,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UW_ShopItemDescription> ShopItemDescription;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UW_ShopItemPurchasePopup> ShopItemPurchasePopup;
 	
 public:
 	UFUNCTION()
@@ -43,5 +47,7 @@ public:
 
 	UFUNCTION()
 	UW_ShopItemDescription* GetShopItemDescription() const;
+
+	UW_ShopItemPurchasePopup* GetShopItemPurchasePopup() const;
 
 };

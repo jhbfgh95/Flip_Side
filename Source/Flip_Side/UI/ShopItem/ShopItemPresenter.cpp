@@ -13,6 +13,7 @@
 #include "UI/ShopItem/W_ShopPlayerItemSlot.h"
 #include "UI/ShopItem/W_ShopSelectedItem.h"
 #include "UI/ShopItem/W_ShopItemDescription.h"
+#include "UI/ShopItem/W_ShopItemPurchasePopup.h"
 #include "UI/ShopItem/ShopItemUIActor.h"
 
 
@@ -27,6 +28,7 @@ void UShopItemPresenter::InitPresenter(UW_ShopItemWidget* InShopItemWidget, USho
 
     ItemSubsystem->OnItemBuy.AddDynamic(this, &UShopItemPresenter::SetPlayerItemSlot);
 
+    SetShopItemPurchasePopup();
     SetShopSlotItemViews();
     SetPlayerSlotItemViews();
     
@@ -134,10 +136,53 @@ void UShopItemPresenter::SetShopSlotItemViews()
 
     for(int i =0; i< ShopItemSlotViews.Num();i++)
     {
-        ShopItemSlotViews[i]->OnBuyItem.AddDynamic(this, &UShopItemPresenter::BuyItem);
+        ShopItemSlotViews[i]->OnClickShopItemSlot.AddDynamic(this, &UShopItemPresenter::OpenPurchasePopup);
         ShopItemSlotViews[i]->OnHoveredSlot.AddDynamic(this, &UShopItemPresenter::HoveredItemSlot);
         ShopItemSlotViews[i]->OnUnhoveredSlot.AddDynamic(this, &UShopItemPresenter::UnhoveredItemSlot);
-        ShopItemSlotViews[i]->OnAddBuyItemCount.AddDynamic(this, &UShopItemPresenter::CheckCanItemBuy);
+    }
+}
+
+void UShopItemPresenter::SetShopItemPurchasePopup()
+{
+    if (!IsValid(ShopItemWidget))
+        return;
+
+    if (UW_ShopItemPurchasePopup* Popup = ShopItemWidget->GetShopItemPurchasePopup())
+    {
+        Popup->OnPurchaseItemRequested.AddDynamic(this, &UShopItemPresenter::RequestPurchaseFromPopup);
+        Popup->OnCancelled.AddDynamic(this, &UShopItemPresenter::ClosePurchasePopup);
+    }
+}
+
+void UShopItemPresenter::OpenPurchasePopup(UW_ShopItemSlot* ClickedSlot, int32 ItemID)
+{
+    if (!IsValid(ClickedSlot) || !IsValid(ShopItemWidget))
+        return;
+
+    if (UW_ShopItemPurchasePopup* Popup = ShopItemWidget->GetShopItemPurchasePopup())
+    {
+        Popup->Open(GetItemData(ItemID));
+    }
+}
+
+void UShopItemPresenter::RequestPurchaseFromPopup(int32 ItemID, int32 Count)
+{
+    const FItemData ItemData = GetItemData(ItemID);
+    if (!ItemSubsystem->CanBuyItem(ItemData.Price, Count))
+        return;
+
+    BuyItem(ItemID, Count);
+    ClosePurchasePopup();
+}
+
+void UShopItemPresenter::ClosePurchasePopup()
+{
+    if (!IsValid(ShopItemWidget))
+        return;
+
+    if (UW_ShopItemPurchasePopup* Popup = ShopItemWidget->GetShopItemPurchasePopup())
+    {
+        Popup->Close();
     }
 }
 
@@ -196,14 +241,6 @@ void UShopItemPresenter::HideItemDescription()
     }
 }
 	
-void UShopItemPresenter::CheckCanItemBuy(UW_ShopItemSlot* BuyItemSlot, int32 BuyItemID, int32 Count)
-{
-    if(ItemSubsystem->CanBuyItem(GetItemData(BuyItemID).Price, Count))
-    {
-        BuyItemSlot->AddBuyItemCount(Count);
-    }
-}
-
 FItemData UShopItemPresenter::GetItemData(int32 ID)
 {
     FItemData ReturnItemData;

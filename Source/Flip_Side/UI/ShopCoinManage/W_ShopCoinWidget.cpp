@@ -15,22 +15,9 @@ UW_ShopCoinSlotContainer* UW_ShopCoinWidget::GetShopCoinSlotContainer() const
 	return ShopCoinSlotContainer;
 }
 
-UW_ShopCoinSlotBuyButton* UW_ShopCoinWidget::GetShopCoinSlotBuyButton(int32 GetButtonLevel)
+UW_BuyCoinSlotContainer* UW_ShopCoinWidget::GetBuyCoinSlotContainer() const
 {
-	switch(GetButtonLevel)
-	{
-		case 1:
-			return L1_ShopCoinSlotBuyButton;
-			break;
-		case 2:
-			return L2_ShopCoinSlotBuyButton;
-			break;
-		case 3:
-			return L3_ShopCoinSlotBuyButton;
-			break;
-		default:
-			return L1_ShopCoinSlotBuyButton;
-	}
+	return BuyCoinSlotContainer;
 }
 	
 UW_ShopSelectCoin* UW_ShopCoinWidget::GetShopSelectCoin()

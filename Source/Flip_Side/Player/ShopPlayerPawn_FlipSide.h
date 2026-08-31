@@ -67,7 +67,7 @@ private:
 	bool bBroadcastOnMoveCompleted = false;
 
 private:
-	void SetCameraOrthographic();
+	void SetCameraOrthographic(float InOrthoWidth);
 	void SetCameraPerspective();
 	void StartMove(const FTransform& NewTargetTransform);
 	void StartShopPageMove(const FTransform& NewTargetTransform, EShopPage Page);

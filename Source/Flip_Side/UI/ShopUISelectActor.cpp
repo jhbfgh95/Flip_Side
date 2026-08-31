@@ -24,10 +24,9 @@ AShopUISelectActor::AShopUISelectActor()
 	ClickCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 	ClickCollision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	ClickCollision->ComponentTags.Add(TEXT("LClickAble"));
-
+	ClickCollision->ComponentTags.Add(TEXT("HoverAble"));
 	SelectWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("SelectWidget"));
 	SelectWidget->SetupAttachment(SceneRoot);
-	SelectWidget->SetVisibility(false);
 
 }
 
@@ -35,7 +34,23 @@ AShopUISelectActor::AShopUISelectActor()
 void AShopUISelectActor::BeginPlay()
 {
 	Super::BeginPlay();
+	SelectWidget->SetVisibility(false);
 	
+}
+
+void AShopUISelectActor::SetClickCollisionEnabled(bool bEnabled)
+{
+	if (!IsValid(ClickCollision))
+	{
+		return;
+	}
+
+	ClickCollision->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+
+	if (!bEnabled && IsValid(SelectWidget))
+	{
+		SelectWidget->SetVisibility(false);
+	}
 }
 
 void AShopUISelectActor::InteractLeftClick_Implementation()

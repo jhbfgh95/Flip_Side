@@ -17,6 +17,7 @@ class UDataManagerSubsystem;
 class UW_ShopItemSlotContainer;
 class UW_ShopPlayerItemSlotContainer;
 class UW_ShopItemWidget;
+class UW_ShopItemPurchasePopup;
 class AShopItemUIActor;
 USTRUCT(BlueprintType)
 struct FShopItemWidgets
@@ -80,9 +81,16 @@ protected:
 	void SetPlayerItemSlot(int32 SetSlotIndex);
 
 	UFUNCTION()
-	void CheckCanItemBuy(UW_ShopItemSlot* BuyItemSlot, int32 BuyItemData, int32 Count);
+	void OpenPurchasePopup(UW_ShopItemSlot* ClickedSlot, int32 ItemID);
+
+	UFUNCTION()
+	void RequestPurchaseFromPopup(int32 ItemID, int32 Count);
+
+	UFUNCTION()
+	void ClosePurchasePopup();
 
 private:
+	void SetShopItemPurchasePopup();
 	void SetShopSlotItemViews();
 	void SetPlayerSlotItemViews();
 	void SetSelectedItemImage(const FItemData& ItemData);

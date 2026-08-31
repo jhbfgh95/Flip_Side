@@ -4,17 +4,9 @@
 #include "UI/ShopCard/W_ShopPlayerSelectedCardSlot.h"
 #include "UI/ShopCard/W_ShopPlayerCardSlot.h"
 #include "Components/TextBlock.h"
-#include "Components/Button.h"
 #include "Components/Image.h"
-
-
-	
-void UW_ShopPlayerSelectedCardSlot::NativeOnInitialized()
-{
-    Super::NativeOnInitialized();
-
-    UnSelectCardButton->OnClicked.AddDynamic(this, &UW_ShopPlayerSelectedCardSlot::ClickUnSelectCard);
-}
+#include "Input/Reply.h"
+#include "InputCoreTypes.h"
 
 void UW_ShopPlayerSelectedCardSlot::InitCardSlot(int32 InIndex)
 {
@@ -76,4 +68,15 @@ void UW_ShopPlayerSelectedCardSlot::NativeOnMouseLeave(const FPointerEvent& InMo
     Super::NativeOnMouseLeave(InMouseEvent);
     
     OnUnhoveredShopCardSlot.Broadcast();
+}
+
+FReply UW_ShopPlayerSelectedCardSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+    if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+    {
+        ClickUnSelectCard();
+        return FReply::Handled();
+    }
+
+    return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 }

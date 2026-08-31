@@ -15,7 +15,6 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSelectShopPlayerCard, UW_ShopPlayerCardSlot*, SelectedCardSlot, int32, CardID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUnselectShopPlayerCard, int32, CardID);
 
-class UButton;
 class UImage;
 class UTextBlock;
 class UShopCardWSubsystem;
@@ -25,17 +24,11 @@ class FLIP_SIDE_API UW_ShopPlayerCardSlot : public UW_ShopCardBase
 	GENERATED_BODY()
 	
 protected:
-	virtual void NativeOnInitialized() override;
-protected:
-	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UImage> CardImage;
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UTextBlock> CardNameTextBlock;
-
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UButton> SelectCardButton;
 
 public:
 	FOnSelectShopPlayerCard OnSelectShopPlayerCard;
@@ -65,6 +58,11 @@ protected:
     ) override;
 
     virtual void NativeOnMouseLeave(
+        const FPointerEvent& InMouseEvent
+    ) override;
+
+    virtual FReply NativeOnMouseButtonDown(
+        const FGeometry& InGeometry,
         const FPointerEvent& InMouseEvent
     ) override;
 };

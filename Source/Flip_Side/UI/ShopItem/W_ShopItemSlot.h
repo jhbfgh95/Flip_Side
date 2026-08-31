@@ -10,12 +10,10 @@
 /**
  * 
  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBuyItem, int32, ItemID, int32, Amount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickShopItemSlot, UW_ShopItemSlot*, ClickedSlot, int32, ItemID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoveredShopItemSlot, int32, ItemID);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnAddBuyItemCount, UW_ShopItemSlot*, BuyItemSlot, int32, ItemID, int32, Count);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoveredShopItemSlot);
 
-class UButton;
 class UImage;
 class UTextBlock;
 UCLASS()
@@ -28,54 +26,42 @@ protected:
 
 protected:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UButton> ItemBuyButton;
-	
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UButton> ItemCountPlusButton;
-	
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UButton> ItemCountMinusButton;
-	
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UImage> ItemImage;
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UTextBlock> ItemNameTextBlock;
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UTextBlock> ItemCountTextBlock;
-
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UTextBlock> ItemPriceTextBlock;
 
 public:
 
-	FOnBuyItem OnBuyItem;
+	FOnClickShopItemSlot OnClickShopItemSlot;
 	FOnHoveredShopItemSlot OnHoveredSlot;
 	FOnUnhoveredShopItemSlot OnUnhoveredSlot;
-	FOnAddBuyItemCount OnAddBuyItemCount;
 
 protected:
 	FItemData WidgetItemData;
-	int32 CurrentItemCount = 0;
+
+	UPROPERTY(EditAnywhere, Category = "Shop Item|Hover")
+	float HoverScale = 1.1f;
+
+	FVector2D DefaultRenderScale = FVector2D(1.0f, 1.0f);
+
+	void SetHoverScale(bool bHovered);
 
 public:
 
 	void InitItemWidget(FItemData SetItemData);
 	void SetItemSlotImage(FItemData SetItemData);
-	void AddBuyItemCount(int32 Count);
-
-	void SetItemCount(int32 Count);
-public:
-	UFUNCTION()
-	void ClickItemBuyButton();
-	UFUNCTION()
-	void ClickItemCountPlusButton();
-	UFUNCTION()
-	void ClickItemCountMinusButton();
 
 	
 protected:
+    virtual FReply NativeOnMouseButtonDown(
+        const FGeometry& InGeometry,
+        const FPointerEvent& InMouseEvent
+    ) override;
+
     virtual void NativeOnMouseEnter(
         const FGeometry& InGeometry,
         const FPointerEvent& InMouseEvent

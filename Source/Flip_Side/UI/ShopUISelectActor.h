@@ -44,6 +44,8 @@ protected:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	EShopPage ConnectedPage;
 public:
+	/** 월드 상점 선택 오브젝트의 마우스 클릭/호버 충돌을 켜거나 끕니다. */
+	void SetClickCollisionEnabled(bool bEnabled);
 
 	virtual void InteractLeftClick_Implementation() override;
 	virtual void InteractRightClick_Implementation() override;

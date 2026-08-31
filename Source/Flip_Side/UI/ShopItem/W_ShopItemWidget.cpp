@@ -4,6 +4,7 @@
 #include "UI/ShopItem/W_ShopItemWidget.h"
 
 #include "UI/ShopItem/W_ShopItemDescription.h"
+#include "UI/ShopItem/W_ShopItemPurchasePopup.h"
 
 UW_ShopPlayerItemSlotContainer* UW_ShopItemWidget::GetShopPlayerItemSlotContainer() const
 {
@@ -23,5 +24,10 @@ UW_ShopSelectedItem* UW_ShopItemWidget::GetShopSelectedItem() const
 UW_ShopItemDescription* UW_ShopItemWidget::GetShopItemDescription() const
 {
 	return ShopItemDescription;
+}
+
+UW_ShopItemPurchasePopup* UW_ShopItemWidget::GetShopItemPurchasePopup() const
+{
+	return ShopItemPurchasePopup;
 }
 

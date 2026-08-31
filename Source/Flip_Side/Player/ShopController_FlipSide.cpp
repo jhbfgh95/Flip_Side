@@ -55,16 +55,9 @@ void AShopController_FlipSide::BeginPlay()
         return;
     }
 
-    if (!ensure(ShopItemUIActorClass))
-    {
-        return;
-    }
-
-    FActorSpawnParameters ItemActorSpawnParameters;
-    ItemActorSpawnParameters.Owner = this;
-    ItemActorSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-    ShopItemUIActor = GetWorld()->SpawnActor<AShopItemUIActor>(
-        ShopItemUIActorClass, ShopItemUIActorSpawnTransform, ItemActorSpawnParameters);
+    // 레벨에 배치된 상점 아이템 UI 액터를 찾아 프레젠터에 전달한다.
+    ShopItemUIActor = Cast<AShopItemUIActor>(
+        UGameplayStatics::GetActorOfClass(this, AShopItemUIActor::StaticClass()));
 
     if (!ensure(IsValid(ShopItemUIActor)))
     {

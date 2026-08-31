@@ -11,7 +11,7 @@
  */
 class UW_ShopWeaponSlotContainer;
 class UW_ShopCoinSlotContainer;
-class UW_ShopCoinSlotBuyButton;
+class UW_BuyCoinSlotContainer;
 class UW_ShopSelectCoin;
 class UW_WeaponDescription;
 UCLASS()
@@ -27,11 +27,7 @@ protected:
 	TObjectPtr<UW_ShopCoinSlotContainer> ShopCoinSlotContainer;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UW_ShopCoinSlotBuyButton> L1_ShopCoinSlotBuyButton;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UW_ShopCoinSlotBuyButton> L2_ShopCoinSlotBuyButton;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UW_ShopCoinSlotBuyButton> L3_ShopCoinSlotBuyButton;
+	TObjectPtr<UW_BuyCoinSlotContainer> BuyCoinSlotContainer;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UW_ShopSelectCoin> ShopSelectCoin;
@@ -48,7 +44,7 @@ public:
 	UW_ShopCoinSlotContainer* GetShopCoinSlotContainer() const;
 
 	UFUNCTION()
-	UW_ShopCoinSlotBuyButton* GetShopCoinSlotBuyButton(int32 GetButtonLevel);
+	UW_BuyCoinSlotContainer* GetBuyCoinSlotContainer() const;
 
 	UW_ShopSelectCoin* GetShopSelectCoin();
 	UW_WeaponDescription* GetWeaponDescription() const;

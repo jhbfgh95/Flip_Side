@@ -4,17 +4,16 @@
 #include "UI/ShopItem/W_ShopItemSlot.h"
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
 #include "Subsystem/MoneyGISubsystem.h"
-#include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "Input/Reply.h"
 
 void UW_ShopItemSlot::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    ItemCountPlusButton->OnClicked.AddDynamic(this, &UW_ShopItemSlot::ClickItemCountPlusButton);
-    ItemCountMinusButton->OnClicked.AddDynamic(this, &UW_ShopItemSlot::ClickItemCountMinusButton);
-    ItemBuyButton->OnClicked.AddDynamic(this, &UW_ShopItemSlot::ClickItemBuyButton);
+    DefaultRenderScale = GetRenderTransform().Scale;
+    SetRenderTransformPivot(FVector2D(0.5f, 0.5f));
 }
 
 
@@ -23,9 +22,7 @@ void UW_ShopItemSlot::InitItemWidget(FItemData SetItemData)
     WidgetItemData = SetItemData;
     ItemImage->SetBrushFromTexture(SetItemData.ItemIcon);
     ItemNameTextBlock->SetText(FText::FromString(SetItemData.ItemName));
-    ItemCountTextBlock->SetText(FText::AsNumber(1));
     ItemPriceTextBlock->SetText(FText::AsNumber(SetItemData.Price));
-    CurrentItemCount = 1;
 }
 	
 void UW_ShopItemSlot::SetItemSlotImage(FItemData SetItemData)
@@ -33,59 +30,44 @@ void UW_ShopItemSlot::SetItemSlotImage(FItemData SetItemData)
     WidgetItemData = SetItemData;
     ItemImage->SetBrushFromTexture(SetItemData.ItemIcon);
     ItemNameTextBlock->SetText(FText::FromString(SetItemData.ItemName));
-    ItemCountTextBlock->SetText(FText::AsNumber(1));
     ItemPriceTextBlock->SetText(FText::AsNumber(SetItemData.Price));
 }
 
-void UW_ShopItemSlot::AddBuyItemCount(int32 Count)
+FReply UW_ShopItemSlot::NativeOnMouseButtonDown(
+    const FGeometry& InGeometry,
+    const FPointerEvent& InMouseEvent)
 {
-    CurrentItemCount++;
-    ItemPriceTextBlock->SetText(FText::AsNumber(CurrentItemCount*WidgetItemData.Price));
-    ItemCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
+    if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+    {
+        OnClickShopItemSlot.Broadcast(this, WidgetItemData.ItemID);
+        return FReply::Handled();
+    }
+
+    return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 }
 
-void UW_ShopItemSlot::ClickItemBuyButton()
+void UW_ShopItemSlot::SetHoverScale(bool bHovered)
 {
+    const float ScaleMultiplier = bHovered ? HoverScale : 1.0f;
 
-    ItemCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
-    
-    OnBuyItem.Broadcast(WidgetItemData.ItemID, CurrentItemCount);
-}
-
-void UW_ShopItemSlot::ClickItemCountPlusButton()
-{
-    OnAddBuyItemCount.Broadcast(this, WidgetItemData.ItemID, CurrentItemCount+1);
-}
-	
-void UW_ShopItemSlot::ClickItemCountMinusButton()
-{
-    if(CurrentItemCount-1<1)
-        return;
-
-    CurrentItemCount--;
-
-    ItemPriceTextBlock->SetText(FText::AsNumber(CurrentItemCount*WidgetItemData.Price));
-    ItemCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
-}
-
-void UW_ShopItemSlot::SetItemCount(int32 Count)
-{
-    
-    CurrentItemCount = Count;
-    ItemPriceTextBlock->SetText(FText::AsNumber(CurrentItemCount*WidgetItemData.Price));
-    ItemCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
+    SetRenderScale(FVector2D(
+        DefaultRenderScale.X * ScaleMultiplier,
+        DefaultRenderScale.Y * ScaleMultiplier
+    ));
 }
 
 void UW_ShopItemSlot::NativeOnMouseEnter(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
-    OnHoveredSlot.Broadcast(WidgetItemData.ItemID);
 
+    SetHoverScale(true);
+    OnHoveredSlot.Broadcast(WidgetItemData.ItemID);
 }
 
 void UW_ShopItemSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseLeave(InMouseEvent);
 
+    SetHoverScale(false);
     OnUnhoveredSlot.Broadcast();
 }

@@ -2,15 +2,9 @@
 
 #include "UI/ShopCard/W_ShopCardSlot.h"
 #include "Components/Image.h"
-#include "Components/Button.h"
 #include "Components/TextBlock.h"
-
-void UW_ShopCardSlot::NativeOnInitialized()
-{
-    Super::NativeOnInitialized();
-    
-    BuyCardButton->OnClicked.AddDynamic(this, &UW_ShopCardSlot::ClickBuyCardButton);
-}
+#include "Input/Reply.h"
+#include "InputCoreTypes.h"
 
 void UW_ShopCardSlot::InitCardSlot(FCardData InitCard)
 {
@@ -43,4 +37,15 @@ void UW_ShopCardSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
     Super::NativeOnMouseLeave(InMouseEvent);
 
     OnUnhoveredShopCardSlot.Broadcast();
+}
+
+FReply UW_ShopCardSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+    if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+    {
+        ClickBuyCardButton();
+        return FReply::Handled();
+    }
+
+    return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 }

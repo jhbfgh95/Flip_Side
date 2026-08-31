@@ -14,7 +14,6 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUnselectedPlayerCard, int32, SlotIndex);
 
-class UButton;
 class UImage;
 class UTextBlock;
 class UW_ShopPlayerCardSlot;
@@ -24,17 +23,11 @@ class FLIP_SIDE_API UW_ShopPlayerSelectedCardSlot : public UW_ShopCardBase
 	GENERATED_BODY()
 	
 protected:
-	virtual void NativeOnInitialized() override;
-protected:
-	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UImage> CardImage;
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UTextBlock> CardNameTextBlock;
-
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UButton> UnSelectCardButton;
 
 public:
 	FOnUnselectedPlayerCard OnUnselectedPlayerCard;
@@ -73,6 +66,11 @@ protected:
     ) override;
 
     virtual void NativeOnMouseLeave(
+        const FPointerEvent& InMouseEvent
+    ) override;
+
+    virtual FReply NativeOnMouseButtonDown(
+        const FGeometry& InGeometry,
         const FPointerEvent& InMouseEvent
     ) override;
 };

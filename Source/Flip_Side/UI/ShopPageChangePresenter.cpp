@@ -17,6 +17,14 @@ void UShopPageChangePresenter::InitPresenter(AShopUISelectRegistry* InShopUISele
 		return;
 	}
 
+	SelectActors = {
+		ShopUISelectRegistry->GetCoinUISelectActor(),
+		ShopUISelectRegistry->GetWeaponUISelectActor(),
+		ShopUISelectRegistry->GetCardUISelectActor(),
+		ShopUISelectRegistry->GetItemUISelectActor(),
+		ShopUISelectRegistry->GetBossUISelectActor()
+	};
+
 	WidgetContainer->OnShopPageRequested.AddUniqueDynamic(
 		this, &UShopPageChangePresenter::HandlePageRequested);
 
@@ -37,6 +45,7 @@ void UShopPageChangePresenter::HandlePageRequested(EShopPage Page)
 	UE_LOG(LogTemp, Warning, TEXT("페이지 전환"));
 	PendingPage = Page;
 	bIsTransitioning = true;
+	SetShopUISelectActorsEnabled(false);
 	WidgetContainer->HideShopContent();
 	ShopPawn->MoveToShopPage(Page);
 }
@@ -50,44 +59,28 @@ void UShopPageChangePresenter::HandleMoveCompleted(EShopPage Page)
 
 	bIsTransitioning = false;
 	WidgetContainer->ShowShopPage(Page);
+	SetShopUISelectActorsEnabled(Page == EShopPage::Main);
 }
 
-	
+void UShopPageChangePresenter::SetShopUISelectActorsEnabled(bool bEnabled)
+{
+	for (AShopUISelectActor* SelectActor : SelectActors)
+	{
+		if (IsValid(SelectActor))
+		{
+			SelectActor->SetClickCollisionEnabled(bEnabled);
+		}
+	}
+}
+
 void UShopPageChangePresenter::InitShopUISelectActor()
 {
-	if(!IsValid(ShopUISelectRegistry))
-		return;
-	
-	AShopUISelectActor* CoinSelectActor =ShopUISelectRegistry->GetCoinUISelectActor();
-	AShopUISelectActor* WeaponSelectActor = ShopUISelectRegistry->GetWeaponUISelectActor();
-	AShopUISelectActor* CardSelectActor = ShopUISelectRegistry->GetCardUISelectActor();
-	AShopUISelectActor* ItemSelectActor = ShopUISelectRegistry->GetItemUISelectActor();
-	AShopUISelectActor* BossSelectActor = ShopUISelectRegistry->GetBossUISelectActor();
-	
-	if(IsValid(CoinSelectActor))
+	for (AShopUISelectActor* SelectActor : SelectActors)
 	{
-		CoinSelectActor->OnClickShopPageChangeActor.AddUniqueDynamic(this, &UShopPageChangePresenter::HandlePageRequested);
+		if (IsValid(SelectActor))
+		{
+			SelectActor->OnClickShopPageChangeActor.AddUniqueDynamic(
+				this, &UShopPageChangePresenter::HandlePageRequested);
+		}
 	}
-	if(WeaponSelectActor)
-	{
-		WeaponSelectActor
-			->OnClickShopPageChangeActor.AddUniqueDynamic(this, &UShopPageChangePresenter::HandlePageRequested);
-	}
-	if(CardSelectActor)
-	{
-		CardSelectActor
-			->OnClickShopPageChangeActor.AddUniqueDynamic(this, &UShopPageChangePresenter::HandlePageRequested);
-	}
-	if(ItemSelectActor)
-	{
-		ItemSelectActor
-			->OnClickShopPageChangeActor.AddUniqueDynamic(this, &UShopPageChangePresenter::HandlePageRequested);
-	}
-	if(BossSelectActor)
-	{
-		BossSelectActor
-			->OnClickShopPageChangeActor.AddUniqueDynamic(this, &UShopPageChangePresenter::HandlePageRequested);
-	}
-
-
 }

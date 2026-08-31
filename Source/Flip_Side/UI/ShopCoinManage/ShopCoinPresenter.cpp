@@ -5,6 +5,7 @@
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 #include "UI/ShopCoinManage/W_ShopCoinSlot.h"
 #include "UI/ShopCoinManage/W_ShopCoinSlotContainer.h"
+#include "UI/ShopCoinManage/W_BuyCoinSlotContainer.h"
 #include "UI/ShopCoinManage/W_ShopWeaponSlotContainer.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/UnlockGISubsystem.h"
@@ -71,17 +72,24 @@ void UShopCoinPresenter::InitWeaponSlotWidget()
 
 void UShopCoinPresenter::InitSlotBuyButtonWidget()
 {
-	FCoinTypeStructure ShopCoinSlotData;
-	int32 InPrice;
-	int32 InHp;
-	for(int i =1; i< 4; i++)
+	TArray<FCoinTypeStructure> ShopCoinSlotDataArray;
+	ShopCoinSlotDataArray.Reserve(3);
+	for (int32 Level = 1; Level <= 3; ++Level)
 	{
-		ShopCoinSlotData.Level = i;
-		DataManager->GetCoinSlotLevelStats(ShopCoinSlotData, InPrice, InHp);
-		ShopCoinWidget->GetShopCoinSlotBuyButton(i)->InitWidget(i , InPrice, InHp);
-		ShopCoinWidget->GetShopCoinSlotBuyButton(i)->OnClickedShopCoinSlotBuyButton.AddDynamic(this, &
-		UShopCoinPresenter::BuySlot);
+		FCoinTypeStructure ShopCoinSlotData;
+		ShopCoinSlotData.Level = Level;
+		ShopCoinSlotDataArray.Add(ShopCoinSlotData);
 	}
+
+	UW_BuyCoinSlotContainer* BuySlotContainer = ShopCoinWidget->GetBuyCoinSlotContainer();
+	if (!IsValid(BuySlotContainer))
+	{
+		return;
+	}
+
+	BuySlotContainer->InitWidget(ShopCoinSlotDataArray, DataManager);
+	BuySlotContainer->OnBuyCoinSlotRequested.AddDynamic(this, &ThisClass::BuySlot);
+	BuySlotContainer->OnBuyCoinSlotPopupCancelled.AddDynamic(this, &ThisClass::CloseSlotBuyPopup);
 }
 	
 void UShopCoinPresenter::InitSlotSelectCoin()
@@ -199,7 +207,18 @@ void UShopCoinPresenter::BuySlot(int32 Level)
 		DataManager->GetCoinSlotLevelStats(InCoinData, Cost, Hp);
 		ShopCoinWidget->GetShopCoinSlotContainer()->AddCoinSlot(CoinSubsystem->GetUnlockCoinSlotCount()-1, Hp);
 		SelectSlot(CoinSubsystem->GetUnlockCoinSlotCount()-1);
+		CloseSlotBuyPopup();
+	}
+}
 
+void UShopCoinPresenter::CloseSlotBuyPopup()
+{
+	if (IsValid(ShopCoinWidget))
+	{
+		if (UW_BuyCoinSlotContainer* BuySlotContainer = ShopCoinWidget->GetBuyCoinSlotContainer())
+		{
+			BuySlotContainer->CloseSlotBuyPopupBorder();
+		}
 	}
 }
 	

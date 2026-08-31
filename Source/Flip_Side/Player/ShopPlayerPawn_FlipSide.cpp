@@ -11,8 +11,6 @@ AShopPlayerPawn_FlipSide::AShopPlayerPawn_FlipSide()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(RootComponent);
 
-	Camera->ProjectionMode = ECameraProjectionMode::Orthographic;
-	Camera->OrthoWidth = 1500.0f;
 	Camera->AutoPlaneShift = 1.0f;
 	Camera->bUpdateOrthoPlanes = false;
 }
@@ -78,19 +76,17 @@ void AShopPlayerPawn_FlipSide::StartShopPageMove(
 	bBroadcastOnMoveCompleted = true;
 }
 
-void AShopPlayerPawn_FlipSide::SetCameraOrthographic()
+void AShopPlayerPawn_FlipSide::SetCameraOrthographic(float InOrthoWidth)
 {
-	if(Camera->ProjectionMode == ECameraProjectionMode::Orthographic)
-		return;
-	Camera->ProjectionMode = ECameraProjectionMode::Orthographic;
-	Camera->OrthoWidth = 700;
+	if(Camera->ProjectionMode != ECameraProjectionMode::Orthographic)
+		Camera->ProjectionMode = ECameraProjectionMode::Orthographic;
+	Camera->OrthoWidth = InOrthoWidth;
 }
 
 void AShopPlayerPawn_FlipSide::SetCameraPerspective()
 {
-	if(Camera->ProjectionMode == ECameraProjectionMode::Perspective)
-		return;
-	Camera->ProjectionMode = ECameraProjectionMode::Perspective;
+	if(Camera->ProjectionMode != ECameraProjectionMode::Perspective)
+		Camera->ProjectionMode = ECameraProjectionMode::Perspective;
 }
 
 void AShopPlayerPawn_FlipSide::MoveToShopPage(EShopPage Page)
@@ -99,9 +95,9 @@ void AShopPlayerPawn_FlipSide::MoveToShopPage(EShopPage Page)
 	switch (Page)
 	{
 	case EShopPage::Main:
+		SetCameraPerspective();
 		PageTransform = ShopMainTransform;
 		break;
-
 	case EShopPage::Coin:
 		PageTransform = CoinTransform;
 		break;
@@ -122,7 +118,6 @@ void AShopPlayerPawn_FlipSide::MoveToShopPage(EShopPage Page)
 	}
 
 	StartShopPageMove(PageTransform, Page);
-	SetCameraOrthographic();
 }
 
 void AShopPlayerPawn_FlipSide::MoveShopMainMode()
