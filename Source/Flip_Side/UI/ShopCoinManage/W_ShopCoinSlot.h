@@ -15,6 +15,7 @@ class UImage;
 class UTextBlock;
 class UBorder;
 class UTexture2D;
+class UMaterialInstanceDynamic;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedShopCoinSlot, int32, SlotIndex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoveredShopCoinSlot, int32, SlotIndex);
@@ -46,6 +47,12 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BackWeaponImageButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> FrontWeaponIcon;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> BackWeaponIcon;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr <UTextBlock> CoinCountText;
@@ -84,6 +91,12 @@ protected:
 
 	UPROPERTY(EditAnywhere,meta =(AllowPrivateAccess))
 	int32 SlotIndex;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> FrontWeaponIconMaterialInstance;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> BackWeaponIconMaterialInstance;
 	
 	
 protected:

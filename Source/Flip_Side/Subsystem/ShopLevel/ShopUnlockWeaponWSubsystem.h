@@ -39,7 +39,7 @@ private:
 public:
 	FUnlockWeaponFWarning OnUnlockWeaponWarning;
 public:
-	void UnlockWeapon(int32 WeaponID);
+	bool UnlockWeapon(int32 WeaponID);
 
 public:
 	int32 GetWeaponArrayNum(EWeaponClass WeaponType);

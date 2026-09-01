@@ -4,7 +4,6 @@
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponWidget.h"
 #include "Components/Button.h"
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponSlotContainer.h"
-#include "UI/ShopUnlockWeapon/W_SelectedUnlockWeapon.h"
 #include "UI/ShopUnlockWeapon/W_UnlockSelectWeaponButton.h"
 #include "UI/W_WeaponDescription.h"
 void UW_UnlockWeaponWidget::NativeConstruct()
@@ -20,11 +19,6 @@ void UW_UnlockWeaponWidget::NativeDestruct()
 UW_UnlockWeaponSlotContainer* UW_UnlockWeaponWidget::GetUnlockWeaponSlotContainer() const
 {
     return UnlockWeaponSlotContainer;
-}
-
-UW_SelectedUnlockWeapon* UW_UnlockWeaponWidget::GetSelectedUnlockWeapon() const
-{
-    return SelectedUnlockWeapon;
 }
 
 UW_UnlockSelectWeaponButton* UW_UnlockWeaponWidget::GetUnlockButton() const

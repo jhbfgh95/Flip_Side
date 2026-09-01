@@ -10,7 +10,7 @@
 /**
  * 
  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSellItem, int32 ,InvenItemIndex, int32, ItemID, int32, Amount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnRequestSellPopup, UW_ShopPlayerItemSlot*, ClickedSlot, int32, InvenItemIndex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoveredPlayerItemSlot, int32, ItemID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoveredPlayerItemSlot);
 
@@ -26,15 +26,6 @@ protected:
 	virtual void NativeConstruct() override;
 protected:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UButton> ItemSellButton;
-	
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UButton> ItemCountPlusButton;
-	
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UButton> ItemCountMinusButton;
-	
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UImage> ItemImage;
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
@@ -44,17 +35,11 @@ protected:
 	TObjectPtr<UTextBlock> ItemCountTextBlock;
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UTextBlock> ItemPriceTextBlock;
-
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UTextBlock> ItemSellCountTextBlock;
-
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UImage> EmptySlotImage;
 
 public:
 
-	FOnSellItem OnSellItem;
+	FOnRequestSellPopup OnRequestSellPopup;
 	FOnHoveredPlayerItemSlot OnHoveredSlot;
 	FOnUnhoveredPlayerItemSlot OnUnhoveredSlot;
 
@@ -67,15 +52,7 @@ protected:
 	int32 CurrentItemCount = 0;
 
 	UPROPERTY(EditAnywhere)
-	int32 PlayerInvenIndex = -1;
-
-public:
-	UFUNCTION()
-	void ClickItemSellButton();
-	UFUNCTION()
-	void ClickItemCountPlusButton();
-	UFUNCTION()
-	void ClickItemCountMinusButton();
+	int32 PlayerInvenIndex = INDEX_NONE;
 
 public:
 	void InitItemWidget(int32 ItemIndex, FItemData InItemData, FSelectItem InSelectItemData);

@@ -11,9 +11,6 @@
 void UW_ShopItemSlot::NativeConstruct()
 {
     Super::NativeConstruct();
-
-    DefaultRenderScale = GetRenderTransform().Scale;
-    SetRenderTransformPivot(FVector2D(0.5f, 0.5f));
 }
 
 
@@ -46,21 +43,11 @@ FReply UW_ShopItemSlot::NativeOnMouseButtonDown(
     return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 }
 
-void UW_ShopItemSlot::SetHoverScale(bool bHovered)
-{
-    const float ScaleMultiplier = bHovered ? HoverScale : 1.0f;
-
-    SetRenderScale(FVector2D(
-        DefaultRenderScale.X * ScaleMultiplier,
-        DefaultRenderScale.Y * ScaleMultiplier
-    ));
-}
 
 void UW_ShopItemSlot::NativeOnMouseEnter(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
 
-    SetHoverScale(true);
     OnHoveredSlot.Broadcast(WidgetItemData.ItemID);
 }
 
@@ -68,6 +55,5 @@ void UW_ShopItemSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseLeave(InMouseEvent);
 
-    SetHoverScale(false);
     OnUnhoveredSlot.Broadcast();
 }

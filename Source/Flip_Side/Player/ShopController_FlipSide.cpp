@@ -17,8 +17,10 @@
 
 #include "UI/ShopItem/ShopItemPresenter.h"
 #include "UI/ShopItem/ShopItemUIActor.h"
+#include "UI/ShopCoinManage/ShopCoinUIActor.h"
 #include "UI/ShopCard/ShopCardPresenter.h"
 #include "UI/ShopCoinManage/ShopCoinPresenter.h"
+#include "UI/ShopUnlockWeapon/ShopUnlockWeaponUIActor.h"
 #include "UI/ShopUnlockWeapon/UnlockWeaponPresenter.h"
 #include "UI/ShopPageChangePresenter.h"
 #include "UI/ShopUISelectRegistry.h"
@@ -64,6 +66,22 @@ void AShopController_FlipSide::BeginPlay()
         return;
     }
 
+	ShopCoinUIActor = Cast<AShopCoinUIActor>(
+		UGameplayStatics::GetActorOfClass(this, AShopCoinUIActor::StaticClass()));
+
+	if (!ensure(IsValid(ShopCoinUIActor)))
+	{
+		return;
+	}
+
+	ShopUnlockWeaponUIActor = Cast<AShopUnlockWeaponUIActor>(
+		UGameplayStatics::GetActorOfClass(this, AShopUnlockWeaponUIActor::StaticClass()));
+
+	if (!ensure(IsValid(ShopUnlockWeaponUIActor)))
+	{
+		return;
+	}
+
     ItemPresenter = NewObject<UShopItemPresenter>(this);
     ItemPresenter->InitPresenter(
         ShopWidgetContainer->GetShopItemWidget(), ItemSubsystem, DataManager, ShopItemUIActor);
@@ -72,11 +90,12 @@ void AShopController_FlipSide::BeginPlay()
     CardPresenter->InitPresenter(ShopWidgetContainer->GetShopCardWidget(), CardSubsystem, DataManager, UnlockSubsystem);
 
     CoinPresenter = NewObject<UShopCoinPresenter>(this);
-    CoinPresenter->InitPresenter(ShopWidgetContainer->GetShopCoinWidget(), CoinSubsystem, DataManager, UnlockSubsystem);
+    CoinPresenter->InitPresenter(
+		ShopWidgetContainer->GetShopCoinWidget(), CoinSubsystem, DataManager, UnlockSubsystem, ShopCoinUIActor);
 
     UnlockWeaponPresenter = NewObject<UUnlockWeaponPresenter>(this);
     UnlockWeaponPresenter->InitPresenter(ShopWidgetContainer->GetShopUnlockWeaponWidget(),
-        UnlockWeaponWSubsystem, DataManager, UnlockSubsystem);
+		UnlockWeaponWSubsystem, DataManager, UnlockSubsystem, ShopUnlockWeaponUIActor);
 
     UE_LOG(LogTemp, Warning, TEXT("에서 시작 "));
     TryInitPageChangePresenter();

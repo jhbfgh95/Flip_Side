@@ -20,11 +20,6 @@ UW_BuyCoinSlotContainer* UW_ShopCoinWidget::GetBuyCoinSlotContainer() const
 	return BuyCoinSlotContainer;
 }
 	
-UW_ShopSelectCoin* UW_ShopCoinWidget::GetShopSelectCoin()
-{
-	return ShopSelectCoin;
-}
-
 UW_WeaponDescription* UW_ShopCoinWidget::GetWeaponDescription() const
 {
 	return WeaponDes;

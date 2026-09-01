@@ -18,6 +18,7 @@ class UW_ShopItemSlotContainer;
 class UW_ShopPlayerItemSlotContainer;
 class UW_ShopItemWidget;
 class UW_ShopItemPurchasePopup;
+class UW_ShopItemSellPopup;
 class AShopItemUIActor;
 USTRUCT(BlueprintType)
 struct FShopItemWidgets
@@ -89,13 +90,26 @@ protected:
 	UFUNCTION()
 	void ClosePurchasePopup();
 
+	UFUNCTION()
+	void OpenSellPopup(UW_ShopPlayerItemSlot* ClickedSlot, int32 InventoryIndex);
+
+	UFUNCTION()
+	void RequestSellFromPopup(int32 InventoryIndex, int32 ItemID, int32 Count);
+
+	UFUNCTION()
+	void CloseSellPopup();
+
 private:
 	void SetShopItemPurchasePopup();
+	void SetShopItemSellPopup();
 	void SetShopSlotItemViews();
 	void SetPlayerSlotItemViews();
-	void SetSelectedItemImage(const FItemData& ItemData);
 	void SetItemDescription(const FItemData& ItemData);
 	void HideItemDescription();
-
 	FItemData GetItemData(int32 ID);
+
+
+private:
+	bool IsPurchasePopUpOpen = false;
+	bool IsItemSellPopUpOpen = false;
 };

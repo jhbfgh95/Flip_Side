@@ -4,7 +4,7 @@
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponSlot.h"
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponSlotContainer.h"
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponWidget.h"
-#include "UI/ShopUnlockWeapon/W_SelectedUnlockWeapon.h"
+#include "UI/ShopUnlockWeapon/ShopUnlockWeaponUIActor.h"
 #include "UI/ShopUnlockWeapon/W_UnlockSelectWeaponButton.h"
 #include "UI/W_PriceWidget.h"
 #include "UI/W_WeaponDescription.h"
@@ -14,21 +14,20 @@
 void UUnlockWeaponPresenter::InitPresenter(UW_UnlockWeaponWidget* InUnlockWeaponWidget,
 	UShopUnlockWeaponWSubsystem* InUnlockWeaponSubsystem,
 	UDataManagerSubsystem* InDataManager,
-	UUnlockGISubsystem* InUnlockSubsystem)
+	UUnlockGISubsystem* InUnlockSubsystem,
+	AShopUnlockWeaponUIActor* InShopUnlockWeaponUIActor)
 {
 	UnlockWeaponWidget = InUnlockWeaponWidget;
 	UnlockWeaponSubsystem = InUnlockWeaponSubsystem;
 	DataManager = InDataManager;
 	UnlockSubsystem = InUnlockSubsystem;
+	ShopUnlockWeaponUIActor = InShopUnlockWeaponUIActor;
 
-	if(!IsValid(UnlockWeaponWidget) || !IsValid(UnlockWeaponSubsystem))
+	if(!IsValid(UnlockWeaponWidget) || !IsValid(UnlockWeaponSubsystem) || !IsValid(ShopUnlockWeaponUIActor))
 		return;
 
-	if(IsValid(UnlockSubsystem))
-	{
-		UnlockSubsystem->OnWeaponUnlock.AddUniqueDynamic(
-			this, &UUnlockWeaponPresenter::RemoveUnlockedWeaponSlot);
-	}
+	ShopUnlockWeaponUIActor->OnShakeFinished.AddUniqueDynamic(
+		this, &UUnlockWeaponPresenter::FinishedUnlockWeapon);
 
 	InitUnlockWeaponContainer();
 	InitUnlockButton();
@@ -104,9 +103,27 @@ void UUnlockWeaponPresenter::UnlockSelectedWeapon()
 {
 	if(CurrentSelectedWeaponID != -1)
 	{
-		UnlockWeaponSubsystem->UnlockWeapon(CurrentSelectedWeaponID);
-		UpdateUnlockControls(CurrentSelectedWeaponID);
+		const int32 WeaponID = CurrentSelectedWeaponID;
+		if(UnlockWeaponSubsystem->UnlockWeapon(WeaponID))
+		{
+			PendingUnlockedWeaponID = WeaponID;
+			if(!ShopUnlockWeaponUIActor->PlayBuyWeaponAnim())
+			{
+				FinishedUnlockWeapon();
+			}
+			UpdateUnlockControls(WeaponID);
+		}
 	}
+}
+
+void UUnlockWeaponPresenter::FinishedUnlockWeapon()
+{
+	if(PendingUnlockedWeaponID == -1)
+		return;
+
+	const int32 WeaponID = PendingUnlockedWeaponID;
+	PendingUnlockedWeaponID = -1;
+	RemoveUnlockedWeaponSlot(WeaponID);
 }
 
 void UUnlockWeaponPresenter::RemoveUnlockedWeaponSlot(int32 WeaponID)
@@ -128,8 +145,7 @@ void UUnlockWeaponPresenter::RemoveUnlockedWeaponSlot(int32 WeaponID)
 
 void UUnlockWeaponPresenter::UpdateSelectedWeapon(int32 WeaponID)
 {
-	UW_SelectedUnlockWeapon* SelectedWeaponWidget = UnlockWeaponWidget->GetSelectedUnlockWeapon();
-	if(!IsValid(SelectedWeaponWidget))
+	if(!IsValid(ShopUnlockWeaponUIActor))
 		return;
 
 	FFaceData WeaponData;
@@ -137,7 +153,7 @@ void UUnlockWeaponPresenter::UpdateSelectedWeapon(int32 WeaponID)
 	if(WeaponID != -1 && IsValid(DataManager))
 		DataManager->TryGetWeapon(WeaponID, WeaponData);
 
-	SelectedWeaponWidget->SetSelectedImage(WeaponData);
+	ShopUnlockWeaponUIActor->SetWeaponIcon(WeaponData);
 }
 
 void UUnlockWeaponPresenter::UpdateWeaponDescription(int32 WeaponID)
@@ -190,8 +206,6 @@ void UUnlockWeaponPresenter::UpdateUnlockControls(int32 WeaponID)
 		HideUnlockControls();
 		return;
 	}
-	
-	UE_LOG(LogTemp, Warning, TEXT("잠겨있지 않음"));
 
 	FFaceData WeaponData;
 	WeaponData.WeaponID = -1;

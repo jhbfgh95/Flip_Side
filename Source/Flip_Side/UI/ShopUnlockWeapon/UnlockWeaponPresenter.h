@@ -6,7 +6,7 @@
 
 class UW_UnlockWeaponWidget;
 class UW_UnlockWeaponSlot;
-class UW_SelectedUnlockWeapon;
+class AShopUnlockWeaponUIActor;
 class UShopUnlockWeaponWSubsystem;
 class UDataManagerSubsystem;
 class UUnlockGISubsystem;
@@ -20,7 +20,8 @@ public:
 	void InitPresenter(UW_UnlockWeaponWidget* InUnlockWeaponWidget,
 		UShopUnlockWeaponWSubsystem* InUnlockWeaponSubsystem,
 		UDataManagerSubsystem* InDataManager,
-		UUnlockGISubsystem* InUnlockSubsystem);
+		UUnlockGISubsystem* InUnlockSubsystem,
+		AShopUnlockWeaponUIActor* InShopUnlockWeaponUIActor);
 
 private:
 	UPROPERTY()
@@ -36,9 +37,13 @@ private:
 	TObjectPtr<UUnlockGISubsystem> UnlockSubsystem;
 
 	UPROPERTY()
+	TObjectPtr<AShopUnlockWeaponUIActor> ShopUnlockWeaponUIActor;
+
+	UPROPERTY()
 	TArray<TObjectPtr<UW_UnlockWeaponSlot>> WeaponSlotViews;
 
 	int32 CurrentSelectedWeaponID = -1;
+	int32 PendingUnlockedWeaponID = -1;
 
 	UFUNCTION()
 	void SelectWeapon(int32 WeaponID);
@@ -55,11 +60,20 @@ private:
 	UFUNCTION()
 	void RemoveUnlockedWeaponSlot(int32 WeaponID);
 
+	UFUNCTION()
+	void FinishedUnlockWeapon();
+
 	void UpdateSelectedWeapon(int32 WeaponID);
-	void UpdateWeaponDescription(int32 WeaponID);
-	void HideWeaponDescription();
+
 	void UpdateUnlockControls(int32 WeaponID);
+
 	void HideUnlockControls();
+
+protected:
+	void UpdateWeaponDescription(int32 WeaponID);
+
+	void HideWeaponDescription();
+
 
 protected:
 	void InitUnlockWeaponContainer();

@@ -43,13 +43,6 @@ public:
 protected:
 	FItemData WidgetItemData;
 
-	UPROPERTY(EditAnywhere, Category = "Shop Item|Hover")
-	float HoverScale = 1.1f;
-
-	FVector2D DefaultRenderScale = FVector2D(1.0f, 1.0f);
-
-	void SetHoverScale(bool bHovered);
-
 public:
 
 	void InitItemWidget(FItemData SetItemData);

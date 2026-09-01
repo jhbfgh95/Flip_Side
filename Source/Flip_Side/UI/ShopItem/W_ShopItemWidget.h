@@ -11,9 +11,9 @@
  */
 class UW_ShopPlayerItemSlotContainer;
 class UW_ShopItemSlotContainer;
-class UW_ShopSelectedItem;
 class UW_ShopItemDescription;
 class UW_ShopItemPurchasePopup;
+class UW_ShopItemSellPopup;
 UCLASS()
 class FLIP_SIDE_API UW_ShopItemWidget : public UUserWidget
 {
@@ -27,13 +27,13 @@ protected:
 	TObjectPtr<UW_ShopItemSlotContainer> ShopItemSlotContainer;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UW_ShopSelectedItem> ShopSelectedItem;
-
-	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UW_ShopItemDescription> ShopItemDescription;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UW_ShopItemPurchasePopup> ShopItemPurchasePopup;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UW_ShopItemSellPopup> ShopItemSellPopup;
 	
 public:
 	UFUNCTION()
@@ -43,11 +43,10 @@ public:
 	UW_ShopItemSlotContainer* GetShopItemSlotContainer() const;
 
 	UFUNCTION()
-	UW_ShopSelectedItem* GetShopSelectedItem() const;
-
-	UFUNCTION()
 	UW_ShopItemDescription* GetShopItemDescription() const;
 
 	UW_ShopItemPurchasePopup* GetShopItemPurchasePopup() const;
+
+	UW_ShopItemSellPopup* GetShopItemSellPopup() const;
 
 };

@@ -9,6 +9,8 @@ class AShopPlayerPawn_FlipSide;
 class UW_ShopWidget;
 class UUserWidget;
 class AShopItemUIActor;
+class AShopCoinUIActor;
+class AShopUnlockWeaponUIActor;
 UCLASS(abstract)
 class AShopController_FlipSide : public APlayerController
 {
@@ -45,6 +47,12 @@ protected:
 protected:
 	UPROPERTY()
 	TObjectPtr<AShopItemUIActor> ShopItemUIActor;
+
+	UPROPERTY()
+	TObjectPtr<AShopCoinUIActor> ShopCoinUIActor;
+
+	UPROPERTY()
+	TObjectPtr<AShopUnlockWeaponUIActor> ShopUnlockWeaponUIActor;
 
 	UPROPERTY()
 	TObjectPtr<class UShopItemPresenter> ItemPresenter;

@@ -25,9 +25,6 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UW_UnlockWeaponSlotContainer> UnlockWeaponSlotContainer;
 
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UW_SelectedUnlockWeapon> SelectedUnlockWeapon;
-
 	UPROPERTY(meta =(BindWidget))
 	TObjectPtr<class UW_UnlockSelectWeaponButton> UnlockButton;
 
@@ -39,7 +36,6 @@ private:
 
 public:
 	UW_UnlockWeaponSlotContainer* GetUnlockWeaponSlotContainer() const;
-	UW_SelectedUnlockWeapon* GetSelectedUnlockWeapon() const;
 	UW_UnlockSelectWeaponButton* GetUnlockButton() const;
 	UW_PriceWidget* GetWeaponPriceWidget() const;
 	UW_WeaponDescription* GetWeaponDescription() const;

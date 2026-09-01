@@ -6,6 +6,7 @@
 #include "Components/Image.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 #include "WeaponDataTypes.h"
 #include "Components/Border.h"
@@ -13,19 +14,33 @@
 #include "Input/Reply.h"
 #include "UI/ShopCoinManage/ShopCoinSlotDragDropOperation.h"
 
+namespace
+{
+    const FName WeaponIconParameterName(TEXT("Weapon_Icon"));
+    const FName WeaponColorParameterName(TEXT("Weapon_Color"));
+}
+
 void UW_ShopCoinSlot::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
     FrontWeaponImageButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlot::ClickFrontWeaponButton);
-    
     BackWeaponImageButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlot::ClickBackWeaponButton);
-
-    //SlotButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlot::PressSlotButton);
 
     IncreaseButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlot::BuyCoin);
     DecreaseButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlot::SellCoin);
 
+    if (IsValid(FrontWeaponIcon))
+    {
+        FrontWeaponIconMaterialInstance = FrontWeaponIcon->GetDynamicMaterial();
+        FrontWeaponIconMaterialInstance->SetTextureParameterValue(WeaponIconParameterName, DefaultsTexture);
+    }
+
+    if (IsValid(BackWeaponIcon))
+    {
+        BackWeaponIconMaterialInstance = BackWeaponIcon->GetDynamicMaterial();
+        BackWeaponIconMaterialInstance->SetTextureParameterValue(WeaponIconParameterName, DefaultsTexture);
+    }
 
     BackGroundBorder->SetRenderOpacity(0.7f);
     
@@ -82,45 +97,33 @@ void UW_ShopCoinSlot::SetBackGround()
 
 void UW_ShopCoinSlot::SetFrontWeaponImage(FFaceData InFrontCoinData)
 {
-    FButtonStyle ButtonStyle = FrontWeaponImageButton->GetStyle();
-    UTexture2D* SetTexture;
+    if (!IsValid(FrontWeaponIconMaterialInstance))
+        return;
 
+    UTexture2D* SetTexture = DefaultsTexture;
     if(InFrontCoinData.WeaponID != -1)
     {
         SetTexture = InFrontCoinData.WeaponIcon;
     }
-    else
-    {
-        SetTexture = DefaultsTexture;
-    }
-    
-    ButtonStyle.Normal.SetResourceObject(SetTexture);
-    ButtonStyle.Hovered.SetResourceObject(SetTexture);
-    ButtonStyle.Pressed.SetResourceObject(SetTexture);
 
-    FrontWeaponImageButton->SetStyle(ButtonStyle);
+    FrontWeaponIconMaterialInstance->SetTextureParameterValue(WeaponIconParameterName, SetTexture);
+    FrontWeaponIconMaterialInstance->SetVectorParameterValue(WeaponColorParameterName, InFrontCoinData.TypeColor);
 }
 
 void UW_ShopCoinSlot::SetBackWeaponImage(FFaceData InBackCoinData)
 {
+    if (!IsValid(BackWeaponIconMaterialInstance))
+        return;
 
-    FButtonStyle ButtonStyle = BackWeaponImageButton->GetStyle();
-    UTexture2D* SetTexture;
-    
+    UTexture2D* SetTexture = DefaultsTexture;
+
     if(InBackCoinData.WeaponID != -1)
     {
         SetTexture = InBackCoinData.WeaponIcon;
     }
-    else
-    {
-        SetTexture = DefaultsTexture;
-    }
 
-    ButtonStyle.Normal.SetResourceObject(SetTexture);
-    ButtonStyle.Hovered.SetResourceObject(SetTexture);
-    ButtonStyle.Pressed.SetResourceObject(SetTexture);
-
-    BackWeaponImageButton->SetStyle(ButtonStyle);
+    BackWeaponIconMaterialInstance->SetTextureParameterValue(WeaponIconParameterName, SetTexture);
+    BackWeaponIconMaterialInstance->SetVectorParameterValue(WeaponColorParameterName, InBackCoinData.TypeColor);
 }
 
 

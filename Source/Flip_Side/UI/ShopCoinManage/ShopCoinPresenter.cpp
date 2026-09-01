@@ -12,21 +12,22 @@
 #include "UI/ShopCoinManage/W_ShopCoinWidget.h"
 #include "UI/ShopCoinManage/W_ShopCoinWeaponSlot.h"
 #include "UI/ShopCoinManage/W_ShopCoinSlotBuyButton.h"
-#include "UI/ShopCoinManage/W_ShopSelectCoin.h"
+#include "UI/ShopCoinManage/ShopCoinUIActor.h"
 #include "UI/W_WeaponDescription.h"
 
 void UShopCoinPresenter::InitPresenter(UW_ShopCoinWidget* InShopCoinWidget, UShopCoinWSubsystem* InCoinSubsystem
-	,UDataManagerSubsystem* InDataManager, UUnlockGISubsystem* InUnlockSubsystem)
+	,UDataManagerSubsystem* InDataManager, UUnlockGISubsystem* InUnlockSubsystem, AShopCoinUIActor* InShopCoinUIActor)
 {
 	ShopCoinWidget = InShopCoinWidget;
 	CoinSubsystem = InCoinSubsystem;
 	DataManager = InDataManager;
 	UnlockSubsystem = InUnlockSubsystem;
+	ShopCoinUIActor = InShopCoinUIActor;
 	UnlockSubsystem->OnWeaponUnlock.AddDynamic(this,&UShopCoinPresenter::AddWeaponSlot );
 	InitSlotWidget();
 	InitWeaponSlotWidget();
 	InitSlotBuyButtonWidget();
-	InitSlotSelectCoin();
+	InitShopCoinUIActor();
 	IsCurrentCoinSideFront = true;
 }
 
@@ -92,9 +93,12 @@ void UShopCoinPresenter::InitSlotBuyButtonWidget()
 	BuySlotContainer->OnBuyCoinSlotPopupCancelled.AddDynamic(this, &ThisClass::CloseSlotBuyPopup);
 }
 	
-void UShopCoinPresenter::InitSlotSelectCoin()
+void UShopCoinPresenter::InitShopCoinUIActor()
 {
-	ShopCoinWidget->GetShopSelectCoin()->OnChangeShopSelectedCoinSide.AddDynamic(this, &UShopCoinPresenter::ChangeCoinSide);
+	if (IsValid(ShopCoinUIActor))
+	{
+		ShopCoinUIActor->OnShopCoinSideChanged.AddDynamic(this, &UShopCoinPresenter::ChangeCoinSide);
+	}
 }
 
 void UShopCoinPresenter::SelectSlot(int32 SlotIndex)
@@ -171,14 +175,23 @@ void UShopCoinPresenter::SelectWeapon(int32 WeaponID)
 	
 void UShopCoinPresenter::HoverWeapon(int32 WeaponID)
 {
-	UE_LOG(LogTemp,Warning, TEXT("호버링 중인 무기 %d"), WeaponID);
 	const FFaceData WeaponData = GetWeaponData(WeaponID);
 	UpdateWeaponDescription(WeaponData);
 
 	if(IsCurrentCoinSideFront)
-		ShopCoinWidget->GetShopSelectCoin()->SetFrontWeapon(WeaponData);
+	{
+		if (IsValid(ShopCoinUIActor))
+		{
+			ShopCoinUIActor->SetFrontCoin(WeaponData);
+		}
+	}
 	else
-		ShopCoinWidget->GetShopSelectCoin()->SetBackWeapon(WeaponData);
+	{
+		if (IsValid(ShopCoinUIActor))
+		{
+			ShopCoinUIActor->SetBackCoin(WeaponData);
+		}
+	}
 
 }
 
@@ -186,14 +199,27 @@ void UShopCoinPresenter::UnhoverWeapon()
 {
 	HideWeaponDescription();
 	if(CurrentSelectedSlotIndex == -1)
+	{
+		ShopCoinUIActor->ResetWeaponIcons();
 		return;
+	}
 
 	FCoinTypeStructure IndexCoin = CoinSubsystem->GetCoinSlotCoinType(CurrentSelectedSlotIndex);
 	
 	if(IsCurrentCoinSideFront)
-		ShopCoinWidget->GetShopSelectCoin()->SetFrontWeapon(GetWeaponData(IndexCoin.FrontWeaponID));
+	{
+		if (IsValid(ShopCoinUIActor))
+		{
+			ShopCoinUIActor->SetFrontCoin(GetWeaponData(IndexCoin.FrontWeaponID));
+		}
+	}
 	else
-		ShopCoinWidget->GetShopSelectCoin()->SetBackWeapon(GetWeaponData(IndexCoin.BackWeaponID));
+	{
+		if (IsValid(ShopCoinUIActor))
+		{
+			ShopCoinUIActor->SetBackCoin(GetWeaponData(IndexCoin.BackWeaponID));
+		}
+	}
 }
 
 void UShopCoinPresenter::BuySlot(int32 Level)
@@ -245,8 +271,11 @@ void UShopCoinPresenter::SellCoinSlotCoin(int32 SlotIndex, int32 Count)
 void UShopCoinPresenter::SetSlectCoinSideData(int32 SlotIndex)
 {
 	FCoinTypeStructure IndexCoin = CoinSubsystem->GetCoinSlotCoinType(SlotIndex);
-	ShopCoinWidget->GetShopSelectCoin()->SetFrontWeapon(GetWeaponData(IndexCoin.FrontWeaponID));
-	ShopCoinWidget->GetShopSelectCoin()->SetBackWeapon(GetWeaponData(IndexCoin.BackWeaponID));
+	if (IsValid(ShopCoinUIActor))
+	{
+		ShopCoinUIActor->SetFrontCoin(GetWeaponData(IndexCoin.FrontWeaponID));
+		ShopCoinUIActor->SetBackCoin(GetWeaponData(IndexCoin.BackWeaponID));
+	}
 }
 
 void UShopCoinPresenter::AddWeaponSlot(int32 WeaponID)
@@ -379,7 +408,10 @@ void UShopCoinPresenter::SetCoinSideFront(bool SetFront)
 		return;
 
 	IsCurrentCoinSideFront = SetFront;
-	ShopCoinWidget->GetShopSelectCoin()->ChangeCoinSide(IsCurrentCoinSideFront);
+	if (IsValid(ShopCoinUIActor))
+	{
+		ShopCoinUIActor->SwapMeshPositions();
+	}
 }
 	
 void UShopCoinPresenter::ChangeCoinSide()

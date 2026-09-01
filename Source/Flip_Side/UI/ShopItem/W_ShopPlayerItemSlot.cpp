@@ -3,7 +3,6 @@
 
 #include "UI/ShopItem/W_ShopPlayerItemSlot.h"
 
-#include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 
@@ -14,9 +13,6 @@
 void UW_ShopPlayerItemSlot::NativeConstruct()
 {
     Super::NativeConstruct();
-    ItemCountPlusButton->OnClicked.AddDynamic(this, &UW_ShopPlayerItemSlot::ClickItemCountPlusButton);
-    ItemCountMinusButton->OnClicked.AddDynamic(this, &UW_ShopPlayerItemSlot::ClickItemCountMinusButton);
-    ItemSellButton->OnClicked.AddDynamic(this, &UW_ShopPlayerItemSlot::ClickItemSellButton);
 }
 
 void UW_ShopPlayerItemSlot::InitItemWidget(int32 ItemIndex, FItemData InItemData, FSelectItem InSelectItemData)
@@ -39,58 +35,21 @@ void UW_ShopPlayerItemSlot::SetItemWidget(FItemData InItemData, FSelectItem InSe
     ItemImage->SetBrushFromTexture(WidgetItemData.ItemIcon);
     ItemNameTextBlock->SetText(FText::FromString(WidgetItemData.ItemName));
     ItemCountTextBlock->SetText(FText::AsNumber(InSelectItemData.SameItemNum));
-    ItemPriceTextBlock->SetText(FText::AsNumber(WidgetItemData.Price));
-    ItemSellCountTextBlock->SetText(FText::AsNumber(0));
     EmptySlotImage->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UW_ShopPlayerItemSlot::UpdateItemCount(int32 SameItemCount)
 {
-    CurrentItemCount=1;
-    ItemSellCountTextBlock->SetText(FText::AsNumber(1));
-
     ItemCountTextBlock->SetText(FText::AsNumber(SameItemCount));
-    ItemPriceTextBlock->SetText(FText::AsNumber(WidgetItemData.Price));
     WidgetSelectItemData.SameItemNum = SameItemCount;
-}
-
-
-void UW_ShopPlayerItemSlot::ClickItemSellButton()
-{
-    OnSellItem.Broadcast(PlayerInvenIndex, WidgetItemData.ItemID, CurrentItemCount);
-}
-
-void UW_ShopPlayerItemSlot::ClickItemCountPlusButton()
-{
-    if(WidgetSelectItemData.SameItemNum < CurrentItemCount + 1)
-        return;
-    
-    UE_LOG(LogTemp, Warning, TEXT("개수증가"));
-    CurrentItemCount++;
-    ItemPriceTextBlock->SetText(FText::AsNumber(CurrentItemCount* WidgetItemData.Price));
-    ItemSellCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
-}
-	
-void UW_ShopPlayerItemSlot::ClickItemCountMinusButton()
-{
-    if(CurrentItemCount-1<0)
-        return;
-    
-        UE_LOG(LogTemp, Warning, TEXT("개수감소"));
-    CurrentItemCount--;
-    ItemPriceTextBlock->SetText(FText::AsNumber(CurrentItemCount* WidgetItemData.Price));
-    ItemSellCountTextBlock->SetText(FText::AsNumber(CurrentItemCount));
 }
 
 
 void UW_ShopPlayerItemSlot::DeleteItemWidget()
 {
-    CurrentItemCount = 0;
-    ItemSellCountTextBlock->SetText(FText::AsNumber(0));
     ItemImage->SetBrushFromTexture(nullptr);
     ItemNameTextBlock->SetText(FText::GetEmpty());
     ItemCountTextBlock->SetText(FText::GetEmpty());
-    ItemPriceTextBlock->SetText(FText::GetEmpty());
     EmptySlotImage->SetVisibility(ESlateVisibility::Visible);
 }
 
@@ -113,6 +72,7 @@ FReply UW_ShopPlayerItemSlot::NativeOnMouseButtonDown(
 {
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
     {
+        OnRequestSellPopup.Broadcast(this,PlayerInvenIndex);
         return UWidgetBlueprintLibrary::DetectDragIfPressed(
             InMouseEvent,
             this,
@@ -147,7 +107,6 @@ void UW_ShopPlayerItemSlot::NativeOnDragDetected(
 
     DragOperation->DraggedSlotWidget = this;
 
-    // 드래그 이미지의 중앙이 마우스를 따라감
     DragOperation->Pivot = EDragPivot::CenterCenter;
 
     DragOperation->DefaultDragVisual = this;

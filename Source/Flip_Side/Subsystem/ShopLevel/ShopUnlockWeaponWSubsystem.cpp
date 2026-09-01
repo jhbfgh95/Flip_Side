@@ -47,19 +47,21 @@ void UShopUnlockWeaponWSubsystem::OnWorldBeginPlay(UWorld& World)
     }
 }
 
-void UShopUnlockWeaponWSubsystem::UnlockWeapon(int32 WeaponID)
+bool UShopUnlockWeaponWSubsystem::UnlockWeapon(int32 WeaponID)
 {
     if(WeaponID != -1)
     {
         FFaceData WeaponFaceData;
         if(!DM->TryGetWeapon(WeaponID,WeaponFaceData))
-            return;
+            return false;
 
         if(MoneySubsystem->SpendMoney(EMoneyRecordType::Weapon, WeaponFaceData.Price))
         {
             UnlockSubsystem->UnlockWeapon(WeaponID);
+            return true;
         }
     }
+    return false;
 }
 
 void UShopUnlockWeaponWSubsystem::UnlockWeaponWarning(int32 WarningCode)

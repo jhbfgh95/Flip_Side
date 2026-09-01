@@ -15,6 +15,7 @@ class UW_ShopWeaponSlotContainer;
 class UW_ShopCoinWeaponSlot;
 class UW_ShopCoinWidget;
 class UUnlockGISubsystem;
+class AShopCoinUIActor;
 UCLASS()
 class FLIP_SIDE_API UShopCoinPresenter : public UObject
 {
@@ -23,7 +24,7 @@ class FLIP_SIDE_API UShopCoinPresenter : public UObject
 public:
 	void InitPresenter(UW_ShopCoinWidget* InShopCoinWidget,
 		UShopCoinWSubsystem* InCoinSubsystem, UDataManagerSubsystem* InDataManager, 
-		UUnlockGISubsystem* InUnlockSubsystem);
+		UUnlockGISubsystem* InUnlockSubsystem, AShopCoinUIActor* InShopCoinUIActor);
 
 
 protected:
@@ -38,6 +39,8 @@ private:
 	UPROPERTY()
 	TObjectPtr<UW_ShopCoinWidget> ShopCoinWidget;
 	UPROPERTY()
+	TObjectPtr<AShopCoinUIActor> ShopCoinUIActor;
+	UPROPERTY()
 	TArray<TObjectPtr<UW_ShopCoinSlot>> CoinSlotViews;
 	UPROPERTY()
 	TArray<TObjectPtr<UW_ShopCoinWeaponSlot>> WeaponSlotViews;
@@ -47,7 +50,7 @@ protected:
 	void InitSlotWidget();
 	void InitWeaponSlotWidget();
 	void InitSlotBuyButtonWidget();
-	void InitSlotSelectCoin();
+	void InitShopCoinUIActor();
 
 protected:
 	int32 CurrentSelectedSlotIndex = -1;
