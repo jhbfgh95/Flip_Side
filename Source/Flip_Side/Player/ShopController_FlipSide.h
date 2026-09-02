@@ -8,6 +8,9 @@ class UInputMappingContext;
 class AShopPlayerPawn_FlipSide;
 class UW_ShopWidget;
 class UUserWidget;
+class AShopItemUIActor;
+class AShopCoinUIActor;
+class AShopUnlockWeaponUIActor;
 UCLASS(abstract)
 class AShopController_FlipSide : public APlayerController
 {
@@ -24,9 +27,7 @@ protected:
 	UInputMappingContext* InputContext;
 
 public:
-
 	virtual void BeginPlay() override;
-
 	virtual void PlayerTick(float DeltaTime) override; // 매 프레임 마우스 호버 감지용
 /* UI */
 protected:
@@ -40,6 +41,36 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> ShopModeWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> ShopWidgetContainerClass;
+
+protected:
+	UPROPERTY()
+	TObjectPtr<AShopItemUIActor> ShopItemUIActor;
+
+	UPROPERTY()
+	TObjectPtr<AShopCoinUIActor> ShopCoinUIActor;
+
+	UPROPERTY()
+	TObjectPtr<AShopUnlockWeaponUIActor> ShopUnlockWeaponUIActor;
+
+	UPROPERTY()
+	TObjectPtr<class UShopItemPresenter> ItemPresenter;
+
+	UPROPERTY()
+	TObjectPtr<class UShopCardPresenter> CardPresenter;
+	UPROPERTY()
+	TObjectPtr<class UShopCoinPresenter> CoinPresenter;
+
+	UPROPERTY()
+	TObjectPtr<class UUnlockWeaponPresenter> UnlockWeaponPresenter;
+
+	UPROPERTY()
+	TObjectPtr<class UShopPageChangePresenter> PageChangePresenter;
+
+	UPROPERTY()
+	TObjectPtr<class AShopUISelectRegistry> ShopUISelectRegistry;
+
 //UI 스크립트
 private:
 
@@ -49,11 +80,10 @@ private:
 	UUserWidget* BlockWidget;
 	UPROPERTY()
 	UUserWidget* ShopModeWidget;
+	UPROPERTY()
+	TObjectPtr<class UW_ShopWidgetContainer> ShopWidgetContainer;
 protected:
 	void InitWidget(TSubclassOf<UUserWidget> WidgetClass, UUserWidget*& widget,int32 ZOrder);
-
-private:
-	class AGameMode_Shop* ShopGameMode;
 
 public:
 	AShopController_FlipSide();
@@ -61,7 +91,11 @@ public:
 	virtual void SetupInputComponent() override;
 
 	virtual void OnPossess(APawn* InPawn);
-	
+
+private:
+	void TryInitPageChangePresenter();
+
+public:
 	UFUNCTION()
 	void ViewWidgetList();
 
@@ -72,14 +106,14 @@ public:
 	void AddOpenWidgetList(UUserWidget* AddWidget);
 //모드 변경 될 때 함수들
 public:
-	//상점 위젯 컨테이너
-	UFUNCTION()
-	void SetShopWidget();
-	//상점 메인
+	//튜토리얼 레거시 메인 위젯 전환
 	UFUNCTION()
 	void SetShopMainModeWidget();
 
 	void SetLockMouse(bool IsMouseLock);
+
+protected:
+	void InitShopUISelectActor();
 	
 private:
     FVector DefaultCameraLocation;

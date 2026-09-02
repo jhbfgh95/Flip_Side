@@ -41,9 +41,7 @@ void UShopItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     }
 
     MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
-    PlayerItemArray.Reset();
-    for(int i =0; i <3 ;i++)
-        PlayerItemArray.Add(DefaultSelecttemData);
+    
 }
 
 void UShopItemWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
@@ -51,6 +49,10 @@ void UShopItemWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
     Super::OnWorldBeginPlay(InWorld);
     
     FString LevelName = UGameplayStatics::GetCurrentLevelName(&InWorld);
+    PlayerItemArray.Empty();
+    for(int i =0; i <3 ;i++)
+        PlayerItemArray.Add(DefaultSelecttemData);
+
     // 레벨 이름으로 조건 검사
     if(LevelName.Equals(TEXT("L_ShopLevel"), ESearchCase::IgnoreCase))
     {
@@ -65,69 +67,26 @@ void UShopItemWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
     }
 }
 
-void UShopItemWSubsystem::HoverItem(FItemData ItemData)
+bool UShopItemWSubsystem::BuyItem(FItemData ItemData, int32 ItemCount)
 {
-    OnItemHovered.Broadcast(ItemData);
-}
-void UShopItemWSubsystem::UnHoverItem()
-{
-    OnItemUnHovered.Broadcast();
-}
-	
-void UShopItemWSubsystem::HoverPlayerItem(FItemData ItemData)
-{
-    OnPlayerItemHovered.Broadcast(ItemData);
-}
+    int32 InvenIndex = GetAddItemInvenIndex(ItemData.ItemID);
 
-void UShopItemWSubsystem::UnHoverPlayerItem()
-{
-    OnPlayerItemUnHovered.Broadcast();
-}
-
-void UShopItemWSubsystem::BuyItem(FItemData ItemData)
-{
-    int32 InvenIndex = GetSameItemInvenIndex(ItemData.ItemID);
-
-    if(InvenIndex == -1)
+    if(InvenIndex != -1)
     {
-        int32 EmptyIvenNum = GetEmptyInvenIndex(ItemData.ItemID);
-        if(EmptyIvenNum != -1)
+        if(MoneySubsystem->SpendMoney(EMoneyRecordType::Item, ItemData.Price* ItemCount))
         {
-            if(MoneySubsystem->SpendMoney(EMoneyRecordType::Item, ItemData.Price))
-            {
-                FSelectItem SelectItemData;
-                SelectItemData.ItemID = ItemData.ItemID;
-                SelectItemData.SameItemNum = 1;
-                PlayerItemArray[EmptyIvenNum] = SelectItemData;
-                
-                OnItemBuy.Broadcast(EmptyIvenNum);
-            }
-        }
-    }
-    else
-    {
-        if(MoneySubsystem->SpendMoney(EMoneyRecordType::Item, ItemData.Price))
-        {
-            PlayerItemArray[InvenIndex].SameItemNum++;
+            if(PlayerItemArray[InvenIndex].ItemID != ItemData.ItemID)
+                PlayerItemArray[InvenIndex].ItemID = ItemData.ItemID;
+            PlayerItemArray[InvenIndex].SameItemNum += ItemCount;
             OnItemBuy.Broadcast(InvenIndex);
+            return true;
         }
     }
+    return false;
 }
 
-int32 UShopItemWSubsystem::GetEmptyInvenIndex(int32 ItemID)
-{
-    for(int i =0; i<PlayerItemArray.Num() ; i++)
-    {
-        if(PlayerItemArray[i].ItemID == -1)
-        {
-            return i;
-        }
-    }
 
-    return -1;
-}
-
-int32 UShopItemWSubsystem::GetSameItemInvenIndex(int32 FindItemID)
+int32 UShopItemWSubsystem::GetAddItemInvenIndex(int32 FindItemID)
 {
     if(FindItemID ==-1)
         return -1;
@@ -139,6 +98,15 @@ int32 UShopItemWSubsystem::GetSameItemInvenIndex(int32 FindItemID)
             return i;
         }
     }
+
+    for(int i=0; i< PlayerItemArray.Num();i++)
+    {
+        if(PlayerItemArray[i].ItemID == -1)
+        {
+            return i;
+        }
+    }
+
     return -1;
 }
 
@@ -165,6 +133,17 @@ FSelectItem UShopItemWSubsystem::GetPlayerItem(int32 index)
     return DefaultSelecttemData;
 }
 
+FItemData UShopItemWSubsystem::GetPlayerItemData(int32 index)
+{
+    FItemData ReturnItemData;
+    ReturnItemData.ItemID = -1;
+    if(PlayerItemArray.IsValidIndex(index))
+    {
+        DM->TryGetItem(PlayerItemArray[index].ItemID, ReturnItemData);
+    }
+
+    return ReturnItemData;
+}
 
 TArray<FItemData> UShopItemWSubsystem::GetShopItemList()
 {
@@ -172,34 +151,66 @@ TArray<FItemData> UShopItemWSubsystem::GetShopItemList()
 }
 
 
-void UShopItemWSubsystem::SellItem(FItemData ItemData)
+TArray<FSelectItem> UShopItemWSubsystem::GetPlayerItemArray()
+{
+    return PlayerItemArray;
+}
+
+bool UShopItemWSubsystem::SellItem(FItemData ItemData, int32 ItemCount)
 {  
     for(int i = 0; i< PlayerItemArray.Num();i++)
     {
         if(PlayerItemArray[i].ItemID == ItemData.ItemID)
         {
-            
-            if(0<PlayerItemArray[i].SameItemNum)
+            if(PlayerItemArray[i].SameItemNum<ItemCount)
             {
-                PlayerItemArray[i].SameItemNum--;
-                
+                return false;
             }
 
-            if(PlayerItemArray[i].SameItemNum <=0)
+            if(0<PlayerItemArray[i].SameItemNum - ItemCount)
             {
-                PlayerItemArray[i].ItemID = -1;
-                
-                PlayerItemArray[i].SameItemNum= 0;
+                PlayerItemArray[i].SameItemNum-=ItemCount;
             }
-            MoneySubsystem->AddSaleMoney(EMoneyRecordType::Item, ItemData.Price);
-            OnItemSell.Broadcast(i);
-            return;
+            else
+            {
+                PlayerItemArray[i].SameItemNum = 0;
+                PlayerItemArray[i].ItemID = -1;
+            }
+            MoneySubsystem->AddSaleMoney(EMoneyRecordType::Item, ItemData.Price*ItemCount);
+            return true;
         }
-        
     }
+    return false;
 }
 	
 void UShopItemWSubsystem::ShopItemWarning(int32 WarningCode)
 {
     OnShopItemWarning.Broadcast(WarningCode);
+}
+
+
+int32 UShopItemWSubsystem::GetSameItemCountByItemID(int32 ItemID)
+{
+    for(int i =0; i < PlayerItemArray.Num(); i++)
+    {
+        if(PlayerItemArray[i].ItemID == ItemID)
+        {
+            return PlayerItemArray[i].SameItemNum;
+        }
+    }
+    return 0;
+}
+
+int32 UShopItemWSubsystem::GetSameItemCountByIndex(int32 InvenIndex)
+{
+    if(PlayerItemArray.IsValidIndex(InvenIndex))
+    {
+        return PlayerItemArray[InvenIndex].SameItemNum;
+    }
+    return -1;
+}
+
+bool UShopItemWSubsystem::CanBuyItem(int32 Price, int32 ItemCount)
+{
+    return Price*ItemCount <= MoneySubsystem->GetCurrentMoney();
 }

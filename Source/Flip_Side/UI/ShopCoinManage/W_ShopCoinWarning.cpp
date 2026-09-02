@@ -20,6 +20,7 @@ void UW_ShopCoinWarning::NativeDestruct()
 
 void UW_ShopCoinWarning::SetWarning(int32 WarningCode)
 {
+    /*
     FString text;
 
     switch (WarningCode)
@@ -50,5 +51,5 @@ void UW_ShopCoinWarning::SetWarning(int32 WarningCode)
     default:
         break;
     }
-    ActiveWarning(text);
+    ActiveWarning(text);*/
 }

@@ -3,10 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DataTypes/ShopPageTypes.h"
 #include "GameFramework/Pawn.h"
 #include "ShopPlayerPawn_FlipSide.generated.h"
 
 class UCameraComponent;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopPawnMoveCompleted, EShopPage, Page);
 
 UCLASS(abstract)
 class AShopPlayerPawn_FlipSide : public APawn
@@ -16,64 +19,60 @@ class AShopPlayerPawn_FlipSide : public APawn
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* Camera;
 
-private:
-	class AGameMode_Shop* ShopGameMode;
 public:
 	AShopPlayerPawn_FlipSide();
+	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(BlueprintAssignable, Category = "Shop|Movement")
+	FOnShopPawnMoveCompleted OnShopPawnMoveCompleted;
 
 protected:
 	virtual void BeginPlay() override;
 
 private:
-	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
-	FVector CoinCreateLocation;
 
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
-	FVector CoinManageLocation;
+	FTransform CoinTransform = FTransform::Identity;
 
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
-	FVector SelectCardLocation;
+	FTransform ShopItemTransform = FTransform::Identity;
 
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
-	FVector ShopItemLocation;
-
-	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
-	FVector UnlockWeaponLocation;
+	FTransform UnlockWeaponTransform = FTransform::Identity;
 	
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
-	FVector ShopMainLocation;
+	FTransform ShopMainTransform = FTransform::Identity;
 
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
-	FVector UnlockCardLocation;
+	FTransform CardTransform = FTransform::Identity;
 
 	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
-	FVector CheckBossInfoLocation;
+	FTransform CheckBossInfoTransform = FTransform::Identity;
+
+	UPROPERTY(EditAnywhere, Category = "Movement", meta = (ClampMin = "0.01", AllowPrivateAccess = "true"))
+	float LocationInterpSpeed = 3.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement", meta = (ClampMin = "0.01", AllowPrivateAccess = "true"))
+	float RotationInterpSpeed = 3.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement", meta = (ClampMin = "0.0", AllowPrivateAccess = "true"))
+	float LocationCompletionTolerance = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement", meta = (ClampMin = "0.0", AllowPrivateAccess = "true"))
+	float RotationCompletionTolerance = 0.1f;
+
+	FTransform TargetTransform = FTransform::Identity;
+	EShopPage TargetShopPage = EShopPage::Main;
+	bool bIsMoving = false;
+	bool bBroadcastOnMoveCompleted = false;
 
 private:
-	UPROPERTY(EditAnywhere,meta = (AllowPrivateAccess = "true"))
-	FRotator MainRotation;
-
-private:
-	void SetCameraOrthographic();
+	void SetCameraOrthographic(float InOrthoWidth);
 	void SetCameraPerspective();
+	void StartMove(const FTransform& NewTargetTransform);
+	void StartShopPageMove(const FTransform& NewTargetTransform, EShopPage Page);
 
-private:
-	
-	UFUNCTION()
-	void MoveCoinManageMode();
-
-	UFUNCTION()
-	void MoveSelectCardMode();
-
-	UFUNCTION()
-	void MoveShopItemMode();
-	
-	UFUNCTION()
-	void MoveUnlockWeaponMode();
-	
-	UFUNCTION()
+public:
+	void MoveToShopPage(EShopPage Page);
 	void MoveShopMainMode();
-
-	UFUNCTION()
-	void MoveCheckBossInfoMode();
 };

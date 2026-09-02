@@ -20,11 +20,10 @@ private:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 private:
-	class UShopUnlockWeaponWSubsystem* UnlockWeaponSubsystem;
 	class UDataManagerSubsystem* DataSubsystem;
 private:
-	UPROPERTY(meta =(BindWidget))
-	UUserWidget* UnlockButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UW_UnlockWeaponSlotContainer> UnlockWeaponSlotContainer;
 
 	UPROPERTY(meta = (BindWidget))
 	class UW_WeaponDescription* WeaponDes;
@@ -32,18 +31,8 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UW_PriceWidget* WeaponPriceText;
 
-private:
-
-	void SetDesText(FFaceData FaceData);
-	void SetDes(int32 WeaponID);
-
-private:
-
-	UFUNCTION()
-	void SetWidgetState(EWeaponClass WeaponClass, int32 WeaponID, bool IsItemUnlock);
-
-	UFUNCTION()
-	void HideWidget();
-	UFUNCTION()
-	void VisibleWidget();
+public:
+	UW_UnlockWeaponSlotContainer* GetUnlockWeaponSlotContainer() const;
+	UW_PriceWidget* GetWeaponPriceWidget() const;
+	UW_WeaponDescription* GetWeaponDescription() const;
 };

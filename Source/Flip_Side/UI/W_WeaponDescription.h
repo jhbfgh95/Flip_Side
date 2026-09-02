@@ -14,6 +14,9 @@ class FLIP_SIDE_API UW_WeaponDescription : public UUserWidget
 {
 	GENERATED_BODY()
 
+	protected:
+	virtual void NativeConstruct() override;
+
 	private:
 	UPROPERTY(meta= (BindWidget))
 	class UTextBlock* WeaponNameText;
@@ -24,5 +27,5 @@ class FLIP_SIDE_API UW_WeaponDescription : public UUserWidget
 	void SetExplainText(const FString & WeaponName, const FString & Description, int32 DefaultBP, int32 DefaultAP);
 	void SetExplainTextEmpty();
 	
-	void SetPanelStringText(FString Title, FString Descrip);
+	void SetPanelStringText(const FString& Title, const FString& Descrip);
 };

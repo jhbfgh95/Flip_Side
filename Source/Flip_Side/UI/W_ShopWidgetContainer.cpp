@@ -2,65 +2,103 @@
 
 
 #include "UI/W_ShopWidgetContainer.h"
+#include "Components/WidgetSwitcher.h"
+#include "UI/ShopItem/W_ShopItemWidget.h"
+#include "UI/ShopCard/W_ShopCardMainWidget.h"
+#include "UI/ShopCoinManage/W_ShopCoinWidget.h"
+#include "UI/ShopUnlockWeapon/W_UnlockWeaponWidget.h"
+#include "UI/W_ShopCheckStartGame.h"
 #include "Player/GameMode_Shop.h"
 
-
-void UW_ShopWidgetContainer::NativeConstruct()
+void UW_ShopWidgetContainer::NativeOnInitialized()
 {
-    Super::NativeConstruct();
+    Super::NativeOnInitialized();
 
-    ShopGameMode= Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
+    ShopNavigationBar->OnShopPageRequested.AddDynamic(
+        this, &UW_ShopWidgetContainer::HandleShopPageRequested);
+    ShopCheckStartGameWidget->OnStartGameConfirmed.AddDynamic(
+        this, &UW_ShopWidgetContainer::HandleStartGameConfirmed);
 
-    ShopGameMode->OnCoinManageMode.AddDynamic(this, &UW_ShopWidgetContainer::SetShopCoinWidget);
-    ShopGameMode->OnShopItemMode.AddDynamic(this, &UW_ShopWidgetContainer::SetShopItemWidget);
-    ShopGameMode->OnSelectCardMode.AddDynamic(this, &UW_ShopWidgetContainer::SetShopCardWidget);
-    ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &UW_ShopWidgetContainer::SetShopUnlockWeaponWidget);
-    ShopGameMode->OnCheckBossMode.AddDynamic(this, & UW_ShopWidgetContainer::SetShopBossWidget);
-
-    HideAllWidget();
+    HideShopContent();
 }
 
-void UW_ShopWidgetContainer::SetShopItemWidget()
+void UW_ShopWidgetContainer::HandleShopPageRequested(EShopPage Page)
 {
-    SetWidget(ShopItemWidget);
+	OnShopPageRequested.Broadcast(Page);
 }
 
-
-void UW_ShopWidgetContainer::SetShopUnlockWeaponWidget()
+void UW_ShopWidgetContainer::HideShopContent()
 {
-    SetWidget(ShopUnlockWeaponWidget);
-}   
-
-
-void UW_ShopWidgetContainer::SetShopCoinWidget()
-{
-    SetWidget(ShopCoinWidget);
+	ShopContentSwitcher->SetVisibility(ESlateVisibility::Hidden);
 }
 
-
-void UW_ShopWidgetContainer::SetShopCardWidget()
+void UW_ShopWidgetContainer::ShowShopPage(EShopPage Page)
 {
-    SetWidget(ShopCardWidget);
+	switch(Page)
+	{
+	case EShopPage::Main:
+		ShopContentSwitcher->SetActiveWidget(ShopMainWidget);
+		break;
+	case EShopPage::Coin:
+		ShopContentSwitcher->SetActiveWidget(ShopCoinWidget);
+		break;
+	case EShopPage::Item:
+		ShopContentSwitcher->SetActiveWidget(ShopItemWidget);
+		break;
+	case EShopPage::Card:
+		ShopContentSwitcher->SetActiveWidget(ShopCardWidget);
+		break;
+	case EShopPage::UnlockWeapon:
+		ShopContentSwitcher->SetActiveWidget(ShopUnlockWeaponWidget);
+		break;
+	case EShopPage::Boss:
+		ShopContentSwitcher->SetActiveWidget(ShopBossWidget);
+		break;
+	case EShopPage::GameStart:
+	{
+		UE_LOG(LogTemp, Warning, TEXT("게임시작?"));
+		AGameMode_Shop* ShopGameMode = GetWorld()->GetAuthGameMode<AGameMode_Shop>();
+		const bool bHasCoin = IsValid(ShopGameMode) && ShopGameMode->CheckHaveCoin();
+		ShopCheckStartGameWidget->SetCheckStartGameText(bHasCoin);
+		ShopContentSwitcher->SetActiveWidget(ShopCheckStartGameWidget);
+		break;
+	}
+	default:
+		return;
+	}
+
+	ShopContentSwitcher->SetVisibility(ESlateVisibility::Visible);
 }
 
-void UW_ShopWidgetContainer::SetShopBossWidget()
+void UW_ShopWidgetContainer::HandleStartGameConfirmed()
 {
-    SetWidget(ShopBossWidget);
-}	
+	if (AGameMode_Shop* ShopGameMode = GetWorld()->GetAuthGameMode<AGameMode_Shop>())
+	{
+		ShopGameMode->ChangeBattleLevel();
+	}
+}
+
+UW_ShopItemWidget* UW_ShopWidgetContainer::GetShopItemWidget()
+{
+    return ShopItemWidget;
+}
+
+UW_ShopCardMainWidget* UW_ShopWidgetContainer::GetShopCardWidget()
+{
+    return ShopCardWidget;
+}
 	
-void UW_ShopWidgetContainer::HideAllWidget()
+UW_ShopCoinWidget* UW_ShopWidgetContainer::GetShopCoinWidget()
 {
-    ShopItemWidget->SetVisibility(ESlateVisibility::Collapsed);
-    ShopUnlockWeaponWidget->SetVisibility(ESlateVisibility::Collapsed);
-    ShopCoinWidget->SetVisibility(ESlateVisibility::Collapsed);
-    ShopCardWidget->SetVisibility(ESlateVisibility::Collapsed);
-    ShopBossWidget->SetVisibility(ESlateVisibility::Collapsed);
+    return ShopCoinWidget;
 }
 
-
-void UW_ShopWidgetContainer::SetWidget(UUserWidget* HideWidget)
+UW_UnlockWeaponWidget* UW_ShopWidgetContainer::GetShopUnlockWeaponWidget()
 {
-    HideAllWidget();
-    HideWidget->SetVisibility(ESlateVisibility::Visible);
+    return ShopUnlockWeaponWidget;
 }
-	
+
+UW_ShopCheckStartGame* UW_ShopWidgetContainer::GetShopCheckStartWidget()
+{
+	return ShopCheckStartGameWidget;
+}

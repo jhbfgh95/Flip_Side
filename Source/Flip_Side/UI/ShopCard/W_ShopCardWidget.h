@@ -20,9 +20,6 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
-	class UUnlockGISubsystem* UnlockSubsystem;
-	class UShopCardWSubsystem* ShopCardSubsystem;
-
 protected:
 
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent) override;
@@ -32,7 +29,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* LockImage;
 
-	FCardData CardData;
+	FCardData CurrentCardData;
 
 
 private:
@@ -51,4 +48,9 @@ public:
 
 	void InitShopCard(FCardData CardDataValue, bool IsUnlock);
 
+	UFUNCTION()
+	void SetCardData(FCardData CardData);
+	
+	UFUNCTION()
+	void UnsetCardData();
 };

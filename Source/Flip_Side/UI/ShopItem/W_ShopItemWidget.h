@@ -4,39 +4,49 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "DataTypes/ItemDataTypes.h"
 #include "W_ShopItemWidget.generated.h"
 
 /**
  * 
  */
+class UW_ShopPlayerItemSlotContainer;
+class UW_ShopItemSlotContainer;
+class UW_ShopItemDescription;
+class UW_ShopItemPurchasePopup;
+class UW_ShopItemSellPopup;
 UCLASS()
 class FLIP_SIDE_API UW_ShopItemWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
-	virtual void NativeConstruct() override;
-	
-	virtual void NativeDestruct() override;
 
-private:
-	class UShopItemWSubsystem* ShopItemSubsystem;
-private:
+protected:
 	UPROPERTY(meta = (BindWidget))
-	class UW_ShopItemDescription* ItemDes;
+	TObjectPtr<UW_ShopPlayerItemSlotContainer> ShopPlayerItemSlotContainer;
 
 	UPROPERTY(meta = (BindWidget))
-	class UW_PriceWidget* ItemPrice;
+	TObjectPtr<UW_ShopItemSlotContainer> ShopItemSlotContainer;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UW_ShopItemDescription> ShopItemDescription;
 
-	UFUNCTION()
-	void SetDesText(FItemData ItemData);
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UW_ShopItemPurchasePopup> ShopItemPurchasePopup;
 
-
-	UFUNCTION()
-	void ShowDescrip();
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UW_ShopItemSellPopup> ShopItemSellPopup;
 	
+public:
 	UFUNCTION()
-	void HideDescrip();
+	UW_ShopPlayerItemSlotContainer* GetShopPlayerItemSlotContainer() const;
+
+	UFUNCTION()
+	UW_ShopItemSlotContainer* GetShopItemSlotContainer() const;
+
+	UFUNCTION()
+	UW_ShopItemDescription* GetShopItemDescription() const;
+
+	UW_ShopItemPurchasePopup* GetShopItemPurchasePopup() const;
+
+	UW_ShopItemSellPopup* GetShopItemSellPopup() const;
 
 };

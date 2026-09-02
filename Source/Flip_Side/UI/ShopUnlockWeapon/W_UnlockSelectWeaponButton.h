@@ -6,6 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "W_UnlockSelectWeaponButton.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClickedUnlockSelectedWeapon);
+
 /**
  * 
  */
@@ -16,10 +18,15 @@ class FLIP_SIDE_API UW_UnlockSelectWeaponButton : public UUserWidget
 	
 	virtual void NativeConstruct() override;
 	
-	class UShopUnlockWeaponWSubsystem* UnlockWeaponSubsystem;
-	protected:
+protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* UnlockButton;
+
+public:
+	FOnClickedUnlockSelectedWeapon OnClickedUnlockSelectedWeapon;
+
+	void ShowButton();
+	void HideButton();
 
 	UFUNCTION()
 	void UnlockSelectWeapon();

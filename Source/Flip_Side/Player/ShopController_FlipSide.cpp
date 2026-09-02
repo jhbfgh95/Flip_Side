@@ -5,11 +5,29 @@
 #include "EnhancedInputSubsystems.h"
 #include "W_ShopWidget.h"
 #include "ShopPlayerPawn_FlipSide.h"
-#include "Player/GameMode_Shop.h"
+
 #include "Subsystem/MoneyGISubsystem.h"
+#include "Subsystem/DataManagerSubsystem.h"
+#include "Subsystem/UnlockGISubsystem.h"
+
+#include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
+#include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
+#include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
+#include "Subsystem/ShopLevel/ShopUnlockWeaponWSubsystem.h"
+
+#include "UI/ShopItem/ShopItemPresenter.h"
+#include "UI/ShopItem/ShopItemUIActor.h"
+#include "UI/ShopCoinManage/ShopCoinUIActor.h"
+#include "UI/ShopCard/ShopCardPresenter.h"
+#include "UI/ShopCoinManage/ShopCoinPresenter.h"
+#include "UI/ShopUnlockWeapon/ShopUnlockWeaponUIActor.h"
+#include "UI/ShopUnlockWeapon/UnlockWeaponPresenter.h"
+#include "UI/ShopPageChangePresenter.h"
+#include "UI/ShopUISelectRegistry.h"
 
 #include "Interface/ShopMouseInterface.h"
-
+#include "UI/W_ShopWidgetContainer.h"
+#include "Kismet/GameplayStatics.h"
 AShopController_FlipSide::AShopController_FlipSide()
 {
     bShowMouseCursor = true;
@@ -19,33 +37,85 @@ void AShopController_FlipSide::BeginPlay()
 {
     Super::BeginPlay();
     
-    //게임모드에서 델리게이트에 등록
-    ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
     this->bShowMouseCursor = true;
     this->bEnableMouseOverEvents = true;
-    if(ShopGameMode)
+    CanClick = true;
+////////////////////////////
+    UDataManagerSubsystem* DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+    UShopItemWSubsystem* ItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
+    UUnlockGISubsystem* UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
+    UShopCardWSubsystem* CardSubsystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
+    UShopCoinWSubsystem* CoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
+    UShopUnlockWeaponWSubsystem* UnlockWeaponWSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
+    ShopWidgetContainer = Cast<UW_ShopWidgetContainer>(CreateWidget<UUserWidget>(this, ShopWidgetContainerClass));
+    
+    ShopUISelectRegistry = Cast<AShopUISelectRegistry>(
+        UGameplayStatics::GetActorOfClass(this, AShopUISelectRegistry::StaticClass()));
+
+    if (!ensure(ShopWidgetContainer))
     {
-        ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopController_FlipSide::SetShopMainModeWidget);
-        ShopGameMode->OnCoinManageMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
-        ShopGameMode->OnShopItemMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
-        ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
-        ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
-        ShopGameMode->OnCheckBossMode.AddDynamic(this, &AShopController_FlipSide::SetShopWidget);
+        return;
     }
 
+    // 레벨에 배치된 상점 아이템 UI 액터를 찾아 프레젠터에 전달한다.
+    ShopItemUIActor = Cast<AShopItemUIActor>(
+        UGameplayStatics::GetActorOfClass(this, AShopItemUIActor::StaticClass()));
+
+    if (!ensure(IsValid(ShopItemUIActor)))
+    {
+        return;
+    }
+
+	ShopCoinUIActor = Cast<AShopCoinUIActor>(
+		UGameplayStatics::GetActorOfClass(this, AShopCoinUIActor::StaticClass()));
+
+	if (!ensure(IsValid(ShopCoinUIActor)))
+	{
+		return;
+	}
+
+	ShopUnlockWeaponUIActor = Cast<AShopUnlockWeaponUIActor>(
+		UGameplayStatics::GetActorOfClass(this, AShopUnlockWeaponUIActor::StaticClass()));
+
+	if (!ensure(IsValid(ShopUnlockWeaponUIActor)))
+	{
+		return;
+	}
+
+    ItemPresenter = NewObject<UShopItemPresenter>(this);
+    ItemPresenter->InitPresenter(
+        ShopWidgetContainer->GetShopItemWidget(), ItemSubsystem, DataManager, ShopItemUIActor);
+    
+    CardPresenter = NewObject<UShopCardPresenter>();
+    CardPresenter->InitPresenter(ShopWidgetContainer->GetShopCardWidget(), CardSubsystem, DataManager, UnlockSubsystem);
+
+    CoinPresenter = NewObject<UShopCoinPresenter>(this);
+    CoinPresenter->InitPresenter(
+		ShopWidgetContainer->GetShopCoinWidget(), CoinSubsystem, DataManager, UnlockSubsystem, ShopCoinUIActor);
+
+    UnlockWeaponPresenter = NewObject<UUnlockWeaponPresenter>(this);
+    UnlockWeaponPresenter->InitPresenter(ShopWidgetContainer->GetShopUnlockWeaponWidget(),
+		UnlockWeaponWSubsystem, DataManager, UnlockSubsystem, ShopUnlockWeaponUIActor);
+
+    UE_LOG(LogTemp, Warning, TEXT("에서 시작 "));
+    TryInitPageChangePresenter();
+    
+    ShopWidgetContainer->AddToViewport();
     UMoneyGISubsystem* MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
     if(MoneySubsystem)
         MoneySubsystem->UpdateMoneyDisplayWidget();
 
 
-    InitWidget(BlockWidgetClass,BlockWidget,20);
-    InitWidget(ShopMainWidgetClass,ShopMainWidget,0);
-    InitWidget(ShopModeWidgetClass,ShopModeWidget,0);
+    //InitWidget(BlockWidgetClass,BlockWidget,20);
+    //InitWidget(ShopMainWidgetClass,ShopMainWidget,0);
+    //InitWidget(ShopModeWidgetClass,ShopModeWidget,0);
     
-    AddOpenWidgetList(ShopMainWidget);
-    ViewWidgetList();
+    //AddOpenWidgetList(ShopWidgetContainer);
 
-    SetLockMouse(false);
+    //ViewWidgetList();
+
+    //SetLockMouse(false);
+
 }
 
 
@@ -83,6 +153,22 @@ void AShopController_FlipSide::OnPossess(APawn* InPawn)
 
     ControlledPawn = Cast<AShopPlayerPawn_FlipSide>(InPawn);
     check(ControlledPawn);
+
+	TryInitPageChangePresenter();
+    UE_LOG(LogTemp, Warning, TEXT("폰에서 시작 "));
+}
+
+void AShopController_FlipSide::TryInitPageChangePresenter()
+{
+    if (IsValid(PageChangePresenter) ||
+        !IsValid(ShopWidgetContainer) || !IsValid(ControlledPawn) || !IsValid(ShopUISelectRegistry))
+    {
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("찾음 초기화 시작 "));
+    PageChangePresenter = NewObject<UShopPageChangePresenter>(this);
+    PageChangePresenter->InitPresenter(ShopUISelectRegistry, ShopWidgetContainer, ControlledPawn);
 }
 
 
@@ -135,6 +221,15 @@ void AShopController_FlipSide::SetShopMainModeWidget()
     ViewWidgetList();
     ShopModeWidget->SetVisibility(ESlateVisibility::Hidden);
 }
+
+
+void AShopController_FlipSide::InitShopUISelectActor()
+{
+
+}
+
+
+
 
 void AShopController_FlipSide::OnLeftClick()
 {   
@@ -206,12 +301,3 @@ void AShopController_FlipSide::SetLockMouse(bool IsMouseLock)
 }
 
 
-void AShopController_FlipSide::SetShopWidget()
-{
-    if(ShopModeWidget)
-    {
-        HideWidgetList();
-        AddOpenWidgetList(ShopModeWidget);
-        ViewWidgetList();
-    }
-}

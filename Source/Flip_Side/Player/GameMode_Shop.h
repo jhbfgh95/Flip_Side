@@ -11,17 +11,7 @@
  */
 //코인이 클래스가 선택 됬을 때 델리게이트
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FShopMainMode);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCoinManageMode);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FShopItemMode);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSelectCardMode);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnlockWeaponMode);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCheckBossMode);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWarningHaveNoCoin);
 
 UCLASS()
 class FLIP_SIDE_API AGameMode_Shop : public AGameModeBase
@@ -36,27 +26,12 @@ class FLIP_SIDE_API AGameMode_Shop : public AGameModeBase
 	virtual void BeginPlay() override;
 	//
 public:
-	FShopMainMode OnShopMainMode;
-	
-	FCoinManageMode OnCoinManageMode;
-
-	FShopItemMode OnShopItemMode;
-	
-	FSelectCardMode OnSelectCardMode;
-	
-	FUnlockWeaponMode OnUnlockWeaponMode;
-
-	FCheckBossMode OnCheckBossMode;
-public:
-	void SetShopMainMode();
-	void SetCheckBossMode();
-	void SetCoinManageMode();
-	void SetShopItemMode();
-	void SetCardSelectMode();
-	void SetUnlockWeaponMode();
+	FOnWarningHaveNoCoin OnWarningHaveNoCoin;
 public:
 	virtual void ChangeBattleLevel();
+	
 	void InsertDataInSubysytem();
-	void CheckCanGameStart();
+
+	bool CheckHaveCoin();
 
 };
