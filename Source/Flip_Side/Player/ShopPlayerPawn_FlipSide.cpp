@@ -113,6 +113,9 @@ void AShopPlayerPawn_FlipSide::MoveToShopPage(EShopPage Page)
 	case EShopPage::Boss:
 		PageTransform = CheckBossInfoTransform;
 		break;
+	case EShopPage::GameStart:
+		PageTransform = ShopMainTransform;
+		break;
 	default:
 		return;
 	}

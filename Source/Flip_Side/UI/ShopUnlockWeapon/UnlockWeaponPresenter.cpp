@@ -5,7 +5,6 @@
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponSlotContainer.h"
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponWidget.h"
 #include "UI/ShopUnlockWeapon/ShopUnlockWeaponUIActor.h"
-#include "UI/ShopUnlockWeapon/W_UnlockSelectWeaponButton.h"
 #include "UI/W_PriceWidget.h"
 #include "UI/W_WeaponDescription.h"
 #include "Subsystem/DataManagerSubsystem.h"
@@ -30,7 +29,6 @@ void UUnlockWeaponPresenter::InitPresenter(UW_UnlockWeaponWidget* InUnlockWeapon
 		this, &UUnlockWeaponPresenter::FinishedUnlockWeapon);
 
 	InitUnlockWeaponContainer();
-	InitUnlockButton();
 }
 
 void UUnlockWeaponPresenter::InitUnlockWeaponContainer()
@@ -55,75 +53,84 @@ void UUnlockWeaponPresenter::InitUnlockWeaponContainer()
 		if(!IsValid(WeaponSlot))
 			continue;
 
-		WeaponSlot->OnClickedUnlockWeaponSlot.AddDynamic(this, &UUnlockWeaponPresenter::SelectWeapon);
+		//WeaponSlot->OnClickedUnlockWeaponSlot.AddDynamic(this, &UUnlockWeaponPresenter::SelectWeapon);
 		WeaponSlot->OnHoveredUnlockWeaponSlot.AddDynamic(this, &UUnlockWeaponPresenter::HoverWeapon);
 		WeaponSlot->OnUnhoveredUnlockWeaponSlot.AddDynamic(this, &UUnlockWeaponPresenter::UnhoverWeapon);
+		WeaponSlot->OnHoldStartedUnlockWeaponSlot.AddDynamic(this, &UUnlockWeaponPresenter::StartHoldWeapon);
+		WeaponSlot->OnHoldCancelledUnlockWeaponSlot.AddDynamic(this, &UUnlockWeaponPresenter::CancelHoldWeapon);
+		WeaponSlot->OnHoldCompletedUnlockWeaponSlot.AddDynamic(this, &UUnlockWeaponPresenter::CompleteHoldWeapon);
 	}
 
 }
 
-void UUnlockWeaponPresenter::InitUnlockButton()
-{
-	UW_UnlockSelectWeaponButton* UnlockButton = UnlockWeaponWidget->GetUnlockButton();
-	if(!IsValid(UnlockButton))
-		return;
-
-	UnlockButton->OnClickedUnlockSelectedWeapon.AddUniqueDynamic(
-		this, &UUnlockWeaponPresenter::UnlockSelectedWeapon);
-
-	HideUnlockControls();
-}
-
-void UUnlockWeaponPresenter::SelectWeapon(int32 WeaponID)
-{
-	CurrentSelectedWeaponID = WeaponID;
-	UpdateSelectedWeapon(CurrentSelectedWeaponID);
-	UpdateWeaponDescription(CurrentSelectedWeaponID);
-	UpdateUnlockControls(CurrentSelectedWeaponID);
-}
 
 void UUnlockWeaponPresenter::HoverWeapon(int32 WeaponID)
 {
-	UpdateSelectedWeapon(WeaponID);
+	CurrentSelectedWeaponID = WeaponID;
+	UpdateWeaponUIActor(WeaponID);
 	UpdateWeaponDescription(WeaponID);
 	UpdateUnlockControls(WeaponID);
 }
 
 void UUnlockWeaponPresenter::UnhoverWeapon()
 {
+	CurrentSelectedWeaponID = -1;
 	HideWeaponDescription();
-	UpdateSelectedWeapon(CurrentSelectedWeaponID);
-	if(CurrentSelectedWeaponID == -1)
-		HideUnlockControls();
-	else
-		UpdateUnlockControls(CurrentSelectedWeaponID);
+	HideUnlockControls();
 }
 
 void UUnlockWeaponPresenter::UnlockSelectedWeapon()
 {
-	if(CurrentSelectedWeaponID != -1)
+	TryUnlockWeapon(CurrentSelectedWeaponID);
+}
+
+void UUnlockWeaponPresenter::StartHoldWeapon(int32 WeaponID)
+{
+	if (!IsValid(ShopUnlockWeaponUIActor) || WeaponID == -1)
+		return;
+
+	ShopUnlockWeaponUIActor->StartHoldShake();
+}
+
+void UUnlockWeaponPresenter::CancelHoldWeapon(int32 WeaponID)
+{
+	if (CurrentSelectedWeaponID != WeaponID)
+		return;
+
+	CurrentSelectedWeaponID = -1;
+	if (IsValid(ShopUnlockWeaponUIActor))
+		ShopUnlockWeaponUIActor->StopHoldShake();
+}
+
+void UUnlockWeaponPresenter::CompleteHoldWeapon(int32 WeaponID)
+{
+	if (CurrentSelectedWeaponID != WeaponID)
+		return;
+
+	if (IsValid(ShopUnlockWeaponUIActor))
+		ShopUnlockWeaponUIActor->CompleteHoldShake();
+
+	TryUnlockWeapon(WeaponID);
+}
+
+void UUnlockWeaponPresenter::TryUnlockWeapon(int32 WeaponID)
+{
+	if (WeaponID == -1 || !IsValid(UnlockWeaponSubsystem))
+		return;
+
+	if (UnlockWeaponSubsystem->UnlockWeapon(WeaponID))
 	{
-		const int32 WeaponID = CurrentSelectedWeaponID;
-		if(UnlockWeaponSubsystem->UnlockWeapon(WeaponID))
+		if (!IsValid(ShopUnlockWeaponUIActor) || !ShopUnlockWeaponUIActor->PlayBuyWeaponAnim())
 		{
-			PendingUnlockedWeaponID = WeaponID;
-			if(!ShopUnlockWeaponUIActor->PlayBuyWeaponAnim())
-			{
-				FinishedUnlockWeapon();
-			}
-			UpdateUnlockControls(WeaponID);
+			FinishedUnlockWeapon();
 		}
+		UpdateUnlockControls(WeaponID);
 	}
 }
 
 void UUnlockWeaponPresenter::FinishedUnlockWeapon()
 {
-	if(PendingUnlockedWeaponID == -1)
-		return;
-
-	const int32 WeaponID = PendingUnlockedWeaponID;
-	PendingUnlockedWeaponID = -1;
-	RemoveUnlockedWeaponSlot(WeaponID);
+	RemoveUnlockedWeaponSlot(CurrentSelectedWeaponID);
 }
 
 void UUnlockWeaponPresenter::RemoveUnlockedWeaponSlot(int32 WeaponID)
@@ -138,12 +145,12 @@ void UUnlockWeaponPresenter::RemoveUnlockedWeaponSlot(int32 WeaponID)
 	{
 		CurrentSelectedWeaponID = -1;
 		HideWeaponDescription();
-		UpdateSelectedWeapon(CurrentSelectedWeaponID);
+		UpdateWeaponUIActor(CurrentSelectedWeaponID);
 		HideUnlockControls();
 	}
 }
 
-void UUnlockWeaponPresenter::UpdateSelectedWeapon(int32 WeaponID)
+void UUnlockWeaponPresenter::UpdateWeaponUIActor(int32 WeaponID)
 {
 	if(!IsValid(ShopUnlockWeaponUIActor))
 		return;
@@ -195,9 +202,8 @@ void UUnlockWeaponPresenter::HideWeaponDescription()
 
 void UUnlockWeaponPresenter::UpdateUnlockControls(int32 WeaponID)
 {
-	UW_UnlockSelectWeaponButton* UnlockButton = UnlockWeaponWidget->GetUnlockButton();
 	UW_PriceWidget* PriceWidget = UnlockWeaponWidget->GetWeaponPriceWidget();
-	if(!IsValid(UnlockButton) || !IsValid(PriceWidget))
+	if(!IsValid(PriceWidget))
 		return;
 
 	if(WeaponID == -1 || !IsValid(DataManager) ||
@@ -217,14 +223,10 @@ void UUnlockWeaponPresenter::UpdateUnlockControls(int32 WeaponID)
 
 	PriceWidget->SetPriceText(WeaponData.Price);
 	PriceWidget->SetVisibility(ESlateVisibility::Visible);
-	UnlockButton->ShowButton();
 }
 
 void UUnlockWeaponPresenter::HideUnlockControls()
 {
-	if(UW_UnlockSelectWeaponButton* UnlockButton = UnlockWeaponWidget->GetUnlockButton())
-		UnlockButton->HideButton();
-
 	if(UW_PriceWidget* PriceWidget = UnlockWeaponWidget->GetWeaponPriceWidget())
 		PriceWidget->SetVisibility(ESlateVisibility::Collapsed);
 }

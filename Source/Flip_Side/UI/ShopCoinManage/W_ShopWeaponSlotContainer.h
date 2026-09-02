@@ -33,10 +33,20 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UVerticalBox> SlotBox;
 
+	UPROPERTY()
+	TObjectPtr<UW_ShopCoinWeaponSlot> SelectFrontWeaponSlot;
+
+	UPROPERTY()
+	TObjectPtr<UW_ShopCoinWeaponSlot> SelectBackWeaponSlot;
+
 public:
 	void InitWidget(TArray<FFaceData> InWeaponData);
 
 	UW_ShopCoinWeaponSlot* AddWeaponSlot(const FFaceData& InWeaponData);
 	
 	const TArray<TObjectPtr<UW_ShopCoinWeaponSlot>>& GetWeaponSlots() const { return WeaponSlotArray; }
+
+	void SelectWeaponSlots(int32 FrontWeaponID, int32 BackWeaponID);
+	void SelectWeaponSlot(bool bIsFrontWeapon, UW_ShopCoinWeaponSlot* ClickedWeaponSlot);
+	void UnSelectWeaponSlots();
 };

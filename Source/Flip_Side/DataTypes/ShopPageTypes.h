@@ -11,5 +11,6 @@ enum class EShopPage : uint8
 	Item,
 	Card,
 	UnlockWeapon,
-	Boss
+	Boss,
+	GameStart
 };

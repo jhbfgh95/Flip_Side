@@ -68,6 +68,10 @@ void UShopCardPresenter::SelectedPlayerCard(UW_ShopPlayerCardSlot* SelectedCardS
         ->GetShopPlayerCardSlotContainer()
         ->AddPlayerSelectCardSlot(CardData, SelectedCardSlot);
 
+    ShopCardMainWidget
+        ->GetShopPlayerCardSlotContainer()
+        ->SetSelectCardCountText(CardSubsystem->GetPlayerSelectCardCount());
+
 }
 
 void UShopCardPresenter::UnselectedPlayerSelectedCard(int32 RemoveSlotIndex)
@@ -75,6 +79,8 @@ void UShopCardPresenter::UnselectedPlayerSelectedCard(int32 RemoveSlotIndex)
     if(CardSubsystem->UnSelectPlayerCard(RemoveSlotIndex))
     {
         ShopCardMainWidget->GetShopPlayerCardSlotContainer()->RemovePlayerSelectCardSlot(RemoveSlotIndex);
+        ShopCardMainWidget->GetShopPlayerCardSlotContainer()->SetSelectCardCountText(
+            CardSubsystem->GetPlayerSelectCardCount());
     }
 }
 void UShopCardPresenter::UnselectedPlayerCard(int32 CardID)
@@ -128,6 +134,8 @@ void UShopCardPresenter::InitShopPlayerCardSlot()
         InCardDataArray.Add(InCardData);
     }
     ShopCardMainWidget->GetShopPlayerCardSlotContainer()->InitWidget(InCardDataArray);
+    ShopCardMainWidget->GetShopPlayerCardSlotContainer()->SetSelectCardCountText(
+        CardSubsystem->GetPlayerSelectCardCount());
 
     ShopPlayerCardSlotViews = ShopCardMainWidget->GetShopPlayerCardSlotContainer()->GetShopPlayerCardSlots();
     ShopPlayerSelectedCardSlotViews = ShopCardMainWidget->GetShopPlayerCardSlotContainer()->GetShopPlayerSelectedCardSlots();

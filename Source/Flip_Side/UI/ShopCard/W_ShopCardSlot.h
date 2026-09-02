@@ -16,6 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBuyCard, UW_ShopCardSlot*, BuyCa
 
 class UImage;
 class UTextBlock;
+class UBorder;
 class UShopCardWSubsystem;
 UCLASS()
 class FLIP_SIDE_API UW_ShopCardSlot : public UW_ShopCardBase
@@ -30,6 +31,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UTextBlock> CardPriceTextBlock;
+
+	// UMG 위젯 블루프린트에서 이름을 HoverBorder로 지정한 Border입니다.
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBorder> HoverBorder;
 
 public:
 	FOnBuyCard OnBuyCard;

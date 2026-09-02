@@ -32,25 +32,26 @@ protected:
 
 	UPROPERTY(meta  =(BindWidget))
 	TObjectPtr<UVerticalBox> CoinSlotBox;
-/*
+
 	UPROPERTY(meta  =(BindWidget))
 	class UTextBlock* TotalCoinText;
 
 	UPROPERTY(meta  =(BindWidget))
 	class UTextBlock* SlotInfoText;
-*/
-protected:
-	UFUNCTION()
-	void SetTotalCoinText(int32 ChangedSlotIndex, int32 Count);
 
 public:
 	void InitWidget();
+
+	void SetTotalCoinText(int32 TotalCoinCount);
+
+	void SetSlotInfoText(int32 SlotCount);
 	
 	void AddCoinSlot(int32 AddSlotIndex, int32 Hp);
 	
 	void RemoveCoinSlot(int32 RemoveSlotIndex);
 
 	void ResetSlotPreview();
+
 
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
@@ -60,7 +61,6 @@ private:
 	TArray<TObjectPtr<UW_ShopCoinSlot>> CoinSlots;
 
 private:
-	void UpdateSlotText(bool IsIncrease);
 	void RebuildSlotBox(const TArray<TObjectPtr<UW_ShopCoinSlot>>& OrderedSlots);
 
 

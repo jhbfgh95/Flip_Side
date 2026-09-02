@@ -17,6 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoveredPlayerItemSlot);
 class UButton;
 class UImage;
 class UTextBlock;
+class UBorder;
 UCLASS()
 class FLIP_SIDE_API UW_ShopPlayerItemSlot : public UUserWidget
 {
@@ -36,6 +37,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UImage> EmptySlotImage;
+
+	// 슬롯 위에 표시되며, 입력은 통과시키는 호버 테두리입니다.
+	UPROPERTY(EditAnywhere, meta = (BindWidgetOptional))
+	TObjectPtr<UBorder> HoverBorder;
 
 public:
 

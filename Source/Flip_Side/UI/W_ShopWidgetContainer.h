@@ -14,6 +14,7 @@ class UW_ShopItemWidget;
 class UW_ShopCardMainWidget;
 class UW_ShopCoinWidget;
 class UW_UnlockWeaponWidget;
+class UW_ShopCheckStartGame;
 class UWidgetSwitcher;
 
 UCLASS()
@@ -49,14 +50,21 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UUserWidget* ShopBossWidget;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UW_ShopCheckStartGame> ShopCheckStartGameWidget;
+
 private:
 	UFUNCTION()
 	void HandleShopPageRequested(EShopPage Page);
 
+	UFUNCTION()
+	void HandleStartGameConfirmed();
+
+
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnShopPageRequested OnShopPageRequested;
-
+	
 	void HideShopContent();
 	void ShowShopPage(EShopPage Page);
 
@@ -67,4 +75,6 @@ public:
 	UW_ShopCoinWidget* GetShopCoinWidget();
 
 	UW_UnlockWeaponWidget* GetShopUnlockWeaponWidget();
+
+	UW_ShopCheckStartGame* GetShopCheckStartWidget();
 };

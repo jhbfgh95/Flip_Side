@@ -7,6 +7,8 @@
 #include "UI/ShopCard/W_ShopCardMainWidget.h"
 #include "UI/ShopCoinManage/W_ShopCoinWidget.h"
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponWidget.h"
+#include "UI/W_ShopCheckStartGame.h"
+#include "Player/GameMode_Shop.h"
 
 void UW_ShopWidgetContainer::NativeOnInitialized()
 {
@@ -14,6 +16,9 @@ void UW_ShopWidgetContainer::NativeOnInitialized()
 
     ShopNavigationBar->OnShopPageRequested.AddDynamic(
         this, &UW_ShopWidgetContainer::HandleShopPageRequested);
+    ShopCheckStartGameWidget->OnStartGameConfirmed.AddDynamic(
+        this, &UW_ShopWidgetContainer::HandleStartGameConfirmed);
+
     HideShopContent();
 }
 
@@ -49,13 +54,29 @@ void UW_ShopWidgetContainer::ShowShopPage(EShopPage Page)
 	case EShopPage::Boss:
 		ShopContentSwitcher->SetActiveWidget(ShopBossWidget);
 		break;
+	case EShopPage::GameStart:
+	{
+		UE_LOG(LogTemp, Warning, TEXT("게임시작?"));
+		AGameMode_Shop* ShopGameMode = GetWorld()->GetAuthGameMode<AGameMode_Shop>();
+		const bool bHasCoin = IsValid(ShopGameMode) && ShopGameMode->CheckHaveCoin();
+		ShopCheckStartGameWidget->SetCheckStartGameText(bHasCoin);
+		ShopContentSwitcher->SetActiveWidget(ShopCheckStartGameWidget);
+		break;
+	}
 	default:
 		return;
 	}
 
 	ShopContentSwitcher->SetVisibility(ESlateVisibility::Visible);
 }
-	
+
+void UW_ShopWidgetContainer::HandleStartGameConfirmed()
+{
+	if (AGameMode_Shop* ShopGameMode = GetWorld()->GetAuthGameMode<AGameMode_Shop>())
+	{
+		ShopGameMode->ChangeBattleLevel();
+	}
+}
 
 UW_ShopItemWidget* UW_ShopWidgetContainer::GetShopItemWidget()
 {
@@ -75,4 +96,9 @@ UW_ShopCoinWidget* UW_ShopWidgetContainer::GetShopCoinWidget()
 UW_UnlockWeaponWidget* UW_ShopWidgetContainer::GetShopUnlockWeaponWidget()
 {
     return ShopUnlockWeaponWidget;
+}
+
+UW_ShopCheckStartGame* UW_ShopWidgetContainer::GetShopCheckStartWidget()
+{
+	return ShopCheckStartGameWidget;
 }

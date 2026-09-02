@@ -16,6 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUnselectedPlayerCard, int32, Slot
 
 class UImage;
 class UTextBlock;
+class UBorder;
 class UW_ShopPlayerCardSlot;
 UCLASS()
 class FLIP_SIDE_API UW_ShopPlayerSelectedCardSlot : public UW_ShopCardBase
@@ -28,6 +29,12 @@ protected:
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UTextBlock> CardNameTextBlock;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBorder> HoverBorder;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBorder> SelectBorder;
 
 public:
 	FOnUnselectedPlayerCard OnUnselectedPlayerCard;

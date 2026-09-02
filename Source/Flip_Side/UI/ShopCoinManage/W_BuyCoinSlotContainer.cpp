@@ -5,6 +5,7 @@
 
 #include "Components/Border.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "Subsystem/DataManagerSubsystem.h"
@@ -83,9 +84,16 @@ void UW_BuyCoinSlotContainer::CloseSlotBuyPopupBorder()
 void UW_BuyCoinSlotContainer::ClickOpenSlotBuyPopup()
 {
 	if(!IsPopupOpen)
+	{
+		SlotBuyButtonText->SetText(FText::FromString(TEXT("취소")));
 		OpenSlotBuyPopupBorder();
+	}
 	else
+	{
+		SlotBuyButtonText->SetText(FText::FromString(TEXT("슬롯 구매")));
 		CloseSlotBuyPopupBorder();
+	}
+		
 }
 
 void UW_BuyCoinSlotContainer::ClickCancelButton()

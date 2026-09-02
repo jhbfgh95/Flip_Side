@@ -7,6 +7,7 @@
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "Components/TextBlock.h"
 #include "UI/ShopCard/W_ShopPlayerCardSlot.h"
 #include "DataTypes/CardTypes.h"
 #include "UI/ShopCard/W_ShopPlayerSelectedCardSlot.h"
@@ -36,6 +37,15 @@ void UW_ShopPlayerCardSlotContainer::InitWidget(const TArray<FCardData> UnlockCa
             CardSlotWidget->SetVisibility(ESlateVisibility::Collapsed);
             CardSlotWidget->InitCardSlot(i);
         }
+    }
+}
+
+void UW_ShopPlayerCardSlotContainer::SetSelectCardCountText(int32 SelectCardCount)
+{
+    if (SelectCardCountText)
+    {
+        SelectCardCountText->SetText(
+            FText::FromString(FString::Printf(TEXT("%d/3"), SelectCardCount)));
     }
 }
 

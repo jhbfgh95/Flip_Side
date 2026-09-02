@@ -24,7 +24,8 @@ void UW_ShopCoinSlotContainer::NativeConstruct()
 
     //SlotAddButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlotContainer::AddCoinSlot);
     //DecreaseSlotButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlotContainer::DecreaseCoinSlot);
-    SetTotalCoinText(0, 0);
+    SetTotalCoinText(0);
+    SetSlotInfoText(0);
 }
 
 void UW_ShopCoinSlotContainer::NativeDestruct()
@@ -117,12 +118,20 @@ bool UW_ShopCoinSlotContainer::NativeOnDragOver(
     return true;
 }
 
-void UW_ShopCoinSlotContainer::SetTotalCoinText(int32 ChangedSlotIndex, int32 Count)
+void UW_ShopCoinSlotContainer::SetTotalCoinText(int32 TotalCoinCount)
 {
-    /*
-    FString TextString = FString::Printf(TEXT("코인 개수 %d / 30"), ShopCoinSubsystem->GetTotalCoinCount());
-    
-    TotalCoinText->SetText(FText::FromString(TextString));*/
+    if (TotalCoinText)
+    {
+        TotalCoinText->SetText(FText::FromString(FString::Printf(TEXT("%d/ 30"), TotalCoinCount)));
+    }
+}
+
+void UW_ShopCoinSlotContainer::SetSlotInfoText(int32 SlotCount)
+{
+    if (SlotInfoText)
+    {
+        SlotInfoText->SetText(FText::FromString(FString::Printf(TEXT("%d/ %d"), SlotCount, MAX_SLOT_NUM)));
+    }
 }
 
 
@@ -192,12 +201,4 @@ void UW_ShopCoinSlotContainer::InitWidget()
             CoinSlotWidgetClass->SetVisibility(ESlateVisibility::Collapsed);
         }
     }
-}
-
-void UW_ShopCoinSlotContainer::UpdateSlotText(bool IsIncrease)
-{
-    /*
-    int32 SlotCount = ShopCoinSubsystem->GetCurrentSlotCount();
-    FString SlotText = FString::Printf(TEXT("%d / 10"), SlotCount);
-    SlotInfoText->SetText(FText::FromString(SlotText));*/
 }

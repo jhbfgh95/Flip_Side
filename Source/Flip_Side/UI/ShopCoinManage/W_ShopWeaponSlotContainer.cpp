@@ -41,3 +41,66 @@ UW_ShopCoinWeaponSlot* UW_ShopWeaponSlotContainer::AddWeaponSlot(const FFaceData
 
     return nullptr;
 }
+
+	
+void UW_ShopWeaponSlotContainer::SelectWeaponSlots(int32 FrontWeaponID, int32 BackWeaponID)
+{
+    UnSelectWeaponSlots();
+
+    for(UW_ShopCoinWeaponSlot* WeaponSlot : WeaponSlotArray)
+    {
+        if (!IsValid(WeaponSlot))
+        {
+            continue;
+        }
+
+        if(WeaponSlot->GetWeaponSlotID() == FrontWeaponID)
+        {
+            SelectFrontWeaponSlot = WeaponSlot;
+            WeaponSlot->SelectSlot();
+        }
+        if(WeaponSlot->GetWeaponSlotID() == BackWeaponID)
+        {
+            SelectBackWeaponSlot = WeaponSlot;
+            WeaponSlot->SelectSlot();
+        }
+    }
+}
+
+void UW_ShopWeaponSlotContainer::SelectWeaponSlot(
+    bool bIsFrontWeapon, UW_ShopCoinWeaponSlot* ClickedWeaponSlot)
+{
+    if (!IsValid(ClickedWeaponSlot))
+    {
+        return;
+    }
+
+    TObjectPtr<UW_ShopCoinWeaponSlot>& CurrentWeaponSlot =
+        bIsFrontWeapon ? SelectFrontWeaponSlot : SelectBackWeaponSlot;
+    TObjectPtr<UW_ShopCoinWeaponSlot>& OtherWeaponSlot =
+        bIsFrontWeapon ? SelectBackWeaponSlot : SelectFrontWeaponSlot;
+
+    if (IsValid(CurrentWeaponSlot) && CurrentWeaponSlot != ClickedWeaponSlot &&
+        CurrentWeaponSlot != OtherWeaponSlot)
+    {
+        CurrentWeaponSlot->UnSelectSlot();
+    }
+
+    CurrentWeaponSlot = ClickedWeaponSlot;
+    ClickedWeaponSlot->SelectSlot();
+}
+
+void UW_ShopWeaponSlotContainer::UnSelectWeaponSlots()
+{
+    if (IsValid(SelectFrontWeaponSlot))
+    {
+        SelectFrontWeaponSlot->UnSelectSlot();
+    }
+    if (IsValid(SelectBackWeaponSlot) && SelectBackWeaponSlot != SelectFrontWeaponSlot)
+    {
+        SelectBackWeaponSlot->UnSelectSlot();
+    }
+
+    SelectFrontWeaponSlot = nullptr;
+    SelectBackWeaponSlot = nullptr;
+}

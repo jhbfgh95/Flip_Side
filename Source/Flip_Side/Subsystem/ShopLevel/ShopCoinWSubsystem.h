@@ -71,10 +71,6 @@ public:
 
 	bool SellCoinSlot(int32 BuySlotLevel);
 
-	bool IncreaseCoinSlot(int32 SlotNum);
-
-	bool DecreaseCoinSlot(int32 SlotNum);
-
 	bool GetCoinSlotUnlock(int32 Index);
 
 	void IncreaseCoinSlotCoin(int32 SlotIndex, int32 Amount);
@@ -93,21 +89,21 @@ public:
 	FCoinTypeStructure GetSlotCoin(int32 index);
 
 private:
+
 	bool CanIncreaseCoin(int32 SlotIndex,int32 Amount);
 
 	bool CanDecreaseCoin(int32 SlotIndex, int32 Amount);
 
-	int32 GetSameWeaponInCoinSlot(int32 SlotNum, int32 WeaponID);
+	int32 GetSameWeaponCoinSlotIndex(int32 CompareSlotIndex, int32 FrontWeaponID, int32 BackWeaponID);
 
-	bool IsTrySetSameWeapon(bool IsFront, int32 WeaponID);
-
+	bool HasSameWeaponOppositeSide(bool IsFront, int32 SlotIndex, int32 WeaponID);
 
 /* 코인 무기 관련*/
 public:
 
-	void SetCoinSlotFrontWeapon(int32 SlotIndex, int32 WeaponID);
+	bool TrySetCoinSlotFrontWeapon(int32 SlotIndex, int32 WeaponID);
 
-	void SetCoinSlotBackWeapon(int32 SlotIndex, int32 WeaponID);
+	bool TrySetCoinSlotBackWeapon(int32 SlotIndex, int32 WeaponID);
 
 
 

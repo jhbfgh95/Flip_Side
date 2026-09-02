@@ -5,6 +5,7 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
+#include "Components/Border.h"
 
 void UW_ShopCoinWeaponSlot::NativeOnInitialized()
 {   
@@ -13,6 +14,15 @@ void UW_ShopCoinWeaponSlot::NativeOnInitialized()
     WeaponSelectButton->OnClicked.AddDynamic(this, &UW_ShopCoinWeaponSlot::ClickWidget);
     WeaponSelectButton->OnHovered.AddDynamic(this, &UW_ShopCoinWeaponSlot::HoverWidget);
     WeaponSelectButton->OnUnhovered.AddDynamic(this, &UW_ShopCoinWeaponSlot::UnhoverWidget);
+
+    if (HoverBorder)
+    {
+        HoverBorder->SetVisibility(ESlateVisibility::Hidden);
+    }
+    if (SelectBorder)
+    {
+        SelectBorder->SetVisibility(ESlateVisibility::Hidden);
+    }
 }
 
 void UW_ShopCoinWeaponSlot::InitWidget(FFaceData FaceData)
@@ -34,15 +44,47 @@ void UW_ShopCoinWeaponSlot::InitWidget(FFaceData FaceData)
 	
 void UW_ShopCoinWeaponSlot::ClickWidget()
 {
-    OnClickedShopCoinWeaponSlot.Broadcast(WeaponData.WeaponID);
+    OnClickedShopCoinWeaponSlot.Broadcast(this);
 }
 	
 void UW_ShopCoinWeaponSlot::HoverWidget()
 {
+    if (HoverBorder)
+    {
+        HoverBorder->SetVisibility(ESlateVisibility::HitTestInvisible);
+    }
+
     OnHoveredShopCoinWeaponSlot.Broadcast(WeaponData.WeaponID);
 }
 
 void UW_ShopCoinWeaponSlot::UnhoverWidget()
 {
+    if (HoverBorder)
+    {
+        HoverBorder->SetVisibility(ESlateVisibility::Hidden);
+    }
+
     OnUnhoveredShopCoinWeaponSlot.Broadcast();
+}
+
+
+int32 UW_ShopCoinWeaponSlot::GetWeaponSlotID()
+{
+    return WeaponData.WeaponID;
+}
+	
+void UW_ShopCoinWeaponSlot::SelectSlot()
+{
+    if(IsSelected)
+        return;
+    SelectBorder->SetVisibility(ESlateVisibility::HitTestInvisible);
+    IsSelected = true;
+}
+	
+void UW_ShopCoinWeaponSlot::UnSelectSlot()
+{
+    if(!IsSelected)
+        return;
+    SelectBorder->SetVisibility(ESlateVisibility::Hidden);
+    IsSelected = false;
 }

@@ -11,6 +11,8 @@
  */
 //코인이 클래스가 선택 됬을 때 델리게이트
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWarningHaveNoCoin);
+
 UCLASS()
 class FLIP_SIDE_API AGameMode_Shop : public AGameModeBase
 {
@@ -24,8 +26,12 @@ class FLIP_SIDE_API AGameMode_Shop : public AGameModeBase
 	virtual void BeginPlay() override;
 	//
 public:
+	FOnWarningHaveNoCoin OnWarningHaveNoCoin;
+public:
 	virtual void ChangeBattleLevel();
+	
 	void InsertDataInSubysytem();
-	void CheckCanGameStart();
+
+	bool CheckHaveCoin();
 
 };

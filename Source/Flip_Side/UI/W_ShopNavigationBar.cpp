@@ -12,6 +12,7 @@ void UW_ShopNavigationBar::NativeOnInitialized()
 	CardButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowCardPage);
 	UnlockWeaponButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowUnlockWeaponPage);
 	BossButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowBossPage);
+	StartGameButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowStartGamePage);
 }
 
 void UW_ShopNavigationBar::ShowCoinPage()
@@ -42,4 +43,9 @@ void UW_ShopNavigationBar::ShowBossPage()
 void UW_ShopNavigationBar::ShowMainPage()
 {
 	OnShopPageRequested.Broadcast(EShopPage::Main);
+}
+	
+void UW_ShopNavigationBar::ShowStartGamePage()
+{
+	OnShopPageRequested.Broadcast(EShopPage::GameStart);
 }

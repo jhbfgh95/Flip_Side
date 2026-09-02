@@ -23,14 +23,15 @@ AShopUnlockWeaponUIActor::AShopUnlockWeaponUIActor()
 	UnlockWeaponEffect->SetupAttachment(PreviewRoot);
 	UnlockWeaponEffect->SetAutoActivate(false);
 
-	ShakeTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ShakeTimeline"));
+	//ShakeTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ShakeTimeline"));
+	HoldShakeTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("HoldShakeTimeline"));
 
 }
 
 void AShopUnlockWeaponUIActor::BeginPlay()
 {
 	Super::BeginPlay();
-
+	/*
 	if (IsValid(ShakeTimeline) && IsValid(ShakeCurve))
 	{
 		FOnTimelineFloat UpdateCallback;
@@ -40,6 +41,15 @@ void AShopUnlockWeaponUIActor::BeginPlay()
 		FOnTimelineEvent FinishedCallback;
 		FinishedCallback.BindUFunction(this, FName("FinishShakeMovement"));
 		ShakeTimeline->SetTimelineFinishedFunc(FinishedCallback);
+	}*/
+
+	UCurveFloat* HoldCurve = IsValid(HoldShakeCurve) ? HoldShakeCurve : ShakeCurve;
+	if (IsValid(HoldShakeTimeline) && IsValid(HoldCurve))
+	{
+		FOnTimelineFloat HoldUpdateCallback;
+		HoldUpdateCallback.BindUFunction(this, FName("UpdateHoldShakeMovement"));
+		HoldShakeTimeline->AddInterpFloat(HoldCurve, HoldUpdateCallback);
+		HoldShakeTimeline->SetLooping(true);
 	}
 }
 
@@ -85,6 +95,8 @@ void AShopUnlockWeaponUIActor::ResetWeaponIcon()
 
 bool AShopUnlockWeaponUIActor::PlayBuyWeaponAnim()
 {
+	StopHoldShake();
+
 	if (!IsValid(ShakeTimeline) || !IsValid(ShakeCurve) || !IsValid(WeaponMesh))
 	{
 		return false;
@@ -93,6 +105,36 @@ bool AShopUnlockWeaponUIActor::PlayBuyWeaponAnim()
 	WeaponMeshStartLocation = WeaponMesh->GetRelativeLocation();
 	ShakeTimeline->PlayFromStart();
 	return true;
+}
+
+void AShopUnlockWeaponUIActor::StartHoldShake()
+{
+	if (bIsHoldShaking || !IsValid(HoldShakeTimeline) || !IsValid(WeaponMesh))
+		return;
+
+	WeaponMeshStartLocation = WeaponMesh->GetRelativeLocation();
+	bIsHoldShaking = true;
+	HoldShakeTimeline->PlayFromStart();
+}
+
+void AShopUnlockWeaponUIActor::StopHoldShake()
+{
+	if (!bIsHoldShaking)
+		return;
+
+	if (IsValid(HoldShakeTimeline))
+		HoldShakeTimeline->Stop();
+
+	if (IsValid(WeaponMesh))
+		WeaponMesh->SetRelativeLocation(WeaponMeshStartLocation);
+
+	bIsHoldShaking = false;
+}
+
+void AShopUnlockWeaponUIActor::CompleteHoldShake()
+{
+	StopHoldShake();
+	FinishShakeMovement();
 }
 
 void AShopUnlockWeaponUIActor::UpdateShakeMovement(float CurveValue)
@@ -124,4 +166,19 @@ void AShopUnlockWeaponUIActor::FinishShakeMovement()
 
 	ResetWeaponIcon();
 	OnShakeFinished.Broadcast();
+}
+
+void AShopUnlockWeaponUIActor::UpdateHoldShakeMovement(float CurveValue)
+{
+	if (!bIsHoldShaking || !IsValid(WeaponMesh) || !IsValid(HoldShakeTimeline))
+		return;
+
+	const float PlaybackTime = HoldShakeTimeline->GetPlaybackPosition();
+	const FVector ShakeDirection(
+		FMath::PerlinNoise1D(PlaybackTime * 23.0f + 11.3f),
+		FMath::PerlinNoise1D(PlaybackTime * 31.0f + 47.1f),
+		FMath::PerlinNoise1D(PlaybackTime * 17.0f + 83.7f));
+
+	WeaponMesh->SetRelativeLocation(
+		WeaponMeshStartLocation + ShakeDirection * HoldShakeExtent * CurveValue);
 }

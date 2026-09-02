@@ -35,6 +35,7 @@ void UShopCoinPresenter::InitSlotWidget()
 {
 	ShopCoinWidget->GetShopCoinSlotContainer()->InitWidget();
 	CoinSlotViews = ShopCoinWidget->GetShopCoinSlotContainer()->GetCoinSlots();
+	RefreshCoinSlotInfo();
 	for (UW_ShopCoinSlot* CoinSlot : CoinSlotViews)
 	{
 		if (IsValid(CoinSlot))
@@ -109,9 +110,13 @@ void UShopCoinPresenter::SelectSlot(int32 SlotIndex)
 		return;
 
 	CurrentSelectedSlotIndex = SlotIndex;
+	SetCoinSlotSelection(SlotIndex);
 	SetCoinSideFront(true);
 
 	SetSlectCoinSideData(SlotIndex);
+	const FCoinTypeStructure CoinData = CoinSubsystem->GetCoinSlotCoinType(SlotIndex);
+	ShopCoinWidget->GetShopWeaponSlotContainer()->SelectWeaponSlots(
+		CoinData.FrontWeaponID, CoinData.BackWeaponID);
 
 }
 	
@@ -121,9 +126,13 @@ void UShopCoinPresenter::SelectSlotFrontWeapon(int32 SlotIndex)
 		return;
 
 	CurrentSelectedSlotIndex = SlotIndex;
+	SetCoinSlotSelection(SlotIndex);
 	SetCoinSideFront(true);
 
 	SetSlectCoinSideData(SlotIndex);
+	const FCoinTypeStructure CoinData = CoinSubsystem->GetCoinSlotCoinType(SlotIndex);
+	ShopCoinWidget->GetShopWeaponSlotContainer()->SelectWeaponSlots(
+		CoinData.FrontWeaponID, CoinData.BackWeaponID);
 }
 
 void UShopCoinPresenter::SelectSlotBackWeapon(int32 SlotIndex)
@@ -132,9 +141,13 @@ void UShopCoinPresenter::SelectSlotBackWeapon(int32 SlotIndex)
 		return;
 
 	CurrentSelectedSlotIndex = SlotIndex;
+	SetCoinSlotSelection(SlotIndex);
 	SetCoinSideFront(false);
 	
 	SetSlectCoinSideData(SlotIndex);
+	const FCoinTypeStructure CoinData = CoinSubsystem->GetCoinSlotCoinType(SlotIndex);
+	ShopCoinWidget->GetShopWeaponSlotContainer()->SelectWeaponSlots(
+		CoinData.FrontWeaponID, CoinData.BackWeaponID);
 }
 
 void UShopCoinPresenter::HoverSlot(int32 SlotIndex)
@@ -150,27 +163,45 @@ void UShopCoinPresenter::UnhoverSlot()
 }
 
 
-void UShopCoinPresenter::SelectWeapon(int32 WeaponID)
+void UShopCoinPresenter::SelectWeapon(UW_ShopCoinWeaponSlot* ClickedWeaponSlot)
 {
-	if(CurrentSelectedSlotIndex == -1)
+	if(CurrentSelectedSlotIndex == INDEX_NONE || !IsValid(ClickedWeaponSlot))
 		return;
+
+	const int32 WeaponID = ClickedWeaponSlot->GetWeaponSlotID();
 
 	const FFaceData WeaponData = GetWeaponData(WeaponID);
 	UpdateWeaponDescription(WeaponData);
 
+	if (TryEquipWeaponToSelectedCoinSide(WeaponID))
+	{
+		ShopCoinWidget->GetShopWeaponSlotContainer()->SelectWeaponSlot(
+			IsCurrentCoinSideFront, ClickedWeaponSlot);
+	}
+}
+
+bool UShopCoinPresenter::TryEquipWeaponToSelectedCoinSide(int32 WeaponID)
+{
+	if(CurrentSelectedSlotIndex == INDEX_NONE)
+		return false;
+
+	const FFaceData WeaponData = GetWeaponData(WeaponID);
+
 	if(IsCurrentCoinSideFront)
 	{
-		CoinSubsystem->SetCoinSlotFrontWeapon(CurrentSelectedSlotIndex, WeaponID);
+		if(!CoinSubsystem->TrySetCoinSlotFrontWeapon(CurrentSelectedSlotIndex, WeaponID))
+			return false;
 		CoinSlotViews[CurrentSelectedSlotIndex]->SetFrontWeaponImage(WeaponData);
 	}
 	else
 	{
-		CoinSubsystem->SetCoinSlotBackWeapon(CurrentSelectedSlotIndex, WeaponID);
+		if(!CoinSubsystem->TrySetCoinSlotBackWeapon(CurrentSelectedSlotIndex, WeaponID))
+			return false;
 		CoinSlotViews[CurrentSelectedSlotIndex]->SetBackWeaponImage(WeaponData);
 	}
 	
 	SetSlectCoinSideData(CurrentSelectedSlotIndex);
-		
+	return true;
 }
 	
 void UShopCoinPresenter::HoverWeapon(int32 WeaponID)
@@ -232,6 +263,7 @@ void UShopCoinPresenter::BuySlot(int32 Level)
 		int32 Hp;
 		DataManager->GetCoinSlotLevelStats(InCoinData, Cost, Hp);
 		ShopCoinWidget->GetShopCoinSlotContainer()->AddCoinSlot(CoinSubsystem->GetUnlockCoinSlotCount()-1, Hp);
+		RefreshCoinSlotInfo();
 		SelectSlot(CoinSubsystem->GetUnlockCoinSlotCount()-1);
 		CloseSlotBuyPopup();
 	}
@@ -256,6 +288,7 @@ void UShopCoinPresenter::BuyCoinSlotCoin(int32 SlotIndex, int32 Count)
 	CoinSubsystem->IncreaseCoinSlotCoin(SlotIndex, Count);
 	CoinSlotViews[SlotIndex]->SetCountText(
 		CoinSubsystem->GetCoinSlotCoinType(SlotIndex).SameTypeCoinNum);
+	RefreshCoinSlotInfo();
 }
 
 void UShopCoinPresenter::SellCoinSlotCoin(int32 SlotIndex, int32 Count)
@@ -266,6 +299,7 @@ void UShopCoinPresenter::SellCoinSlotCoin(int32 SlotIndex, int32 Count)
 	CoinSubsystem->DecreaseCoinSlotCoin(SlotIndex, Count);
 	CoinSlotViews[SlotIndex]->SetCountText(
 		CoinSubsystem->GetCoinSlotCoinType(SlotIndex).SameTypeCoinNum);
+	RefreshCoinSlotInfo();
 }
 	
 void UShopCoinPresenter::SetSlectCoinSideData(int32 SlotIndex)
@@ -361,7 +395,35 @@ void UShopCoinPresenter::RefreshCoinSlots()
 
 	if(CurrentSelectedSlotIndex != INDEX_NONE)
 	{
+		SetCoinSlotSelection(CurrentSelectedSlotIndex);
 		SetSlectCoinSideData(CurrentSelectedSlotIndex);
+	}
+
+	RefreshCoinSlotInfo();
+}
+
+void UShopCoinPresenter::RefreshCoinSlotInfo()
+{
+	if (!IsValid(ShopCoinWidget) || !IsValid(CoinSubsystem))
+	{
+		return;
+	}
+
+	if (UW_ShopCoinSlotContainer* SlotContainer = ShopCoinWidget->GetShopCoinSlotContainer())
+	{
+		SlotContainer->SetTotalCoinText(CoinSubsystem->GetTotalCoinCount());
+		SlotContainer->SetSlotInfoText(CoinSubsystem->GetUnlockCoinSlotCount());
+	}
+}
+
+void UShopCoinPresenter::SetCoinSlotSelection(int32 SelectedSlotIndex)
+{
+	for (int32 Index = 0; Index < CoinSlotViews.Num(); ++Index)
+	{
+		if (UW_ShopCoinSlot* SlotView = CoinSlotViews[Index])
+		{
+			SlotView->SetSelected(Index == SelectedSlotIndex);
+		}
 	}
 }
 

@@ -34,6 +34,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Shop Unlock Weapon")
 	bool PlayBuyWeaponAnim();
 
+	UFUNCTION(BlueprintCallable, Category = "Shop Unlock Weapon")
+	void StartHoldShake();
+
+	UFUNCTION(BlueprintCallable, Category = "Shop Unlock Weapon")
+	void StopHoldShake();
+
+	void CompleteHoldShake();
+
 	UPROPERTY(BlueprintAssignable, Category = "Shop Unlock Weapon")
 	FOnShopUnlockWeaponShakeFinished OnShakeFinished;
 
@@ -55,12 +63,22 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Shop Unlock Weapon|Animation")
 	TObjectPtr<UTimelineComponent> ShakeTimeline;
 
+	UPROPERTY(VisibleAnywhere, Category = "Shop Unlock Weapon|Animation")
+	TObjectPtr<UTimelineComponent> HoldShakeTimeline;
+
 	UPROPERTY(EditAnywhere, Category = "Shop Unlock Weapon|Animation")
 	TObjectPtr<UCurveFloat> ShakeCurve;
+
+	// 비워 두면 ShakeCurve를 공유합니다.
+	UPROPERTY(EditAnywhere, Category = "Shop Unlock Weapon|Animation")
+	TObjectPtr<UCurveFloat> HoldShakeCurve;
 
 	// 각 축의 최대 흔들림 거리입니다. ShakeCurve 값은 전체 흔들림 세기로 사용됩니다.
 	UPROPERTY(EditAnywhere, Category = "Shop Unlock Weapon|Animation")
 	FVector ShakeExtent = FVector(8.0f, 8.0f, 8.0f);
+
+	UPROPERTY(EditAnywhere, Category = "Shop Unlock Weapon|Animation")
+	FVector HoldShakeExtent = FVector(2.0f, 2.0f, 2.0f);
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> WeaponMaterialInstance;
@@ -70,11 +88,15 @@ protected:
 
 private:
 	FVector WeaponMeshStartLocation;
+	bool bIsHoldShaking = false;
 
 	UFUNCTION()
 	void UpdateShakeMovement(float CurveValue);
 
 	UFUNCTION()
 	void FinishShakeMovement();
+
+	UFUNCTION()
+	void UpdateHoldShakeMovement(float CurveValue);
 
 };

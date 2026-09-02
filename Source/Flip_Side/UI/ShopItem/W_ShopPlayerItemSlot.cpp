@@ -5,6 +5,7 @@
 
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "Components/Border.h"
 
 #include "UI/ShopItem/ItemSlotDragDropOperation.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -13,6 +14,11 @@
 void UW_ShopPlayerItemSlot::NativeConstruct()
 {
     Super::NativeConstruct();
+
+    if (HoverBorder)
+    {
+        HoverBorder->SetVisibility(ESlateVisibility::Hidden);
+    }
 }
 
 void UW_ShopPlayerItemSlot::InitItemWidget(int32 ItemIndex, FItemData InItemData, FSelectItem InSelectItemData)
@@ -56,12 +62,24 @@ void UW_ShopPlayerItemSlot::DeleteItemWidget()
 void UW_ShopPlayerItemSlot::NativeOnMouseEnter(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
+
+    if (HoverBorder)
+    {
+        HoverBorder->SetVisibility(ESlateVisibility::HitTestInvisible);
+    }
+
     OnHoveredSlot.Broadcast(PlayerInvenIndex);
 }
 
 void UW_ShopPlayerItemSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseLeave(InMouseEvent);
+
+    if (HoverBorder)
+    {
+        HoverBorder->SetVisibility(ESlateVisibility::Hidden);
+    }
+
     OnUnhoveredSlot.Broadcast();
 }
 

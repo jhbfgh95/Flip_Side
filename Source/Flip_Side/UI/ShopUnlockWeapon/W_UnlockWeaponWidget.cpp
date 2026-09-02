@@ -21,11 +21,6 @@ UW_UnlockWeaponSlotContainer* UW_UnlockWeaponWidget::GetUnlockWeaponSlotContaine
     return UnlockWeaponSlotContainer;
 }
 
-UW_UnlockSelectWeaponButton* UW_UnlockWeaponWidget::GetUnlockButton() const
-{
-    return UnlockButton;
-}
-
 UW_PriceWidget* UW_UnlockWeaponWidget::GetWeaponPriceWidget() const
 {
     return WeaponPriceText;

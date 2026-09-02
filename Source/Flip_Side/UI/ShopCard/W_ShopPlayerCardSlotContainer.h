@@ -11,6 +11,7 @@
  * 
  */
 class UVerticalBox;
+class UTextBlock;
 class UW_ShopCardSlot;
 class UShopCardWSubsystem;
 class UUnlockGISubsystem;
@@ -34,6 +35,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UVerticalBox> SlotBox;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> SelectCardCountText;
+
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	TSubclassOf<UUserWidget> PlayerCardSlotWidget;
 
@@ -42,6 +46,8 @@ protected:
 
 public:
 	void InitWidget(const TArray<FCardData> UnlockCardData);
+
+	void SetSelectCardCountText(int32 SelectCardCount);
 	
 	TArray<UW_ShopPlayerCardSlot*> GetShopPlayerCardSlots();
 	

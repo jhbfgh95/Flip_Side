@@ -43,11 +43,8 @@ private:
 	TArray<TObjectPtr<UW_UnlockWeaponSlot>> WeaponSlotViews;
 
 	int32 CurrentSelectedWeaponID = -1;
-	int32 PendingUnlockedWeaponID = -1;
-
-	UFUNCTION()
-	void SelectWeapon(int32 WeaponID);
-
+	
+private:
 	UFUNCTION()
 	void HoverWeapon(int32 WeaponID);
 
@@ -58,12 +55,21 @@ private:
 	void UnlockSelectedWeapon();
 
 	UFUNCTION()
+	void StartHoldWeapon(int32 WeaponID);
+
+	UFUNCTION()
+	void CancelHoldWeapon(int32 WeaponID);
+
+	UFUNCTION()
+	void CompleteHoldWeapon(int32 WeaponID);
+
+	UFUNCTION()
 	void RemoveUnlockedWeaponSlot(int32 WeaponID);
 
 	UFUNCTION()
 	void FinishedUnlockWeapon();
 
-	void UpdateSelectedWeapon(int32 WeaponID);
+	void UpdateWeaponUIActor(int32 WeaponID);
 
 	void UpdateUnlockControls(int32 WeaponID);
 
@@ -74,8 +80,9 @@ protected:
 
 	void HideWeaponDescription();
 
+	void TryUnlockWeapon(int32 WeaponID);
+
 
 protected:
 	void InitUnlockWeaponContainer();
-	void InitUnlockButton();
 };

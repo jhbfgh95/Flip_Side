@@ -72,6 +72,13 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr <UBorder> BackGroundBorder;
 
+	// UMG에 HoverBorder와 SelectBorder를 추가하면 각각 호버와 선택 상태를 표시합니다.
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBorder> HoverBorder;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBorder> SelectBorder;
+
 public:
 	
 	FOnClickedShopCoinSlot OnClickedShopCoinSlot;
@@ -97,6 +104,8 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UMaterialInstanceDynamic> BackWeaponIconMaterialInstance;
+
+	bool bIsSelected = false;
 	
 	
 protected:
@@ -131,6 +140,8 @@ public:
 	void SetCountText(int32 Count);
 
 	void ResetSlot();
+
+	void SetSelected(bool bInIsSelected);
 
 protected:
 	virtual FReply NativeOnMouseButtonDown(

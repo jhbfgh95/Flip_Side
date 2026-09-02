@@ -71,7 +71,9 @@ protected:
 	void UnhoverSlot();
 
 	UFUNCTION()
-	void SelectWeapon(int32 WeaponID);
+	void SelectWeapon(UW_ShopCoinWeaponSlot* ClickedWeaponSlot);
+
+	bool TryEquipWeaponToSelectedCoinSide(int32 WeaponID);
 
 	UFUNCTION()
 	void HoverWeapon(int32 WeaponID);
@@ -102,6 +104,8 @@ protected:
 	
 	FFaceData GetWeaponData(int32 WeaponID);
 	void RefreshCoinSlots();
+	void RefreshCoinSlotInfo();
+	void SetCoinSlotSelection(int32 SelectedSlotIndex);
 	void UpdateWeaponDescription(const FFaceData& WeaponData);
 	void HideWeaponDescription();
 

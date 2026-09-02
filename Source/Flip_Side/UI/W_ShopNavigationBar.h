@@ -6,6 +6,7 @@
 #include "W_ShopNavigationBar.generated.h"
 
 class UButton;
+class UW_ShopPageChangeButton;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopPageRequested, EShopPage, Page);
 
@@ -16,7 +17,7 @@ class FLIP_SIDE_API UW_ShopNavigationBar : public UUserWidget
 
 protected:
 	virtual void NativeOnInitialized() override;
-
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> MainButton;
 
@@ -34,6 +35,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> BossButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> StartGameButton;
 
 public:
 	FOnShopPageRequested OnShopPageRequested;
@@ -56,4 +60,7 @@ private:
 
 	UFUNCTION()
 	void ShowMainPage();
+
+	UFUNCTION()
+	void ShowStartGamePage();
 };

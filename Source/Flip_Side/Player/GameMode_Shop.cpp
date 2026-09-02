@@ -36,14 +36,9 @@ void AGameMode_Shop::ChangeBattleLevel()
     else
     {
         CrossSubsystem->SetIsCoinEmpty(false);
-        //코인값 넘겨줌
         for(int i =0; i<10; i++)
         {
             FCoinTypeStructure CoinData = ShopCoinSubsystem->GetSlotCoin(i);
-            
-            UE_LOG(LogTemp, Warning, TEXT("앞면 정보 %d / 뒷면정보%d"), CoinData.FrontWeaponID,CoinData.BackWeaponID);
-
-            //if(CoinData.FrontWeaponID != -1 && CoinData.BackWeaponID != -1)
             CrossSubsystem->SetSlotCoin(i, CoinData);
         }
     }
@@ -62,9 +57,16 @@ void AGameMode_Shop::ChangeBattleLevel()
             CrossSubsystem->SetBattleUseItemID(PlayerItem.ItemID,i, PlayerItem.SameItemNum);
         }
     }
-
     LevelSubsystem->MoveBattleLevel();
 }
 
 
-
+bool AGameMode_Shop::CheckHaveCoin()
+{
+    UShopCoinWSubsystem* ShopCoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
+    if(ShopCoinSubsystem->GetIsCoinEmpty())
+    {
+        return false;
+    }
+    return true;
+}

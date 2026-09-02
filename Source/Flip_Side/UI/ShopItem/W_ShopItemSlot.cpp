@@ -6,11 +6,17 @@
 #include "Subsystem/MoneyGISubsystem.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "Components/Border.h"
 #include "Input/Reply.h"
 
 void UW_ShopItemSlot::NativeConstruct()
 {
     Super::NativeConstruct();
+
+    if (HoverBorder)
+    {
+        HoverBorder->SetVisibility(ESlateVisibility::Hidden);
+    }
 }
 
 
@@ -48,12 +54,22 @@ void UW_ShopItemSlot::NativeOnMouseEnter(const FGeometry& InGeometry,const FPoin
 {
     Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
 
+    if (HoverBorder)
+    {
+        HoverBorder->SetVisibility(ESlateVisibility::HitTestInvisible);
+    }
+
     OnHoveredSlot.Broadcast(WidgetItemData.ItemID);
 }
 
 void UW_ShopItemSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseLeave(InMouseEvent);
+
+    if (HoverBorder)
+    {
+        HoverBorder->SetVisibility(ESlateVisibility::Hidden);
+    }
 
     OnUnhoveredSlot.Broadcast();
 }

@@ -14,12 +14,6 @@
 #include "Input/Reply.h"
 #include "UI/ShopCoinManage/ShopCoinSlotDragDropOperation.h"
 
-namespace
-{
-    const FName WeaponIconParameterName(TEXT("Weapon_Icon"));
-    const FName WeaponColorParameterName(TEXT("Weapon_Color"));
-}
-
 void UW_ShopCoinSlot::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
@@ -33,16 +27,26 @@ void UW_ShopCoinSlot::NativeOnInitialized()
     if (IsValid(FrontWeaponIcon))
     {
         FrontWeaponIconMaterialInstance = FrontWeaponIcon->GetDynamicMaterial();
-        FrontWeaponIconMaterialInstance->SetTextureParameterValue(WeaponIconParameterName, DefaultsTexture);
+        FrontWeaponIconMaterialInstance->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
     }
 
     if (IsValid(BackWeaponIcon))
     {
         BackWeaponIconMaterialInstance = BackWeaponIcon->GetDynamicMaterial();
-        BackWeaponIconMaterialInstance->SetTextureParameterValue(WeaponIconParameterName, DefaultsTexture);
+        BackWeaponIconMaterialInstance->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
     }
 
     BackGroundBorder->SetRenderOpacity(0.7f);
+
+    if (HoverBorder)
+    {
+        HoverBorder->SetVisibility(ESlateVisibility::Hidden);
+    }
+
+    if (SelectBorder)
+    {
+        SelectBorder->SetVisibility(ESlateVisibility::Hidden);
+    }
     
 }
 	
@@ -106,8 +110,8 @@ void UW_ShopCoinSlot::SetFrontWeaponImage(FFaceData InFrontCoinData)
         SetTexture = InFrontCoinData.WeaponIcon;
     }
 
-    FrontWeaponIconMaterialInstance->SetTextureParameterValue(WeaponIconParameterName, SetTexture);
-    FrontWeaponIconMaterialInstance->SetVectorParameterValue(WeaponColorParameterName, InFrontCoinData.TypeColor);
+    FrontWeaponIconMaterialInstance->SetTextureParameterValue(FName("Weapon_Icon"), SetTexture);
+    FrontWeaponIconMaterialInstance->SetVectorParameterValue(FName("Weapon_Color"), InFrontCoinData.TypeColor);
 }
 
 void UW_ShopCoinSlot::SetBackWeaponImage(FFaceData InBackCoinData)
@@ -122,9 +126,10 @@ void UW_ShopCoinSlot::SetBackWeaponImage(FFaceData InBackCoinData)
         SetTexture = InBackCoinData.WeaponIcon;
     }
 
-    BackWeaponIconMaterialInstance->SetTextureParameterValue(WeaponIconParameterName, SetTexture);
-    BackWeaponIconMaterialInstance->SetVectorParameterValue(WeaponColorParameterName, InBackCoinData.TypeColor);
+    BackWeaponIconMaterialInstance->SetTextureParameterValue(FName("Weapon_Icon"), SetTexture);
+    BackWeaponIconMaterialInstance->SetVectorParameterValue(FName("Weapon_Color"), InBackCoinData.TypeColor);
 }
+
 
 
 
@@ -141,6 +146,17 @@ void UW_ShopCoinSlot::ClickBackWeaponButton()
 void UW_ShopCoinSlot::ResetSlot()
 {
     SetCountText(0);
+}
+
+void UW_ShopCoinSlot::SetSelected(bool bInIsSelected)
+{
+    bIsSelected = bInIsSelected;
+
+    if (SelectBorder)
+    {
+        SelectBorder->SetVisibility(
+            bIsSelected ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
+    }
 }
 
 FReply UW_ShopCoinSlot::NativeOnMouseButtonDown(
@@ -217,11 +233,23 @@ void UW_ShopCoinSlot::NativeOnDragCancelled(
 void UW_ShopCoinSlot::NativeOnMouseEnter(const FGeometry& InGeometry,const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
+
+    if (HoverBorder)
+    {
+        HoverBorder->SetVisibility(ESlateVisibility::HitTestInvisible);
+    }
+
     OnHoveredShopCoinSlot.Broadcast(SlotIndex);
 }
 
 void UW_ShopCoinSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
     Super::NativeOnMouseLeave(InMouseEvent);
+
+    if (HoverBorder)
+    {
+        HoverBorder->SetVisibility(ESlateVisibility::Hidden);
+    }
+
     OnUnhoveredShopCoinSlot.Broadcast();
 }

@@ -3,6 +3,7 @@
 #include "Player/ShopPlayerPawn_FlipSide.h"
 #include "UI/W_ShopWidgetContainer.h"
 #include "UI/ShopUISelectRegistry.h"
+#include "UI/W_ShopCheckStartGame.h"
 #include "UI/ShopUISelectActor.h"
 void UShopPageChangePresenter::InitPresenter(AShopUISelectRegistry* InShopUISelectRegistry, 
 	UW_ShopWidgetContainer* InWidgetContainer,
@@ -30,6 +31,9 @@ void UShopPageChangePresenter::InitPresenter(AShopUISelectRegistry* InShopUISele
 
 	ShopPawn->OnShopPawnMoveCompleted.AddUniqueDynamic(
 		this, &UShopPageChangePresenter::HandleMoveCompleted);
+
+	WidgetContainer->GetShopCheckStartWidget()->OnShopStartGameCancelConfirmed.AddDynamic(
+		this, &UShopPageChangePresenter::HandlePageRequested);
 
 	InitShopUISelectActor();
 	HandlePageRequested(EShopPage::Main);

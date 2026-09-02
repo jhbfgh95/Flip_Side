@@ -13,8 +13,10 @@
 class UImage;
 class UTextBlock;
 class UButton;
+class UBorder;
+class UW_ShopCoinWeaponSlot;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedShopCoinWeaponSlot, int32, WeaponID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedShopCoinWeaponSlot, UW_ShopCoinWeaponSlot*, WeaponSlot);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoveredShopCoinWeaponSlot, int32, WeaponID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoveredShopCoinWeaponSlot);
 
@@ -38,7 +40,17 @@ protected:
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UButton> WeaponSelectButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBorder> HoverBorder;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBorder> SelectBorder;
+
+private:
+	bool IsSelected = false;
 public:
+
 	UPROPERTY(BlueprintAssignable, Category = "Shop Coin Weapon Slot|Event")
 	FOnClickedShopCoinWeaponSlot OnClickedShopCoinWeaponSlot;
 
@@ -59,5 +71,11 @@ public:
 
 	UFUNCTION()
 	void UnhoverWidget();
+
+	void SelectSlot();
+
+	void UnSelectSlot();
 	
+	int32 GetWeaponSlotID();
+
 };

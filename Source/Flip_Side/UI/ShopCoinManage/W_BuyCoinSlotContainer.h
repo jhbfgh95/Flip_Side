@@ -9,6 +9,7 @@
 
 class UBorder;
 class UButton;
+class UTextBlock;
 class UDataManagerSubsystem;
 class UVerticalBox;
 class UW_ShopCoinSlotBuyButton;
@@ -29,6 +30,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder> SlotBuyBorder;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> SlotBuyButtonText;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UVerticalBox> SlotBuyButtonBox;
