@@ -1,99 +1,148 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Objects/Weapon_Action.h"
-#include "ActionLogicRegistryGISubsystem.h"
-#include "Engine/World.h"
-#include "GridActor.h"
-#include "DataManagerSubsystem.h"
 
-void UWeapon_Action::SetFinalAttackPoint(const int32 AttackPoint)
+#include "Actors/CoinActor.h"
+#include "Actors/Component_Status.h"
+#include "Actors/Boss/BossActor.h"
+#include "Actors/GridActor.h"
+#include "Actors/Others/Base_OtherActor.h"
+#include "Subsystem/BattleLevel/ActionLogicRegistryGISubsystem.h"
+
+bool UWeapon_Action::InitializeAction(
+	ACoinActor* InCaster,
+	const FWeaponActionSnapshot& InSnapshot,
+	const FFaceData& InWeaponData)
 {
-    if(AttackPoint < 0)
-    {
-        FinalAttackPoint = 0;
-        return;
-    }
+	ResetAction();
+	if (!IsValid(InCaster) || !IsValid(InCaster->StatComponent) ||
+		InSnapshot.WeaponID == INDEX_NONE || InSnapshot.WeaponID != InWeaponData.WeaponID)
+	{
+		return false;
+	}
 
-    FinalAttackPoint = AttackPoint;
+	CasterCoin = InCaster;
+	ActionSnapshot = InSnapshot;
+	WeaponData = InWeaponData;
+	LogicID = InSnapshot.WeaponID;
+	return true;
 }
 
-void UWeapon_Action::SetFinalBehaviorPoint(const int32 BehaviorPoint)
+bool UWeapon_Action::RefreshSnapshot(const FWeaponActionSnapshot& InSnapshot)
 {
-    if(BehaviorPoint < 0) { FinalBehaviorPoint = 0;}
-    else{ FinalBehaviorPoint = BehaviorPoint; }
+	if (!IsValid(CasterCoin) || InSnapshot.WeaponID == INDEX_NONE ||
+		InSnapshot.WeaponID != LogicID || InSnapshot.WeaponID != WeaponData.WeaponID)
+	{
+		return false;
+	}
 
+	ActionSnapshot = InSnapshot;
+	return true;
 }
 
-int32 UWeapon_Action::GetFinalAttackPoint() const
+void UWeapon_Action::ResetAction()
 {
-    return FinalAttackPoint;
+	ActionSnapshot = FWeaponActionSnapshot();
+	ExecutionState = FWeaponExecutionState();
+	WeaponData = FFaceData();
+	CasterCoin = nullptr;
+	AttackBoss = nullptr;
+	TargetGrid = nullptr;
+	TargetOther = nullptr;
+	AttackCells.Reset();
+	AbilityCells.Reset();
+	SelectedAbilityActors.Reset();
+	InRangeCoins.Reset();
+	InRangeOthers.Reset();
+	InRangeBoss = nullptr;
+	LogicID = INDEX_NONE;
 }
 
-int32 UWeapon_Action::GetFinalBehaviorPoint() const
+bool UWeapon_Action::IsSnapshotCurrent() const
 {
-    return FinalBehaviorPoint;
+	return IsValid(CasterCoin) && IsValid(CasterCoin->StatComponent) &&
+		ActionSnapshot.SourceStatRevision == CasterCoin->StatComponent->GetWeaponStatRevision() &&
+		ActionSnapshot.Face == CasterCoin->GetCoinDecidedFace() &&
+		ActionSnapshot.WeaponID == CasterCoin->GetCoinFaceID();
 }
 
-FWeaponActionResolveResult UWeapon_Action::ResolveAction()
+void UWeapon_Action::SetAttackTargets(const TArray<FGridPoint>& InCells, ABossActor* InBoss)
 {
-    if(LogicID == -1 || !GetWorld()) return FWeaponActionResolveResult();
+	AttackCells = InCells;
+	AttackBoss = IsValid(InBoss) ? InBoss : nullptr;
+	InRangeBoss = AttackBoss;
+}
 
-    UGameInstance* GI = GetWorld()->GetGameInstance();
-    if(!GI) return FWeaponActionResolveResult();
+void UWeapon_Action::SetCurrentAbilityTargets(
+	const TArray<ACoinActor*>& InCoins,
+	const TArray<ABase_OtherActor*>& InOthers,
+	AGridActor* InGrid)
+{
+	InRangeCoins.Reset();
+	for (ACoinActor* Coin : InCoins)
+	{
+		if (IsValid(Coin))
+		{
+			InRangeCoins.Add(Coin);
+		}
+	}
 
-    UActionLogicRegistryGISubsystem* ActionRegistry = GI->GetSubsystem<UActionLogicRegistryGISubsystem>();
-    if(!ActionRegistry) return FWeaponActionResolveResult();
+	InRangeOthers.Reset();
+	for (ABase_OtherActor* Other : InOthers)
+	{
+		if (IsValid(Other))
+		{
+			InRangeOthers.Add(Other);
+		}
+	}
 
-    SetWeaponData();
+	TargetGrid = IsValid(InGrid) ? InGrid : nullptr;
+	TargetOther = InRangeOthers.IsEmpty() ? nullptr : InRangeOthers[0];
+}
 
-    FActionResolveLogic ResolveLogic = ActionRegistry->GetWeaponResolveLogic(this->LogicID);
-    return ResolveLogic ? ResolveLogic(this) : FWeaponActionResolveResult();
+bool UWeapon_Action::WasAbilityActorSelected(const AActor* Actor) const
+{
+	return IsValid(Actor) && SelectedAbilityActors.Contains(Actor);
+}
+
+void UWeapon_Action::MarkAbilityActorSelected(AActor* Actor)
+{
+	if (!IsValid(Actor))
+	{
+		return;
+	}
+
+	SelectedAbilityActors.AddUnique(Actor);
+	if (const ACoinActor* Coin = Cast<ACoinActor>(Actor))
+	{
+		ExecutionState.SelectedCoinInstanceIDs.AddUnique(Coin->GetCoinID());
+	}
+}
+
+FWeaponAttackResult UWeapon_Action::ExecuteAttack()
+{
+	FWeaponAttackResult Result;
+	UWorld* World = GetWorld();
+	UGameInstance* GameInstance = IsValid(World) ? World->GetGameInstance() : nullptr;
+	UActionLogicRegistryGISubsystem* Registry = IsValid(GameInstance)
+		? GameInstance->GetSubsystem<UActionLogicRegistryGISubsystem>()
+		: nullptr;
+	const FWeaponLogicSet* LogicSet = IsValid(Registry) ? Registry->FindWeaponLogic(LogicID) : nullptr;
+	if (!LogicSet || !LogicSet->AttackLogic)
+	{
+		return Result;
+	}
+
+	Result = LogicSet->AttackLogic(this);
+	ExecutionState.LastAttack = Result;
+	ExecutionState.TotalDamageDealt += Result.GetTotalDamage();
+	return Result;
+}
+
+bool UWeapon_Action::ExecuteAbility(const FRegisteredAbilityLogic& AbilityLogic)
+{
+	return AbilityLogic.Logic ? AbilityLogic.Logic(this) : false;
 }
 
 void UWeapon_Action::ExecuteAction()
 {
-    if(LogicID == -1) return;
-
-    UWorld* World = GetWorld();
-    if (!World) return;
-
-    UActionLogicRegistryGISubsystem* ActionRegistry = World->GetGameInstance()->GetSubsystem<UActionLogicRegistryGISubsystem>();
-    if(!ActionRegistry) return;
-
-    SetWeaponData();
- 
-    FActionLogic WeaponLogic = ActionRegistry->GetWeaponLogic(this->LogicID);
-
-    if(WeaponLogic)
-    {
-        WeaponLogic(this);
-    }
-}
-
-void UWeapon_Action::SetSingleCellTargetCoin(ACoinActor* TargetCoin)
-{
-    InRangeCoins.Empty();
-    InRangeCoins.Add(TargetCoin);
-
-    SetWeaponData();
-}
-
-void UWeapon_Action::SetGridForAction(AGridActor* targetGrid)
-{
-    TargetGrid = targetGrid;
-}
-
-void UWeapon_Action::SetOtherForAction(ABase_OtherActor* targetOther)
-{
-    TargetOther = targetOther;
-}
-
-void UWeapon_Action::SetWeaponData()
-{
-    auto* DM = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
-    if (DM && DM->IsCacheReady())
-    {
-        DM->TryGetWeapon(LogicID, WeaponData);
-    }
+	ExecuteAttack();
 }

@@ -76,6 +76,13 @@ class FLIP_SIDE_API UBattleLevelActingWSubsystem : public UWorldSubsystem
 	UPROPERTY()
 	class UGridManagerSubsystem* GridManager;
 
+	FSimpleDelegate CoinEntryFinished;
+	int32 PendingLandingCoinCount = 0;
+	int32 PendingDoorFxCount = 0;
+	bool bCoinEntryActive = false;
+	bool bAllCoinsLanded = false;
+	bool bDoorFxFinished = false;
+
 	UPROPERTY()
     TObjectPtr<ABase_PatternVisualActor> CurrentVisualActor = nullptr;
 
@@ -84,17 +91,19 @@ class FLIP_SIDE_API UBattleLevelActingWSubsystem : public UWorldSubsystem
 
 /* Battle Start */
 protected:
-	void OpenGrid();
+	int32 OpenGrid();
+
+	void BeginCoinEntry();
 
 	void DoCoinTeleportAct();
 
-	void MoveCoinsWithDraw();
+	void TeleportReadyCoinsToDecidedGrid(ACoinActor* ReadyCoin, FSimpleDelegate OnLanded);
 
-	void ReadyCoinsMoveWhenLeverDown();
-
-	void TeleportReadyCoinsToDecidedGrid(ACoinActor* ReadyCoin);
+	void HandleCoinLanded();
+	void HandleDoorFxFinished();
+	void TryFinishCoinEntry();
 public:
-	void WaitTeleportUntilLeverDown();
+	void WaitTeleportUntilLeverDown(float LeverDelaySeconds, FSimpleDelegate OnFinished);
 
 	void RaiseCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished);
 

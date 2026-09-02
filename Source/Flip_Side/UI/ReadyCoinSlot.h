@@ -8,6 +8,8 @@
 #include "ReadyCoinSlot.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnReadyCoinSlotWidgetClicked, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnReadyCoinSlotWidgetHovered, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnReadyCoinSlotWidgetUnhovered, int32);
 
 /**
  * 
@@ -24,6 +26,8 @@ public:
 	void ClearReadyCoinData();
 
 	FOnReadyCoinSlotWidgetClicked OnReadyCoinSlotClicked;
+	FOnReadyCoinSlotWidgetHovered OnReadyCoinSlotHovered;
+	FOnReadyCoinSlotWidgetUnhovered OnReadyCoinSlotUnhovered;
 
 protected:
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -62,6 +66,12 @@ protected:
 private:
 	UFUNCTION()
 	void HandleReadyCoinClicked();
+
+	UFUNCTION()
+	void HandleReadyCoinHovered();
+
+	UFUNCTION()
+	void HandleReadyCoinUnhovered();
 
 	void UpdateCancelStateVisual();
 	void UpdateWeaponIconMaterial(

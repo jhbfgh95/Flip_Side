@@ -10,6 +10,7 @@
 #include "DataTypes/CoinDataTypes.h"
 #include "DataTypes/GridTypes.h"
 #include "DataTypes/FlipSide_Enum.h"
+#include "DataTypes/WeaponDataTypes.h"
 #include "CoinActor.generated.h"
 
 
@@ -20,6 +21,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedBattleCoinDelegate, ACoinA
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCoinRightClicked, ACoinActor*, ClickedCoin);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemExcuteCoinDelegate, ACoinActor*, ClickedCoin);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoverCoinDelegate);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCoinDeathStarted, ACoinActor*);
 UCLASS()
 class ACoinActor : public AActor, public IBattleHoverInterface, public IBattleClickInterface, public IBattleRightClickInterface
 {
@@ -27,6 +29,14 @@ class ACoinActor : public AActor, public IBattleHoverInterface, public IBattleCl
 
 	UPROPERTY(EditAnywhere, Category = "Coin | Component", meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* CoinRootComp;
+
+	/** 코인 메시 애니메이션과 분리된 공격 사거리 시작 괄호 기준점입니다. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Coin | Range Preview", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class USceneComponent> AttackRangeBracketAnchor;
+
+	/** BP_CoinActor에서 코인 바로 앞 위치에 맞추고 메시·머테리얼을 지정합니다. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Coin | Range Preview", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UStaticMeshComponent> AttackRangeBracketMesh;
 
 	//실 함수는 이거 써야함 (캐싱)
 	UPROPERTY()
@@ -39,10 +49,6 @@ class ACoinActor : public AActor, public IBattleHoverInterface, public IBattleCl
 	//무기 타입(탱딜힐)의 아이디
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Type")
 	int TypeID = 0;
-
-	//슬롯 번호
-	UPROPERTY(VisibleAnywhere, Category = "Coin | Slot")
-	int32 SlotIndex = -1;
 
 	//무기 타입 ENum 위에거나 이거 둘 중 하나 없앨 예정
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Type")
@@ -62,12 +68,12 @@ class ACoinActor : public AActor, public IBattleHoverInterface, public IBattleCl
 	UPROPERTY(VisibleAnywhere)
 	UTexture2D* BackIconTexture;
 
-	UPROPERTY(VisibleAnywhere)
-	FLinearColor TypeColor;
+	// CoinManager가 생성 시 이미 조회한 정의를 보관해 행동 중 DataManager 재조회를 없앱니다.
+	UPROPERTY(VisibleAnywhere, Category = "Coin | WeaponData")
+	FFaceData FrontWeaponDefinition;
 
-	UPROPERTY(VisibleAnywhere, Category = "Coin | Price")
-	int32 CoinPrice = 0;
-
+	UPROPERTY(VisibleAnywhere, Category = "Coin | WeaponData")
+	FFaceData BackWeaponDefinition;
 
 /* Battle상태 변수들 */
 protected:
@@ -90,9 +96,6 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	bool ItemFlag = false;
 
-	UPROPERTY(VisibleAnywhere)
-	bool bCanCancelFromReady = true;
-
 	//이거로 Getter, Setter로 앞뒤 판별
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Face")
 	EFaceState CurrentFace = EFaceState::None;
@@ -100,10 +103,6 @@ protected:
 	//판때기 위에 올라갈 때 어디에 올라갈지 정해줌
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Grid")
 	FGridPoint CurrentGridPoint;
-
-	// 슬롯 뭉치의 시작점 (0번 자리 좌표) for 코인 취소 시 원위치 복귀
-    UPROPERTY(VisibleAnywhere, Category = "Coin | Location")
-    FVector OriginSlotLocation;
 
 	//1이 Acted, 2가 CCOn
 	UPROPERTY(EditAnywhere, Category = "Coin | Covercolor")
@@ -137,14 +136,9 @@ public:
 	int32 GetFrontWeaponID() const;
 	void DecrementSameTypeIndex(); // 인덱스 감소를 위한 함수
 
-	// 초기 슬롯 위치 저장 및 반환
-    void SetOriginSlotLocation(FVector InLoc);
-    FVector GetOriginSlotLocation() const;
-
     // 인덱스 제어 함수들
     void SetSameTypeIndex(int32 NewIndex);
     void IncrementSameTypeIndex();
-	int32 GetSlotNum() const { return SlotIndex; }
 
 	int32 GetCoinID() const;
 	int32 GetCoinFrontID() const { return FrontWeaponID; }
@@ -166,23 +160,18 @@ public:
 	void SetCoinItemFlag(const bool IsItem ){ ItemFlag = IsItem; }
 	bool GetCoinItemFlag() const { return ItemFlag; }
 
-	void SetCanCancelFromReady(const bool bCanCancel) { bCanCancelFromReady = bCanCancel; }
-	bool CanCancelFromReady() const { return bCanCancelFromReady; }
-
-	void SetCoinValues(
+	bool SetCoinValues(
 		int CoinId,
 		int FrontId, 
 		int BackId,
 		EWeaponClass WeaponTypes, 
 		UTexture2D* FrontTexture, 
 		UTexture2D* BackTexture,
-		FLinearColor DecideColor,
-		int32 CoinHP,
-		int32 SlotNum,
-		int32 price
+		const FCoinStatInitializeData& StatInitializeData
 	);
 
-	int32 GetCoinPrice() const { return CoinPrice; }
+	void SetWeaponDefinitions(const FFaceData& FrontDefinition, const FFaceData& BackDefinition);
+	const FFaceData* GetCurrentWeaponDefinition() const;
 
 	/* 앞,뒤 결정 */
 	int32 GetCoinFaceID() const;
@@ -219,6 +208,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Events|Click")
 	FOnCoinRightClicked OnCoinRightClicked;
 
+	FOnCoinDeathStarted OnCoinDeathStarted;
+
 	virtual void OnHover_Implementation() override;
 
 	virtual void OnUnhover_Implementation() override;
@@ -233,13 +224,26 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Coin | Outline")
 	void CoinUnHoverOutline();
 
+	// BP_CoinActor가 BuffTypeID별 버프·디버프 VFX를 켜고 끌 때 구현할 확장 지점입니다.
+	UFUNCTION(BlueprintImplementableEvent, Category = "Coin | Status VFX")
+	void OnStatusVisualChanged(
+		int32 BuffTypeID,
+		EStatusEffectSourceType SourceType,
+		int32 SourceDataID,
+		int32 TotalStackCount,
+		bool bIsDebuff,
+		bool bIsActive
+	);
+
 /* 연출들 */
 public:
-	void DoCoinActAtBattleStart(float XLocation, float YLocation);
-
-	void DoCoinActAtBattleStartLeverDown();
+	bool DoCoinActAtBattleStart(float XLocation, float YLocation, FSimpleDelegate OnLanded = FSimpleDelegate());
 
 	void SetUIVisibility(const bool bUIVisibile);
+
+	/** PlayerController의 필드 코인 호버 미리보기에서만 호출합니다. */
+	UFUNCTION(BlueprintCallable, Category = "Coin | Range Preview")
+	void SetAttackRangeBracketVisible(bool bVisible);
 
 protected:
 	/* 레디 코인 튀어 오름 */
@@ -253,6 +257,10 @@ protected:
 
 	float JumpElapsedTime = 0.0f;
 
+	FSimpleDelegate PendingLandingDelegate;
+	bool bLandingCallbackPending = false;
+	bool bDeathStarted = false;
+
 	UPROPERTY(EditAnywhere, Category = "Jump", meta = (AllowPrivateAccess = "true"))
     float JumpDuration = 0.5f; // 점프 지속 시간
 
@@ -260,22 +268,15 @@ protected:
     float JumpHeight = 150.0f; // 튀어오를 높이	
 
 	void UpdateJump();
-
-	/* 레디 코인 서랍 움직임 */
-	FTimerHandle LeverMoveTimerHandle;
-	float MoveElapsedTime = 0.0f;
-
-	float MoveTime = 0.6f; 
-
-    float StartX = 0.0f;
-    float TargetX = 0.0f;
-
-	void UpdateCoinMoveAtBattleStart();
+	void CompleteLandingCallback();
+	void RefreshCoinMaterial();
 
 protected:
 	virtual void BeginPlay() override;
 
 	virtual void OnConstruction(const FTransform& Transform) override;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -290,6 +291,8 @@ protected:
 
 	UFUNCTION()
 	void OnCCRemoved();
+
+	void HandleStatusEffectsChanged(const FStatusEffectsChangedEvent& ChangedEvent);
 
     void ResetFlash();
 

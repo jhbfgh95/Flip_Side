@@ -16,6 +16,11 @@
 #include "NiagaraSystem.h"
 #include "BossDataTypes.h"
 
+namespace
+{
+    constexpr float CoinDoorPhaseDuration = 1.5f;
+}
+
 void UBattleLevelActingWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
@@ -40,80 +45,205 @@ bool UBattleLevelActingWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
     return false;
 }
 
-void UBattleLevelActingWSubsystem::WaitTeleportUntilLeverDown()
+void UBattleLevelActingWSubsystem::WaitTeleportUntilLeverDown(float LeverDelaySeconds, FSimpleDelegate OnFinished)
 {
-    // TODO: ReadyCoinWidget 기반 CoinBehaviorPhase 연출이 정해진 뒤 새 흐름으로 구현합니다.
+    UWorld* World = GetWorld();
+    if (!IsValid(World) || !IsValid(CoinManager) || !IsValid(GridManager))
+    {
+        OnFinished.ExecuteIfBound();
+        return;
+    }
+
+    World->GetTimerManager().ClearTimer(LeverWaitTimer);
+    World->GetTimerManager().ClearTimer(CoinTeleportTimer);
+
+    CoinEntryFinished = MoveTemp(OnFinished);
+    PendingLandingCoinCount = 0;
+	PendingDoorFxCount = 0;
+    bCoinEntryActive = true;
+    bAllCoinsLanded = false;
+    bDoorFxFinished = false;
+
+    const float SafeLeverDelay = FMath::Max(0.0f, LeverDelaySeconds);
+    if (SafeLeverDelay <= KINDA_SMALL_NUMBER)
+    {
+        BeginCoinEntry();
+        return;
+    }
+
+    World->GetTimerManager().SetTimer(
+        LeverWaitTimer,
+        this,
+        &UBattleLevelActingWSubsystem::BeginCoinEntry,
+        SafeLeverDelay,
+        false
+    );
 }
 
-
-void UBattleLevelActingWSubsystem::MoveCoinsWithDraw()
+void UBattleLevelActingWSubsystem::BeginCoinEntry()
 {
+    UWorld* World = GetWorld();
+    if (!bCoinEntryActive || !IsValid(World))
+    {
+        bAllCoinsLanded = true;
+        bDoorFxFinished = true;
+        TryFinishCoinEntry();
+        return;
+    }
+
+    PendingDoorFxCount = OpenGrid();
+    bDoorFxFinished = PendingDoorFxCount == 0;
+
+    if (bDoorFxFinished)
+    {
+        DoCoinTeleportAct();
+        TryFinishCoinEntry();
+        return;
+    }
+
+    // 문이 완전히 열린 순간(1단계 완료)에 코인 점프를 시작합니다.
+    World->GetTimerManager().SetTimer(
+        CoinTeleportTimer,
+        this,
+        &UBattleLevelActingWSubsystem::DoCoinTeleportAct,
+        CoinDoorPhaseDuration,
+        false
+    );
+
+}
+
+int32 UBattleLevelActingWSubsystem::OpenGrid()
+{
+    if (!IsValid(CoinManager) || !IsValid(GridManager))
+    {
+        return 0;
+    }
+
+	int32 PlayedDoorFxCount = 0;
     TArray<ACoinActor*> ReadyCoins = CoinManager->GetReadyCoins();
 
     for (ACoinActor* Coin : ReadyCoins)
     {
         if (IsValid(Coin))
         {
-            Coin->DoCoinActAtBattleStartLeverDown();
+            const FGridPoint GridPoint = Coin->GetDecidedGrid();
+            if (!IsValid(GridManager->GetGridActor(GridPoint)))
+            {
+                continue;
+            }
+
+            if (GridManager->PlaySingleCellDoorOpenFxTracked(
+				GridPoint.GridX,
+				GridPoint.GridY,
+				CoinDoorPhaseDuration,
+				FSimpleDelegate::CreateUObject(this, &UBattleLevelActingWSubsystem::HandleDoorFxFinished)))
+			{
+				++PlayedDoorFxCount;
+			}
         }
     }
 
-}
-
-void UBattleLevelActingWSubsystem::OpenGrid()
-{
-    TArray<ACoinActor*> ReadyCoins = CoinManager->GetReadyCoins();
-
-    for (ACoinActor* Coin : ReadyCoins)
-    {
-        if (IsValid(Coin))
-        {
-            GridManager->PlaySingleCellDoorOpenFx(
-                Coin->GetDecidedGrid().GridX,
-                Coin->GetDecidedGrid().GridY
-            );
-        }
-    }  
+    return PlayedDoorFxCount;
 }
 
 void UBattleLevelActingWSubsystem::DoCoinTeleportAct()
 {
+    if (!bCoinEntryActive || !IsValid(CoinManager) || !IsValid(GridManager))
+    {
+        bAllCoinsLanded = true;
+        TryFinishCoinEntry();
+        return;
+    }
+
     TArray<ACoinActor*> ReadyCoins = CoinManager->GetReadyCoins();
 
+    TArray<ACoinActor*> CoinsToLaunch;
+    CoinsToLaunch.Reserve(ReadyCoins.Num());
     for (ACoinActor* Coin : ReadyCoins)
     {
-        if (IsValid(Coin))
+        if (IsValid(Coin) && IsValid(GridManager->GetGridActor(Coin->GetDecidedGrid())))
         {
-            TeleportReadyCoinsToDecidedGrid(Coin);
+            CoinsToLaunch.Add(Coin);
         }
     }
 
-    OnCoinLanded.ExecuteIfBound();
+    PendingLandingCoinCount = CoinsToLaunch.Num();
+    bAllCoinsLanded = PendingLandingCoinCount == 0;
+
+    for (ACoinActor* Coin : CoinsToLaunch)
+    {
+        TeleportReadyCoinsToDecidedGrid(
+            Coin,
+            FSimpleDelegate::CreateUObject(this, &UBattleLevelActingWSubsystem::HandleCoinLanded)
+        );
+    }
+
+    TryFinishCoinEntry();
 }
 
-void UBattleLevelActingWSubsystem::TeleportReadyCoinsToDecidedGrid(ACoinActor* ReadyCoin)
+void UBattleLevelActingWSubsystem::TeleportReadyCoinsToDecidedGrid(ACoinActor* ReadyCoin, FSimpleDelegate OnLanded)
 {
-    if(ReadyCoin == nullptr) return;
-
-    if(!ReadyCoin->GetCoinOnBattle()) return;
-
-    FGridPoint Grid = ReadyCoin->GetDecidedGrid();
-
-    if(GridManager)
+    if (!IsValid(ReadyCoin) || !ReadyCoin->GetCoinOnBattle() || !IsValid(GridManager))
     {
-        AGridActor* TheGrid = GridManager->GetGridActor(Grid);
-        if(TheGrid)
-        {
-            ReadyCoin->DoCoinActAtBattleStart(TheGrid->GetGridWorldXY().X, TheGrid->GetGridWorldXY().Y);
-
-        }
+        OnLanded.ExecuteIfBound();
+        return;
     }
+
+    AGridActor* TheGrid = GridManager->GetGridActor(ReadyCoin->GetDecidedGrid());
+    if (!IsValid(TheGrid))
+    {
+        OnLanded.ExecuteIfBound();
+        return;
+    }
+
+    const FVector2D GridWorldXY = TheGrid->GetGridWorldXY();
+    ReadyCoin->DoCoinActAtBattleStart(GridWorldXY.X, GridWorldXY.Y, MoveTemp(OnLanded));
+}
+
+void UBattleLevelActingWSubsystem::HandleCoinLanded()
+{
+    if (!bCoinEntryActive || PendingLandingCoinCount <= 0)
+    {
+        return;
+    }
+
+    --PendingLandingCoinCount;
+    bAllCoinsLanded = PendingLandingCoinCount == 0;
+    TryFinishCoinEntry();
+}
+
+void UBattleLevelActingWSubsystem::HandleDoorFxFinished()
+{
+	if (!bCoinEntryActive || PendingDoorFxCount <= 0)
+	{
+		return;
+	}
+
+	--PendingDoorFxCount;
+	bDoorFxFinished = PendingDoorFxCount == 0;
+    TryFinishCoinEntry();
+}
+
+void UBattleLevelActingWSubsystem::TryFinishCoinEntry()
+{
+    if (!bCoinEntryActive || !bAllCoinsLanded || !bDoorFxFinished)
+    {
+        return;
+    }
+
+    bCoinEntryActive = false;
+    PendingLandingCoinCount = 0;
+	PendingDoorFxCount = 0;
+    OnCoinLanded.ExecuteIfBound();
+
+    FSimpleDelegate FinishedDelegate = CoinEntryFinished;
+    CoinEntryFinished.Unbind();
+    FinishedDelegate.ExecuteIfBound();
 }
 
 void UBattleLevelActingWSubsystem::DoSettingAct()
 {
     //뭐 또 타이머든 뭐든 써서 n초 후에 세팅 다 하고 다음 턴으로 넘어갈텐데 이제 그동안 연출되는 것들 다 여기에
-    // ReadyCoinWidget으로 대체되어 기존 DrawActor 연출은 사용하지 않습니다.
 }
 
 void UBattleLevelActingWSubsystem::PrepareBossVisualActor(TSoftClassPtr<ABase_PatternVisualActor> VisualClass)

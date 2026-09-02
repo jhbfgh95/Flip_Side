@@ -124,6 +124,261 @@ AGridActor* UGridManagerSubsystem::GetGridActor(const FGridPoint& P) const
 	return nullptr;
 }
 
+bool UGridManagerSubsystem::TryGetGridWorldLocation(const FGridPoint& P, FVector& OutWorldLocation) const
+{
+	if (!IsInGrid(P.GridX, P.GridY))
+	{
+		OutWorldLocation = FVector::ZeroVector;
+		return false;
+	}
+
+	// InstanceGrid의 X/Y 축 교환 규칙과 반드시 동일해야 합니다.
+	OutWorldLocation = GridOrigin + FVector(P.GridY * SpacingY, P.GridX * SpacingX, 0.0f);
+	return true;
+}
+
+void UGridManagerSubsystem::BuildAreaCellsFromOrigin(
+	const FGridPoint& Origin,
+	const FAttackAreaSpec& Spec,
+	TArray<FGridPoint>& OutCells) const
+{
+	OutCells.Reset();
+	if (!IsInGrid(Origin.GridX, Origin.GridY))
+	{
+		return;
+	}
+
+	FAttackAreaSpec ResolvedSpec = Spec;
+	if (ResolvedSpec.AnchorMode == EAreaAnchor::UseAnchorCell)
+	{
+		ResolvedSpec.AnchorCell.GridX = Origin.GridX + Spec.AnchorCell.GridX;
+		ResolvedSpec.AnchorCell.GridY = Origin.GridY + Spec.AnchorCell.GridY;
+	}
+
+	if (ResolvedSpec.Pattern == EAttackAreaPattern::SingleCell)
+	{
+		GetValidGridsForSingleCell(Origin, ResolvedSpec, OutCells);
+		return;
+	}
+
+	FGridAreaBuilder::BuildCells(ResolvedSpec, GridXSize, GridYSize, OutCells);
+}
+
+void UGridManagerSubsystem::BuildAbilityAreaCellsFromOrigin(
+	const FGridPoint& Origin,
+	const FAttackAreaSpec& AbilitySpec,
+	TArray<FGridPoint>& OutCells) const
+{
+	BuildAreaCellsFromOrigin(Origin, AbilitySpec, OutCells);
+	OutCells.RemoveAll([this](const FGridPoint& Cell)
+	{
+		return IsBossAreaCell(Cell);
+	});
+}
+
+void UGridManagerSubsystem::CollectAttackRangeTargets(
+	const FGridPoint& Origin,
+	const FAttackAreaSpec& AttackSpec,
+	TArray<FGridPoint>& OutCells,
+	ABossActor*& OutBoss) const
+{
+	OutBoss = nullptr;
+	BuildAreaCellsFromOrigin(Origin, AttackSpec, OutCells);
+	const bool bIntersectsBossFootprint = OutCells.ContainsByPredicate([this](const FGridPoint& Cell)
+	{
+		return IsFixedBossFootprintCell(Cell);
+	});
+	if (!bIntersectsBossFootprint)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	UBossManagerSubsystem* BossManager = IsValid(World)
+		? World->GetSubsystem<UBossManagerSubsystem>()
+		: nullptr;
+	ABossActor* Boss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
+	OutBoss = IsValid(Boss) ? Boss : nullptr;
+}
+
+void UGridManagerSubsystem::CollectAbilityRangeTargets(
+	const FGridPoint& Origin,
+	const FAttackAreaSpec& AbilitySpec,
+	TArray<FGridPoint>& OutCells,
+	FObjectOnGridInfo& OutObjects) const
+{
+	OutObjects.Coins.Reset();
+	OutObjects.Others.Reset();
+	OutObjects.Boss = nullptr;
+	BuildAbilityAreaCellsFromOrigin(Origin, AbilitySpec, OutCells);
+
+	for (const FGridPoint& Cell : OutCells)
+	{
+		AGridActor* Grid = GetGridActor(Cell);
+		if (!IsValid(Grid) || !Grid->GetIsOccupied())
+		{
+			continue;
+		}
+
+		AActor* Occupant = Grid->GetCurrentOccupied();
+		switch (Grid->GetCurrentOccupyingThing())
+		{
+		case EGridOccupyingType::Coin:
+			if (IsValid(Occupant))
+			{
+				OutObjects.Coins.AddUnique(Occupant);
+			}
+			break;
+		case EGridOccupyingType::Wall:
+		case EGridOccupyingType::Turret:
+			if (IsValid(Occupant))
+			{
+				OutObjects.Others.AddUnique(Occupant);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+bool UGridManagerSubsystem::TryBuildStraightRangeEndpoints(
+	const FGridPoint& Origin,
+	const FAttackAreaSpec& Spec,
+	bool bStopAtBossFootprint,
+	FGridPoint& OutStart,
+	FGridPoint& OutEnd) const
+{
+	OutStart = FGridPoint{ -1, -1 };
+	OutEnd = FGridPoint{ -1, -1 };
+
+	if (!IsInGrid(Origin.GridX, Origin.GridY) ||
+		Spec.Pattern != EAttackAreaPattern::RectFromCell || Spec.ParamA != 1)
+	{
+		return false;
+	}
+
+	FGridPoint Direction;
+	switch (Spec.Side)
+	{
+	case EAreaSide::Up:
+		Direction = FGridPoint{ 0, 1 };
+		break;
+	case EAreaSide::Down:
+		Direction = FGridPoint{ 0, -1 };
+		break;
+	case EAreaSide::Left:
+		Direction = FGridPoint{ -1, 0 };
+		break;
+	case EAreaSide::Right:
+		Direction = FGridPoint{ 1, 0 };
+		break;
+	default:
+		return false;
+	}
+
+	const int32 Depth = FMath::Max(0, Spec.ParamB);
+	for (int32 Step = 1; Step <= Depth; ++Step)
+	{
+		const FGridPoint Cell{
+			Origin.GridX + Direction.GridX * Step,
+			Origin.GridY + Direction.GridY * Step
+		};
+
+		if (!IsInGrid(Cell.GridX, Cell.GridY))
+		{
+			break;
+		}
+
+		if (Step == 1)
+		{
+			OutStart = Cell;
+		}
+		OutEnd = Cell;
+
+		if (bStopAtBossFootprint && IsFixedBossFootprintCell(Cell))
+		{
+			break;
+		}
+	}
+
+	return OutStart.GridX >= 0 && OutStart.GridY >= 0 &&
+		OutEnd.GridX >= 0 && OutEnd.GridY >= 0;
+}
+
+bool UGridManagerSubsystem::IsBossAreaCell(const FGridPoint& P) const
+{
+	if (!IsInGrid(P.GridX, P.GridY))
+	{
+		return false;
+	}
+
+	constexpr int32 BossAreaDepth = 3;
+	const int32 BossAreaStartY = FMath::Max(0, GridYSize - BossAreaDepth);
+	return P.GridY >= BossAreaStartY;
+}
+
+bool UGridManagerSubsystem::IsFixedBossFootprintCell(const FGridPoint& P) const
+{
+	if (!IsInGrid(P.GridX, P.GridY) || GridXSize < 3 || GridYSize < 3)
+	{
+		return false;
+	}
+
+	// TODO(BOSS_GRID_RECONNECT): 보스 이동/크기 데이터가 생기면 고정 발판 대신 런타임 점유 셀을 사용합니다.
+	constexpr int32 BossFootprintHalfWidth = 1;
+	constexpr int32 BossFootprintDepth = 3;
+	const int32 BossCenterX = GridXSize / 2;
+	const int32 BossFrontY = GridYSize - BossFootprintDepth;
+	return P.GridX >= BossCenterX - BossFootprintHalfWidth &&
+		P.GridX <= BossCenterX + BossFootprintHalfWidth &&
+		P.GridY >= BossFrontY;
+}
+
+bool UGridManagerSubsystem::CanCoinOccupyCell(const FGridPoint& P) const
+{
+	if (!IsInGrid(P.GridX, P.GridY) || IsBossAreaCell(P))
+	{
+		return false;
+	}
+
+	AGridActor* Grid = GetGridActor(P);
+	return IsValid(Grid) && !Grid->GetIsOccupied();
+}
+
+bool UGridManagerSubsystem::TryOccupyCoinCell(const FGridPoint& P, ACoinActor* Coin)
+{
+	if (!IsValid(Coin) || !CanCoinOccupyCell(P))
+	{
+		return false;
+	}
+
+	AGridActor* Grid = GetGridActor(P);
+	if (!IsValid(Grid))
+	{
+		return false;
+	}
+
+	Grid->SetOccupied(true, EGridOccupyingType::Coin, Coin);
+	return Grid->GetIsOccupied() && Grid->GetCurrentOccupied() == Coin;
+}
+
+void UGridManagerSubsystem::ReleaseCoinCell(const FGridPoint& P, ACoinActor* Coin)
+{
+	AGridActor* Grid = GetGridActor(P);
+	if (!IsValid(Grid) || Grid->GetCurrentOccupyingThing() != EGridOccupyingType::Coin)
+	{
+		return;
+	}
+
+	if (IsValid(Coin) && Grid->GetCurrentOccupied() != Coin)
+	{
+		return;
+	}
+
+	Grid->ClearOccupiedOnly();
+}
+
 AGridActor* UGridManagerSubsystem::GetGridActorAt(int32 X, int32 Y) const
 {
     const FGridPoint P{ X, Y };
@@ -251,7 +506,7 @@ void UGridManagerSubsystem::GetObjectsAtRange(
     if (Spec.Pattern == EAttackAreaPattern::SingleCell)
     {
         // SingleCell은 범위 공격이 아니라 "선택 가능한 셀" 개념
-        const_cast<UGridManagerSubsystem*>(this)->GetValidGridsForSingleCell(
+        GetValidGridsForSingleCell(
             FinalRange,
             Spec,
             OutCells
@@ -335,7 +590,7 @@ void UGridManagerSubsystem::GetObjectsAtRange(
 void UGridManagerSubsystem::GetValidGridsForSingleCell(
     const FGridPoint& CoinXY,
     const FAttackAreaSpec& Spec,
-    TArray<FGridPoint>& ValidCells)
+    TArray<FGridPoint>& ValidCells) const
 {
     ValidCells.Reset();
 
@@ -592,25 +847,49 @@ void UGridManagerSubsystem::BindForGridClick(AGridActor* targetGrid)
     }
 }
 
-void UGridManagerSubsystem::StopDoorFx(const FGridPoint& Cell)
+void UGridManagerSubsystem::StopDoorFx(const FGridPoint& Cell, bool bNotifyCompletion)
 {
-    if (!GetWorld()) return;
-
     if (FCellDoorFxState* State = DoorFxByCell.Find(Cell))
     {
-        GetWorld()->GetTimerManager().ClearTimer(State->Phase1Tick);
-        GetWorld()->GetTimerManager().ClearTimer(State->Phase2Tick);
+        FSimpleDelegate CompletionDelegate = State->CompletionDelegate;
+        if (UWorld* World = GetWorld())
+        {
+            World->GetTimerManager().ClearTimer(State->Phase1Tick);
+            World->GetTimerManager().ClearTimer(State->Phase2Tick);
+        }
         DoorFxByCell.Remove(Cell);
+
+		if (bNotifyCompletion)
+		{
+			CompletionDelegate.ExecuteIfBound();
+		}
     }
 }
 
 void UGridManagerSubsystem::PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, float PhaseDuration)
 {
-    if (!GetWorld()) return;
-    if (!IsInGrid(GridX, GridY)) return;
+	StartSingleCellDoorOpenFx(GridX, GridY, PhaseDuration, FSimpleDelegate());
+}
+
+bool UGridManagerSubsystem::PlaySingleCellDoorOpenFxTracked(
+	int32 GridX,
+	int32 GridY,
+	float PhaseDuration,
+	FSimpleDelegate OnFinished)
+{
+	return StartSingleCellDoorOpenFx(GridX, GridY, PhaseDuration, MoveTemp(OnFinished));
+}
+
+bool UGridManagerSubsystem::StartSingleCellDoorOpenFx(
+	int32 GridX,
+	int32 GridY,
+	float PhaseDuration,
+	FSimpleDelegate OnFinished)
+{
+    if (!GetWorld() || !IsInGrid(GridX, GridY)) return false;
 
     AGridActor* CellActor = GetGridActorAt(GridX, GridY);
-    if (!CellActor) return;
+    if (!IsValid(CellActor)) return false;
 
     const FGridPoint Cell{ GridX, GridY };
 
@@ -620,6 +899,7 @@ void UGridManagerSubsystem::PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, f
     FCellDoorFxState State;
     State.PhaseDuration = FMath::Max(0.01f, PhaseDuration);
     State.Phase1StartTime = GetWorld()->GetTimeSeconds();
+	State.CompletionDelegate = MoveTemp(OnFinished);
     DoorFxByCell.Add(Cell, State);
 
     CellActor->ApplyCellMaterialParams(
@@ -635,17 +915,19 @@ void UGridManagerSubsystem::PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, f
         0.016f,
         true
     );
+
+	return true;
 }
 
 void UGridManagerSubsystem::TickPhase1(FGridPoint Cell)
 {
-    if (!GetWorld()) { StopDoorFx(Cell); return; }
+    if (!GetWorld()) { StopDoorFx(Cell, true); return; }
 
     FCellDoorFxState* State = DoorFxByCell.Find(Cell);
     if (!State) return;
 
     AGridActor* CellActor = GetGridActorAt(Cell.GridX, Cell.GridY);
-    if (!CellActor) { StopDoorFx(Cell); return; }
+    if (!CellActor) { StopDoorFx(Cell, true); return; }
 
     const float Now = GetWorld()->GetTimeSeconds();
     const float Alpha = FMath::Clamp((Now - State->Phase1StartTime) / State->PhaseDuration, 0.f, 1.f);
@@ -668,13 +950,13 @@ void UGridManagerSubsystem::TickPhase1(FGridPoint Cell)
 
 void UGridManagerSubsystem::StartPhase2(FGridPoint Cell)
 {
-    if (!GetWorld()) { StopDoorFx(Cell); return; }
+    if (!GetWorld()) { StopDoorFx(Cell, true); return; }
 
     FCellDoorFxState* State = DoorFxByCell.Find(Cell);
     if (!State) return;
 
     AGridActor* CellActor = GetGridActorAt(Cell.GridX, Cell.GridY);
-    if (!CellActor) { StopDoorFx(Cell); return; }
+    if (!CellActor) { StopDoorFx(Cell, true); return; }
 
     // Phase2 ���� �ð� ���
     State->Phase2StartTime = GetWorld()->GetTimeSeconds();
@@ -690,13 +972,13 @@ void UGridManagerSubsystem::StartPhase2(FGridPoint Cell)
 
 void UGridManagerSubsystem::TickPhase2(FGridPoint Cell)
 {
-    if (!GetWorld()) { StopDoorFx(Cell); return; }
+    if (!GetWorld()) { StopDoorFx(Cell, true); return; }
 
     FCellDoorFxState* State = DoorFxByCell.Find(Cell);
     if (!State) return;
 
     AGridActor* CellActor = GetGridActorAt(Cell.GridX, Cell.GridY);
-    if (!CellActor) { StopDoorFx(Cell); return; }
+    if (!CellActor) { StopDoorFx(Cell, true); return; }
 
     const float Now = GetWorld()->GetTimeSeconds();
     const float Alpha = FMath::Clamp((Now - State->Phase2StartTime) / State->PhaseDuration, 0.f, 1.f);
@@ -720,7 +1002,7 @@ void UGridManagerSubsystem::TickPhase2(FGridPoint Cell)
 
     if (Alpha >= 1.f)
     {
-        StopDoorFx(Cell);
+        StopDoorFx(Cell, true);
     }
 }
 

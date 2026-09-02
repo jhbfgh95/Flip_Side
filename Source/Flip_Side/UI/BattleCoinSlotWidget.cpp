@@ -8,7 +8,7 @@
 #include "Components/TextBlock.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
-namespace
+namespace BattleCoinSlotWidgetPrivate
 {
 	const FName WeaponIconParameterName(TEXT("Weapon_Icon"));
 	const FName WeaponColorParameterName(TEXT("Weapon_Color"));
@@ -53,7 +53,7 @@ void UBattleCoinSlotWidget::SetSlotData(const FBattleCoinSlotViewData& InData)
 			FrontWeaponIcon,
 			InData.FrontIcon,
 			FrontWeaponIconMaterialInstance,
-			FrontWeaponColor
+			BattleCoinSlotWidgetPrivate::FrontWeaponColor
 		);
 	}
 
@@ -63,7 +63,7 @@ void UBattleCoinSlotWidget::SetSlotData(const FBattleCoinSlotViewData& InData)
 			BackWeaponIcon,
 			InData.BackIcon,
 			BackWeaponIconMaterialInstance,
-			BackWeaponColor
+			BattleCoinSlotWidgetPrivate::BackWeaponColor
 		);
 	}
 
@@ -142,18 +142,10 @@ void UBattleCoinSlotWidget::UpdateWeaponIconMaterial(
 		return;
 	}
 
-	DynamicMaterial->SetTextureParameterValue(WeaponIconParameterName, WeaponIconTexture);
-	DynamicMaterial->SetVectorParameterValue(WeaponColorParameterName, WeaponColor);
-
-	UE_LOG(
-		LogTemp,
-		Log,
-		TEXT("[BattleCoinSlot] Weapon material applied. Image=%s, MID=%s, Texture=%s, Color=%s"),
-		*GetNameSafe(WeaponIconImage),
-		*GetNameSafe(DynamicMaterial),
-		*GetNameSafe(WeaponIconTexture),
-		*WeaponColor.ToString()
-	);
+	DynamicMaterial->SetTextureParameterValue(
+		BattleCoinSlotWidgetPrivate::WeaponIconParameterName, WeaponIconTexture);
+	DynamicMaterial->SetVectorParameterValue(
+		BattleCoinSlotWidgetPrivate::WeaponColorParameterName, WeaponColor);
 }
 
 

@@ -1,183 +1,200 @@
 #include "Subsystem/BattleLevel/ActionLogicRegistryGISubsystem.h"
-#include "WeaponLogicLibrary.h"
-#include "ItemLogicLibrary.h"
-#include "Weapon_Action.h"
-#include "Item_Action.h"
+
+#include "Objects/Item_Action.h"
+#include "Subsystem/AbilityLogicLibrary.h"
+#include "Subsystem/AttackLogicLibrary.h"
+#include "Subsystem/ItemLogicLibrary.h"
+
+namespace
+{
+	FAbilityTargetRule MakeTargetRule(
+		EAbilityTargetFlags Flags,
+		EAbilitySelectionMode SelectionMode,
+		ERepeatCountSource RepeatSource = ERepeatCountSource::One,
+		bool bExcludeCaster = false,
+		bool bCoinFieldOnly = false)
+	{
+		FAbilityTargetRule Rule;
+		Rule.TargetFlags = static_cast<int32>(Flags);
+		Rule.SelectionMode = SelectionMode;
+		Rule.RepeatCountSource = RepeatSource;
+		Rule.bExcludeCaster = bExcludeCaster;
+		Rule.bCoinFieldOnly = bCoinFieldOnly;
+		return Rule;
+	}
+
+	FAbilityTargetRule NoTargetRule()
+	{
+		return MakeTargetRule(EAbilityTargetFlags::None, EAbilitySelectionMode::None);
+	}
+}
 
 void UActionLogicRegistryGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-    Super::Initialize(Collection);
-
-    RegisterWeaponLogic();
-    RegisterItemLogic();
+	Super::Initialize(Collection);
+	RegisterAllWeaponLogic();
+	RegisterAllItemLogic();
 }
 
-void UActionLogicRegistryGISubsystem::RegisterWeaponLogic()
+void UActionLogicRegistryGISubsystem::RegisterAttackLogic(
+	int32 ID,
+	FAttackLogic Logic,
+	ERepeatCountSource RepeatSource)
 {
-    /*모든 함수를 이렇게 매칭시킴*/
-    WeaponMap.Add(1, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::SteelPipe_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(1, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveBossDamage(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(2, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::SteamChainSaw_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(2, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveBossDamage(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(3, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::Buger_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(3, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveCoinTarget(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(4, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::BloodCanon_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(4, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveBossDamageWithCoinTarget(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(5, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::AutoTurretSet_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(5, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveGridTarget(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(6, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::SniperRifle_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(6, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveBossDamage(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(7, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::Freezer_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(7, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveBossCC(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(8, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::SmokeSuit_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(8, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveCoinTarget(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(9, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::ArmorSuit_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(9, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveCoinTarget(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(10, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::EnemyOfSpear_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(10, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveCoinTarget(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(11, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::Gauntlet_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(11, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveBossDamage(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(12, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::Medikit_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(12, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveCoinTarget(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(13, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::CrossShiled_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(13, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveCoinTarget(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(14, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::Adrenaline_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(14, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveCoinTarget(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(15, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::LockOnLenz_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(15, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveCoinTarget(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(16, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::Emergencylifer_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(16, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveCoinTarget(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(17, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::Drill_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(17, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveOtherTarget(Cast<UWeapon_Action>(Context)); });
-
-    WeaponMap.Add(18, [](UActionBase* Context) {
-        if (UWeapon_Action* WeaponAction = Cast<UWeapon_Action>(Context)) {
-            UWeaponLogicLibrary::Fixkit_Logic(WeaponAction);
-        }
-    });
-    WeaponResolveMap.Add(18, [](UActionBase* Context) { return UWeaponLogicLibrary::ResolveOtherTarget(Cast<UWeapon_Action>(Context)); });
+	FWeaponLogicSet& LogicSet = WeaponLogicMap.FindOrAdd(ID);
+	LogicSet.AttackLogic = MoveTemp(Logic);
+	LogicSet.AttackRepeatCountSource = RepeatSource;
+	if (RepeatSource != ERepeatCountSource::One)
+	{
+		LogicSet.RepeatChannel = ERepeatLogicChannel::Attack;
+	}
 }
 
-void UActionLogicRegistryGISubsystem::RegisterItemLogic()
+void UActionLogicRegistryGISubsystem::RegisterAbilityLogic(
+	int32 ID,
+	EAbilityTiming Timing,
+	const FAbilityTargetRule& TargetRule,
+	FAbilityLogic Logic,
+	FName DebugName)
 {
-    //보호막 융해로 바꿀것
-    ItemMap.Add(1, [](UActionBase* Context) {
-        if (UItem_Action* ItemAction = Cast<UItem_Action>(Context)) {
-            UItemLogicLibrary::MeltShieldPotion_Logic(ItemAction);
-        }
-    });
+	FWeaponLogicSet& LogicSet = WeaponLogicMap.FindOrAdd(ID);
+	FRegisteredAbilityLogic& Ability = LogicSet.AbilityLogics.AddDefaulted_GetRef();
+	Ability.Timing = Timing;
+	Ability.TargetRule = TargetRule;
+	Ability.Logic = MoveTemp(Logic);
+	Ability.DebugName = DebugName;
+	if (TargetRule.RepeatCountSource != ERepeatCountSource::One)
+	{
+		LogicSet.RepeatChannel = ERepeatLogicChannel::Ability;
+	}
+}
 
-    ItemMap.Add(2, [](UActionBase* Context) {
-        if (UItem_Action* ItemAction = Cast<UItem_Action>(Context)) {
-            UItemLogicLibrary::BloodPotion_Logic(ItemAction);
-        }
-    });
+void UActionLogicRegistryGISubsystem::RegisterAllWeaponLogic()
+{
+	WeaponLogicMap.Reset();
 
-    ItemMap.Add(3, [](UActionBase* Context) {
-        if (UItem_Action* ItemAction = Cast<UItem_Action>(Context)) {
-            UItemLogicLibrary::CleanserPotion_Logic(ItemAction);
-        }
-    });
+	RegisterAttackLogic(1, UAttackLogicLibrary::SteelPipeAttack);
+	RegisterAttackLogic(2, UAttackLogicLibrary::BasicAttack, ERepeatCountSource::WeaponPoint);
+	RegisterAttackLogic(3, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(4, UAttackLogicLibrary::BloodCannonAttack);
+	RegisterAttackLogic(5, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(6, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(7, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(8, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(9, UAttackLogicLibrary::BasicAttack);
 
-    ItemMap.Add(4, [](UActionBase* Context) {
-        if (UItem_Action* ItemAction = Cast<UItem_Action>(Context)) {
-            UItemLogicLibrary::PhaseChangePotion_Logic(ItemAction);
-        }
-    });
+	// WeaponID 10 창의 적은 첫 대상 호버 투영 사거리까지 확정한 뒤 등록합니다.
+	// RegisterAttackLogic(10, UAttackLogicLibrary::BasicAttack);
 
-    ItemMap.Add(5, [](UActionBase* Context) {
-        if (UItem_Action* ItemAction = Cast<UItem_Action>(Context)) {
-            UItemLogicLibrary::WallPotion_Logic(ItemAction);
-        }
-    });
+	RegisterAttackLogic(11, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(12, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(13, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(14, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(15, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(16, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(17, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(18, UAttackLogicLibrary::BasicAttack);
 
-    ItemMap.Add(6, [](UActionBase* Context) {
-        if (UItem_Action* ItemAction = Cast<UItem_Action>(Context)) {
-            UItemLogicLibrary::EverwherePotion_Logic(ItemAction);
-        }
-    });
+	RegisterAbilityLogic(3, EAbilityTiming::AfterAttackAlways, NoTargetRule(),
+		UAbilityLogicLibrary::BurgerAfterAttack, TEXT("BurgerAfterAttack"));
+
+	RegisterAbilityLogic(4, EAbilityTiming::BeforeAttack,
+		MakeTargetRule(EAbilityTargetFlags::Coin, EAbilitySelectionMode::AllInRange,
+			ERepeatCountSource::One, true),
+		UAbilityLogicLibrary::BloodCannonAbsorb, TEXT("BloodCannonAbsorb"));
+
+	RegisterAbilityLogic(5, EAbilityTiming::AfterAttackAlways,
+		MakeTargetRule(EAbilityTargetFlags::EmptyGrid, EAbilitySelectionMode::Single),
+		UAbilityLogicLibrary::InstallAutoTurret, TEXT("InstallAutoTurret"));
+
+	RegisterAbilityLogic(6, EAbilityTiming::OnHit, NoTargetRule(),
+		UAbilityLogicLibrary::SniperOnHit, TEXT("SniperOnHit"));
+
+	RegisterAbilityLogic(7, EAbilityTiming::OnHit, NoTargetRule(),
+		UAbilityLogicLibrary::RapidFreezerOnHit, TEXT("RapidFreezerOnHit"));
+
+	RegisterAbilityLogic(8, EAbilityTiming::AfterAttackAlways,
+		MakeTargetRule(EAbilityTargetFlags::Coin, EAbilitySelectionMode::AllInRange),
+		UAbilityLogicLibrary::SmokeSuitAfterAttack, TEXT("SmokeSuitAfterAttack"));
+
+	RegisterAbilityLogic(9, EAbilityTiming::AfterAttackAlways,
+		MakeTargetRule(EAbilityTargetFlags::Coin, EAbilitySelectionMode::Single,
+			ERepeatCountSource::One, true),
+		UAbilityLogicLibrary::ArmorSuitAfterAttack, TEXT("ArmorSuitAfterAttack"));
+
+	RegisterAbilityLogic(11, EAbilityTiming::OnHit, NoTargetRule(),
+		UAbilityLogicLibrary::GauntletOnHit, TEXT("GauntletOnHit"));
+	RegisterAbilityLogic(11, EAbilityTiming::AfterAttackAlways,
+		MakeTargetRule(EAbilityTargetFlags::Coin, EAbilitySelectionMode::AllInRange,
+			ERepeatCountSource::One, true, true),
+		UAbilityLogicLibrary::GauntletAfterAttack, TEXT("GauntletAfterAttack"));
+
+	RegisterAbilityLogic(12, EAbilityTiming::OnHit, NoTargetRule(),
+		UAbilityLogicLibrary::GrantStrikeBuff, TEXT("MedikitStrike"));
+	RegisterAbilityLogic(12, EAbilityTiming::AfterAttackAlways,
+		MakeTargetRule(EAbilityTargetFlags::Coin, EAbilitySelectionMode::UpToRepeatCount,
+			ERepeatCountSource::WeaponCount, true),
+		UAbilityLogicLibrary::MedikitAfterAttack, TEXT("MedikitAfterAttack"));
+
+	RegisterAbilityLogic(13, EAbilityTiming::AfterAttackAlways,
+		MakeTargetRule(EAbilityTargetFlags::Coin, EAbilitySelectionMode::AllInRange),
+		UAbilityLogicLibrary::ShieldDeployAfterAttack, TEXT("ShieldDeployAfterAttack"));
+
+	RegisterAbilityLogic(14, EAbilityTiming::OnHit, NoTargetRule(),
+		UAbilityLogicLibrary::GrantStrikeBuff, TEXT("AdrenalineStrike"));
+	RegisterAbilityLogic(14, EAbilityTiming::OnHit,
+		MakeTargetRule(EAbilityTargetFlags::Coin, EAbilitySelectionMode::UpToRepeatCount,
+			ERepeatCountSource::WeaponCount, true),
+		UAbilityLogicLibrary::AdrenalineOnHit, TEXT("AdrenalineOnHit"));
+
+	RegisterAbilityLogic(15, EAbilityTiming::OnHit,
+		MakeTargetRule(EAbilityTargetFlags::Coin, EAbilitySelectionMode::UpToRepeatCount,
+			ERepeatCountSource::WeaponCount, true),
+		UAbilityLogicLibrary::AmplificationLensOnHit, TEXT("AmplificationLensOnHit"));
+
+	RegisterAbilityLogic(16, EAbilityTiming::AfterAttackAlways,
+		MakeTargetRule(EAbilityTargetFlags::Coin, EAbilitySelectionMode::AllInRange),
+		UAbilityLogicLibrary::EmergencyDeviceAfterAttack, TEXT("EmergencyDeviceAfterAttack"));
+
+	RegisterAbilityLogic(17, EAbilityTiming::AfterAttackAlways,
+		MakeTargetRule(EAbilityTargetFlags::Obstacle, EAbilitySelectionMode::UpToRepeatCount,
+			ERepeatCountSource::WeaponCount),
+		UAbilityLogicLibrary::CrushingDrillAfterAttack, TEXT("CrushingDrillAfterAttack"));
+
+	// WeaponID 18은 기존 Fixkit 대신 코르티솔을 사용합니다.
+	RegisterAbilityLogic(18, EAbilityTiming::OnHit, NoTargetRule(),
+		UAbilityLogicLibrary::GrantStrikeBuff, TEXT("CortisolStrike"));
+	RegisterAbilityLogic(18, EAbilityTiming::OnHit,
+		MakeTargetRule(EAbilityTargetFlags::Coin, EAbilitySelectionMode::UpToRepeatCount,
+			ERepeatCountSource::WeaponCount, true),
+		UAbilityLogicLibrary::CortisolOnHit, TEXT("CortisolOnHit"));
+}
+
+void UActionLogicRegistryGISubsystem::RegisterAllItemLogic()
+{
+	ItemMap.Reset();
+	ItemMap.Add(1, [](UActionBase* Context)
+	{
+		UItemLogicLibrary::MeltShieldPotion_Logic(Cast<UItem_Action>(Context));
+	});
+	ItemMap.Add(2, [](UActionBase* Context)
+	{
+		UItemLogicLibrary::BloodPotion_Logic(Cast<UItem_Action>(Context));
+	});
+	ItemMap.Add(3, [](UActionBase* Context)
+	{
+		UItemLogicLibrary::CleanserPotion_Logic(Cast<UItem_Action>(Context));
+	});
+	ItemMap.Add(4, [](UActionBase* Context)
+	{
+		UItemLogicLibrary::PhaseChangePotion_Logic(Cast<UItem_Action>(Context));
+	});
+	ItemMap.Add(5, [](UActionBase* Context)
+	{
+		UItemLogicLibrary::WallPotion_Logic(Cast<UItem_Action>(Context));
+	});
+	ItemMap.Add(6, [](UActionBase* Context)
+	{
+		UItemLogicLibrary::EverwherePotion_Logic(Cast<UItem_Action>(Context));
+	});
 }

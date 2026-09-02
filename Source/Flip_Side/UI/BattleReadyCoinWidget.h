@@ -8,6 +8,8 @@
 #include "BattleReadyCoinWidget.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleReadyCoinWidgetClicked, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleReadyCoinWidgetHovered, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleReadyCoinWidgetUnhovered, int32);
 
 /**
  * 
@@ -23,6 +25,8 @@ public:
 	void SetReadyCoins(const TArray<FBattleReadyCoinViewData>& InReadyCoins);
 
 	FOnBattleReadyCoinWidgetClicked OnReadyCoinClicked;
+	FOnBattleReadyCoinWidgetHovered OnReadyCoinHovered;
+	FOnBattleReadyCoinWidgetUnhovered OnReadyCoinUnhovered;
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -58,6 +62,8 @@ protected:
 private:
 	void CacheReadyCoinSlots();
 	void HandleReadyCoinSlotClicked(int32 CoinInstanceID);
+	void HandleReadyCoinSlotHovered(int32 CoinInstanceID);
+	void HandleReadyCoinSlotUnhovered(int32 CoinInstanceID);
 
 	UPROPERTY()
 	TArray<TObjectPtr<class UReadyCoinSlot>> ReadyCoinSlots;

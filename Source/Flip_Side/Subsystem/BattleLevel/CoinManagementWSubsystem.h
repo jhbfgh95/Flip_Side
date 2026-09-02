@@ -8,6 +8,10 @@
 #include "CoinManagementWSubsystem.generated.h"
 
 class ACoinActor;
+class UGridManagerSubsystem;
+class UCoinActionManagementWSubsystem;
+class UDataManagerSubsystem;
+struct FFaceData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRangeWanted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCoinAddedToReady);
@@ -40,15 +44,14 @@ public:
 	const TArray<FReadyCoinData>& GetReadyCoinData() const { return ReadyCoins; }
 
 	void SetCoinReadyPhase(bool bEnabled) { bIsCoinReadyPhase = bEnabled; }
+	int32 InstantiateReadyCoinActors();
+	ACoinActor* GetRuntimeCoinAtReadySlot(int32 ReadySlotIndex) const;
 
 	// CoinBehaviorPhase에서 Actor가 생성된 뒤 사망 처리와 함께 사용할 예정입니다.
 	bool RemoveReadyCoinByInstanceID(int32 CoinInstanceID);
 
-	// === 기존 전투 Actor 흐름 호환용 API: CoinBehaviorPhase 리팩터링 전까지 빈 배열을 반환합니다. ===
 	void InitBattleReadyCoin();
 	void CheckBattleReadyCoinAlive();
-	void AddBattleReadyCoins(ACoinActor* SelectCoinActor, bool bArrangeSlot = true);
-	void RemoveBattleReadyCoins(ACoinActor* SelectCoinActor);
 	TArray<ACoinActor*> GetReadyCoins() const;
 	void SetBattleCoinItemFlags(bool bEnabled);
 	bool IsCoinInBattleReady(ACoinActor* InCoin) const;
@@ -77,8 +80,13 @@ private:
 	int32 FindEmptyReadyCoinSlotIndex() const;
 	int32 AllocateCoinInstanceID() const;
 	int32 GetReadyCoinCount() const;
-	int32 GetHPForSlotIndex(int32 SlotIndex) const;
+	int32 ResolveCoinSlotHP(const FCoinTypeStructure& CoinSlot, const UDataManagerSubsystem* DataManager) const;
+	FWeaponFaceStats BuildTemporaryWeaponFaceStats(const FFaceData& LegacyFaceData) const;
 	void BroadcastCoinDataChanged();
+	void BindRuntimeCoinInteraction(ACoinActor* RuntimeCoin);
+	void UnbindRuntimeCoinInteraction(ACoinActor* RuntimeCoin);
+	void HandleRuntimeCoinDeathStarted(ACoinActor* DeadCoin);
+	void ReleaseAndDestroyRuntimeCoin(int32 ReadySlotIndex);
 
 	UPROPERTY()
 	TArray<FBattleCoinSlotData> CoinSlots;
@@ -86,6 +94,20 @@ private:
 	UPROPERTY()
 	TArray<FReadyCoinData> ReadyCoins;
 
+	/** ReadyCoin UI의 0~9번 칸과 같은 인덱스를 사용하며, 빈 칸을 압축하지 않습니다. */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<ACoinActor>> RuntimeCoinsByReadySlot;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UGridManagerSubsystem> GridManager = nullptr;
+
+	// 생성된 필드 코인의 호버·클릭 입력을 전투 행동 파이프라인에 한 번만 연결합니다.
+	UPROPERTY(Transient)
+	TObjectPtr<UCoinActionManagementWSubsystem> CoinActionManager = nullptr;
+
 	// BattleManager의 CoinReadyPhase 연결은 현재 주석 처리되어 있으므로 UI 테스트 중에는 활성 상태로 둡니다.
 	bool bIsCoinReadyPhase = true;
+
+	// 보유 코인이 없어 CreateTestCoinSlots의 기획서 기반 스탯·사거리를 사용하는지 구분합니다.
+	bool bUsingTestCoinData = false;
 };

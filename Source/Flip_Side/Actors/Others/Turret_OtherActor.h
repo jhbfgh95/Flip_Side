@@ -18,20 +18,21 @@ class FLIP_SIDE_API ATurret_OtherActor : public ABase_OtherActor, public IBattle
 	UPROPERTY(VisibleAnywhere, Category = "Others | Stat", meta = (AllowPrivateAccess = "true"))
 	FAttackAreaSpec TurretSpec;
 
-	UPROPERTY(EditAnywhere, Category = "Others | Stat", meta = (AllowPrivateAccess = "true"))
-	FGridPoint TurretRange;
+	UPROPERTY(VisibleAnywhere, Category = "Others | Grid", meta = (AllowPrivateAccess = "true"))
+	FGridPoint TurretSpawnGrid;
 
 	UPROPERTY(VisibleAnywhere, Category = "Others | Stat")
 	int32 AttackPoint = 0;
 
 	UPROPERTY(VisibleAnywhere);
-	class ABossActor* CachedBoss;
+	class ABossActor* CachedBoss = nullptr;
 
 	class UGridManagerSubsystem* GridManager;
 
 	bool bIsActed = false;
 public:
-	void SetTurretSpawnGrid(FGridPoint targetGrid);
+	/** 자동포탑을 설치한 무기의 공격 사거리를 그대로 주입합니다. */
+	void InitializeTurret(FGridPoint TargetGrid, const FAttackAreaSpec& AttackAreaSpec);
 
 	void SetTurretAttackPoint(const int32 attackPoint) { AttackPoint = attackPoint; }
 

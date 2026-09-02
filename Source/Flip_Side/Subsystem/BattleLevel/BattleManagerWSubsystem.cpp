@@ -101,11 +101,10 @@ void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
         }
     }
 
-    // TODO: CoinBehaviorPhase에서 실 CoinActor 생성 흐름을 복구할 때 다시 바인딩합니다.
-    // if(CoinManager)
-    // {
-    //     CoinManager->OnAllCoinDead.BindUObject(this, &UBattleManagerWSubsystem::GameOver);
-    // }
+    if (IsValid(CoinManager))
+    {
+        CoinManager->OnAllCoinDead.BindUObject(this, &UBattleManagerWSubsystem::GameOver);
+    }
     DoSettingPhase();
 }
 
@@ -226,58 +225,126 @@ void UBattleManagerWSubsystem::PhaseProgressing()
 
 void UBattleManagerWSubsystem::GenerateRandomStates()
 {
-    if(!GridManager) return;
-
-    if(GridManager->GridXSize <= 0 || GridManager->GridYSize <= 0) return;
-
-    TSet<FGridPoint> SelectedPoints;
-    for(int i =0; i<BATTLE_COIN_MAX; i++)
+    RandomStateArray.SetNum(BATTLE_COIN_MAX);
+    for (FRandomState& RandomState : RandomStateArray)
     {
-        FGridPoint NewPoint;
-        bool bIsUnique = false;
+        RandomState.RandomFace = EFaceState::None;
+        RandomState.RandomGrid = FGridPoint(-1, -1);
+    }
 
-        EFaceState DecidedFace = UTemplateFunction_Utils::GetRandomENum<EFaceState>();
+    if (!IsValid(GridManager) || GridManager->GridXSize <= 0 || GridManager->GridYSize <= 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[Battle] 랜덤 상태 생성 실패: GridManager 또는 그리드 크기가 유효하지 않습니다."));
+        return;
+    }
 
-        //중복 좌표 예외처리
-        while (!bIsUnique)
+    TArray<FGridPoint> CandidateCells;
+    for (int32 GridY = 0; GridY < GridManager->GridYSize; ++GridY)
+    {
+        for (int32 GridX = 0; GridX < GridManager->GridXSize; ++GridX)
         {
-            NewPoint.GridX = FMath::RandRange(0, GridManager->GridXSize - 1);
-            NewPoint.GridY = FMath::RandRange(0, GridManager->GridYSize - 1);
-
-            if (!SelectedPoints.Contains(NewPoint) && !GridManager->GetGridActor(NewPoint)->GetIsOccupied())
+            const FGridPoint Candidate(GridX, GridY);
+            if (GridManager->CanCoinOccupyCell(Candidate))
             {
-                SelectedPoints.Add(NewPoint);
-                bIsUnique = true;
+                CandidateCells.Add(Candidate);
             }
         }
+    }
 
-        RandomStateArray[i].RandomFace = DecidedFace;
-        RandomStateArray[i].RandomGrid = NewPoint;
+    // 중복 재추첨 while문 대신 후보를 한 번 섞어, 빈 셀이 부족해도 무한 루프가 생기지 않게 합니다.
+    for (int32 Index = 0; Index < CandidateCells.Num(); ++Index)
+    {
+        const int32 SwapIndex = FMath::RandRange(Index, CandidateCells.Num() - 1);
+        CandidateCells.Swap(Index, SwapIndex);
+    }
+
+    const int32 StateCount = FMath::Min(BATTLE_COIN_MAX, CandidateCells.Num());
+    for (int32 Index = 0; Index < StateCount; ++Index)
+    {
+        RandomStateArray[Index].RandomFace = FMath::RandBool() ? EFaceState::Front : EFaceState::Back;
+        RandomStateArray[Index].RandomGrid = CandidateCells[Index];
+    }
+
+    if (StateCount < BATTLE_COIN_MAX)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[Battle] Coin 랜덤 배치 가능 셀이 부족합니다. 생성=%d 필요=%d"),
+            StateCount, BATTLE_COIN_MAX);
     }
 }
 
 void UBattleManagerWSubsystem::MatchCoinsToRandomState()
 {
-    // TODO: CoinBehaviorPhase에서 ReadyCoinData를 CoinActor로 인스턴싱한 뒤 복구합니다.
+    if (!IsValid(CoinManager) || !IsValid(GridManager))
+    {
+        return;
+    }
+
+    for (int32 ReadySlotIndex = 0; ReadySlotIndex < BATTLE_COIN_MAX; ++ReadySlotIndex)
+    {
+        ACoinActor* Coin = CoinManager->GetRuntimeCoinAtReadySlot(ReadySlotIndex);
+        if (!IsValid(Coin))
+        {
+            continue;
+        }
+
+        if (!RandomStateArray.IsValidIndex(ReadySlotIndex))
+        {
+            UE_LOG(LogTemp, Error, TEXT("[Battle] ReadySlot=%d 랜덤 상태 인덱스가 없습니다."), ReadySlotIndex + 1);
+            continue;
+        }
+
+        const FRandomState& RandomState = RandomStateArray[ReadySlotIndex];
+        if (RandomState.RandomFace == EFaceState::None ||
+            !GridManager->CanCoinOccupyCell(RandomState.RandomGrid))
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("[Battle] ReadySlot=%d CoinID=%d 랜덤 상태 매칭 건너뜀: Face=%d Grid=(%d,%d)"),
+                ReadySlotIndex + 1,
+                Coin->GetCoinID(),
+                static_cast<int32>(RandomState.RandomFace),
+                RandomState.RandomGrid.GridX,
+                RandomState.RandomGrid.GridY);
+            continue;
+        }
+
+        if (!GridManager->TryOccupyCoinCell(RandomState.RandomGrid, Coin))
+        {
+            UE_LOG(LogTemp, Error, TEXT("[Battle] ReadySlot=%d CoinID=%d 그리드 점유에 실패했습니다."),
+                ReadySlotIndex + 1, Coin->GetCoinID());
+            continue;
+        }
+
+        Coin->SetCoinFace(RandomState.RandomFace);
+        Coin->SetGridPoint(RandomState.RandomGrid);
+    }
 }
 
 void UBattleManagerWSubsystem::DoCoinReadyPhase()
 {
     LockLever(EBattleLeverLockReason::PhaseTransition);
-	if (ItemManager)
+	if (IsValid(CoinManager))
+	{
+		CoinManager->SetCoinReadyPhase(true);
+	}
+	if (IsValid(ItemManager))
 	{
 		ItemManager->SetPhase(false);
 	}
-    // TODO: CoinReadyPhase 리팩터링 완료 후 UI 입력 활성화를 여기서 제어합니다.
-    // CoinManager->SetCoinReadyPhase(true);
     UnlockLeverAfter(LeverLockTime + 1.0f);
 }
 
 void UBattleManagerWSubsystem::DoCoinBehaviorPhase()
 {
-    // TODO: CoinBehaviorPhase 구현 전까지 Actor 기반 CoinReady 처리와 전송은 비활성화합니다.
-    // CoinManager->SetCoinReadyPhase(false);
-    // MatchCoinsToRandomState();
+    if (!IsValid(CoinManager) || !IsValid(GridManager))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[Battle] CoinBehaviorPhase 진입 실패: CoinManager 또는 GridManager가 유효하지 않습니다."));
+        UnlockLever();
+        return;
+    }
+
+    CoinManager->SetCoinReadyPhase(false);
+    CoinManager->InstantiateReadyCoinActors();
+    MatchCoinsToRandomState();
     
     // TODO: 카드 조건 검사가 Tick 기반으로 이관되면 호출 경로를 복구합니다.
     // if (StageCardManager)
@@ -285,6 +352,38 @@ void UBattleManagerWSubsystem::DoCoinBehaviorPhase()
     //     StageCardManager->ExecuteCardsEffect();
     // }
 
+    if (IsValid(CoinActionManager))
+    {
+        // TODO: DB 기반 CoinBehaviorPhase 행동 리팩터링 완료 후 true로 전환합니다.
+        CoinActionManager->SetPhase(false);
+    }
+
+    if (IsValid(ItemManager))
+    {
+        // 진입 연출이 끝나기 전에는 아이템 입력을 받지 않습니다.
+        ItemManager->SetPhase(false);
+    }
+
+    if (IsValid(ActingManager))
+    {
+        ActingManager->WaitTeleportUntilLeverDown(
+            LeverLockTime,
+            FSimpleDelegate::CreateUObject(this, &UBattleManagerWSubsystem::HandleCoinBehaviorEntryFinished)
+        );
+        return;
+    }
+
+    HandleCoinBehaviorEntryFinished();
+}
+
+void UBattleManagerWSubsystem::HandleCoinBehaviorEntryFinished()
+{
+    if (bIsStageEnded || CurrentPhase != EPhaseState::CoinBehaviorPhase)
+    {
+        return;
+    }
+
+    // 코인의 실제 착지가 모두 끝난 뒤부터만 호버·클릭 행동 입력을 허용합니다.
     if (IsValid(CoinActionManager))
     {
         CoinActionManager->SetPhase(true);
@@ -296,8 +395,6 @@ void UBattleManagerWSubsystem::DoCoinBehaviorPhase()
         ItemManager->CoinBindsToItemMan();
     }
 
-    UnlockLeverAfter(LeverLockTime + 3.0f);
-
     if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
     {
         UE_LOG(LogTemp, Warning, TEXT("[Battle] DoCoinBehaviorPhase OnPlayerPhaseStart broadcast, GimmickCount=%d"), Boss->GetGimmickList().Num());
@@ -307,6 +404,7 @@ void UBattleManagerWSubsystem::DoCoinBehaviorPhase()
         }
     }
 
+    UnlockLever();
 }
 
 void UBattleManagerWSubsystem::DoBossPhase()
@@ -349,17 +447,40 @@ void UBattleManagerWSubsystem::DoSettingPhase()
         StageCardManager->SettingDoSettingPhase();
     }
 
+    if (IsValid(CoinManager))
+    {
+        CoinManager->SetCoinReadyPhase(false);
+        CoinManager->CheckBattleReadyCoinAlive();
+    }
+
+    if (IsValid(GridManager))
+    {
+        GridManager->InitGrids();
+    }
+
+    // 매 턴 SettingPhase에서 새 상태를 만들며, 다음 BehaviorPhase에서는 이전 점유 위치를 재사용하지 않습니다.
     GenerateRandomStates();
-    ActingManager->DoSettingAct();
-    GridManager->InitGrids();
-    // TODO: CoinBehaviorPhase에서 생존 CoinActor를 ReadyCoinData로 복귀시키는 로직을 추가합니다.
-    // CoinManager->CheckBattleReadyCoinAlive();
+
+    if (IsValid(ActingManager))
+    {
+        ActingManager->DoSettingAct();
+    }
+
+    if (!IsValid(BossManager))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[Battle] SettingPhase 진행 실패: BossManager가 유효하지 않습니다."));
+        return;
+    }
+
     BossManager->StartBossSetting();
     TSoftClassPtr<ABase_PatternVisualActor> VisualClass = BossManager->GetCurrentPatternVisualClass();
 
     if (!VisualClass.IsNull())
     {
-        ActingManager->PrepareBossVisualActor(VisualClass);
+        if (IsValid(ActingManager))
+        {
+            ActingManager->PrepareBossVisualActor(VisualClass);
+        }
     }
 
     PhaseProgressing();

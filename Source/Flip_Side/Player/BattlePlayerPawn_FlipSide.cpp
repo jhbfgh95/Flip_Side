@@ -1,7 +1,10 @@
 #include "BattlePlayerPawn_FlipSide.h"
 #include "Components/SceneComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Actors/Boss/BossActor.h"
+#include "Subsystem/BattleLevel/BossManagerSubsystem.h"
 
 ABattlePlayerPawn_FlipSide::ABattlePlayerPawn_FlipSide()
 {
@@ -19,9 +22,13 @@ ABattlePlayerPawn_FlipSide::ABattlePlayerPawn_FlipSide()
 	// 카메라, 스프링 암 끝에
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+	Camera->SetRelativeLocation(FVector(-852.0f, 200.0f, 2785.0f));
+	Camera->SetRelativeRotation(FRotator(-21.0f, 0.0f, 0.0f));
+	Camera->SetRelativeScale3D(FVector::OneVector);
 
 	// Perspective 모드 for 시각적 깊이감
 	Camera->ProjectionMode = ECameraProjectionMode::Perspective;
+	Camera->FieldOfView = 55.0f;
 
 	// 초기 목표 상태 설정
 	TargetLocation = GetActorLocation();
@@ -42,6 +49,15 @@ void ABattlePlayerPawn_FlipSide::BeginPlay()
     SetActorLocation(TargetLocation);
     SpringArm->SetRelativeRotation(TargetRotation);
     SpringArm->TargetArmLength = TargetArmLength;
+
+	UWorld* World = GetWorld();
+	UBossManagerSubsystem* BossManager = IsValid(World) ? World->GetSubsystem<UBossManagerSubsystem>() : nullptr;
+	ABossActor* Boss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
+	if (IsValid(Boss) && IsValid(Boss->BossMesh))
+	{
+		// 기존 카메라 Ver1 구도에 맞춘 보스 메시 크기를 기본값으로 사용합니다.
+		Boss->BossMesh->SetRelativeScale3D(FVector(12.0f));
+	}
 }
 
 void ABattlePlayerPawn_FlipSide::Tick(float DeltaTime)
@@ -65,7 +81,7 @@ void ABattlePlayerPawn_FlipSide::Tick(float DeltaTime)
 	if (FMath::Abs(SpringArm->TargetArmLength - TargetArmLength) > 0.1f)
     {
         SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, TargetArmLength, DeltaTime, InterpolationSpeed);
-    }
+	}
 }
 
 void ABattlePlayerPawn_FlipSide::MoveCameraToArea(FVector NewTargetLocation, FRotator NewTargetRotation, float NewTargetArmLength)

@@ -23,7 +23,12 @@ void UReadyCoinSlot::NativeConstruct()
 
 	if (IsValid(ReadyCoinButton))
 	{
+		ReadyCoinButton->OnClicked.RemoveDynamic(this, &UReadyCoinSlot::HandleReadyCoinClicked);
+		ReadyCoinButton->OnHovered.RemoveDynamic(this, &UReadyCoinSlot::HandleReadyCoinHovered);
+		ReadyCoinButton->OnUnhovered.RemoveDynamic(this, &UReadyCoinSlot::HandleReadyCoinUnhovered);
 		ReadyCoinButton->OnClicked.AddDynamic(this, &UReadyCoinSlot::HandleReadyCoinClicked);
+		ReadyCoinButton->OnHovered.AddDynamic(this, &UReadyCoinSlot::HandleReadyCoinHovered);
+		ReadyCoinButton->OnUnhovered.AddDynamic(this, &UReadyCoinSlot::HandleReadyCoinUnhovered);
 	}
 }
 
@@ -96,6 +101,10 @@ void UReadyCoinSlot::SetReadyCoinData(const FBattleReadyCoinViewData& InData)
 
 void UReadyCoinSlot::ClearReadyCoinData()
 {
+	if (CoinInstanceID != INDEX_NONE)
+	{
+		OnReadyCoinSlotUnhovered.Broadcast(CoinInstanceID);
+	}
 	CoinInstanceID = INDEX_NONE;
 	bCanCancel = false;
 
@@ -138,6 +147,22 @@ void UReadyCoinSlot::HandleReadyCoinClicked()
 	}
 }
 
+void UReadyCoinSlot::HandleReadyCoinHovered()
+{
+	if (CoinInstanceID != INDEX_NONE)
+	{
+		OnReadyCoinSlotHovered.Broadcast(CoinInstanceID);
+	}
+}
+
+void UReadyCoinSlot::HandleReadyCoinUnhovered()
+{
+	if (CoinInstanceID != INDEX_NONE)
+	{
+		OnReadyCoinSlotUnhovered.Broadcast(CoinInstanceID);
+	}
+}
+
 void UReadyCoinSlot::UpdateCancelStateVisual()
 {
 	if (IsValid(CanCancleText))
@@ -175,13 +200,6 @@ void UReadyCoinSlot::UpdateCancelStateVisual()
 	}
 
 	CancelStateIconMaterialInstance->SetTextureParameterValue(CancelStateIconParameterName, CancelStateIconTexture);
-	UE_LOG(
-		LogTemp,
-		Log,
-		TEXT("[ReadyCoinSlot] Cancel state material applied. MID=%s, Texture=%s"),
-		*GetNameSafe(CancelStateIconMaterialInstance),
-		*GetNameSafe(CancelStateIconTexture)
-	);
 }
 
 void UReadyCoinSlot::UpdateWeaponIconMaterial(
@@ -218,14 +236,5 @@ void UReadyCoinSlot::UpdateWeaponIconMaterial(
 
 	DynamicMaterial->SetTextureParameterValue(ReadyCoinWeaponIconParameterName, WeaponIconTexture);
 	DynamicMaterial->SetVectorParameterValue(ReadyCoinWeaponColorParameterName, WeaponColor);
-	UE_LOG(
-		LogTemp,
-		Log,
-		TEXT("[ReadyCoinSlot] Weapon material applied. Image=%s, MID=%s, Texture=%s, Color=%s"),
-		*GetNameSafe(WeaponIconImage),
-		*GetNameSafe(DynamicMaterial),
-		*GetNameSafe(WeaponIconTexture),
-		*WeaponColor.ToString()
-	);
 }
 

@@ -4,17 +4,15 @@
 #include "BossActor.h"
 #include "GridManagerSubsystem.h"
 
-void ATurret_OtherActor::SetTurretSpawnGrid(FGridPoint targetGrid)
+void ATurret_OtherActor::InitializeTurret(FGridPoint TargetGrid, const FAttackAreaSpec& AttackAreaSpec)
 {
-    TurretSpec.Pattern = EAttackAreaPattern::RectFromCell; 
-    TurretSpec.AnchorCell = targetGrid;
-    TurretSpec.Side = EAreaSide::Up;
+    TurretSpawnGrid = TargetGrid;
+    TurretSpec = AttackAreaSpec;
+    TurretSpec.AnchorCell = FGridPoint{0, 0};
     TurretSpec.AnchorMode = EAreaAnchor::UseAnchorCell;
-    TurretSpec.ParamA = TurretRange.GridX;
-    TurretSpec.ParamB = TurretRange.GridY;
-    
 
-    GridManager = GetWorld()->GetSubsystem<UGridManagerSubsystem>();
+	UWorld* World = GetWorld();
+	GridManager = IsValid(World) ? World->GetSubsystem<UGridManagerSubsystem>() : nullptr;
 }
 
 void ATurret_OtherActor::OnHover_Implementation()
@@ -22,14 +20,13 @@ void ATurret_OtherActor::OnHover_Implementation()
     if(GridManager)
     {
         TArray<FGridPoint> OutCells;
-        FObjectOnGridInfo Info;
-        const FGridPoint NoOffset(0, 0);
+        ABossActor* Boss = nullptr;
 
-        GridManager->PreviewHoveredCoinRange(TurretSpec.AnchorCell, TurretSpec, NoOffset);
-        GridManager->GetObjectsAtRange(TurretSpec, NoOffset, OutCells, Info);
-        if(Info.Boss)
+        GridManager->PreviewHoveredCoinRange(TurretSpawnGrid, TurretSpec, TurretSpawnGrid);
+        GridManager->CollectAttackRangeTargets(TurretSpawnGrid, TurretSpec, OutCells, Boss);
+        if(IsValid(Boss))
         {
-            CachedBoss = Info.Boss;
+            CachedBoss = Boss;
             CachedBoss->DisPlayOutline();
         }
     }
@@ -40,10 +37,11 @@ void ATurret_OtherActor::OnUnhover_Implementation()
     if(GridManager)
     {
         GridManager->ResetBattleCoinPreview();
-        if(CachedBoss)
-        {
-            CachedBoss->UnDisPlayOutline();
-        }
+		if(IsValid(CachedBoss))
+		{
+			CachedBoss->UnDisPlayOutline();
+		}
+		CachedBoss = nullptr;
     }
 }
 
@@ -56,7 +54,7 @@ void ATurret_OtherActor::OnClicked_Implementation()
 
     if(GridManager)
     {
-        if(CachedBoss && !bIsActed)
+		if(IsValid(CachedBoss) && !bIsActed)
         {
             CachedBoss->ApplyDamage(AttackPoint, this);
             bIsActed = true;

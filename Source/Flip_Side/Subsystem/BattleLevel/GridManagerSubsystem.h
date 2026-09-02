@@ -51,6 +51,8 @@ public:
 
 	float Phase1StartTime = 0.f;
 	float Phase2StartTime = 0.f;
+
+	FSimpleDelegate CompletionDelegate;
 };
 
 UENUM(BlueprintType)
@@ -97,6 +99,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, float PhaseDuration = 1.5f);
 
+	/** C++ 진입 연출에서 실제 문 닫힘 완료를 집계할 때 사용합니다. */
+	bool PlaySingleCellDoorOpenFxTracked(int32 GridX, int32 GridY, float PhaseDuration, FSimpleDelegate OnFinished);
+
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void CollectOccupiedCoins(TArray<FCoinOnGridInfo>& OutCoins) const;
 
@@ -109,11 +114,70 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	AGridActor* GetGridActor(const FGridPoint& P) const;
 
+	/** GridActor 참조 없이 그리드 좌표를 InstanceGrid와 동일한 월드 좌표로 변환합니다. */
+	UFUNCTION(BlueprintPure, Category = "Grid|Coordinates")
+	bool TryGetGridWorldLocation(const FGridPoint& P, FVector& OutWorldLocation) const;
+
+	/** 시전자 좌표를 기준으로 상대 Spec을 해석해 보드 안의 셀만 반환합니다. */
+	UFUNCTION(BlueprintCallable, Category = "Grid|Range")
+	void BuildAreaCellsFromOrigin(
+		const FGridPoint& Origin,
+		const FAttackAreaSpec& Spec,
+		TArray<FGridPoint>& OutCells
+	) const;
+
+	/** 능력 Spec을 시전자 기준으로 해석하고 모든 무기에 공통인 보스 영역을 제외합니다. */
+	void BuildAbilityAreaCellsFromOrigin(
+		const FGridPoint& Origin,
+		const FAttackAreaSpec& AbilitySpec,
+		TArray<FGridPoint>& OutCells
+	) const;
+
+	/** 공격 셀과 고정 보스 3x3 점유 영역의 실제 교차 여부로 현재 보스를 수집합니다. */
+	void CollectAttackRangeTargets(
+		const FGridPoint& Origin,
+		const FAttackAreaSpec& AttackSpec,
+		TArray<FGridPoint>& OutCells,
+		class ABossActor*& OutBoss
+	) const;
+
+	/** 능력 셀 안의 코인·장애물·설치물을 한 번 수집하며 보스는 포함하지 않습니다. */
+	void CollectAbilityRangeTargets(
+		const FGridPoint& Origin,
+		const FAttackAreaSpec& AbilitySpec,
+		TArray<FGridPoint>& OutCells,
+		FObjectOnGridInfo& OutObjects
+	) const;
+
+	/** 직선 공격의 첫 셀과 끝 셀을 계산하며, 현재 고정 3x3 보스 발판에서 선택적으로 자릅니다. */
+	bool TryBuildStraightRangeEndpoints(
+		const FGridPoint& Origin,
+		const FAttackAreaSpec& Spec,
+		bool bStopAtBossFootprint,
+		FGridPoint& OutStart,
+		FGridPoint& OutEnd
+	) const;
+
+	/** 보스가 사용할 수 있는 뒤쪽 9x3 영역입니다. 9x9 기준 X=0~8, Y=6~8입니다. */
+	UFUNCTION(BlueprintPure, Category = "Grid|Boss")
+	bool IsBossAreaCell(const FGridPoint& P) const;
+
+	/** 현재 보스 코인 발판이 실제로 차지하는 뒤쪽 가운데 3x3 셀입니다. */
+	UFUNCTION(BlueprintPure, Category = "Grid|Boss")
+	bool IsFixedBossFootprintCell(const FGridPoint& P) const;
+
+	/** CoinActor가 현재 해당 셀을 새로 점유할 수 있는지 검사합니다. */
+	UFUNCTION(BlueprintPure, Category = "Grid|Coin")
+	bool CanCoinOccupyCell(const FGridPoint& P) const;
+
+	bool TryOccupyCoinCell(const FGridPoint& P, ACoinActor* Coin);
+	void ReleaseCoinCell(const FGridPoint& P, ACoinActor* Coin);
+
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void InitGrids();
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
-	void GetValidGridsForSingleCell(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, TArray<FGridPoint>& VadlidCells);
+	void GetValidGridsForSingleCell(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, TArray<FGridPoint>& VadlidCells) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void PreviewHoveredCoinRange(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, const FGridPoint& finalRange);
@@ -153,7 +217,8 @@ private:
 
 	AGridActor* GetGridActorAt(int32 X, int32 Y) const;
 
-	void StopDoorFx(const FGridPoint& Cell);
+	bool StartSingleCellDoorOpenFx(int32 GridX, int32 GridY, float PhaseDuration, FSimpleDelegate OnFinished);
+	void StopDoorFx(const FGridPoint& Cell, bool bNotifyCompletion = false);
 
 	void TickPhase1(FGridPoint Cell);
 	void StartPhase2(FGridPoint Cell);

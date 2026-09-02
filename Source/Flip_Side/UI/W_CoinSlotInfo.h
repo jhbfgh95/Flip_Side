@@ -27,13 +27,27 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* HoveredBackWeaponName;
+
+	/** 앞면 기본 스탯입니다. */
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* FrontAttackPowerText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* FrontWeaponPowerText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* FrontCountText;
+
+	/** 뒷면 기본 스탯입니다. */
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* BackAttackPowerText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* BackWeaponPowerText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* BackCountText;
 	
-	UPROPERTY(meta = (BindWidget))
-	class URichTextBlock* HoveredFrontWeaponDes;
-
-	UPROPERTY(meta = (BindWidget))
-	class URichTextBlock* HoveredBackWeaponDes;
-
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UTextBlock* CoinMaxHPText;
 
@@ -57,9 +71,7 @@ private:
 		bool bFrontFace,
 		class UTexture2D* Icon,
 		const FText& WeaponName,
-		const FText& RawDescription,
-		int32 DefaultBP,
-		int32 DefaultAP,
+		const FWeaponStatDisplayData& StatData,
 		const FLinearColor& WeaponColor
 	);
 };

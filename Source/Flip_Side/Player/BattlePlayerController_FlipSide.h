@@ -18,6 +18,12 @@ class IBattleHoverInterface;
 class IBattleClickInterface;
 class UBattlePlayerHUDWidget;
 class ABossActor;
+class ACoinActor;
+class ACoinAttackRangeIndicatorActor;
+class AAbilityRangeActor;
+class UComponent_Status;
+class UInputAction;
+struct FInputActionValue;
 
 UCLASS(abstract)
 class ABattlePlayerController_FlipSide : public APlayerController
@@ -79,8 +85,39 @@ private:
     void MoveCameraForBossDead();
     void HandleBattleCoinSlotClicked(int32 SlotNumber);
     void HandleReadyCoinClicked(int32 CoinInstanceID);
+    void HandleReadyCoinHovered(int32 CoinInstanceID);
+    void HandleReadyCoinUnhovered(int32 CoinInstanceID);
 	void HandleBattleItemSlotClicked(int32 ItemID);
 	void HandleBattlePhaseProgressClicked();
+    void HandleShowAdditionalBuffsStarted(const FInputActionValue& InputActionValue);
+    void HandleShowAdditionalBuffsCompleted(const FInputActionValue& InputActionValue);
+    void BeginBattleCoinActorHover(ACoinActor* CoinActor);
+    void EndBattleCoinActorHover(ACoinActor* ExpectedCoin = nullptr);
+    void SpawnBattleRangePreviewActors();
+    void RefreshBattleCoinRangePreviews();
+    void ShowBattleCoinRangePreviews(ACoinActor* CoinActor);
+    void HideBattleCoinRangePreviews(ACoinActor* CoinActor = nullptr);
+    void ObserveBattleInfoCoin(ACoinActor* CoinActor);
+    void StopObservingBattleInfoCoin();
+    void RefreshHoveredBattleCoinInfo();
+    void HandleObservedWeaponStatsChanged(const FWeaponStatsChangedEvent& ChangedEvent);
+    void HandleObservedStatusEffectsChanged(const FStatusEffectsChangedEvent& ChangedEvent);
+    void HandleObservedHPChanged(int32 DeltaHP);
+    void HandleObservedMaxHPChanged(int32 DeltaMaxHP);
+    void HandleObservedShieldChanged(int32 DeltaShield);
+    void HandleObservedCoinDeath(ACoinActor* DeadCoin);
+    bool BuildBattleCoinInfoFromActor(ACoinActor* CoinActor, FBattleCoinInfoViewData& OutViewData) const;
+    bool BuildBattleCoinInfoFromReadyData(const FReadyCoinData& ReadyCoinData, FBattleCoinInfoViewData& OutViewData) const;
+    bool BuildWeaponFaceInfo(
+        int32 WeaponID,
+        const FResolvedWeaponFaceStats& ResolvedStats,
+        const FLinearColor& WeaponColor,
+        FBattleWeaponFaceInfoViewData& OutFaceInfo
+    ) const;
+    void BuildStatusEffectViewData(
+        const TArray<FStatusEffectInstance>& StatusEffects,
+        TArray<FBattleStatusEffectViewData>& OutStatusEffects
+    ) const;
     FBattleCoinSlotViewData BuildCoinSlotViewData(const FBattleCoinSlotData& CoinSlotData) const;
     FBattleReadyCoinViewData BuildReadyCoinViewData(const FReadyCoinData& ReadyCoinData, int32 ReadySlotNumber) const;
 	FBattleItemSlotViewData BuildItemSlotViewData(const FBattleItemSlotData& ItemSlotData, bool bCanUse) const;
@@ -91,16 +128,34 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputMappingContext* InputContext;
 
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    TObjectPtr<UInputAction> ShowAdditionalBuffsInputAction;
+
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UBattlePlayerHUDWidget> BattleHUDWidgetClass;
 
 	UPROPERTY()
 	TObjectPtr<UBattlePlayerHUDWidget> BattleHUDWidget;
 
+	/** BP_PlayerController에서 직선 몸통·끝 메시를 설정한 자식 클래스를 지정합니다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Range Preview")
+	TSubclassOf<ACoinAttackRangeIndicatorActor> AttackRangeIndicatorClass;
+
+	/** BP_PlayerController에서 윤곽선 Plane ISM을 설정한 자식 클래스를 지정합니다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Range Preview")
+	TSubclassOf<AAbilityRangeActor> AbilityRangeActorClass;
+
+	UPROPERTY(Transient)
+	TObjectPtr<ACoinAttackRangeIndicatorActor> AttackRangeIndicatorActor;
+
+	UPROPERTY(Transient)
+	TObjectPtr<AAbilityRangeActor> AbilityRangeActor;
+
 	UPROPERTY()
 	TObjectPtr<ABossActor> ObservedBoss;
 
 	virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	void ReturnToDefaultCamera();
 
@@ -115,6 +170,12 @@ protected:
 
 	UPROPERTY()
     AActor* LastHoveredActor;
+
+    TWeakObjectPtr<ACoinActor> HoveredBattleCoin;
+    TWeakObjectPtr<ACoinActor> ObservedBattleInfoCoin;
+    TWeakObjectPtr<UComponent_Status> ObservedBattleInfoStatus;
+    int32 HoveredReadyCoinInstanceID = INDEX_NONE;
+    bool bShowAdditionalBuffsHeld = false;
 
 	bool bIsUIOnly = false;
 

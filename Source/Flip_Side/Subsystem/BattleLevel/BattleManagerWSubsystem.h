@@ -119,6 +119,7 @@ protected:
 	void DoCoinReadyPhase();
 	/* CoinBehaviorPhase */
 	void DoCoinBehaviorPhase();
+	void HandleCoinBehaviorEntryFinished();
 	/* SettingPhase*/
 	UFUNCTION()
 	void DoSettingPhase();
