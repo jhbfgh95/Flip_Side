@@ -30,6 +30,13 @@ enum class EBossGimmickType : uint8
     Blind      = 6,
 };
 
+/** 보스 기믹이 부여하는 상태효과의 정식 런타임 ID입니다. WeaponBuffTypeID(10001~)와 겹치지 않는 대역을 씁니다. */
+namespace BossBuffTypeID
+{
+    inline constexpr int32 SwampWeaponPowerDown = 20001;
+    inline constexpr int32 SwampAttackPowerDown = 20002;
+}
+
 // 기믹 데이터
 USTRUCT(BlueprintType)
 struct FBossGimmickData
