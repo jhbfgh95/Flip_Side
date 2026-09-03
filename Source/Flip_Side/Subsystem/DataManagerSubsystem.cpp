@@ -229,15 +229,13 @@ bool UDataManagerSubsystem::LoadWeapons()
         SELECT
             c.id,
             w.weapon_type AS weapon_type,
-            c.behavior_point,
-            c.range_x,
-            c.range_y,
+            c.weapon_power,
             c.icon_path,
-            c.behavior,
             c.vfx_path,
             IFNULL(c.vfx_target, 0) AS vfx_target,
             c.type_id,
-            c.weapon_point,
+            c.attack_point,
+            IFNULL(c.count, 0) AS count,
             c.weapon_name,
             c.KOR_DES,
             c.ENG_DES,
@@ -293,17 +291,11 @@ bool UDataManagerSubsystem::LoadWeapons()
 
         Data.BehaviorPoint = GetColInt(Stmt, Col++);
 
-        // 기존 range_x/y (이거 어떻게 할지..)
-        Data.AttackRange.GridX = GetColDouble(Stmt, Col++);
-        Data.AttackRange.GridY = GetColDouble(Stmt, Col++);
-
         const FString IconPath = GetColText(Stmt, Col++);
         if (!IconPath.IsEmpty())
         {
             Data.WeaponIcon = LoadObject<UTexture2D>(nullptr, *IconPath);
         }
-
-        Data.BehaviorCode = GetColText(Stmt, Col++);
 
         const FString VfxPath = GetColText(Stmt, Col++);
         if (!VfxPath.IsEmpty())
@@ -316,6 +308,7 @@ bool UDataManagerSubsystem::LoadWeapons()
         Data.TypeID = GetColInt(Stmt, Col++);
         // Data.HP: A.2에서 슬롯 레벨 기반 HP(coin_slot_level_tier)로 대체됨. weapon_type.HP 컬럼도 삭제됨.
         Data.AttackPoint = GetColInt(Stmt, Col++);
+        Data.Count = GetColInt(Stmt, Col++);
 
         Data.WeaponName = GetColTextUTF8(Stmt, Col++);
 

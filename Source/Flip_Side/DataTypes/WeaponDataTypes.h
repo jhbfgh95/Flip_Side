@@ -187,14 +187,15 @@ struct FFaceData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 BehaviorPoint = 0;
 
+    // coin_weapon_def.count. 대상 지정형 능력의 선택 개수.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 Count = 0;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FGridPoint AttackRange;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UTexture2D* WeaponIcon = nullptr;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FString BehaviorCode;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString WeaponName;
