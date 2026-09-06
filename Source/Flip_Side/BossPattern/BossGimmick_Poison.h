@@ -16,5 +16,6 @@ public:
 
 private:
 	FTimerHandle PoisonTimerHandle;
-	TArray<TWeakObjectPtr<ACoinActor>> PoisonedCoins;
+	// 값 = 남은 지속 턴수. 플레이어 턴이 끝날 때마다 1씩 깎이고 0이 되면 제거됩니다.
+	TMap<TWeakObjectPtr<ACoinActor>, int32> PoisonedCoins;
 };

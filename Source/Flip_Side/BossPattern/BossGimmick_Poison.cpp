@@ -23,8 +23,6 @@ void UBossGimmick_Poison::OnPatternExecute(
 	UGridManagerSubsystem* GridMgr = World->GetSubsystem<UGridManagerSubsystem>();
 	if (!GridMgr) return;
 
-	PoisonedCoins.Reset();
-
 	// ValidLockedTargets 외에 LockedCells에 있던 코인도 포함 (데미지 후 셀 이탈한 코인)
 	TArray<ACoinActor*> AllHitCoins = LockedTargets;
 	TArray<FCoinOnGridInfo> OccupiedCoins;
@@ -46,11 +44,15 @@ void UBossGimmick_Poison::OnPatternExecute(
 
 	UE_LOG(LogTemp, Warning, TEXT("[Poison] OnPatternExecute - LockedTargets=%d, AllHitCoins=%d"), LockedTargets.Num(), AllHitCoins.Num());
 
+	// boss_gimmick(id=2, "독") param_int_a = 독 지속 턴수
+	const int32 Duration = GimmickData.ParamIntA > 0 ? GimmickData.ParamIntA : 2;
+
 	for (ACoinActor* Coin : AllHitCoins)
 	{
 		if (!IsValid(Coin)) continue;
-		PoisonedCoins.Add(Coin);
-		UE_LOG(LogTemp, Warning, TEXT("[Poison] CoinID=%d 독 등록"), Coin->GetCoinID());
+		// 이미 독이 걸려있어도 갱신(기존 잔여 턴수를 지우고 새로 적용)
+		PoisonedCoins.Add(Coin, Duration);
+		UE_LOG(LogTemp, Warning, TEXT("[Poison] CoinID=%d 독 등록 (%d턴)"), Coin->GetCoinID(), Duration);
 	}
 }
 
@@ -66,17 +68,18 @@ void UBossGimmick_Poison::OnPlayerPhaseStart(ABossActor* Boss)
 
 	World->GetTimerManager().SetTimer(PoisonTimerHandle, [this, Boss, PoisonDamage]()
 	{
-		for (TWeakObjectPtr<ACoinActor> WeakCoin : PoisonedCoins)
+		for (const TPair<TWeakObjectPtr<ACoinActor>, int32>& Pair : PoisonedCoins)
 		{
-			if (!WeakCoin.IsValid()) continue;
+			if (!Pair.Key.IsValid()) continue;
 
-			UComponent_Status* StatusComp = WeakCoin->FindComponentByClass<UComponent_Status>();
+			ACoinActor* Coin = Pair.Key.Get();
+			UComponent_Status* StatusComp = Coin->FindComponentByClass<UComponent_Status>();
 			if (StatusComp)
 			{
 				const int32 PrevHP = StatusComp->GetHP();
 				StatusComp->ApplyDamage(PoisonDamage, Boss);
 				UE_LOG(LogTemp, Warning, TEXT("[Poison] CoinID=%d 독 데미지 %d — HP %d -> %d"),
-					WeakCoin->GetCoinID(), PoisonDamage, PrevHP, StatusComp->GetHP());
+					Coin->GetCoinID(), PoisonDamage, PrevHP, StatusComp->GetHP());
 			}
 		}
 	},
@@ -91,5 +94,20 @@ void UBossGimmick_Poison::OnPlayerPhaseEnd(ABossActor* Boss)
 	if (!World) return;
 
 	World->GetTimerManager().ClearTimer(PoisonTimerHandle);
-	PoisonedCoins.Reset();
+
+	// 한 턴이 지났으므로 잔여 지속 턴수를 깎고, 0이 되면 독 해제 (남은 코인은 다음 턴에도 계속 틱)
+	for (auto It = PoisonedCoins.CreateIterator(); It; ++It)
+	{
+		if (!It->Key.IsValid())
+		{
+			It.RemoveCurrent();
+			continue;
+		}
+
+		if (--It->Value <= 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[Poison] CoinID=%d 독 해제"), It->Key->GetCoinID());
+			It.RemoveCurrent();
+		}
+	}
 }

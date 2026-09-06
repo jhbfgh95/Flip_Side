@@ -98,6 +98,10 @@ struct FBossDisplayData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TObjectPtr<UTexture2D> BossImage = nullptr;
 
+    // 보스 코인 발판 머티리얼의 "Boss_Icon" 텍스처 파라미터에 쓰이는 보스별 아이콘. boss_def.boss_icon_path.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<UTexture2D> BossIcon = nullptr;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 AttackPoint = 0;
 
@@ -250,6 +254,10 @@ struct FBossBattleData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TObjectPtr<UTexture2D> BossImage = nullptr;
+
+    // 보스 코인 발판 머티리얼의 "Boss_Icon" 텍스처 파라미터에 쓰이는 보스별 아이콘. boss_def.boss_icon_path.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<UTexture2D> BossIcon = nullptr;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 AttackPoint = 0;

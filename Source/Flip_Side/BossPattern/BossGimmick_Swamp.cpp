@@ -26,7 +26,7 @@ namespace
 		return false;
 	}
 
-	void ApplySwampDebuff(ABossActor* Boss, ACoinActor* Coin, int32 BuffTypeID, int32 WeaponPointDelta, int32 AttackPointDelta)
+	void ApplySwampDebuff(ABossActor* Boss, ACoinActor* Coin, int32 BuffTypeID, int32 DurationTurns, int32 WeaponPointDelta, int32 AttackPointDelta)
 	{
 		if (!IsValid(Coin) || !IsValid(Coin->StatComponent))
 		{
@@ -40,7 +40,7 @@ namespace
 		Debuff.Polarity = EStatusPolarity::Debuff;
 		Debuff.DurationType = EBuffDurationType::PersistentInBattle;
 		Debuff.StackPolicy = EStatusStackPolicy::NonStackable;
-		Debuff.RemainingTurns = 4;
+		Debuff.RemainingTurns = DurationTurns;
 		Debuff.Modifier.WeaponPoint = WeaponPointDelta;
 		Debuff.Modifier.AttackPoint = AttackPointDelta;
 
@@ -74,18 +74,20 @@ void UBossGimmick_Swamp::OnPatternExecute(
 	const TArray<ACoinActor*>& LockedTargets,
 	const TArray<ABase_OtherActor*>& LockedOthers)
 {
+	// boss_gimmick(id=5, "늪") 기준: ParamIntA=지속 턴수, ParamIntB=무기력 디버프,
+	// ParamFloatA=공격력 디버프, ParamFloatB=기본 피해, ParamFloatC=디버프 보유 시 피해
 	switch (PendingPatternIndex)
 	{
 	case 0:
 		for (ACoinActor* Coin : LockedTargets)
 		{
-			ApplySwampDebuff(Boss, Coin, BossBuffTypeID::SwampWeaponPowerDown, -5, 0);
+			ApplySwampDebuff(Boss, Coin, BossBuffTypeID::SwampWeaponPowerDown, GimmickData.ParamIntA, GimmickData.ParamIntB, 0);
 		}
 		break;
 	case 1:
 		for (ACoinActor* Coin : LockedTargets)
 		{
-			ApplySwampDebuff(Boss, Coin, BossBuffTypeID::SwampAttackPowerDown, 0, -3);
+			ApplySwampDebuff(Boss, Coin, BossBuffTypeID::SwampAttackPowerDown, GimmickData.ParamIntA, 0, FMath::RoundToInt(GimmickData.ParamFloatA));
 		}
 		break;
 	case 2:
@@ -95,7 +97,9 @@ void UBossGimmick_Swamp::OnPatternExecute(
 			{
 				continue;
 			}
-			const int32 Damage = CoinHasSwampDebuff(Coin) ? 10 : 5;
+			const int32 Damage = CoinHasSwampDebuff(Coin)
+				? FMath::RoundToInt(GimmickData.ParamFloatC)
+				: FMath::RoundToInt(GimmickData.ParamFloatB);
 			Coin->StatComponent->ApplyDamage(Damage, Boss);
 		}
 		break;

@@ -347,9 +347,13 @@ bool UGridManagerSubsystem::IsBossAreaCell(const FGridPoint& P) const
 		return false;
 	}
 
+	return P.GridY >= GetBossAreaStartY();
+}
+
+int32 UGridManagerSubsystem::GetBossAreaStartY() const
+{
 	constexpr int32 BossAreaDepth = 3;
-	const int32 BossAreaStartY = FMath::Max(0, GridYSize - BossAreaDepth);
-	return P.GridY >= BossAreaStartY;
+	return FMath::Max(0, GridYSize - BossAreaDepth);
 }
 
 bool UGridManagerSubsystem::IsFixedBossFootprintCell(const FGridPoint& P) const
@@ -749,7 +753,16 @@ void UGridManagerSubsystem::BuildBossAttackCells(const FAttackAreaSpec& Spec, TA
 {
     OutCells.Reset();
 
-	FGridAreaBuilder::BuildCells(Spec, GridXSize, GridYSize, OutCells);
+	// Border는 그리드 전체(9x9) 테두리가 아니라 보스가 실제로 공격 가능한 6x9(보스 자기 영역 제외) 테두리를 둘러야 함.
+	// 그렇지 않으면 보스 영역과 맞닿은 안쪽 경계(Y=5 줄)에는 공격이 하나도 안 나가는 'ㄷ자 개방형' 모양이 됨.
+	const int32 EffectiveGridYSize = (Spec.Pattern == EAttackAreaPattern::Border) ? GetBossAreaStartY() : GridYSize;
+	FGridAreaBuilder::BuildCells(Spec, GridXSize, EffectiveGridYSize, OutCells);
+
+	// 보스 자기 영역(뒤쪽 3x9)은 코인이 설 수 없는 곳이라 공격 대상에서 제외 (다른 패턴들을 위한 안전장치)
+	OutCells.RemoveAll([this](const FGridPoint& Cell)
+	{
+		return IsBossAreaCell(Cell);
+	});
 }
 
 // ======================

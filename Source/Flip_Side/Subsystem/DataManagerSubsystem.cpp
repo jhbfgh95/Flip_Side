@@ -442,7 +442,7 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
 {
     {
         const TCHAR* Sql = TEXT(
-            "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, ability_description, attack_point, boss_hp, shield_value "
+            "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, ability_description, attack_point, boss_hp, shield_value, boss_icon_path "
             "FROM boss_def;"
         );
 
@@ -469,6 +469,10 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
             Boss.AttackPoint = GetColInt(Stmt, 6);
             Boss.BossHP      = GetColInt(Stmt, 7);
             Boss.ShieldValue = GetColInt(Stmt, 8);
+
+            const FString IconPath = GetColText(Stmt, 9);
+            if (!IconPath.IsEmpty())
+                Boss.BossIcon = LoadObject<UTexture2D>(nullptr, *IconPath);
 
             BossByID.Add(Boss.BossID, Boss);
             BossIDByStage.Add(Boss.BossStage, Boss.BossID);
@@ -557,14 +561,14 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
         Pattern.ShieldHeal   = GetColInt(Stmt, 14);
         Pattern.GimmickType  = static_cast<EBossGimmickType>(GetColInt(Stmt, 15));
 
-        // 실명(Blind=6): param_a = 지속 턴수
+        // 실명(Blind=6): gimmick_int_a(boss_gimmick.param_int_a) = 지속 턴수
         // 늪(GridDebuff=2): param_a = 지속 턴수, param_b = 공격력 디버프
         // 독(Poison=5): gimmick_int_a = 독 데미지
         const int32 PatternParamA  = GetColInt(Stmt, 16);
         const int32 PatternParamB  = GetColInt(Stmt, 17);
         const int32 GimmickIntA    = GetColInt(Stmt, 18);
 
-        if (Pattern.GimmickType == EBossGimmickType::Poison)
+        if (Pattern.GimmickType == EBossGimmickType::Poison || Pattern.GimmickType == EBossGimmickType::Blind)
         {
             Pattern.GimmickParamA = GimmickIntA;
         }
@@ -604,7 +608,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, "
             "attack_point, boss_hp, spawn_loc_x, spawn_loc_y, spawn_loc_z, spawn_rot_yaw, "
             "boss_class_path, pattern_class_path, stage_multiplier_stat, stage_multiplier_gimmick, shield_value, "
-            "clear_anim_path, hit_anim_path "
+            "clear_anim_path, hit_anim_path, boss_icon_path "
             "FROM boss_def WHERE boss_id = ?;"
         );
 
@@ -654,6 +658,10 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
         const FString HitAnimPath = GetColText(Stmt, 17);
         if (!HitAnimPath.IsEmpty())
             Out.HitAnim = TSoftObjectPtr<UAnimMontage>(FSoftObjectPath(HitAnimPath));
+
+        const FString IconPath = GetColText(Stmt, 18);
+        if (!IconPath.IsEmpty())
+            Out.BossIcon = LoadObject<UTexture2D>(nullptr, *IconPath);
 
         Stmt.Destroy();
     }
@@ -718,7 +726,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
     // boss_gimmick
     {
         const TCHAR* Sql = TEXT(
-            "SELECT gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description, shield_value, gimmick_class_path "
+            "SELECT gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description, shield_value, gimmick_class_path, param_float_c "
             "FROM boss_gimmick WHERE boss_id = ?;"
         );
 
@@ -739,6 +747,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             G.GimmickDescription = GetColTextUTF8(Stmt, 7);
             G.ShieldValue        = GetColInt(Stmt, 8);
             G.GimmickClassPath   = GetColText(Stmt, 9);
+            G.ParamFloatC        = (float)GetColDouble(Stmt, 10);
             Out.GimmickList.Add(G);
         }
         Stmt.Destroy();

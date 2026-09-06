@@ -169,6 +169,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Grid|Boss")
 	bool IsBossAreaCell(const FGridPoint& P) const;
 
+	/** 보스 영역이 시작되는 Y값(포함). 이 값 이상이면 IsBossAreaCell이 true입니다. */
+	UFUNCTION(BlueprintPure, Category = "Grid|Boss")
+	int32 GetBossAreaStartY() const;
+
 	/** 현재 보스 코인 발판이 실제로 차지하는 뒤쪽 가운데 3x3 셀입니다. */
 	UFUNCTION(BlueprintPure, Category = "Grid|Boss")
 	bool IsFixedBossFootprintCell(const FGridPoint& P) const;
