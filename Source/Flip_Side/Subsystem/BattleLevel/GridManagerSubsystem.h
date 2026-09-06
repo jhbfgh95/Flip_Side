@@ -73,6 +73,13 @@ class FLIP_SIDE_API UGridManagerSubsystem : public UWorldSubsystem
 
 public:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+
+private:
+	UPROPERTY(Transient)
+	TObjectPtr<class ABossWallActor> BossWallActor;
+	void SpawnBossWall();
+
+public:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")

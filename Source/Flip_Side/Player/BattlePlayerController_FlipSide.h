@@ -190,6 +190,10 @@ public:
 
 	bool GetCursorWorldLocationOnPlane(float PlaneZ, FVector& OutWorldLocation) const;
 
+	/** 기존 ReadyCoin을 DB 무기 ID로 만든 초기 상태의 디버그 코인으로 교체합니다. */
+	UFUNCTION(Exec)
+	void CreateSampleCoin(int32 FrontID, int32 BackID, int32 ReadyCoinSlotNum);
+
 	UFUNCTION(BlueprintCallable)
 	void SetInputForTutorial(bool bEnable);
 };

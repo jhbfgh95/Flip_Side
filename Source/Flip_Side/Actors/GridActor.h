@@ -38,6 +38,14 @@ class FLIP_SIDE_API AGridActor : public AActor, public IBattleClickInterface, pu
 	UPROPERTY(EditAnywhere, Category = "Grid | Component", meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* GridMesh;
 
+	UPROPERTY(VisibleAnywhere, Category = "Grid | Component", meta = (AllowPrivateAccess = "true"))
+	class UStaticMeshComponent* GridWall;
+
+	UPROPERTY(EditAnywhere, Category = "Grid | Wall")
+	bool bHideGridWallInBossArea = true;
+
+	void UpdateGridWallVisibility();
+
 	UPROPERTY(VisibleAnywhere, Category = "Grid")
 	class AActor* CurrentObject;
 
@@ -160,6 +168,10 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void OnConstruction(const FTransform& Transform) override;
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 
 	virtual void Tick(float DeltaTime) override;
 

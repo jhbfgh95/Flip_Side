@@ -38,7 +38,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Coin|Range Preview")
 	TObjectPtr<USceneComponent> PreviewRoot;
 
-	/** 로컬 +X 방향으로 길이 1단위인 직선 메시를 BP에서 지정합니다. */
+	/** Blender 로컬 +Y 방향이 길이 방향인 직선 메시를 BP에서 지정합니다. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Coin|Range Preview")
 	TObjectPtr<UStaticMeshComponent> LineBodyMesh;
 
@@ -46,9 +46,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Coin|Range Preview")
 	TObjectPtr<UStaticMeshComponent> EndCapMesh;
 
-	/** Blender에서 제작한 LineBodyMesh의 실제 +X 길이(cm)입니다. */
+	/** Blender에서 제작한 LineBodyMesh의 실제 +Y 길이(cm)입니다. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Coin|Range Preview", meta = (ClampMin = "1.0"))
 	float LineBodyNativeLength = 100.0f;
+
+	/** Body와 EndCap 사이의 틈을 감추기 위해 Body를 EndCap 방향으로 더 늘리는 길이(cm)입니다. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Coin|Range Preview", meta = (ClampMin = "0.0"))
+	float BodyEndOverlap = 20.0f;
 
 	/** 그리드보다 위에 배치하기 위한 월드 Z 오프셋입니다. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Coin|Range Preview")
@@ -69,7 +73,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Coin|Range Preview", meta = (ClampMin = "0.0"))
 	float SingleCellEndCapYScale = 0.8f;
 
-	/** LineBodyMesh의 로컬 +X 축 보정이 필요할 때 BP에서 조정합니다. EndCap에는 적용하지 않습니다. */
+	/** LineBodyMesh의 로컬 +Y를 공격 방향으로 맞춘 뒤 추가 보정이 필요할 때 BP에서 조정합니다. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Coin|Range Preview")
 	FRotator MeshRotationOffset = FRotator::ZeroRotator;
 

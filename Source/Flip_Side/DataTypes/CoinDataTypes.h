@@ -36,7 +36,7 @@ struct FCoinTypeStructure
     int32 Level = 1;
 };
 
-/** DB 연결 전 코인 슬롯의 기본 무기 스탯을 표시하기 위한 데이터입니다. */
+/** 코인 슬롯 UI가 표시할 DB 기반 기본 무기 스탯입니다. */
 USTRUCT(BlueprintType)
 struct FWeaponStatDisplayData
 {
@@ -73,10 +73,11 @@ struct FBattleCoinSlotData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 AvailableCoinCount = 0;
 
-    /** DB 연결 전 UI 검증을 위해 CreateTestCoinSlots에서만 채우는 임시 데이터입니다. */
+    /** DataManager에서 조회한 앞면 기본 무기 스탯입니다. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FWeaponStatDisplayData FrontWeaponStats;
 
+    /** DataManager에서 조회한 뒷면 기본 무기 스탯입니다. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FWeaponStatDisplayData BackWeaponStats;
 };

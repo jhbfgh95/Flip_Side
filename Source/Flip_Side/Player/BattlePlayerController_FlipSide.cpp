@@ -38,19 +38,6 @@ namespace
     const FLinearColor BattleInfoFrontWeaponColor(0.862745f, 0.913725f, 0.313725f, 1.0f);
     const FLinearColor BattleInfoBackWeaponColor(0.905882f, 0.933333f, 0.917647f, 1.0f);
 
-    FWeaponFaceStats BuildTemporaryFaceStatsForUI(const FFaceData& LegacyFaceData)
-    {
-        FWeaponFaceStats FaceStats;
-        FaceStats.WeaponID = LegacyFaceData.WeaponID;
-        FaceStats.BaseNumericStats.AttackPoint = FMath::Max(0, LegacyFaceData.AttackPoint);
-        FaceStats.BaseNumericStats.WeaponPoint = FMath::Max(0, LegacyFaceData.BehaviorPoint);
-        FaceStats.BaseNumericStats.WeaponCnt = 0;
-        FaceStats.AttackAreaSpec = LegacyFaceData.AttackAreaSpec;
-        // TODO(DB_ABILITY_AREA_RECONNECT): DataManager가 능력 사거리 컬럼을 읽기 시작하면 이 값이 채워집니다.
-        FaceStats.AbilityAreaSpec = LegacyFaceData.AbilityAreaSpec;
-        return FaceStats;
-    }
-
     int32 CalculateReadyCoinMaxHP(const FReadyCoinData& ReadyCoinData)
     {
         int64 MaxHP = FMath::Max(1, ReadyCoinData.BaseMaxHP);
@@ -1112,9 +1099,9 @@ bool ABattlePlayerController_FlipSide::BuildBattleCoinInfoFromReadyData(
     }
 
     const FResolvedWeaponFaceStats FrontStats = UComponent_Status::ResolveFaceStatsFromData(
-        BuildTemporaryFaceStatsForUI(FrontWeaponData), ReadyCoinData.PersistentStatusEffects);
+        BuildWeaponFaceStatsFromDefinition(FrontWeaponData), ReadyCoinData.PersistentStatusEffects);
     const FResolvedWeaponFaceStats BackStats = UComponent_Status::ResolveFaceStatsFromData(
-        BuildTemporaryFaceStatsForUI(BackWeaponData), ReadyCoinData.PersistentStatusEffects);
+        BuildWeaponFaceStatsFromDefinition(BackWeaponData), ReadyCoinData.PersistentStatusEffects);
 
     OutViewData = FBattleCoinInfoViewData();
     OutViewData.CoinInstanceID = ReadyCoinData.CoinInstanceID;
@@ -1330,6 +1317,36 @@ FBattleReadyCoinViewData ABattlePlayerController_FlipSide::BuildReadyCoinViewDat
     }
 
     return ViewData;
+}
+
+void ABattlePlayerController_FlipSide::CreateSampleCoin(
+	int32 FrontID,
+	int32 BackID,
+	int32 ReadyCoinSlotNum)
+{
+	UWorld* World = GetWorld();
+	UCoinManagementWSubsystem* CoinManager = IsValid(World)
+		? World->GetSubsystem<UCoinManagementWSubsystem>()
+		: nullptr;
+	if (!IsValid(CoinManager))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BattlePlayerController] CreateSampleCoin 실패: CoinManager가 유효하지 않습니다."));
+		return;
+	}
+
+	// 교체될 필드 코인을 관찰하던 델리게이트와 사거리 미리보기를 먼저 정리합니다.
+	HideBattleCoinRangePreviews();
+	HoveredBattleCoin.Reset();
+	StopObservingBattleInfoCoin();
+
+	if (!CoinManager->ReplaceReadyCoinWithSample(FrontID, BackID, ReadyCoinSlotNum))
+	{
+		RefreshHoveredBattleCoinInfo();
+		return;
+	}
+
+	RefreshBattleCoinHUD();
+	RefreshHoveredBattleCoinInfo();
 }
 
 FBattleItemSlotViewData ABattlePlayerController_FlipSide::BuildItemSlotViewData(const FBattleItemSlotData& ItemSlotData, bool bCanUse) const

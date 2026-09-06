@@ -33,12 +33,9 @@ public:
 	/** 상점에서 넘긴 슬롯 데이터를 UI용 코인 슬롯 상태로 초기화합니다. */
 	void InitializeCoinSlots(const TArray<FCoinTypeStructure>& InCoinSlots);
 
-	/** 보유 코인이 없을 때 CoinReadyPhase UI를 점검하기 위한 3종 테스트 코인을 생성합니다. */
-	UFUNCTION(BlueprintCallable, Category = "Coin|Debug")
-	void CreateTestCoinSlots();
-
 	bool TryAddReadyCoinFromSlot(int32 SlotNumber);
 	bool TryCancelReadyCoin(int32 CoinInstanceID);
+	bool ReplaceReadyCoinWithSample(int32 FrontWeaponID, int32 BackWeaponID, int32 ReadySlotNumber);
 
 	const TArray<FBattleCoinSlotData>& GetCoinSlots() const { return CoinSlots; }
 	const TArray<FReadyCoinData>& GetReadyCoinData() const { return ReadyCoins; }
@@ -75,13 +72,22 @@ public:
 private:
 	static constexpr int32 MaxReadyCoinCount = 10;
 
+	/** 실제 보유 코인이 없을 때 DB 무기 ID만 지정한 10칸의 테스트 슬롯을 구성합니다. */
+	void CreateDummyCoinSlots();
 	FBattleCoinSlotData* FindCoinSlot(int32 SlotNumber);
 	const FBattleCoinSlotData* FindCoinSlot(int32 SlotNumber) const;
 	int32 FindEmptyReadyCoinSlotIndex() const;
 	int32 AllocateCoinInstanceID() const;
 	int32 GetReadyCoinCount() const;
-	int32 ResolveCoinSlotHP(const FCoinTypeStructure& CoinSlot, const UDataManagerSubsystem* DataManager) const;
-	FWeaponFaceStats BuildTemporaryWeaponFaceStats(const FFaceData& LegacyFaceData) const;
+	bool ResolveCoinSlotHP(
+		const FCoinTypeStructure& CoinSlot,
+		const UDataManagerSubsystem* DataManager,
+		int32& OutHP) const;
+	ACoinActor* SpawnRuntimeCoinActor(
+		int32 ReadySlotIndex,
+		const FTransform& SpawnTransform,
+		bool bHiddenInGame,
+		bool bCollisionEnabled);
 	void BroadcastCoinDataChanged();
 	void BindRuntimeCoinInteraction(ACoinActor* RuntimeCoin);
 	void UnbindRuntimeCoinInteraction(ACoinActor* RuntimeCoin);
@@ -105,9 +111,6 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UCoinActionManagementWSubsystem> CoinActionManager = nullptr;
 
-	// BattleManager의 CoinReadyPhase 연결은 현재 주석 처리되어 있으므로 UI 테스트 중에는 활성 상태로 둡니다.
+	// BattleManager가 첫 CoinReadyPhase를 알리기 전에도 Ready UI 입력을 받을 수 있게 둡니다.
 	bool bIsCoinReadyPhase = true;
-
-	// 보유 코인이 없어 CreateTestCoinSlots의 기획서 기반 스탯·사거리를 사용하는지 구분합니다.
-	bool bUsingTestCoinData = false;
 };

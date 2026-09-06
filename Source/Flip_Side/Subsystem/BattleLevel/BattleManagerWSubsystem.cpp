@@ -354,7 +354,7 @@ void UBattleManagerWSubsystem::DoCoinBehaviorPhase()
 
     if (IsValid(CoinActionManager))
     {
-        // TODO: DB 기반 CoinBehaviorPhase 행동 리팩터링 완료 후 true로 전환합니다.
+        // DB 코인을 배치하는 동안 입력을 잠그고, 실제 착지가 끝난 콜백에서 다시 엽니다.
         CoinActionManager->SetPhase(false);
     }
 

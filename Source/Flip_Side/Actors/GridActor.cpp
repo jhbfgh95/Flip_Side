@@ -7,6 +7,8 @@
 #include "FlipSide_Enum.h"
 #include "GridTypes.h"
 #include "Base_OtherActor.h"
+#include "GridManagerSubsystem.h"
+#include "Engine/World.h"
 
 AGridActor::AGridActor()
 {
@@ -17,12 +19,40 @@ AGridActor::AGridActor()
 
 	GridMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Coin Mesh"));
 	GridMesh->SetupAttachment(RootComponent);
+
+	GridWall = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GridWall"));
+	GridWall->SetupAttachment(RootComponent);
+	GridWall->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AGridActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	UpdateGridWallVisibility();
+}
+
+void AGridActor::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	UpdateGridWallVisibility();
+}
+
+#if WITH_EDITOR
+void AGridActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	UpdateGridWallVisibility();
+}
+#endif
+
+void AGridActor::UpdateGridWallVisibility()
+{
+	if (!IsValid(GridWall)) return;
+	UWorld* World = GetWorld();
+	UGridManagerSubsystem* GridManager = IsValid(World) ? World->GetSubsystem<UGridManagerSubsystem>() : nullptr;
+	const bool bHideWall = bHideGridWallInBossArea && IsValid(GridManager) && GridManager->IsBossAreaCell(GridXY);
+	GridWall->SetVisibility(!bHideWall);
+	GridWall->SetHiddenInGame(bHideWall);
 }
 
 void AGridActor::Tick(float DeltaTime)
@@ -37,6 +67,7 @@ void AGridActor::SetGridXY(int32 GridX, int32 GridY)
 	{
 		GridXY.GridX = GridX;
 		GridXY.GridY = GridY;
+		UpdateGridWallVisibility();
 	}
 }
 

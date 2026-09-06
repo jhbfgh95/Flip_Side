@@ -7,6 +7,7 @@
 #include "FlipSideDevloperSettings.h"
 #include "WeaponRangePreviewActor.h"
 #include "Actors/Boss/BossCoinActor.h"
+#include "BossWallActor.h"
 
 bool UGridManagerSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -46,6 +47,8 @@ void UGridManagerSubsystem::InitGrid(int32 InGridXSize, int32 InGridYSize)
 
 void UGridManagerSubsystem::ClearGrid()
 {
+	if (IsValid(BossWallActor)) BossWallActor->Destroy();
+	BossWallActor = nullptr;
 	for (auto& It : GridActors)
 	{
 		if (IsValid(It.Value))
@@ -99,6 +102,8 @@ void UGridManagerSubsystem::InstanceGrid()
 
 	UE_LOG(LogTemp, Log, TEXT("GridManager: Spawned grids %dx%d"), GridXSize, GridYSize);
 
+	SpawnBossWall();
+
 	// 보스 코인 발판: 항상 그리드 가장 뒤 가운데 3x3 고정 위치에 스폰
 	if (UClass* BossCoinClass = Settings->BossCoinActorClass.LoadSynchronous())
 	{
@@ -114,6 +119,35 @@ void UGridManagerSubsystem::InstanceGrid()
 	}
 }
 
+
+void UGridManagerSubsystem::SpawnBossWall()
+{
+	if (IsValid(BossWallActor)) BossWallActor->Destroy();
+	BossWallActor = nullptr;
+	UWorld* World = GetWorld();
+	const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+	if (!IsValid(World) || !IsValid(Settings) || Settings->BossWallActorClass.IsNull()) return;
+
+	FBox AreaBounds(ForceInit);
+	const FVector HalfCell(FMath::Abs(SpacingY) * 0.5f, FMath::Abs(SpacingX) * 0.5f, 0.f);
+	for (const auto& Entry : GridActors)
+	{
+		if (!IsBossAreaCell(Entry.Key) || !IsValid(Entry.Value)) continue;
+		const FVector Center = Entry.Value->GetActorLocation();
+		AreaBounds += Center - HalfCell;
+		AreaBounds += Center + HalfCell;
+	}
+	if (!AreaBounds.IsValid) return;
+	UClass* WallClass = Settings->BossWallActorClass.LoadSynchronous();
+	if (!IsValid(WallClass) || !WallClass->IsChildOf(ABossWallActor::StaticClass())) return;
+	const FTransform SpawnTransform(FRotator::ZeroRotator, AreaBounds.GetCenter());
+	BossWallActor = World->SpawnActorDeferred<ABossWallActor>(WallClass, SpawnTransform, nullptr, nullptr,
+		ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	if (!IsValid(BossWallActor)) return;
+	const FVector Size = AreaBounds.GetSize();
+	BossWallActor->SetBossAreaSize(FVector2D(Size.X, Size.Y));
+	BossWallActor->FinishSpawning(SpawnTransform);
+}
 
 AGridActor* UGridManagerSubsystem::GetGridActor(const FGridPoint& P) const
 {
