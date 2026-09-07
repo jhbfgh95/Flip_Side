@@ -62,6 +62,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Setting|Events")
 	FOnSettingCloseClicked OnCloseClicked;
 
+public:
+	void CloseSettingWidget();
+
 private:
 
 	UFUNCTION()

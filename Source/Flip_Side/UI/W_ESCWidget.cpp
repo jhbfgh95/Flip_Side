@@ -143,7 +143,10 @@ void UW_ESCWidget::CloseCurrentOpenWidget()
 	{
 		return;
 	}
-
+	if(CurrentOpenWidget == SettingWidget)
+	{
+		SettingWidget->CloseSettingWidget();
+	}
 	CurrentOpenWidget->SetVisibility(ESlateVisibility::Collapsed);
 	CurrentOpenWidget = nullptr;
 }

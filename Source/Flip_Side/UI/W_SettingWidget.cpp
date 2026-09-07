@@ -62,6 +62,11 @@ void UW_SettingWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 }
 
 
+void UW_SettingWidget::CloseSettingWidget()
+{
+	RevertPendingResolution();
+}
+
 void UW_SettingWidget::HandleResolutionChanged(FIntPoint NewResolution)
 {
 	UGameInstance* GameInstance = GetGameInstance();
