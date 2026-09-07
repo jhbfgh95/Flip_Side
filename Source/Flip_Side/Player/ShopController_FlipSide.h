@@ -44,7 +44,21 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> ShopWidgetContainerClass;
 
+/*ESC UI*/
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> ESCWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UUserWidget> ESCWidget;
+
+	bool IsESCWidgetOpen = false;
+protected:
+/*UI에 쓰이는 액터들 */
+
+	UPROPERTY()
+	TObjectPtr<class AShopUISelectRegistry> ShopUISelectRegistry;
+
 	UPROPERTY()
 	TObjectPtr<AShopItemUIActor> ShopItemUIActor;
 
@@ -54,11 +68,13 @@ protected:
 	UPROPERTY()
 	TObjectPtr<AShopUnlockWeaponUIActor> ShopUnlockWeaponUIActor;
 
+/*Presenter*/
 	UPROPERTY()
 	TObjectPtr<class UShopItemPresenter> ItemPresenter;
 
 	UPROPERTY()
 	TObjectPtr<class UShopCardPresenter> CardPresenter;
+
 	UPROPERTY()
 	TObjectPtr<class UShopCoinPresenter> CoinPresenter;
 
@@ -67,9 +83,6 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class UShopPageChangePresenter> PageChangePresenter;
-
-	UPROPERTY()
-	TObjectPtr<class AShopUISelectRegistry> ShopUISelectRegistry;
 
 //UI 스크립트
 private:
@@ -89,6 +102,9 @@ public:
 	AShopController_FlipSide();
 
 	virtual void SetupInputComponent() override;
+
+	UFUNCTION()
+	void OpenESCWidget();
 
 	virtual void OnPossess(APawn* InPawn);
 
@@ -120,6 +136,10 @@ private:
     FRotator DefaultCameraRotation;
     float DefaultCameraArmLength;
 
+
+
+
+/*입력*/
 protected:
 
     void OnLeftClick();
