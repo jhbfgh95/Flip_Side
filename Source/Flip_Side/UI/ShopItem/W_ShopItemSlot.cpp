@@ -8,6 +8,7 @@
 #include "Components/Image.h"
 #include "Components/Border.h"
 #include "Input/Reply.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 void UW_ShopItemSlot::NativeConstruct()
 {
@@ -17,13 +18,22 @@ void UW_ShopItemSlot::NativeConstruct()
     {
         HoverBorder->SetVisibility(ESlateVisibility::Hidden);
     }
+
+    
+    ItemIconMI = ItemImage->GetDynamicMaterial();
 }
 
 
 void UW_ShopItemSlot::InitItemWidget(FItemData SetItemData)
 {
     WidgetItemData = SetItemData;
-    ItemImage->SetBrushFromTexture(SetItemData.ItemIcon);
+    if(!IsValid(ItemIconMI))
+    {
+        ItemIconMI = ItemImage->GetDynamicMaterial();
+    }
+    ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), SetItemData.ItemIcon);
+    ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), ItemIconColor);
+
     ItemNameTextBlock->SetText(FText::FromString(SetItemData.ItemName));
     ItemPriceTextBlock->SetText(FText::AsNumber(SetItemData.Price));
 }
@@ -31,7 +41,10 @@ void UW_ShopItemSlot::InitItemWidget(FItemData SetItemData)
 void UW_ShopItemSlot::SetItemSlotImage(FItemData SetItemData)
 {
     WidgetItemData = SetItemData;
-    ItemImage->SetBrushFromTexture(SetItemData.ItemIcon);
+    
+    ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), SetItemData.ItemIcon);
+    ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), ItemIconColor);
+
     ItemNameTextBlock->SetText(FText::FromString(SetItemData.ItemName));
     ItemPriceTextBlock->SetText(FText::AsNumber(SetItemData.Price));
 }

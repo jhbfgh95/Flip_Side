@@ -6,6 +6,7 @@
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
 #include "Components/Border.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 void UW_ShopCoinWeaponSlot::NativeOnInitialized()
 {   
@@ -23,6 +24,8 @@ void UW_ShopCoinWeaponSlot::NativeOnInitialized()
     {
         SelectBorder->SetVisibility(ESlateVisibility::Hidden);
     }
+
+    WeaponIconMI = WeaponIcon->GetDynamicMaterial();
 }
 
 void UW_ShopCoinWeaponSlot::InitWidget(FFaceData FaceData)
@@ -30,7 +33,8 @@ void UW_ShopCoinWeaponSlot::InitWidget(FFaceData FaceData)
     WeaponData = FaceData;
     if(FaceData.WeaponID != -1)
     {
-        WeaponIcon->SetBrushFromTexture(FaceData.WeaponIcon);
+        WeaponIconMI->SetTextureParameterValue(FName("Weapon_Icon"), FaceData.WeaponIcon);
+        WeaponIconMI->SetVectorParameterValue(FName("Weapon_Color"), WeaponIconColor);
 
         WeaponName->SetText(FText::FromString(FaceData.WeaponName));
 

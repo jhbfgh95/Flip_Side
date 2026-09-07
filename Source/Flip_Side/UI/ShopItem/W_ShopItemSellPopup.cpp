@@ -5,6 +5,7 @@
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 void UW_ShopItemSellPopup::NativeConstruct()
 {
@@ -14,6 +15,8 @@ void UW_ShopItemSellPopup::NativeConstruct()
     CountMinusButton->OnClicked.AddDynamic(this, &ThisClass::ClickMinus);
     SellButton->OnClicked.AddDynamic(this, &ThisClass::ClickSell);
     CancelButton->OnClicked.AddDynamic(this, &ThisClass::ClickCancel);
+
+    ItemIconMI = ItemImage->GetDynamicMaterial();
     SetVisibility(ESlateVisibility::Collapsed);
 }
 
@@ -27,7 +30,11 @@ void UW_ShopItemSellPopup::Open(int32 InInventoryIndex, const FItemData& InItemD
     MaxSellCount = InMaxSellCount;
     CurrentCount = 1;
 
-    ItemImage->SetBrushFromTexture(CurrentItemData.ItemIcon);
+    if (ItemIconMI)
+    {
+        ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), CurrentItemData.ItemIcon);
+        ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), ItemIconColor);
+    }
     ItemNameText->SetText(FText::FromString(CurrentItemData.ItemName));
     OwnedCountText->SetText(FText::AsNumber(MaxSellCount));
     RefreshCountAndPrice();

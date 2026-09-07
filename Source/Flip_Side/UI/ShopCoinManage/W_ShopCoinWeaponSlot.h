@@ -15,6 +15,7 @@ class UTextBlock;
 class UButton;
 class UBorder;
 class UW_ShopCoinWeaponSlot;
+class UMaterialInstanceDynamic;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedShopCoinWeaponSlot, UW_ShopCoinWeaponSlot*, WeaponSlot);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoveredShopCoinWeaponSlot, int32, WeaponID);
@@ -49,6 +50,12 @@ protected:
 
 private:
 	bool IsSelected = false;
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	FLinearColor WeaponIconColor = FLinearColor::White;
+
+	TObjectPtr<UMaterialInstanceDynamic> WeaponIconMI;
+
 public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Shop Coin Weapon Slot|Event")

@@ -17,6 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoveredShopItemSlot);
 class UImage;
 class UTextBlock;
 class UBorder;
+class UMaterialInstanceDynamic;
 UCLASS()
 class FLIP_SIDE_API UW_ShopItemSlot : public UUserWidget
 {
@@ -38,6 +39,12 @@ protected:
 	// 슬롯 위에 표시되며, 입력은 통과시키는 호버 테두리입니다.
 	UPROPERTY(EditAnywhere, meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> HoverBorder;
+
+private:
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	FLinearColor ItemIconColor = FLinearColor::White;
+
+	TObjectPtr<UMaterialInstanceDynamic> ItemIconMI;
 
 public:
 

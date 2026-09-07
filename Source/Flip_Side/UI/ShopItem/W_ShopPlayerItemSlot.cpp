@@ -6,6 +6,7 @@
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "Components/Border.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 #include "UI/ShopItem/ItemSlotDragDropOperation.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -19,6 +20,8 @@ void UW_ShopPlayerItemSlot::NativeConstruct()
     {
         HoverBorder->SetVisibility(ESlateVisibility::Hidden);
     }
+
+    ItemIconMI = ItemImage->GetDynamicMaterial();
 }
 
 void UW_ShopPlayerItemSlot::InitItemWidget(int32 ItemIndex, FItemData InItemData, FSelectItem InSelectItemData)
@@ -38,7 +41,11 @@ void UW_ShopPlayerItemSlot::SetItemWidget(FItemData InItemData, FSelectItem InSe
         return;
     }
 
-    ItemImage->SetBrushFromTexture(WidgetItemData.ItemIcon);
+    if (ItemIconMI)
+    {
+        ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), WidgetItemData.ItemIcon);
+        ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), ItemIconColor);
+    }
     ItemNameTextBlock->SetText(FText::FromString(WidgetItemData.ItemName));
     ItemCountTextBlock->SetText(FText::AsNumber(InSelectItemData.SameItemNum));
     EmptySlotImage->SetVisibility(ESlateVisibility::Collapsed);
@@ -53,7 +60,10 @@ void UW_ShopPlayerItemSlot::UpdateItemCount(int32 SameItemCount)
 
 void UW_ShopPlayerItemSlot::DeleteItemWidget()
 {
-    ItemImage->SetBrushFromTexture(nullptr);
+    if (ItemIconMI)
+    {
+        ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), nullptr);
+    }
     ItemNameTextBlock->SetText(FText::GetEmpty());
     ItemCountTextBlock->SetText(FText::GetEmpty());
     EmptySlotImage->SetVisibility(ESlateVisibility::Visible);

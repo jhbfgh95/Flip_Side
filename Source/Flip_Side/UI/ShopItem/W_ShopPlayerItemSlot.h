@@ -18,6 +18,7 @@ class UButton;
 class UImage;
 class UTextBlock;
 class UBorder;
+class UMaterialInstanceDynamic;
 UCLASS()
 class FLIP_SIDE_API UW_ShopPlayerItemSlot : public UUserWidget
 {
@@ -28,6 +29,10 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UImage> ItemImage;
+
+	// ItemImage에 적용된 동적 머티리얼의 Weapon_Color 파라미터 값입니다.
+	UPROPERTY(EditAnywhere, Category = "Shop Player Item Slot")
+	FLinearColor ItemIconColor = FLinearColor::White;
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UTextBlock> ItemNameTextBlock;
@@ -41,6 +46,9 @@ protected:
 	// 슬롯 위에 표시되며, 입력은 통과시키는 호버 테두리입니다.
 	UPROPERTY(EditAnywhere, meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> HoverBorder;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> ItemIconMI;
 
 public:
 
