@@ -6,6 +6,42 @@
 #include "Actors/Boss/BossActor.h"
 #include "Subsystem/BattleLevel/BossManagerSubsystem.h"
 
+namespace
+{
+	struct FCameraSettingPreset
+	{
+		FVector RelativeLocation = FVector::ZeroVector;
+		FRotator RelativeRotation = FRotator::ZeroRotator;
+		FVector RelativeScale3D = FVector::OneVector;
+		float FieldOfView = 90.0f;
+	};
+
+	bool TryGetCameraSettingPreset(int32 Version, FCameraSettingPreset& OutPreset)
+	{
+		switch (Version)
+		{
+		case 0:
+			OutPreset.RelativeLocation = FVector(-852.0f, 200.0f, 2785.0f);
+			OutPreset.RelativeRotation = FRotator(-21.0f, 0.0f, 0.0f);
+			OutPreset.FieldOfView = 55.0f;
+			return true;
+		case 1:
+			OutPreset.RelativeLocation = FVector(-2354.0f, 242.0f, 3296.0f);
+			OutPreset.RelativeRotation = FRotator(-20.0f, 0.0f, 0.0f);
+			OutPreset.FieldOfView = 50.0f;
+			return true;
+		case 2:
+			OutPreset.RelativeLocation = FVector(-3036.0f, 242.0f, 3412.0f);
+			OutPreset.RelativeRotation = FRotator(-19.0f, 0.0f, 0.0f);
+			OutPreset.RelativeScale3D = FVector::OneVector;
+			OutPreset.FieldOfView = 45.0f;
+			return true;
+		default:
+			return false;
+		}
+	}
+}
+
 ABattlePlayerPawn_FlipSide::ABattlePlayerPawn_FlipSide()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -46,18 +82,9 @@ void ABattlePlayerPawn_FlipSide::BeginPlay()
     TargetArmLength = 0.0f; 
 
     // 게임 시작 시 Pawn을 즉시 그 위치로 설정
-    SetActorLocation(TargetLocation);
-    SpringArm->SetRelativeRotation(TargetRotation);
-    SpringArm->TargetArmLength = TargetArmLength;
-
-	UWorld* World = GetWorld();
-	UBossManagerSubsystem* BossManager = IsValid(World) ? World->GetSubsystem<UBossManagerSubsystem>() : nullptr;
-	ABossActor* Boss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
-	if (IsValid(Boss) && IsValid(Boss->BossMesh))
-	{
-		// 기존 카메라 Ver1 구도에 맞춘 보스 메시 크기를 기본값으로 사용합니다.
-		Boss->BossMesh->SetRelativeScale3D(FVector(12.0f));
-	}
+	SetActorLocation(TargetLocation);
+	SpringArm->SetRelativeRotation(TargetRotation);
+	SpringArm->TargetArmLength = TargetArmLength;
 }
 
 void ABattlePlayerPawn_FlipSide::Tick(float DeltaTime)
@@ -82,6 +109,44 @@ void ABattlePlayerPawn_FlipSide::Tick(float DeltaTime)
     {
         SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, TargetArmLength, DeltaTime, InterpolationSpeed);
 	}
+}
+
+void ABattlePlayerPawn_FlipSide::SetCamSettingVer(int32 Version, float BossScaleXYZ)
+{
+	FCameraSettingPreset Preset;
+	if (!TryGetCameraSettingPreset(Version, Preset))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BattlePlayerPawn] SetCamSettingVer: 지원하지 않는 버전입니다. Version=%d"), Version);
+		return;
+	}
+
+	if (!IsValid(Camera))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BattlePlayerPawn] SetCamSettingVer: Camera가 유효하지 않습니다."));
+		return;
+	}
+
+	Camera->SetRelativeLocation(Preset.RelativeLocation);
+	Camera->SetRelativeRotation(Preset.RelativeRotation);
+	Camera->SetRelativeScale3D(Preset.RelativeScale3D);
+	Camera->SetFieldOfView(Preset.FieldOfView);
+
+	UWorld* World = GetWorld();
+	UBossManagerSubsystem* BossManager = IsValid(World) ? World->GetSubsystem<UBossManagerSubsystem>() : nullptr;
+	ABossActor* Boss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
+	if (!IsValid(Boss) || !IsValid(Boss->BossMesh))
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[BattlePlayerPawn] SetCamSettingVer %d: 카메라는 적용했지만 현재 BossMesh가 유효하지 않습니다."),
+			Version);
+		return;
+	}
+
+	Boss->BossMesh->SetRelativeScale3D(FVector(BossScaleXYZ));
+	UE_LOG(LogTemp, Log,
+		TEXT("[BattlePlayerPawn] SetCamSettingVer %d 적용 완료, BossScaleXYZ=%.3f"),
+		Version,
+		BossScaleXYZ);
 }
 
 void ABattlePlayerPawn_FlipSide::MoveCameraToArea(FVector NewTargetLocation, FRotator NewTargetRotation, float NewTargetArmLength)

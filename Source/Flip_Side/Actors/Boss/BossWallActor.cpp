@@ -46,8 +46,8 @@ void ABossWallActor::UpdateWallTransform()
 	if (MeshSize.X <= UE_SMALL_NUMBER || MeshSize.Y <= UE_SMALL_NUMBER || MeshSize.Z <= UE_SMALL_NUMBER) return;
 
 	const FVector TargetSize(
-		FMath::Max(1.0, BossAreaSize.X + 2.0 * FMath::Max(0.f, MarginX)),
-		FMath::Max(1.0, BossAreaSize.Y + 2.0 * FMath::Max(0.f, MarginY)),
+		FMath::Max(1.0, BossAreaSize.X + 2.0 * MarginX),
+		FMath::Max(1.0, BossAreaSize.Y + 2.0 * MarginY),
 		FMath::Max(1.f, WallHeight));
 	const FVector Scale = TargetSize / MeshSize;
 	const FVector Center = Bounds.GetCenter();

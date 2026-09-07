@@ -19,11 +19,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss Wall")
 	TObjectPtr<UStaticMeshComponent> WallMesh;
 
-	// Extra space on each side, in world centimeters.
-	UPROPERTY(EditAnywhere, Category = "Boss Wall", meta = (ClampMin = "0", Units = "cm"))
+	// Signed space on each side, in world centimeters: positive expands, negative shrinks.
+	UPROPERTY(EditAnywhere, Category = "Boss Wall", meta = (Units = "cm", ToolTip = "World X margin on each side. Positive expands the wall; negative shrinks it."))
 	float MarginX = 100.f;
 
-	UPROPERTY(EditAnywhere, Category = "Boss Wall", meta = (ClampMin = "0", Units = "cm"))
+	UPROPERTY(EditAnywhere, Category = "Boss Wall", meta = (Units = "cm", ToolTip = "World Y margin on each side. Positive expands the wall; negative shrinks it."))
 	float MarginY = 100.f;
 
 	UPROPERTY(EditAnywhere, Category = "Boss Wall", meta = (ClampMin = "1", Units = "cm"))

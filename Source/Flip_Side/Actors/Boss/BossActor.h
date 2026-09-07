@@ -98,18 +98,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Shield")
 	class UNiagaraComponent* ShieldEffectComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
-	class UStaticMeshComponent* FrontBackground;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
-	class UStaticMeshComponent* BottomBackground;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
-	class UStaticMeshComponent* LeftBackground;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
-	class UStaticMeshComponent* RightBackground;
-
 	bool bHasCachedPatternInfo = false;
 	int32 CachedPatternIndex = INDEX_NONE;
 	FBossPatternBattleData CachedPatternData;
@@ -148,6 +136,9 @@ protected:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
 	class USkeletalMeshComponent* BossMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Background")
+	class UStaticMeshComponent* BossFloorMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
 	class USceneComponent* BossSelfEffectLoc;
@@ -221,14 +212,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Boss|CC")
 	bool IsStunned() const { return bIsOnCC && AppliedCC.CCType == ECCTypes::Stun; }
 
-	UFUNCTION()
-	void SetTextureOfBackgrounds(
-		UTexture2D* Front,
-		UTexture2D* Bottom,
-		UTexture2D* Left,
-		UTexture2D* Right
-	);
-	
 /* Getters */
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	int32 GetPatternCount() const;

@@ -206,16 +206,6 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossBattleData& InBossData
         }
     }
 
-    if (InBossData.BackgroundTextures.Num() == 4)
-    {
-        CurrentBoss->SetTextureOfBackgrounds(
-            InBossData.BackgroundTextures[3],  // slot 3 = Front
-            InBossData.BackgroundTextures[1],  // slot 1 = Bottom
-            InBossData.BackgroundTextures[2],  // slot 2 = Left
-            InBossData.BackgroundTextures[0]   // slot 0 = Right
-        );
-    }
-
     StageContext.PickedBossID = InBossData.BossID;
     StageContext.PickedBossName = InBossData.BossName;
 
