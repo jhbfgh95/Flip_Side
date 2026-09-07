@@ -30,6 +30,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Game Settings|Display")
 	EWindowMode::Type GetCurrentWindowMode() const;
 
+	/** 해상도 변경을 저장하지 않고 화면에만 적용합니다. */
+	UFUNCTION(BlueprintCallable, Category = "Game Settings|Display")
+	void ApplyScreenResolutionSettings(bool bCheckForCommandLineOverrides = false);
+
 	UFUNCTION(BlueprintCallable, Category = "Game Settings|Display")
 	void ApplyAndSaveSettings(bool bCheckForCommandLineOverrides = false);
 

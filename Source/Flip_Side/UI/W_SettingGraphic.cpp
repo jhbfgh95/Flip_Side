@@ -3,7 +3,6 @@
 
 #include "UI/W_SettingGraphic.h"
 
-#include "Components/CheckBox.h"
 #include "Components/ComboBoxString.h"
 #include "Engine/GameInstance.h"
 #include "Subsystem/GameSettingGISubsystem.h"
@@ -24,14 +23,11 @@ void UW_SettingGraphic::NativeOnInitialized()
 		InitializeResolutionOptions();
 	}
 
-	if (IsValid(WindowedModeCheckBox))
+	if (IsValid(WindowModeComboBox))
 	{
-		bUseWindowedMode = GameSettingSubsystem
-			&& GameSettingSubsystem->GetCurrentWindowMode() == EWindowMode::Windowed;
-
-		WindowedModeCheckBox->SetIsChecked(bUseWindowedMode);
-		WindowedModeCheckBox->OnCheckStateChanged.AddUniqueDynamic(
-			this, &ThisClass::HandleWindowedModeCheckStateChanged);
+		WindowModeComboBox->OnSelectionChanged.AddUniqueDynamic(
+			this, &ThisClass::HandleWindowModeSelectionChanged);
+		InitializeWindowModeOptions();
 	}
 }
 
@@ -48,6 +44,10 @@ void UW_SettingGraphic::HandleResolutionSelectionChanged(
 	if (Resolutions.IsValidIndex(NewSelectedIndex))
 	{
 		SelectedResolutionIndex = NewSelectedIndex;
+		if (!bIsSynchronizingResolutionSelection)
+		{
+			OnResolutionChanged.Broadcast(Resolutions[SelectedResolutionIndex]);
+		}
 	}
 	else
 	{
@@ -55,9 +55,35 @@ void UW_SettingGraphic::HandleResolutionSelectionChanged(
 	}
 }
 
-void UW_SettingGraphic::HandleWindowedModeCheckStateChanged(bool bIsChecked)
+void UW_SettingGraphic::HandleWindowModeSelectionChanged(
+	FString /*SelectedItem*/, ESelectInfo::Type /*SelectionType*/)
 {
-	bUseWindowedMode = bIsChecked;
+	if (!WindowModeComboBox)
+	{
+		return;
+	}
+
+	switch (WindowModeComboBox->GetSelectedIndex())
+	{
+	case 0:
+		SelectedWindowMode = EWindowMode::Windowed;
+		break;
+	case 1:
+		SelectedWindowMode = EWindowMode::Fullscreen;
+		break;
+	case 2:
+		SelectedWindowMode = EWindowMode::WindowedFullscreen;
+		break;
+	default:
+		break;
+	}
+
+	if (IsValid(GameSettingSubsystem)
+		&& GameSettingSubsystem->GetCurrentWindowMode() != SelectedWindowMode)
+	{
+		GameSettingSubsystem->SetWindowMode(SelectedWindowMode);
+		GameSettingSubsystem->ApplyAndSaveSettings();
+	}
 }
 
 void UW_SettingGraphic::InitializeResolutionOptions()
@@ -84,6 +110,34 @@ void UW_SettingGraphic::InitializeResolutionOptions()
 	ResolutionComboBox->SetSelectedIndex(SelectedResolutionIndex);
 }
 
+void UW_SettingGraphic::InitializeWindowModeOptions()
+{
+	WindowModeComboBox->ClearOptions();
+	WindowModeComboBox->AddOption(TEXT("창 모드"));
+	WindowModeComboBox->AddOption(TEXT("전체 화면"));
+	WindowModeComboBox->AddOption(TEXT("경계없는 창모드"));
+
+	SelectedWindowMode = GameSettingSubsystem
+		? GameSettingSubsystem->GetCurrentWindowMode()
+		: EWindowMode::Fullscreen;
+
+	int32 SelectedIndex = 1;
+	switch (SelectedWindowMode)
+	{
+	case EWindowMode::Windowed:
+		SelectedIndex = 0;
+		break;
+	case EWindowMode::WindowedFullscreen:
+		SelectedIndex = 2;
+		break;
+	case EWindowMode::Fullscreen:
+	default:
+		break;
+	}
+
+	WindowModeComboBox->SetSelectedIndex(SelectedIndex);
+}
+
 bool UW_SettingGraphic::GetSelectedResolution(FIntPoint& OutResolution) const
 {
 	if (!Resolutions.IsValidIndex(SelectedResolutionIndex))
@@ -95,7 +149,24 @@ bool UW_SettingGraphic::GetSelectedResolution(FIntPoint& OutResolution) const
 	return true;
 }
 
-bool UW_SettingGraphic::IsWindowedMode() const
+void UW_SettingGraphic::SetSelectedResolution(FIntPoint Resolution)
 {
-	return bUseWindowedMode;
+	const int32 ResolutionIndex = Resolutions.IndexOfByKey(Resolution);
+	if (!Resolutions.IsValidIndex(ResolutionIndex))
+	{
+		return;
+	}
+
+	SelectedResolutionIndex = ResolutionIndex;
+	if (IsValid(ResolutionComboBox))
+	{
+		bIsSynchronizingResolutionSelection = true;
+		ResolutionComboBox->SetSelectedIndex(SelectedResolutionIndex);
+		bIsSynchronizingResolutionSelection = false;
+	}
+}
+
+EWindowMode::Type UW_SettingGraphic::GetSelectedWindowMode() const
+{
+	return SelectedWindowMode;
 }

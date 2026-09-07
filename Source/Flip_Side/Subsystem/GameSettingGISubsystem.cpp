@@ -47,6 +47,14 @@ EWindowMode::Type UGameSettingGISubsystem::GetCurrentWindowMode() const
 	return EWindowMode::Fullscreen;
 }
 
+void UGameSettingGISubsystem::ApplyScreenResolutionSettings(bool bCheckForCommandLineOverrides)
+{
+	if (GameUserSettings)
+	{
+		GameUserSettings->ApplyResolutionSettings(bCheckForCommandLineOverrides);
+	}
+}
+
 void UGameSettingGISubsystem::ApplyAndSaveSettings(bool bCheckForCommandLineOverrides)
 {
 	if (GameUserSettings)

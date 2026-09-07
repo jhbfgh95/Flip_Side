@@ -7,9 +7,10 @@
 #include "Types/SlateEnums.h"
 #include "W_SettingGraphic.generated.h"
 
-class UCheckBox;
 class UComboBoxString;
 class UGameSettingGISubsystem;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnResolutionChanged, FIntPoint, NewResolution);
 
 UCLASS()
 class FLIP_SIDE_API UW_SettingGraphic : public UUserWidget
@@ -23,16 +24,17 @@ protected:
 	TObjectPtr<UComboBoxString> ResolutionComboBox;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UCheckBox> WindowedModeCheckBox;
+	TObjectPtr<UComboBoxString> WindowModeComboBox;
 
 private:
 	UFUNCTION()
 	void HandleResolutionSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 
 	UFUNCTION()
-	void HandleWindowedModeCheckStateChanged(bool bIsChecked);
+	void HandleWindowModeSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 
 	void InitializeResolutionOptions();
+	void InitializeWindowModeOptions();
 
 	UPROPERTY()
 	TObjectPtr<UGameSettingGISubsystem> GameSettingSubsystem;
@@ -45,12 +47,20 @@ private:
 		FIntPoint(3840, 2160)
 	};
 	int32 SelectedResolutionIndex = INDEX_NONE;
-	bool bUseWindowedMode = false;
+	EWindowMode::Type SelectedWindowMode = EWindowMode::Fullscreen;
+	bool bIsSynchronizingResolutionSelection = false;
 
 public:
+	/** 해상도 선택이 변경될 때 선택된 해상도를 알립니다. */
+	UPROPERTY(BlueprintAssignable, Category = "Setting|Events")
+	FOnResolutionChanged OnResolutionChanged;
+
 	/** 현재 선택된 해상도를 반환합니다. 선택된 해상도가 없으면 false를 반환합니다. */
 	bool GetSelectedResolution(FIntPoint& OutResolution) const;
 
-	/** 현재 선택된 창 모드가 창 모드인지 반환합니다. */
-	bool IsWindowedMode() const;
+	/** 콤보박스의 선택 해상도를 변경합니다. 델리게이트는 호출하지 않습니다. */
+	void SetSelectedResolution(FIntPoint Resolution);
+
+	/** 현재 선택된 창 모드를 반환합니다. */
+	EWindowMode::Type GetSelectedWindowMode() const;
 };

@@ -8,6 +8,24 @@
 #include "Components/Overlay.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+
+bool UW_ESCWidget::CloseESCWidget()
+{
+	if(CurrentOpenWidget)
+	{
+		CloseCurrentOpenWidget();
+		return false;
+	}
+	else
+	{
+		SetVisibility(ESlateVisibility::Collapsed);
+		return true;
+	}
+	
+}
+
+
+
 void UW_ESCWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
@@ -18,9 +36,7 @@ void UW_ESCWidget::NativeOnInitialized()
 	}
 
 	if (IsValid(QuitGameButton))
-	{
 		QuitGameButton->OnClicked.AddUniqueDynamic(this, &ThisClass::HandleQuitGameButtonClicked);
-	}
 
 	if (IsValid(QuitConfirmButton))
 	{
@@ -69,17 +85,14 @@ void UW_ESCWidget::NativeOnInitialized()
 
 	if(IsValid(SettingWidget))
 	{
-		SettingWidget->OnCloseClicked.AddDynamic(this, &UW_ESCWidget::CloseSettingWidget);
+		SettingWidget->OnCloseClicked.AddUniqueDynamic(this, &ThisClass::CloseCurrentOpenWidget);
 		SettingWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
 void UW_ESCWidget::HandleQuitGameButtonClicked()
 {
-	if (IsValid(QuitConfirmOverlay))
-	{
-		QuitConfirmOverlay->SetVisibility(ESlateVisibility::Visible);
-	}
+	OpenWidget(QuitConfirmOverlay);
 }
 
 void UW_ESCWidget::HandleQuitConfirmButtonClicked()
@@ -90,30 +103,23 @@ void UW_ESCWidget::HandleQuitConfirmButtonClicked()
 
 void UW_ESCWidget::HandleQuitCancelButtonClicked()
 {
-	if (IsValid(QuitConfirmOverlay))
-	{
-		QuitConfirmOverlay->SetVisibility(ESlateVisibility::Collapsed);
-	}
+	CloseCurrentOpenWidget();
 }
 
 void UW_ESCWidget::HandleContinueGameButtonClicked()
 {
-	SetVisibility(ESlateVisibility::Collapsed);
 	OnContinueGameClicked.Broadcast();
 }
 
 void UW_ESCWidget::HandleSettingButtonClicked()
 {
-	SettingWidget->SetVisibility(ESlateVisibility::Visible);
+	OpenWidget(SettingWidget);
 	OnSettingClicked.Broadcast();
 }
 
 void UW_ESCWidget::HandleMainMenuButtonClicked()
 {
-	if (IsValid(MainMenuConfirmOverlay))
-	{
-		MainMenuConfirmOverlay->SetVisibility(ESlateVisibility::Visible);
-	}
+	OpenWidget(MainMenuConfirmOverlay);
 }
 
 void UW_ESCWidget::HandleMainMenuConfirmButtonClicked()
@@ -128,13 +134,33 @@ void UW_ESCWidget::HandleMainMenuConfirmButtonClicked()
 
 void UW_ESCWidget::HandleMainMenuCancelButtonClicked()
 {
-	if (IsValid(MainMenuConfirmOverlay))
-	{
-		MainMenuConfirmOverlay->SetVisibility(ESlateVisibility::Collapsed);
-	}
+	CloseCurrentOpenWidget();
 }
 
-void UW_ESCWidget::CloseSettingWidget()
+void UW_ESCWidget::CloseCurrentOpenWidget()
 {
-	SettingWidget->SetVisibility(ESlateVisibility::Collapsed);
+	if (!IsValid(CurrentOpenWidget))
+	{
+		return;
+	}
+
+	CurrentOpenWidget->SetVisibility(ESlateVisibility::Collapsed);
+	CurrentOpenWidget = nullptr;
+}
+
+void UW_ESCWidget::OpenWidget(UWidget* WidgetToOpen)
+{
+	if (!IsValid(WidgetToOpen))
+	{
+		return;
+	}
+
+	// 하나의 팝업만 표시한다. 이미 표시 중인 팝업이면 닫았다가 다시 열지 않는다.
+	if (CurrentOpenWidget != WidgetToOpen)
+	{
+		CloseCurrentOpenWidget();
+		CurrentOpenWidget = WidgetToOpen;
+	}
+
+	CurrentOpenWidget->SetVisibility(ESlateVisibility::Visible);
 }

@@ -24,6 +24,7 @@
 #include "UI/ShopUnlockWeapon/UnlockWeaponPresenter.h"
 #include "UI/ShopPageChangePresenter.h"
 #include "UI/ShopUISelectRegistry.h"
+#include "UI/W_ESCWidget.h"
 
 #include "Interface/ShopMouseInterface.h"
 #include "UI/W_ShopWidgetContainer.h"
@@ -39,7 +40,7 @@ void AShopController_FlipSide::BeginPlay()
     
     this->bShowMouseCursor = true;
     this->bEnableMouseOverEvents = true;
-    CanClick = true;
+    SetLockMouse(false);
 ////////////////////////////
     /*서브시스템*/
     UDataManagerSubsystem* DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
@@ -93,9 +94,10 @@ void AShopController_FlipSide::BeginPlay()
 
 	if (IsValid(ESCWidgetClass))
     {
-        ESCWidget = CreateWidget<UUserWidget>(this, ESCWidgetClass);
+        ESCWidget = Cast<UW_ESCWidget>(CreateWidget<UUserWidget>(this, ESCWidgetClass));
 	    ESCWidget->AddToViewport();
-	    ESCWidget->SetVisibility(ESlateVisibility::Hidden);
+	    ESCWidget->SetVisibility(ESlateVisibility::Collapsed);
+	    ESCWidget->OnContinueGameClicked.AddDynamic(this, &AShopController_FlipSide::ToggleESCMenu);
     }
 
     
@@ -136,27 +138,27 @@ void AShopController_FlipSide::SetupInputComponent()
     }
 
     InputComponent->BindKey(EKeys::LeftMouseButton, IE_Pressed, this, &AShopController_FlipSide::OnLeftClick);
-	InputComponent->BindKey(EKeys::Escape, IE_Pressed, this, &AShopController_FlipSide::OpenESCWidget);
-    InputComponent->BindKey(EKeys::CapsLock, IE_Pressed, this, &AShopController_FlipSide::OpenESCWidget);
+	InputComponent->BindKey(EKeys::Escape, IE_Pressed, this, &AShopController_FlipSide::ToggleESCMenu);
+	InputComponent->BindKey(EKeys::CapsLock, IE_Pressed, this, &AShopController_FlipSide::ToggleESCMenu);
     //InputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnRightClick);
 }
 
-void AShopController_FlipSide::OpenESCWidget()
+void AShopController_FlipSide::ToggleESCMenu()
 {
 	if (!IsValid(ESCWidget)){return;}
-    if(IsESCWidgetOpen)
+
+    if (ESCWidget->GetVisibility() == ESlateVisibility::Visible)
     {
-        SetLockMouse(false);
-        IsESCWidgetOpen = false;
-        ESCWidget->SetVisibility(ESlateVisibility::Collapsed);
+        if(ESCWidget->CloseESCWidget())
+        {
+            SetLockMouse(false);
+        }
     }
     else
     {
         SetLockMouse(true);
-        IsESCWidgetOpen = true;
         ESCWidget->SetVisibility(ESlateVisibility::Visible);
     }
-	
 }
 
 //폰하고 연결

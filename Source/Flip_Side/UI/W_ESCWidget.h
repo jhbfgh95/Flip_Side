@@ -44,7 +44,6 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> MainMenuCancelButton;
 
-	// WBP에서 직접 배치할 종료 확인 팝업 위젯들입니다.
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UOverlay> QuitConfirmOverlay;
 
@@ -53,6 +52,10 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> QuitCancelButton;
+
+private:
+	UPROPERTY(Transient)
+	TObjectPtr<UWidget> CurrentOpenWidget;
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "ESC Menu|Events")
@@ -74,7 +77,8 @@ protected:
 	UPROPERTY()
 	TObjectPtr<ULevelGISubsystem> LevelGISubsystem;
 
-
+public:
+	bool CloseESCWidget();
 
 private:
 	UFUNCTION()
@@ -102,5 +106,9 @@ private:
 	void HandleMainMenuCancelButtonClicked();
 
 	UFUNCTION()
-	void CloseSettingWidget();
+	void CloseCurrentOpenWidget();
+
+	void OpenWidget(UWidget* WidgetToOpen);
+
+
 };

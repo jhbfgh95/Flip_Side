@@ -50,9 +50,10 @@ protected:
 	TSubclassOf<UUserWidget> ESCWidgetClass;
 
 	UPROPERTY()
-	TObjectPtr<UUserWidget> ESCWidget;
+	TObjectPtr<class UW_ESCWidget> ESCWidget;
 
-	bool IsESCWidgetOpen = false;
+	UFUNCTION()
+	void ToggleESCMenu();
 protected:
 /*UI에 쓰이는 액터들 */
 
@@ -103,8 +104,7 @@ public:
 
 	virtual void SetupInputComponent() override;
 
-	UFUNCTION()
-	void OpenESCWidget();
+
 
 	virtual void OnPossess(APawn* InPawn);
 

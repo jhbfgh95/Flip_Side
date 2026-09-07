@@ -4,19 +4,38 @@
 #include "UI/W_SettingWidget.h"
 
 #include "Components/Button.h"
+#include "Components/Overlay.h"
+#include "Components/TextBlock.h"
 #include "Components/WidgetSwitcher.h"
 #include "Engine/GameInstance.h"
 #include "Subsystem/GameSettingGISubsystem.h"
+#include "TimerManager.h"
 #include "UI/W_SettingGraphic.h"
 
 void UW_SettingWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	if (IsValid(ApplySettingButton))
+
+	if (IsValid(GraphicSettingWidget))
 	{
-		ApplySettingButton->OnClicked.AddUniqueDynamic(this, &ThisClass::HandleApplySettingButtonClicked);
+		GraphicSettingWidget->OnResolutionChanged.AddUniqueDynamic(
+			this, &ThisClass::HandleResolutionChanged);
 	}
+
+	if (IsValid(ResolutionConfirmButton))
+	{
+		ResolutionConfirmButton->OnClicked.AddUniqueDynamic(
+			this, &ThisClass::HandleResolutionConfirmButtonClicked);
+	}
+
+	if (IsValid(ResolutionCancelButton))
+	{
+		ResolutionCancelButton->OnClicked.AddUniqueDynamic(
+			this, &ThisClass::HandleResolutionCancelButtonClicked);
+	}
+
+	SetResolutionConfirmOverlayVisible(false);
 
 	if (IsValid(CloseButton))
 	{
@@ -28,54 +47,155 @@ void UW_SettingWidget::NativeOnInitialized()
     }
 }
 
-void UW_SettingWidget::HandleApplySettingButtonClicked()
+void UW_SettingWidget::NativeDestruct()
 {
-	UW_SettingGraphic* SettingGraphicWidget = Cast<UW_SettingGraphic>(GraphicSettingWidget);
+	RevertPendingResolution();
+	Super::NativeDestruct();
+}
+
+void UW_SettingWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+	if (!bHasPendingResolutionChange)
+		return;
+	UpdateResolutionConfirmationTimerText();
+}
+
+
+void UW_SettingWidget::HandleResolutionChanged(FIntPoint NewResolution)
+{
 	UGameInstance* GameInstance = GetGameInstance();
-	UGameSettingGISubsystem* GameSettingSubsystem = nullptr;
-	if (IsValid(GameInstance))
-	{
-		GameSettingSubsystem = GameInstance->GetSubsystem<UGameSettingGISubsystem>();
-	}
-
-	if (!IsValid(SettingGraphicWidget) || !IsValid(GameSettingSubsystem))
+	UGameSettingGISubsystem* GameSettingSubsystem = IsValid(GameInstance)
+		? GameInstance->GetSubsystem<UGameSettingGISubsystem>()
+		: nullptr;
+	if (!IsValid(GameSettingSubsystem))
 	{
 		return;
 	}
 
-	FIntPoint SelectedResolution;
-	if (!SettingGraphicWidget->GetSelectedResolution(SelectedResolution))
+	if (!bHasPendingResolutionChange)
+	{
+		PreviousResolution = GameSettingSubsystem->GetCurrentScreenResolution();
+	}
+
+	if (NewResolution == PreviousResolution)
 	{
 		return;
 	}
 
-	EWindowMode::Type SelectedWindowMode = EWindowMode::Fullscreen;
-	if (SettingGraphicWidget->IsWindowedMode())
-	{
-		SelectedWindowMode = EWindowMode::Windowed;
-	}
-	const bool bResolutionChanged = GameSettingSubsystem->GetCurrentScreenResolution() != SelectedResolution;
-	const bool bWindowModeChanged = GameSettingSubsystem->GetCurrentWindowMode() != SelectedWindowMode;
+	GameSettingSubsystem->SetScreenResolution(NewResolution);
+	GameSettingSubsystem->ApplyScreenResolutionSettings();
 
-	if (!bResolutionChanged && !bWindowModeChanged)
+	bHasPendingResolutionChange = true;
+	SetResolutionConfirmOverlayVisible(true);
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(
+			ResolutionConfirmTimerHandle,
+			this,
+			&ThisClass::RevertPendingResolution,
+			7.0f,
+			false);
+	}
+
+	UpdateResolutionConfirmationTimerText();
+}
+
+void UW_SettingWidget::HandleResolutionConfirmButtonClicked()
+{
+	if (!bHasPendingResolutionChange)
 	{
 		return;
 	}
 
-	if (bResolutionChanged)
+	ClearResolutionConfirmationTimer();
+
+	if (UGameInstance* GameInstance = GetGameInstance())
 	{
-		GameSettingSubsystem->SetScreenResolution(SelectedResolution);
+		if (UGameSettingGISubsystem* GameSettingSubsystem = GameInstance->GetSubsystem<UGameSettingGISubsystem>())
+		{
+			GameSettingSubsystem->ApplyAndSaveSettings();
+		}
 	}
 
-	if (bWindowModeChanged)
+	bHasPendingResolutionChange = false;
+	SetResolutionConfirmOverlayVisible(false);
+}
+
+void UW_SettingWidget::HandleResolutionCancelButtonClicked()
+{
+	RevertPendingResolution();
+}
+
+void UW_SettingWidget::RevertPendingResolution()
+{
+	if (!bHasPendingResolutionChange)
 	{
-		GameSettingSubsystem->SetWindowMode(SelectedWindowMode);
+		return;
 	}
 
-	GameSettingSubsystem->ApplyAndSaveSettings();
+	ClearResolutionConfirmationTimer();
+
+	if (UGameInstance* GameInstance = GetGameInstance())
+	{
+		if (UGameSettingGISubsystem* GameSettingSubsystem = GameInstance->GetSubsystem<UGameSettingGISubsystem>())
+		{
+			GameSettingSubsystem->SetScreenResolution(PreviousResolution);
+			GameSettingSubsystem->ApplyScreenResolutionSettings();
+		}
+	}
+
+	if (IsValid(GraphicSettingWidget))
+	{
+		GraphicSettingWidget->SetSelectedResolution(PreviousResolution);
+	}
+
+	bHasPendingResolutionChange = false;
+	SetResolutionConfirmOverlayVisible(false);
+}
+
+void UW_SettingWidget::ClearResolutionConfirmationTimer()
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(ResolutionConfirmTimerHandle);
+	}
+}
+
+void UW_SettingWidget::UpdateResolutionConfirmationTimerText()
+{
+	if (!IsValid(ResolutionConfirmTimerText))
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!bHasPendingResolutionChange || !IsValid(World)
+		|| !World->GetTimerManager().IsTimerActive(ResolutionConfirmTimerHandle))
+	{
+		ResolutionConfirmTimerText->SetText(FText::GetEmpty());
+		return;
+	}
+
+	const float RemainingTime = World->GetTimerManager().GetTimerRemaining(ResolutionConfirmTimerHandle);
+	const int32 RemainingSeconds = FMath::Max(0, FMath::CeilToInt(RemainingTime));
+	ResolutionConfirmTimerText->SetText(FText::Format(
+		NSLOCTEXT("SettingWidget", "ResolutionRevertCountdown", "{0}초 후 원래 해상도로 되돌아갑니다."),
+		FText::AsNumber(RemainingSeconds)));
+}
+
+void UW_SettingWidget::SetResolutionConfirmOverlayVisible(bool bVisible) const
+{
+	if (IsValid(ResolutionConfirmOverlay))
+	{
+		ResolutionConfirmOverlay->SetVisibility(
+			bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	}
 }
 
 void UW_SettingWidget::HandleCloseButtonClicked()
 {
+	RevertPendingResolution();
 	OnCloseClicked.Broadcast();
 }
