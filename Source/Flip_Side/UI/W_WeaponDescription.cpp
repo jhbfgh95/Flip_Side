@@ -4,6 +4,14 @@
 #include "UI/W_WeaponDescription.h"
 #include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
+
+void UW_WeaponDescription::NativeConstruct()
+{
+    Super::NativeConstruct();
+
+    SetExplainTextEmpty();
+}
+
 void UW_WeaponDescription::SetExplainText(const FString & WeaponName, const FString & Description, int32 DefaultBP, int32 DefaultAP)
 {
     FFormatNamedArguments Args;
@@ -22,19 +30,45 @@ void UW_WeaponDescription::SetExplainText(const FString & WeaponName, const FStr
 
     FText DescriptionText = FText::FromString(Description);
 
-    WeaponText->SetText(FText::Format(DescriptionText, Args));
-    WeaponNameText->SetText(FText::FromString(WeaponName));
+    if (WeaponText)
+    {
+        WeaponText->SetText(FText::Format(DescriptionText, Args));
+    }
+
+    if (WeaponNameText)
+    {
+        WeaponNameText->SetText(FText::FromString(WeaponName));
+    }
+
+    SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }
 
 void UW_WeaponDescription::SetExplainTextEmpty()
 {
-    
-    WeaponText->SetText(FText::GetEmpty());
-    WeaponNameText->SetText(FText::GetEmpty());
+    if (WeaponText)
+    {
+        WeaponText->SetText(FText::GetEmpty());
+    }
+
+    if (WeaponNameText)
+    {
+        WeaponNameText->SetText(FText::GetEmpty());
+    }
+
+    SetVisibility(ESlateVisibility::Collapsed);
 }
 	
-void UW_WeaponDescription::SetPanelStringText(FString Title, FString Descrip)
+void UW_WeaponDescription::SetPanelStringText(const FString& Title, const FString& Descrip)
 {
-    WeaponNameText->SetText(FText::FromString(Title));
-    WeaponText->SetText(FText::FromString(Descrip));
+    if (WeaponNameText)
+    {
+        WeaponNameText->SetText(FText::FromString(Title));
+    }
+
+    if (WeaponText)
+    {
+        WeaponText->SetText(FText::FromString(Descrip));
+    }
+
+    SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }

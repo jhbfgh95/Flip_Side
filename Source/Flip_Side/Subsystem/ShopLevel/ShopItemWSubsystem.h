@@ -10,19 +10,7 @@
 /**
  * 
  */
-//코인이 클래스가 선택 됬을 때 델리게이트
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemSelect, FItemData, ItemInfo);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemHover, FItemData, ItemInfo);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemBuy, int32, InvenIndex);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemSell, int32, InvenIndex);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FItemUnHovered);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerItemHovered, FItemData, ItemInfo);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerItemUnHovered);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FShopItemWarning, int32, WarningCode);
 
@@ -41,29 +29,13 @@ private:
 	class UMoneyGISubsystem* MoneySubsystem;
 
 public:
-	//아이템 선택 됬을때 델리게이트
-	FItemSelect OnItemSelected;
-	//아이템을 올려둘 시
-	FItemHover OnItemHovered;
-	//아이템에서 마우스를 땔때
-	FItemUnHovered OnItemUnHovered;
-
-	FPlayerItemHovered OnPlayerItemHovered;
-	//아이템에서 마우스를 땔때
-	FPlayerItemUnHovered OnPlayerItemUnHovered;
-
 	FItemBuy OnItemBuy;
-
-	FItemSell OnItemSell;
 	FShopItemWarning OnShopItemWarning;
 private:
-
 	//상점 아이템 구매 목록
 	TArray<FItemData> ShopItemArray;
 	//플레이어 아이템 목록
 	TArray<FSelectItem> PlayerItemArray;
-	
-
 private:
 
 	//기본 아이템 데이터
@@ -71,34 +43,35 @@ private:
 	FItemData DefaultItemData;
 
 private:
-
-	int32 GetEmptyInvenIndex(int32 ItemID);
 	//해당 아이디를 가진 아이템이 플레이어의 인벤토리에 있는지
-	int32 GetSameItemInvenIndex(int32 ItemID);
+	int32 GetAddItemInvenIndex(int32 ItemID);
 public:
-	//상점 아이템에 마우스를 올려놧을 때
-	void HoverItem(FItemData ItemNum);
-	//상점 아이템에서 마우스를 땠을떄
-	void UnHoverItem();
-	
+
+	bool CanBuyItem(int32 Price, int32 ItemCount);
+
 	FItemData GetItemDataByShopIndex(int32 ShopIndex);
 	
 	FSelectItem GetItemDataByItemID(int32 ItemID);
 
-	void BuyItem(FItemData ItemData);
-	
+	int32 GetSameItemCountByItemID(int32 ItemID);
+
+	int32 GetSameItemCountByIndex(int32 InvenIndex);
+
+	bool BuyItem(FItemData ItemData, int32 ItemCount);
+
+	bool SellItem(FItemData ItemData, int32 ItemCount);
+
 	int32 GetPlayerItemNum();
 
 	FSelectItem GetPlayerItem(int32 index);
+	
+	FItemData GetPlayerItemData(int32 index);
 
 	TArray<FItemData> GetShopItemList();
 
-	void HoverPlayerItem(FItemData ItemNum);
-	//상점 아이템에서 마우스를 땠을떄
-	void UnHoverPlayerItem();
+	TArray<FSelectItem> GetPlayerItemArray();
 
-	void SellItem(FItemData ItemData);
-
+public:
 	void ShopItemWarning(int32 WarningCode);
 	
 };

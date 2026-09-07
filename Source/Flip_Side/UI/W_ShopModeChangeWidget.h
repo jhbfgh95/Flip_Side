@@ -23,9 +23,10 @@ protected:
 	virtual void NativeDestruct() override;
 
 protected:
+/*
 	UPROPERTY(meta = (BindWidget))
 	UButton* WidgetOpenButton;
-
+*/
 	UPROPERTY(meta = (BindWidget))
 	UButton* CoinCreateModeButton;
 	UPROPERTY(meta = (BindWidget))
@@ -35,16 +36,16 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UButton* CheckBossModeButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* ShopMainModeButton;
+	UButton* GameStartButton;
 	UPROPERTY(meta = (BindWidget))
 	UButton* UnlockWeaponButton;
 
 	class AGameMode_Shop* ShopGameMode;
 
-	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	//UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* SlidePanelOpenAnim;
 
-	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	//UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* SlidePanelCloseAnim;
 
 	bool IsSlidePanelOpen = false;
@@ -60,7 +61,7 @@ protected:
 	UFUNCTION()
 	void OpenWidget();
 	UFUNCTION()
-	void ClickShopMainModeButton();
+	void ClickGameStartModeButton();
 	UFUNCTION()
 	void ClickUnlockWeaponMode();
 

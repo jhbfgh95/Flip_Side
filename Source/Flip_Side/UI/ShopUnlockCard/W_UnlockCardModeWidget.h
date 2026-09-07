@@ -15,7 +15,7 @@ class FLIP_SIDE_API UW_UnlockCardModeWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-
+/*
 private:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
@@ -98,5 +98,5 @@ private:
 	void UnlockCardAdaptor(int32 ID);
 
 	UFUNCTION()
-	void HandleCancelButton();
+	void HandleCancelButton();*/
 };

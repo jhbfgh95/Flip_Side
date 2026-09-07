@@ -4,50 +4,31 @@
 #include "UI/ShopItem/W_ShopItemWidget.h"
 
 #include "UI/ShopItem/W_ShopItemDescription.h"
-#include "UI/W_PriceWidget.h"
-#include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
+#include "UI/ShopItem/W_ShopItemPurchasePopup.h"
+#include "UI/ShopItem/W_ShopItemSellPopup.h"
 
-void UW_ShopItemWidget::NativeConstruct()
+UW_ShopPlayerItemSlotContainer* UW_ShopItemWidget::GetShopPlayerItemSlotContainer() const
 {
-    Super::NativeConstruct();
-    ShopItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
-    ShopItemSubsystem->OnItemHovered.AddDynamic(this, &UW_ShopItemWidget::SetDesText);
-    ShopItemSubsystem->OnItemUnHovered.AddDynamic(this, &UW_ShopItemWidget::HideDescrip);
-
-    ShopItemSubsystem->OnPlayerItemHovered.AddDynamic(this, &UW_ShopItemWidget::SetDesText);
-    ShopItemSubsystem->OnPlayerItemUnHovered.AddDynamic(this, &UW_ShopItemWidget::HideDescrip);
-
-    HideDescrip();
-
+	return ShopPlayerItemSlotContainer;
 }
-	
-void UW_ShopItemWidget::NativeDestruct()
-{
-    
-    ShopItemSubsystem->OnItemHovered.RemoveAll(this);
-    ShopItemSubsystem->OnItemUnHovered.RemoveAll(this);
 
-    ShopItemSubsystem->OnPlayerItemHovered.RemoveAll(this);
-    ShopItemSubsystem->OnPlayerItemUnHovered.RemoveAll(this);
+UW_ShopItemSlotContainer* UW_ShopItemWidget::GetShopItemSlotContainer() const
+{
+	return ShopItemSlotContainer;
+}
 
-    Super::NativeDestruct();
-}    
-	
-void UW_ShopItemWidget::SetDesText(FItemData ItemData)
+UW_ShopItemDescription* UW_ShopItemWidget::GetShopItemDescription() const
 {
-    ShowDescrip();
-    ItemDes->SetItemInfo(ItemData.ItemName ,ItemData.Item_DES);
-    ItemPrice->SetPriceText(ItemData.Price);
+	return ShopItemDescription;
 }
-	
-void UW_ShopItemWidget::ShowDescrip()
+
+UW_ShopItemPurchasePopup* UW_ShopItemWidget::GetShopItemPurchasePopup() const
 {
-    ItemDes->SetVisibility(ESlateVisibility::Visible);
-    ItemPrice->SetVisibility(ESlateVisibility::Visible);
+	return ShopItemPurchasePopup;
 }
-	
-void UW_ShopItemWidget::HideDescrip()
+
+UW_ShopItemSellPopup* UW_ShopItemWidget::GetShopItemSellPopup() const
 {
-    ItemDes->SetVisibility(ESlateVisibility::Hidden);
-    ItemPrice->SetVisibility(ESlateVisibility::Hidden);
+	return ShopItemSellPopup;
 }
+

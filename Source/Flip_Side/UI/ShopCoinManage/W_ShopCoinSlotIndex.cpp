@@ -6,5 +6,5 @@
 
 void UW_ShopCoinSlotIndex::SetSlotIndex(int32 Index)
 {
-    SlotText->SetText(FText::AsNumber(Index));
+    //SlotText->SetText(FText::AsNumber(Index));
 }

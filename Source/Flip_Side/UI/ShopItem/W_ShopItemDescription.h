@@ -23,12 +23,9 @@ private:
 	UPROPERTY(meta= (BindWidget))
 	class UTextBlock* ItemDesText;
 
-
-	UMaterialInstanceDynamic* MID;
-
 public:
 
-	void SetItemInfo(FString ItemName, FString Description);
+	void SetItemInfo(const FString& ItemName, const FString& Description);
 
 	void ResetItemWidget();
 };

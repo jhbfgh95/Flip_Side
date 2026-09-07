@@ -7,23 +7,15 @@
 void UUnlockGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
-    if(DealUnlockArray.Num()<=0)
-    {
-        DealUnlockArray.Add(1);
-    }
+    
     FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UUnlockGISubsystem::OnLevelLoad);
+    ResetUnlockData();
 }
 
 void UUnlockGISubsystem::Deinitialize()
 {
     FCoreUObjectDelegates::PostLoadMapWithWorld.RemoveAll(this);
     Super::Deinitialize();
-}
-int32 UUnlockGISubsystem::GetUnlockCardID(int32 index)
-{
-    if(CardUnlockArray.Num() <= index)
-        return -1;
-    return CardUnlockArray[index];
 }
 
 void UUnlockGISubsystem::OnLevelLoad(UWorld* LoadedWorld)
@@ -41,58 +33,18 @@ void UUnlockGISubsystem::OnLevelLoad(UWorld* LoadedWorld)
 
 void UUnlockGISubsystem::ResetUnlockData()
 {
-    TankUnlockArray.Reset();
-	DealUnlockArray.Reset();
-	UtilUnlockArray.Reset();
 	CardUnlockArray.Reset();
     
-    DealUnlockArray.Add(1);
+    if(UnlockWeaponArray.Num()<=0)
+    {
+        UnlockWeaponArray.Add(1);
+    }
 }
 
-int32 UUnlockGISubsystem::GetUnlockWeaponID(EWeaponClass WeaponClass, int32 index)
+void UUnlockGISubsystem::UnlockWeapon(int32 ID)
 {
-    if(EWeaponClass::Tank == WeaponClass && index< TankUnlockArray.Num())
-    {
-        return TankUnlockArray[index];
-    }
-    else if(EWeaponClass::Deal == WeaponClass&& index<DealUnlockArray.Num())
-    {
-        return DealUnlockArray[index];
-    }
-    else if(EWeaponClass::Heal == WeaponClass&& index<UtilUnlockArray.Num())
-    {
-        return UtilUnlockArray[index];
-    }
-    return -1;
-}
-
-void UUnlockGISubsystem::UnlockWeapon(EWeaponClass WeaponClass, int32 ID)
-{
-    if(EWeaponClass::Tank == WeaponClass)
-    {
-        if(GetWeaponUnlockIndexByIndex(WeaponClass, ID) == -1)
-        {
-            TankUnlockArray.Add(ID);
-            OnWeaponUnlock.Broadcast(WeaponClass, ID);
-        }
-        
-    }
-    else if(EWeaponClass::Deal == WeaponClass)
-    {
-        if(GetWeaponUnlockIndexByIndex(WeaponClass, ID) == -1)
-        {
-            DealUnlockArray.Add(ID);
-            OnWeaponUnlock.Broadcast(WeaponClass, ID);
-        }
-    }
-    else if(EWeaponClass::Heal == WeaponClass)
-    {
-        if(GetWeaponUnlockIndexByIndex(WeaponClass, ID)==-1)
-        {
-            UtilUnlockArray.Add(ID);
-            OnWeaponUnlock.Broadcast(WeaponClass, ID);
-        }
-    }
+    UnlockWeaponArray.Add(ID);
+    OnWeaponUnlock.Broadcast(ID);
 }
 
 void UUnlockGISubsystem::UnlockCard(int32 ID)
@@ -106,68 +58,14 @@ void UUnlockGISubsystem::UnlockCard(int32 ID)
 }
 
 
-int32 UUnlockGISubsystem::GetUnlockWeaponArrrayNum(EWeaponClass WeaponClass)
+int32 UUnlockGISubsystem::GetUnlockWeaponArrrayNum()
 {
-    switch(WeaponClass)
-    {
-        case EWeaponClass::Tank:
-            return TankUnlockArray.Num();
-            break;
-        case EWeaponClass::Deal:
-            return DealUnlockArray.Num();
-            break;
-        case EWeaponClass::Heal:
-            return UtilUnlockArray.Num();
-            break;
-        default:
-            return -1;
-    }
-
+    return UnlockWeaponArray.Num();
 }
 
 int32 UUnlockGISubsystem::GetUnlockCardArrayNum()
 {
-     return CardUnlockArray.Num();
-}
-
-
-int32 UUnlockGISubsystem::GetWeaponUnlockIndexByIndex(EWeaponClass WeaponClass, int32 index)
-{
-
-    if(EWeaponClass::Tank == WeaponClass)
-    {
-       return TankUnlockArray.Find(index);
-    }
-    else if(EWeaponClass::Deal == WeaponClass)
-    {
-        return DealUnlockArray.Find(index);
-    }
-    else if(EWeaponClass::Heal == WeaponClass)
-    {
-       return UtilUnlockArray.Find(index);
-    }
-    else
-    {
-        return -1;
-    }
-}
-
-
-int32 UUnlockGISubsystem::GetUnlockWeaponIndex(EWeaponClass WeaponClass, int32 index)
-{
-    if(EWeaponClass::Tank == WeaponClass &&TankUnlockArray.IsValidIndex(index))
-    {
-        return TankUnlockArray[index];
-    }
-    else if(EWeaponClass::Deal == WeaponClass&&DealUnlockArray.IsValidIndex(index))
-    {
-        return DealUnlockArray[index];
-    }
-    else if(EWeaponClass::Heal == WeaponClass&&UtilUnlockArray.IsValidIndex(index))
-    {
-        return UtilUnlockArray[index];
-    }
-    return -1;
+    return CardUnlockArray.Num();
 }
 
 bool UUnlockGISubsystem::IsCardUnlockByID(int32 ID)
@@ -178,31 +76,17 @@ bool UUnlockGISubsystem::IsCardUnlockByID(int32 ID)
             return true;
 }
 
-bool UUnlockGISubsystem::IsWeaponUnlockByID(EWeaponClass WeaponClass, int32 ID)
+bool UUnlockGISubsystem::IsWeaponUnlockByID(int32 ID)
 {
-    if(EWeaponClass::Tank == WeaponClass)
-    {
-       if(TankUnlockArray.Find(ID)==-1)
-            return false;
-        else
-            return true;
-    }
-    else if(EWeaponClass::Deal == WeaponClass)
-    {
-        if(DealUnlockArray.Find(ID)==-1)
-            return false;
-        else
-            return true;
-    }
-    else if(EWeaponClass::Heal == WeaponClass)
-    {
-        if(UtilUnlockArray.Find(ID)==-1)
-            return false;
-        else
-            return true;
-    }
-    else
-    {
-        return false;
-    }
+    return UnlockWeaponArray.Contains(ID);
+}
+
+const TArray<int32>& UUnlockGISubsystem::GetUnlockWeaponArray()
+{
+    return UnlockWeaponArray;
+}
+	
+const TArray<int32>& UUnlockGISubsystem::GetUnlockCardArray()
+{
+    return CardUnlockArray;
 }

@@ -16,11 +16,11 @@ FReply UW_ShopSelectCardCancelImage::NativeOnMouseButtonDown(const FGeometry& In
 {
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
     {
-        ShopCardSubsystem->UnSelectCard();
+        //ShopCardSubsystem->UnSelectCard();
     }
     else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
     {
-        ShopCardSubsystem->UnSelectCard();
+        //ShopCardSubsystem->UnSelectCard();
     }
 
     return FReply::Handled();

@@ -10,14 +10,15 @@
  * 
  */
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnSelectCard);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUnlockSelectCard, int32, CardId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCardChanged, FCardData, CardInfo);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectCard, FCardData, CardInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangePlayerCard);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectPlayerCard, FCardData, CardInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FUnSelectPlayerCard, FCardData, CardInfo, int32, CardIndex);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUnselectPlayerCard);
+
 //0.이미 장착한 카드 //1. 장착 안되있음 //2.카드가 꽉차있음
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FShopCardWarning, int32, WarningNum);
 
@@ -51,12 +52,7 @@ private:
 
 	FCardData DefaultCard;
 
-	FCardData CurrentSelectCard;
-
-
 private:
-	bool CanSelectCard();
-
 	int32 CanSelectPlayerIndex();
 
 	UFUNCTION()
@@ -65,16 +61,17 @@ private:
 	UFUNCTION()
 	void AddCardListToUnlockCard(int32 UnlockCardID);
 
-
+	int32 GetSelectCardListContainIndex(int32 CardID);
 
 public:
 	FSelectPlayerCard OnSelectPlayerCard;
 	FCardChanged OnCardChanged;
-	FSelectCard OnSelectCard;
-	FUnSelectCard OnUnSelectCard;
 	FUnlockSelectCard OnUnlockCard;
 	FChangePlayerCard OnChangePlayerCard;
+
 	FUnSelectPlayerCard OnUnSelectPlayerCard;
+
+	FUnselectPlayerCard OnUnselectPlayerCard;
 
 	FShopCardWarning OnShopCardWarning;
 
@@ -87,15 +84,9 @@ public:
 	
 	TArray<FCardData> GetCardListArray();
 
-	void SelectCard(FCardData CardData);
+	int32 SelectPlayerCard(FCardData CardData);
 
-	void UnSelectCard();
-
-	void UnlockCard();
-
-	void SelectPlayerCard(FCardData CardData);
-
-	void UnSelectPlayerCard(FCardData CardData);
+	bool UnSelectPlayerCard(int32 RemoveIndex);
 
 	TArray<FCardData> GetPlayerCardList();
 
@@ -106,4 +97,10 @@ public:
 	int32 GetPlayerCardIndexByID(int32 CardID);
 
 	void WarningShopCard(int32 WarningNum);
+
+	bool BuyCard(FCardData BuyCardData);
+
+	int32 GetPlayerSelectCardCount();
+
+
 };

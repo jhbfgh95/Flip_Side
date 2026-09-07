@@ -2,25 +2,43 @@
 
 
 #include "UI/ShopItem/W_ShopItemDescription.h"
-#include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
 
 
 void UW_ShopItemDescription::NativeConstruct()
 {
     Super::NativeConstruct();
+
+    ResetItemWidget();
 }
-void UW_ShopItemDescription::SetItemInfo(FString ItemName, FString Description)
+
+void UW_ShopItemDescription::SetItemInfo(const FString& ItemName, const FString& Description)
 {
-    
-    ItemDesText->SetText(FText::FromString(Description));
+    if (ItemDesText)
+    {
+        ItemDesText->SetText(FText::FromString(Description));
+    }
 
-    ItemNameText->SetText(FText::FromString(ItemName));
+    if (ItemNameText)
+    {
+        ItemNameText->SetText(FText::FromString(ItemName));
+    }
 
+    SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }
 
 
 void UW_ShopItemDescription::ResetItemWidget()
 {
-    SetItemInfo(FString(""),FString(""));
+    if (ItemDesText)
+    {
+        ItemDesText->SetText(FText::GetEmpty());
+    }
+
+    if (ItemNameText)
+    {
+        ItemNameText->SetText(FText::GetEmpty());
+    }
+
+    SetVisibility(ESlateVisibility::Collapsed);
 }

@@ -15,7 +15,6 @@ class FLIP_SIDE_API AShopItemUIActor : public AActor
 	AShopItemUIActor();
 protected:
 	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 private:
 	UPROPERTY(EditAnywhere, Category = "UseableItem | Component", meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* UseableItemRootComp;
@@ -43,22 +42,14 @@ private:
 	UPROPERTY(EditAnywhere, meta =(AllowPrivateAccess = "true"))
     FItemData ShopItemData;
 	
-private:
-	class UShopItemWSubsystem* ShopItemSubSystem;
-
 public:
+	void SetItemData(const FItemData& SelectItemData);
+	void PlayBuyAnimation();
+	void RemoveMaterial();
 
-	void SetItemMaterial();
 private:
+	void SetItemMaterial();
+
 	UFUNCTION()
 	void ItemBuyMovement(float Value);
-
-	UFUNCTION()
-	void SetItemData(FItemData SelectItemData);
-
-	UFUNCTION()
-	void BuyItem(int32 Index);
-
-	UFUNCTION()
-	void RemoveMaterial();
 };

@@ -1,19 +1,16 @@
 #include "ShopPlayerPawn_FlipSide.h"
 #include "Components/SceneComponent.h"
 #include "Camera/CameraComponent.h"
-#include "Player/GameMode_Shop.h"
 
 AShopPlayerPawn_FlipSide::AShopPlayerPawn_FlipSide()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(RootComponent);
 
-	Camera->ProjectionMode = ECameraProjectionMode::Orthographic;
-	Camera->OrthoWidth = 1500.0f;
 	Camera->AutoPlaneShift = 1.0f;
 	Camera->bUpdateOrthoPlanes = false;
 }
@@ -22,83 +19,112 @@ void AShopPlayerPawn_FlipSide::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ShopGameMode = Cast<AGameMode_Shop>(GetWorld()->GetAuthGameMode());
-	if(ShopGameMode)
+	SetActorTransform(ShopMainTransform);
+
+	if (!bIsMoving)
 	{
-		ShopGameMode->OnCoinManageMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveCoinManageMode);
-		
-		ShopGameMode->OnSelectCardMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveSelectCardMode);
-		
-		ShopGameMode->OnShopItemMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveShopItemMode);
-
-		ShopGameMode->OnShopMainMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveShopMainMode);
-
-		ShopGameMode->OnUnlockWeaponMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveUnlockWeaponMode);
-		
-		ShopGameMode->OnCheckBossMode.AddDynamic(this, &AShopPlayerPawn_FlipSide::MoveCheckBossInfoMode);
+		TargetTransform = ShopMainTransform;
 	}
-	
-	SetActorLocation(ShopMainLocation);
-	SetActorRotation(MainRotation);
 }
 
-
-void AShopPlayerPawn_FlipSide::SetCameraOrthographic()
+void AShopPlayerPawn_FlipSide::Tick(float DeltaTime)
 {
-	if(Camera->ProjectionMode == ECameraProjectionMode::Orthographic)
+	Super::Tick(DeltaTime);
+
+	if (!bIsMoving)
+	{
 		return;
-	Camera->ProjectionMode = ECameraProjectionMode::Orthographic;
-	Camera->OrthoWidth = 700;
+	}
+
+	const FVector NewLocation = FMath::VInterpTo(
+		GetActorLocation(), TargetTransform.GetLocation(), DeltaTime, LocationInterpSpeed);
+	const FRotator NewRotation = FMath::RInterpTo(
+		GetActorRotation(), TargetTransform.Rotator(), DeltaTime, RotationInterpSpeed);
+
+	SetActorLocation(NewLocation);
+	SetActorRotation(NewRotation);
+
+	const bool bLocationCompleted = NewLocation.Equals(TargetTransform.GetLocation(), LocationCompletionTolerance);
+	const bool bRotationCompleted = NewRotation.Equals(TargetTransform.Rotator(), RotationCompletionTolerance);
+	if (!bLocationCompleted || !bRotationCompleted)
+	{
+		return;
+	}
+
+	SetActorTransform(TargetTransform);
+	bIsMoving = false;
+
+	if (bBroadcastOnMoveCompleted)
+	{
+		bBroadcastOnMoveCompleted = false;
+		OnShopPawnMoveCompleted.Broadcast(TargetShopPage);
+	}
+}
+
+void AShopPlayerPawn_FlipSide::StartMove(const FTransform& NewTargetTransform)
+{
+	TargetTransform = NewTargetTransform;
+	bIsMoving = true;
+	bBroadcastOnMoveCompleted = false;
+}
+
+void AShopPlayerPawn_FlipSide::StartShopPageMove(
+	const FTransform& NewTargetTransform, EShopPage Page)
+{
+	StartMove(NewTargetTransform);
+	TargetShopPage = Page;
+	bBroadcastOnMoveCompleted = true;
+}
+
+void AShopPlayerPawn_FlipSide::SetCameraOrthographic(float InOrthoWidth)
+{
+	if(Camera->ProjectionMode != ECameraProjectionMode::Orthographic)
+		Camera->ProjectionMode = ECameraProjectionMode::Orthographic;
+	Camera->OrthoWidth = InOrthoWidth;
 }
 
 void AShopPlayerPawn_FlipSide::SetCameraPerspective()
 {
-	if(Camera->ProjectionMode == ECameraProjectionMode::Perspective)
+	if(Camera->ProjectionMode != ECameraProjectionMode::Perspective)
+		Camera->ProjectionMode = ECameraProjectionMode::Perspective;
+}
+
+void AShopPlayerPawn_FlipSide::MoveToShopPage(EShopPage Page)
+{
+	FTransform PageTransform;
+	switch (Page)
+	{
+	case EShopPage::Main:
+		SetCameraPerspective();
+		PageTransform = ShopMainTransform;
+		break;
+	case EShopPage::Coin:
+		PageTransform = CoinTransform;
+		break;
+	case EShopPage::Item:
+		PageTransform = ShopItemTransform;
+		break;
+	case EShopPage::Card:
+		PageTransform = CardTransform;
+		break;
+	case EShopPage::UnlockWeapon:
+		PageTransform = UnlockWeaponTransform;
+		break;
+	case EShopPage::Boss:
+		PageTransform = CheckBossInfoTransform;
+		break;
+	case EShopPage::GameStart:
+		PageTransform = ShopMainTransform;
+		break;
+	default:
 		return;
-	Camera->ProjectionMode = ECameraProjectionMode::Perspective;
-}
+	}
 
-void AShopPlayerPawn_FlipSide::MoveCoinManageMode()
-{
-	SetActorRotation(FRotator::ZeroRotator);
-	SetActorLocation(CoinManageLocation);
-	SetCameraOrthographic();
+	StartShopPageMove(PageTransform, Page);
 }
-
-void AShopPlayerPawn_FlipSide::MoveSelectCardMode()
-{
-	SetActorRotation(FRotator::ZeroRotator);
-	SetActorLocation(SelectCardLocation);
-	SetCameraOrthographic();
-}
-
-void AShopPlayerPawn_FlipSide::MoveShopItemMode()
-{
-	SetActorRotation(FRotator::ZeroRotator);
-	SetActorLocation(ShopItemLocation);
-	SetCameraOrthographic();
-}
-
 
 void AShopPlayerPawn_FlipSide::MoveShopMainMode()
 {
-	SetActorLocation(ShopMainLocation);
-	SetActorRotation(MainRotation);
+	StartMove(ShopMainTransform);
 	SetCameraPerspective();
-}
-
-void AShopPlayerPawn_FlipSide::MoveUnlockWeaponMode()
-{
-	
-	SetActorRotation(FRotator::ZeroRotator);
-	SetActorLocation(UnlockWeaponLocation);
-	SetCameraOrthographic();
-}
-
-	
-void AShopPlayerPawn_FlipSide::MoveCheckBossInfoMode()
-{
-	SetActorRotation(FRotator::ZeroRotator);
-	SetActorLocation(CheckBossInfoLocation);
-	SetCameraOrthographic();
 }

@@ -7,11 +7,11 @@
 #include "Components/CanvasPanel.h"
 void UW_ShopPlayerCards::NativeConstruct()
 {
-    Super::NativeConstruct();
+    Super::NativeConstruct();/*
     ShopCardSubsystem = GetWorld()->GetSubsystem<UShopCardWSubsystem>();
 
     ShopCardSubsystem->OnUnSelectPlayerCard.AddDynamic(this, &UW_ShopPlayerCards::SetUnSelectPlayerCard);
-    ShopCardSubsystem->OnSelectPlayerCard.AddDynamic(this, &UW_ShopPlayerCards::SetSelectPlayerCard);
+    //ShopCardSubsystem->OnSelectPlayerCard.AddDynamic(this, &UW_ShopPlayerCards::SetSelectPlayerCard);
 
     int32 ChildCount = MainCanvas->GetChildrenCount();
 
@@ -24,30 +24,31 @@ void UW_ShopPlayerCards::NativeConstruct()
 
         PlayerCardData->InitPlayerCard(DefaultCardData);
     }
-
+*/
 
 }
 void UW_ShopPlayerCards::NativeDestruct()
 {
-    ShopCardSubsystem->OnChangePlayerCard.RemoveAll(this);
+    //ShopCardSubsystem->OnChangePlayerCard.RemoveAll(this);
     Super::NativeDestruct();
 }
 	
 void UW_ShopPlayerCards::SetUnSelectPlayerCard(FCardData UnSelectCardData, int32 UnSelectCardIndex)
 {
+    /*
     if(UnSelectCardIndex == -1)
         return;
 
     if(UnSelectCardIndex < PlayerCardWidget.Num())
     {
         PlayerCardWidget[UnSelectCardIndex]->InitPlayerCard(DefaultCardData);
-    }
+    }*/
         
 }
 	
 void UW_ShopPlayerCards::SetSelectPlayerCard(FCardData CardData)
 {
-    int Index= ShopCardSubsystem->GetPlayerCardIndexByID(CardData.CardID);
-    if(Index != -1 && PlayerCardWidget.IsValidIndex(Index))
-        PlayerCardWidget[Index]->InitPlayerCard(CardData);
+    //int Index= ShopCardSubsystem->GetPlayerCardIndexByID(CardData.CardID);
+    //if(Index != -1 && PlayerCardWidget.IsValidIndex(Index))
+        //PlayerCardWidget[Index]->InitPlayerCard(CardData);
 }
