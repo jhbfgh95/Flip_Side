@@ -18,6 +18,7 @@ class IBattleHoverInterface;
 class IBattleClickInterface;
 class UBattlePlayerHUDWidget;
 class ABossActor;
+class ABossCoinActor;
 class ACoinActor;
 class ACoinAttackRangeIndicatorActor;
 class AAbilityRangeActor;
@@ -97,6 +98,7 @@ private:
     void RefreshBattleCoinRangePreviews();
     void ShowBattleCoinRangePreviews(ACoinActor* CoinActor);
     void HideBattleCoinRangePreviews(ACoinActor* CoinActor = nullptr);
+    void SetBossTargetArrowVisible(bool bVisible);
     void ObserveBattleInfoCoin(ACoinActor* CoinActor);
     void StopObservingBattleInfoCoin();
     void RefreshHoveredBattleCoinInfo();
@@ -172,6 +174,11 @@ protected:
     AActor* LastHoveredActor;
 
     TWeakObjectPtr<ACoinActor> HoveredBattleCoin;
+    TWeakObjectPtr<ABossCoinActor> RangePreviewBossCoin;
+    TWeakObjectPtr<ABossActor> RangePreviewBoss;
+    FGridPoint RangePreviewCoinCell = FGridPoint{ -1, -1 };
+    EFaceState RangePreviewCoinFace = EFaceState::None;
+    bool bRangePreviewHasBoss = false;
     TWeakObjectPtr<ACoinActor> ObservedBattleInfoCoin;
     TWeakObjectPtr<UComponent_Status> ObservedBattleInfoStatus;
     int32 HoveredReadyCoinInstanceID = INDEX_NONE;

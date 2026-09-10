@@ -20,8 +20,13 @@ class FLIP_SIDE_API ABossCoinActor : public AActor
 	UPROPERTY(EditAnywhere, Category = "BossCoin | Component", meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* BossCoinMesh;
 
+	UPROPERTY(EditAnywhere, Category = "BossCoin | Component", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UStaticMeshComponent> TargetArrow;
+
 public:
 	ABossCoinActor();
+
+	void SetTargetArrowVisible(bool bVisible);
 
 protected:
 	virtual void BeginPlay() override;

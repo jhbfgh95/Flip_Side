@@ -6,6 +6,7 @@
 
 class USceneComponent;
 class UStaticMeshComponent;
+class UMaterialInstanceDynamic;
 
 /**
  * 코인 공격 사거리의 직선 몸통과 뭉툭한 끝부분만 표시합니다.
@@ -26,7 +27,8 @@ public:
 	bool ShowRange(
 		const FVector& AttackStartCellWorldLocation,
 		const FVector& AttackEndCellWorldLocation,
-		const FVector& ForwardWorldDirection
+		const FVector& ForwardWorldDirection,
+		bool bBossInRange = false
 	);
 
 	UFUNCTION(BlueprintCallable, Category = "Coin|Range Preview")
@@ -45,6 +47,10 @@ protected:
 	/** 로컬 +X가 공격 진행 방향을 바라보도록 만든 뭉툭한 끝 메시를 BP에서 지정합니다. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Coin|Range Preview")
 	TObjectPtr<UStaticMeshComponent> EndCapMesh;
+
+	/** 보스가 공격 사거리 안에 있을 때 Body와 EndCap에 적용할 Color입니다. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Coin|Range Preview")
+	FLinearColor InRangeColor = FLinearColor::Red;
 
 	/** Blender에서 제작한 LineBodyMesh의 실제 +Y 길이(cm)입니다. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Coin|Range Preview", meta = (ClampMin = "1.0"))
@@ -80,4 +86,14 @@ protected:
 private:
 	/** BP의 EndCapMesh Transform에서 지정한 기본 Scale입니다. */
 	FVector DefaultEndCapRelativeScale = FVector::OneVector;
+	FLinearColor DefaultBodyColor = FLinearColor::White;
+	bool bHasDefaultBodyColor = false;
+	FLinearColor DefaultEndCapColor = FLinearColor::White;
+	bool bHasDefaultEndCapColor = false;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> BodyDynamicMaterial;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> EndCapDynamicMaterial;
 };

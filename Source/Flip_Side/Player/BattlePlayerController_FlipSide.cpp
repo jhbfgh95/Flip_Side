@@ -31,6 +31,8 @@
 #include "Actors/Component_Status.h"
 #include "Actors/CoinAttackRangeIndicatorActor.h"
 #include "Actors/AbilityRangeActor.h"
+#include "Actors/Boss/BossCoinActor.h"
+#include "EngineUtils.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace
@@ -395,6 +397,22 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
             }
         }
         LastHoveredActor = CurrentActor;
+    }
+
+    // 스탯 이벤트 없이 코인 위치/면 또는 현재 보스가 변경된 경우에도 표시를 갱신합니다.
+    if (ACoinActor* HoveredCoin = HoveredBattleCoin.Get(); IsValid(HoveredCoin))
+    {
+        UWorld* World = GetWorld();
+        UBossManagerSubsystem* BossManager = IsValid(World)
+            ? World->GetSubsystem<UBossManagerSubsystem>() : nullptr;
+        ABossActor* Boss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
+        if (!(RangePreviewCoinCell == HoveredCoin->GetDecidedGrid()) ||
+            RangePreviewCoinFace != HoveredCoin->GetCoinDecidedFace() ||
+            bRangePreviewHasBoss != IsValid(Boss) || RangePreviewBoss.Get() != Boss ||
+            !HoveredCoin->GetCoinOnBattle())
+        {
+            RefreshBattleCoinRangePreviews();
+        }
     }
 
     // 커서 상태 업데이트 (클릭 애니메이션 중엔 덮어쓰지 않음)
@@ -796,6 +814,12 @@ void ABattlePlayerController_FlipSide::ShowBattleCoinRangePreviews(ACoinActor* C
 
 	const FGridPoint CoinCell = CoinActor->GetDecidedGrid();
 	const EFaceState CurrentFace = CoinActor->GetCoinDecidedFace();
+	RangePreviewCoinCell = CoinCell;
+	RangePreviewCoinFace = CurrentFace;
+	UBossManagerSubsystem* BossManager = World->GetSubsystem<UBossManagerSubsystem>();
+	ABossActor* CurrentBoss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
+	RangePreviewBoss = CurrentBoss;
+	bRangePreviewHasBoss = IsValid(CurrentBoss);
 	if (CoinCell.GridX < 0 || CoinCell.GridY < 0 || CurrentFace == EFaceState::None)
 	{
 		return;
@@ -809,16 +833,19 @@ void ABattlePlayerController_FlipSide::ShowBattleCoinRangePreviews(ACoinActor* C
 	}
 
 	bool bAttackRangeVisible = false;
+	TArray<FGridPoint> AttackCells;
+	ABossActor* AttackBoss = nullptr;
+	GridManager->CollectAttackRangeTargets(CoinCell, PreviewSnapshot.AttackAreaSpec, AttackCells, AttackBoss);
+	const bool bBossInRange = IsValid(AttackBoss);
+	SetBossTargetArrowVisible(bBossInRange);
 	if (IsValid(AttackRangeIndicatorActor))
 	{
-		UBossManagerSubsystem* BossManager = World->GetSubsystem<UBossManagerSubsystem>();
-		const bool bHasActiveBoss = IsValid(BossManager) && IsValid(BossManager->GetCurrentBoss());
 		FGridPoint AttackStartCell;
 		FGridPoint AttackEndCell;
 		if (GridManager->TryBuildStraightRangeEndpoints(
 			CoinCell,
 			PreviewSnapshot.AttackAreaSpec,
-			bHasActiveBoss,
+			bRangePreviewHasBoss,
 			AttackStartCell,
 			AttackEndCell))
 		{
@@ -835,7 +862,8 @@ void ABattlePlayerController_FlipSide::ShowBattleCoinRangePreviews(ACoinActor* C
 				bAttackRangeVisible = AttackRangeIndicatorActor->ShowRange(
 					AttackStartWorldLocation,
 					AttackEndWorldLocation,
-					GridStepWorld
+					GridStepWorld,
+					bBossInRange
 				);
 			}
 		}
@@ -867,6 +895,7 @@ void ABattlePlayerController_FlipSide::ShowBattleCoinRangePreviews(ACoinActor* C
 
 void ABattlePlayerController_FlipSide::HideBattleCoinRangePreviews(ACoinActor* CoinActor)
 {
+	SetBossTargetArrowVisible(false);
 	ACoinActor* TargetCoin = IsValid(CoinActor) ? CoinActor : HoveredBattleCoin.Get();
 	if (IsValid(TargetCoin))
 	{
@@ -881,6 +910,26 @@ void ABattlePlayerController_FlipSide::HideBattleCoinRangePreviews(ACoinActor* C
 	if (IsValid(AbilityRangeActor))
 	{
 		AbilityRangeActor->HideRange();
+	}
+}
+
+void ABattlePlayerController_FlipSide::SetBossTargetArrowVisible(bool bVisible)
+{
+	UWorld* World = GetWorld();
+	if (bVisible && !RangePreviewBossCoin.IsValid() && IsValid(World))
+	{
+		for (TActorIterator<ABossCoinActor> It(World); It; ++It)
+		{
+			if (IsValid(*It))
+			{
+				RangePreviewBossCoin = *It;
+				break;
+			}
+		}
+	}
+	if (ABossCoinActor* BossCoin = RangePreviewBossCoin.Get(); IsValid(BossCoin))
+	{
+		BossCoin->SetTargetArrowVisible(bVisible);
 	}
 }
 

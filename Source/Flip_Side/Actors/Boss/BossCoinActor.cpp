@@ -16,11 +16,28 @@ ABossCoinActor::ABossCoinActor()
 	BossCoinMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Boss Coin Mesh"));
 	BossCoinMesh->SetupAttachment(RootComponent);
 	BossCoinMesh->SetRelativeScale3D(FVector(5.f, 5.f, 5.f));
+
+	TargetArrow = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TargetArrow"));
+	TargetArrow->SetupAttachment(RootComponent);
+	TargetArrow->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	TargetArrow->SetGenerateOverlapEvents(false);
+	TargetArrow->SetCastShadow(false);
+	TargetArrow->SetReceivesDecals(false);
+	TargetArrow->SetVisibility(false);
+}
+
+void ABossCoinActor::SetTargetArrowVisible(bool bVisible)
+{
+	if (IsValid(TargetArrow))
+	{
+		TargetArrow->SetVisibility(bVisible && IsValid(TargetArrow->GetStaticMesh()));
+	}
 }
 
 void ABossCoinActor::BeginPlay()
 {
 	Super::BeginPlay();
+	SetTargetArrowVisible(false);
 
 	UGameInstance* GI = GetGameInstance();
 	if (!IsValid(BossCoinMesh) || !IsValid(GI)) return;

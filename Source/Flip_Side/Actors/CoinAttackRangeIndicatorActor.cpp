@@ -2,6 +2,7 @@
 
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 ACoinAttackRangeIndicatorActor::ACoinAttackRangeIndicatorActor()
 {
@@ -38,13 +39,30 @@ void ACoinAttackRangeIndicatorActor::BeginPlay()
 	if (IsValid(EndCapMesh))
 	{
 		DefaultEndCapRelativeScale = EndCapMesh->GetRelativeScale3D();
+		EndCapDynamicMaterial = EndCapMesh->CreateDynamicMaterialInstance(0);
+		if (IsValid(EndCapDynamicMaterial))
+		{
+			bHasDefaultEndCapColor = EndCapDynamicMaterial->GetVectorParameterValue(
+				FMaterialParameterInfo(TEXT("Color")), DefaultEndCapColor);
+		}
 	}
+	if (IsValid(LineBodyMesh))
+	{
+		BodyDynamicMaterial = LineBodyMesh->CreateDynamicMaterialInstance(0);
+		if (IsValid(BodyDynamicMaterial))
+		{
+			bHasDefaultBodyColor = BodyDynamicMaterial->GetVectorParameterValue(
+				FMaterialParameterInfo(TEXT("Color")), DefaultBodyColor);
+		}
+	}
+	HideRange();
 }
 
 bool ACoinAttackRangeIndicatorActor::ShowRange(
 	const FVector& AttackStartCellWorldLocation,
 	const FVector& AttackEndCellWorldLocation,
-	const FVector& ForwardWorldDirection)
+	const FVector& ForwardWorldDirection,
+	bool bBossInRange)
 {
 	HideRange();
 
@@ -89,13 +107,24 @@ bool ACoinAttackRangeIndicatorActor::ShowRange(
 		EndCapScale.Y = SingleCellEndCapYScale;
 	}
 	EndCapMesh->SetRelativeScale3D(EndCapScale);
+	if (bBossInRange)
+	{
+		if (IsValid(BodyDynamicMaterial) && bHasDefaultBodyColor)
+		{
+			BodyDynamicMaterial->SetVectorParameterValue(TEXT("Color"), InRangeColor);
+		}
+		if (IsValid(EndCapDynamicMaterial) && bHasDefaultEndCapColor)
+		{
+			EndCapDynamicMaterial->SetVectorParameterValue(TEXT("Color"), InRangeColor);
+		}
+	}
 
 	FVector RaisedEndCapLocation = EndCapWorldLocation;
 	RaisedEndCapLocation.Z += PreviewHeightOffset;
 	RaisedEndCapLocation.X -= CamOffset;
 	// EndCap의 방향은 BP에서 직접 맞추므로 런타임에는 위치만 변경합니다.
 	EndCapMesh->SetWorldLocation(RaisedEndCapLocation);
-	EndCapMesh->SetVisibility(true);
+	EndCapMesh->SetVisibility(!bBossInRange);
 
 	// 사거리가 한 칸이면 마지막 칸을 EndCap이 전부 차지하므로 Body는 표시하지 않습니다.
 	if (bEndCapOnly)
@@ -126,6 +155,14 @@ bool ACoinAttackRangeIndicatorActor::ShowRange(
 
 void ACoinAttackRangeIndicatorActor::HideRange()
 {
+	if (IsValid(BodyDynamicMaterial) && bHasDefaultBodyColor)
+	{
+		BodyDynamicMaterial->SetVectorParameterValue(TEXT("Color"), DefaultBodyColor);
+	}
+	if (IsValid(EndCapDynamicMaterial) && bHasDefaultEndCapColor)
+	{
+		EndCapDynamicMaterial->SetVectorParameterValue(TEXT("Color"), DefaultEndCapColor);
+	}
 	if (IsValid(LineBodyMesh))
 	{
 		LineBodyMesh->SetVisibility(false);
