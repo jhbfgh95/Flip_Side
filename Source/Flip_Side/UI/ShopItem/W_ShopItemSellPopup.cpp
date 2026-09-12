@@ -33,7 +33,7 @@ void UW_ShopItemSellPopup::Open(int32 InInventoryIndex, const FItemData& InItemD
     if (ItemIconMI)
     {
         ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), CurrentItemData.ItemIcon);
-        ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), ItemIconColor);
+        ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), InItemData.TypeColor);
     }
     ItemNameText->SetText(FText::FromString(CurrentItemData.ItemName));
     OwnedCountText->SetText(FText::AsNumber(MaxSellCount));

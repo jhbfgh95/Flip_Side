@@ -28,7 +28,7 @@ void UW_ShopItemPurchasePopup::Open(const FItemData& InItemData)
 	if (ItemIconMI)
 	{
 		ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), CurrentItemData.ItemIcon);
-		ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), ItemIconColor);
+		ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), InItemData.TypeColor);
 	}
 	ItemNameText->SetText(FText::FromString(CurrentItemData.ItemName));
 	ItemCountText->SetText(FText::AsNumber(CurrentCount));

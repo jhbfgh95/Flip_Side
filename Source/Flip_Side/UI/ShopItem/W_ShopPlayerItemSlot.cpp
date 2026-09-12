@@ -44,7 +44,7 @@ void UW_ShopPlayerItemSlot::SetItemWidget(FItemData InItemData, FSelectItem InSe
     if (ItemIconMI)
     {
         ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), WidgetItemData.ItemIcon);
-        ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), ItemIconColor);
+        ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), InItemData.TypeColor);
     }
     ItemNameTextBlock->SetText(FText::FromString(WidgetItemData.ItemName));
     ItemCountTextBlock->SetText(FText::AsNumber(InSelectItemData.SameItemNum));

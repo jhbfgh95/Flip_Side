@@ -32,7 +32,7 @@ void UW_ShopItemSlot::InitItemWidget(FItemData SetItemData)
         ItemIconMI = ItemImage->GetDynamicMaterial();
     }
     ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), SetItemData.ItemIcon);
-    ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), ItemIconColor);
+    ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), WidgetItemData.TypeColor);
 
     ItemNameTextBlock->SetText(FText::FromString(SetItemData.ItemName));
     ItemPriceTextBlock->SetText(FText::AsNumber(SetItemData.Price));
@@ -43,7 +43,7 @@ void UW_ShopItemSlot::SetItemSlotImage(FItemData SetItemData)
     WidgetItemData = SetItemData;
     
     ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), SetItemData.ItemIcon);
-    ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), ItemIconColor);
+    ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), SetItemData.TypeColor);
 
     ItemNameTextBlock->SetText(FText::FromString(SetItemData.ItemName));
     ItemPriceTextBlock->SetText(FText::AsNumber(SetItemData.Price));

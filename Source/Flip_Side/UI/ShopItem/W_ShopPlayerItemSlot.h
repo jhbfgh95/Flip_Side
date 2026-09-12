@@ -29,10 +29,6 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UImage> ItemImage;
-
-	// ItemImage에 적용된 동적 머티리얼의 Weapon_Color 파라미터 값입니다.
-	UPROPERTY(EditAnywhere, Category = "Shop Player Item Slot")
-	FLinearColor ItemIconColor = FLinearColor::White;
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UTextBlock> ItemNameTextBlock;

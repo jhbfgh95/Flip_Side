@@ -27,8 +27,6 @@ protected:
 	TObjectPtr<UImage> ItemImage;
 
 	// ItemImage에 적용된 동적 머티리얼의 Weapon_Color 파라미터 값입니다.
-	UPROPERTY(EditAnywhere, Category = "Shop Item Purchase Popup")
-	FLinearColor ItemIconColor = FLinearColor::White;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ItemNameText;
 	UPROPERTY(meta = (BindWidget))

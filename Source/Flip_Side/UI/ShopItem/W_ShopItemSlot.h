@@ -41,8 +41,6 @@ protected:
 	TObjectPtr<UBorder> HoverBorder;
 
 private:
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	FLinearColor ItemIconColor = FLinearColor::White;
 
 	TObjectPtr<UMaterialInstanceDynamic> ItemIconMI;
 
