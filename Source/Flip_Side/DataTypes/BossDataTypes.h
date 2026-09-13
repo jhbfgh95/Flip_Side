@@ -148,6 +148,10 @@ struct FBossPatternDisplayData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EBossGimmickType GimmickType = EBossGimmickType::None;
 
+    // GimmickType != None을 그대로 옮겨놓은 편의 플래그. 어떤 기믹인지 몰라도 "이 패턴이 기믹이 있는 패턴인지"만 빠르게 확인할 때 사용.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    bool bIsGimmick = false;
+
     // 실명/늪: 지속 턴수, 독: 독 데미지
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 GimmickParamA = 0;
@@ -204,6 +208,10 @@ struct FBossPatternBattleData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EBossGimmickType GimmickType = EBossGimmickType::None;
+
+    // GimmickType != None을 그대로 옮겨놓은 편의 플래그. 어떤 기믹인지 몰라도 "이 패턴이 기믹이 있는 패턴인지"만 빠르게 확인할 때 사용.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    bool bIsGimmick = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 ShieldHeal = 0;
@@ -297,8 +305,4 @@ struct FBossBattleData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TArray<FBossGimmickData> GimmickList;
-
-    // slot 0=Right, 1=Bottom, 2=Left, 3=Front
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    TArray<TObjectPtr<UTexture2D>> BackgroundTextures;
 };

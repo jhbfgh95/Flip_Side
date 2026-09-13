@@ -560,6 +560,7 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
 
         Pattern.ShieldHeal   = GetColInt(Stmt, 14);
         Pattern.GimmickType  = static_cast<EBossGimmickType>(GetColInt(Stmt, 15));
+        Pattern.bIsGimmick   = Pattern.GimmickType != EBossGimmickType::None;
 
         // 실명(Blind=6): gimmick_int_a(boss_gimmick.param_int_a) = 지속 턴수
         // 늪(GridDebuff=2): param_a = 지속 턴수, param_b = 공격력 디버프
@@ -715,6 +716,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
 
             P.bNoDamage          = GetColInt(Stmt, 19) != 0;
             P.GimmickType        = static_cast<EBossGimmickType>(GetColInt(Stmt, 20));
+            P.bIsGimmick         = P.GimmickType != EBossGimmickType::None;
             P.ShieldHeal         = GetColInt(Stmt, 21);
             P.PatternEffectTarget = static_cast<EBossPatternTarget>(GetColInt(Stmt, 22));
 
@@ -751,28 +753,6 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             Out.GimmickList.Add(G);
         }
         Stmt.Destroy();
-    }
-
-    // boss_background
-    {
-        const TCHAR* Sql = TEXT(
-            "SELECT slot, texture_path FROM boss_background WHERE boss_id = ? ORDER BY slot;"
-        );
-
-        FSQLitePreparedStatement Stmt;
-        if (PrepareStmt(Db, Sql, Stmt))
-        {
-            Stmt.SetBindingValueByIndex(1, BossID);
-            Out.BackgroundTextures.SetNum(4);
-            while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
-            {
-                const int32 Slot = GetColInt(Stmt, 0);
-                const FString TexPath = GetColText(Stmt, 1);
-                if (Out.BackgroundTextures.IsValidIndex(Slot) && !TexPath.IsEmpty())
-                    Out.BackgroundTextures[Slot] = LoadObject<UTexture2D>(nullptr, *TexPath);
-            }
-            Stmt.Destroy();
-        }
     }
 
     return true;
