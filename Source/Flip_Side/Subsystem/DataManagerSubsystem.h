@@ -11,6 +11,7 @@
 #include "GridTypes.h"
 #include "CardTypes.h"
 #include "GameConfigTypes.h"
+#include "KeywordDataTypes.h"
 
 #include "SQLiteDatabase.h"
 #include "SQLitePreparedStatement.h"
@@ -66,6 +67,10 @@ public:
     UPROPERTY(BlueprintReadOnly)
     TMap<int32, FCoinSlotLevelTier> CoinSlotLevelTierByLevel;
 
+    // 무기 설명 토큰([KW:Code])이 참조하는 키워드 정의. KeywordCode 기준 캐시.
+    UPROPERTY(BlueprintReadOnly)
+    TMap<FName, FKeywordDefinitionData> KeywordDefinitionByCode;
+
     // ===== Subsystem =====
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     virtual void Deinitialize() override;
@@ -109,6 +114,18 @@ public:
     UFUNCTION(BlueprintCallable)
     bool GetCoinSlotLevelStats(const FCoinTypeStructure& CoinSlot, int32& OutCost, int32& OutHP) const;
 
+    // 활성 키워드 전체를 한 번에 로드 (UI 포매터가 캐시할 때 사용)
+    UFUNCTION(BlueprintCallable)
+    bool GetAllEnabledKeywordDefinitions(TArray<FKeywordDefinitionData>& OutDefinitions) const;
+
+    // 단일 코드 조회 (도감·디버그·검증용)
+    UFUNCTION(BlueprintCallable)
+    bool TryGetKeywordByCode(FName KeywordCode, FKeywordDefinitionData& OutDefinition, bool bIncludeDisabled = false) const;
+
+    // 무기 설명 저장/로드 시 알 수 없는 토큰과 비활성 키워드를 검출
+    UFUNCTION(BlueprintCallable)
+    bool ValidateWeaponDescriptionTokens(const FString& RawDescription, TArray<FString>& OutErrors) const;
+
 private:
     bool bCacheReady = false;
     FSQLiteDatabase Db;
@@ -128,6 +145,7 @@ private:
     bool LoadStageRewards();
     bool LoadGameConfig();
     bool LoadCoinSlotLevelTiers();
+    bool LoadKeywordDefinitions();
 
     static EAttackAreaPattern AttackAreaPatternFromInt(int32 Val);
     static EAreaAnchor AreaAnchorFromInt(int32 Val);

@@ -13,109 +13,28 @@
 
 namespace
 {
-	constexpr int32 BloodPoweredBloodCannonWeaponID = 4;
-	constexpr int32 RapidFreezerWeaponID = 7;
-	constexpr int32 ShellGameGauntletWeaponID = 11;
-	constexpr int32 AdrenalineInjectionPistolWeaponID = 14;
-	constexpr int32 EmergencyResuscitationDeviceWeaponID = 16;
-	constexpr int32 CrushingDrillWeaponID = 17;
-
-	struct FTestCoinWeaponPair
+	struct FDummyCoinWeaponPair
 	{
 		int32 FrontWeaponID;
 		int32 BackWeaponID;
 	};
 
-	// 기존 테스트 코인 3종을 유지하고, 신규 테스트 무기 3종은 별도 코인 슬롯으로 뒤에 추가합니다.
-	constexpr FTestCoinWeaponPair TestCoinWeaponPairs[] =
+	constexpr FDummyCoinWeaponPair DummyCoinWeaponPairs[] =
 	{
-		{ BloodPoweredBloodCannonWeaponID, ShellGameGauntletWeaponID },
-		{ ShellGameGauntletWeaponID, AdrenalineInjectionPistolWeaponID },
-		{ AdrenalineInjectionPistolWeaponID, BloodPoweredBloodCannonWeaponID },
-		{ EmergencyResuscitationDeviceWeaponID, CrushingDrillWeaponID },
-		{ CrushingDrillWeaponID, RapidFreezerWeaponID },
-		{ RapidFreezerWeaponID, EmergencyResuscitationDeviceWeaponID }
+		{ 1, 2 },
+		{ 3, 4 },
+		{ 5, 6 },
+		{ 7, 8 },
+		{ 9, 10 },
+		{ 11, 12 },
+		{ 13, 14 },
+		{ 15, 16 },
+		{ 17, -2 },
+		{ -3, 20 }
 	};
 
-	FAttackAreaSpec MakeForwardAttackAreaSpec(int32 Depth)
+	FWeaponStatDisplayData BuildWeaponStatDisplayData(const FWeaponFaceStats& FaceStats)
 	{
-		FAttackAreaSpec Spec;
-		Spec.Pattern = EAttackAreaPattern::RectFromCell;
-		Spec.AnchorCell = FGridPoint{ 0, 0 };
-		Spec.AnchorMode = EAreaAnchor::UseAnchorCell;
-		Spec.ParamA = 1;
-		Spec.ParamB = FMath::Max(1, Depth);
-		Spec.Side = EAreaSide::Up;
-		Spec.Flags = 0;
-		return Spec;
-	}
-
-	FAttackAreaSpec MakeSquareAbilityAreaSpec(int32 Radius)
-	{
-		FAttackAreaSpec Spec;
-		Spec.Pattern = EAttackAreaPattern::CircleOnCell;
-		Spec.AnchorCell = FGridPoint{ 0, 0 };
-		Spec.AnchorMode = EAreaAnchor::UseAnchorCell;
-		Spec.ParamA = FMath::Max(0, Radius);
-		Spec.ParamB = 0;
-		// 대상 필터링은 실제 능력 로직 연결 시 결정하고, 여기서는 순수 사거리만 보유합니다.
-		Spec.Flags = 0;
-		return Spec;
-	}
-
-	FWeaponFaceStats MakeTestWeaponFaceStats(int32 WeaponID)
-	{
-		FWeaponFaceStats FaceStats;
-		FaceStats.WeaponID = WeaponID;
-
-		// 무기 기획서 기준 수치와 사거리입니다. 실제 표시·행동 연결은 후속 작업에서 진행합니다.
-		switch (WeaponID)
-		{
-		case BloodPoweredBloodCannonWeaponID:
-			FaceStats.BaseNumericStats = { 2, 3, 0 };
-			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(3);
-			FaceStats.AbilityAreaSpec = MakeSquareAbilityAreaSpec(1);
-			FaceStats.bHasAbilityArea = true;
-			break;
-		case RapidFreezerWeaponID:
-			FaceStats.BaseNumericStats = { 1, 3, 0 };
-			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(4);
-			break;
-		case ShellGameGauntletWeaponID:
-			FaceStats.BaseNumericStats = { 3, 3, 0 };
-			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(2);
-			// 9x9 어느 위치에서든 전체 보드를 포함하는 전 범위 Spec입니다.
-			FaceStats.AbilityAreaSpec = MakeSquareAbilityAreaSpec(8);
-			FaceStats.bHasAbilityArea = true;
-			break;
-		case AdrenalineInjectionPistolWeaponID:
-			FaceStats.BaseNumericStats = { 1, 1, 2 };
-			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(2);
-			FaceStats.AbilityAreaSpec = MakeSquareAbilityAreaSpec(1);
-			FaceStats.bHasAbilityArea = true;
-			break;
-		case EmergencyResuscitationDeviceWeaponID:
-			FaceStats.BaseNumericStats = { 1, 1, 0 };
-			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(2);
-			FaceStats.AbilityAreaSpec = MakeSquareAbilityAreaSpec(1);
-			FaceStats.bHasAbilityArea = true;
-			break;
-		case CrushingDrillWeaponID:
-			FaceStats.BaseNumericStats = { 1, 1, 2 };
-			FaceStats.AttackAreaSpec = MakeForwardAttackAreaSpec(2);
-			FaceStats.AbilityAreaSpec = MakeSquareAbilityAreaSpec(1);
-			FaceStats.bHasAbilityArea = true;
-			break;
-		default:
-			return FWeaponFaceStats();
-		}
-
-		return FaceStats;
-	}
-
-	FWeaponStatDisplayData MakeTestWeaponStatData(int32 WeaponID)
-	{
-		const FWeaponFaceStats FaceStats = MakeTestWeaponFaceStats(WeaponID);
 		const FWeaponNumericStats& NumericStats = FaceStats.BaseNumericStats;
 		return { NumericStats.AttackPoint, NumericStats.WeaponPoint, NumericStats.WeaponCnt };
 	}
@@ -146,22 +65,27 @@ void UCoinManagementWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		: nullptr;
 
 	TArray<FCoinTypeStructure> InventoryCoinSlots;
-	if (IsValid(CrossingLevelSubsystem) && !CrossingLevelSubsystem->GetIsCoinEmpty())
+	if (IsValid(CrossingLevelSubsystem))
 	{
-		const int32 MadeCoinCount = CrossingLevelSubsystem->GetMakedCoinNum();
-		for (int32 SlotIndex = 0; SlotIndex < MadeCoinCount; ++SlotIndex)
+		// 중간 슬롯이 비어 있어도 뒤 슬롯을 잃지 않도록 고정된 10칸을 모두 확인합니다.
+		for (int32 SlotIndex = 0; SlotIndex < MaxReadyCoinCount; ++SlotIndex)
 		{
-			InventoryCoinSlots.Add(CrossingLevelSubsystem->GetSlotCoin(SlotIndex));
+			const FCoinTypeStructure CoinSlot = CrossingLevelSubsystem->GetSlotCoin(SlotIndex);
+			if (CoinSlot.SameTypeCoinNum > 0)
+			{
+				InventoryCoinSlots.Add(CoinSlot);
+			}
 		}
 	}
 
 	if (InventoryCoinSlots.IsEmpty())
 	{
-		CreateTestCoinSlots();
-		return;
+		CreateDummyCoinSlots();
 	}
-
-	InitializeCoinSlots(InventoryCoinSlots);
+	else
+	{
+		InitializeCoinSlots(InventoryCoinSlots);
+	}
 }
 
 bool UCoinManagementWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -177,7 +101,6 @@ bool UCoinManagementWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 
 void UCoinManagementWSubsystem::InitializeCoinSlots(const TArray<FCoinTypeStructure>& InCoinSlots)
 {
-	bUsingTestCoinData = false;
 	CoinSlots.Reset();
 	ReadyCoins.Init(FReadyCoinData(), MaxReadyCoinCount);
 
@@ -186,6 +109,12 @@ void UCoinManagementWSubsystem::InitializeCoinSlots(const TArray<FCoinTypeStruct
 	const UDataManagerSubsystem* DataManager = IsValid(GameInstance)
 		? GameInstance->GetSubsystem<UDataManagerSubsystem>()
 		: nullptr;
+	if (!IsValid(DataManager) || !DataManager->IsCacheReady())
+	{
+		UE_LOG(LogTemp, Error, TEXT("[CoinManager] 코인 슬롯 초기화 실패: DataManager 캐시가 준비되지 않았습니다."));
+		BroadcastCoinDataChanged();
+		return;
+	}
 
 	for (int32 SlotIndex = 0; SlotIndex < InCoinSlots.Num(); ++SlotIndex)
 	{
@@ -195,67 +124,66 @@ void UCoinManagementWSubsystem::InitializeCoinSlots(const TArray<FCoinTypeStruct
 			continue;
 		}
 
+		FFaceData FrontWeaponData;
+		FFaceData BackWeaponData;
+		if (!DataManager->TryGetWeapon(SourceSlot.FrontWeaponID, FrontWeaponData) ||
+			!DataManager->TryGetWeapon(SourceSlot.BackWeaponID, BackWeaponData))
+		{
+			UE_LOG(LogTemp, Error,
+				TEXT("[CoinManager] 코인 슬롯 제외: DB 무기 조회 실패. Slot=%d Front=%d Back=%d"),
+				SourceSlot.SlotNum + 1, SourceSlot.FrontWeaponID, SourceSlot.BackWeaponID);
+			continue;
+		}
+		int32 SlotHP = 0;
+		if (!ResolveCoinSlotHP(SourceSlot, DataManager, SlotHP))
+		{
+			continue;
+		}
+
+		const int32 DisplaySlotNumber = SourceSlot.SlotNum >= 0
+			? SourceSlot.SlotNum + 1
+			: SlotIndex + 1;
+		if (FindCoinSlot(DisplaySlotNumber))
+		{
+			UE_LOG(LogTemp, Error,
+				TEXT("[CoinManager] 코인 슬롯 제외: 중복 슬롯 번호입니다. Slot=%d"),
+				DisplaySlotNumber);
+			continue;
+		}
+
+		const FWeaponFaceStats FrontFaceStats = BuildWeaponFaceStatsFromDefinition(FrontWeaponData);
+		const FWeaponFaceStats BackFaceStats = BuildWeaponFaceStatsFromDefinition(BackWeaponData);
 		FBattleCoinSlotData& CoinSlot = CoinSlots.AddDefaulted_GetRef();
-		CoinSlot.SlotNumber = SlotIndex + 1;
+		CoinSlot.SlotNumber = DisplaySlotNumber;
 		CoinSlot.FrontWeaponID = SourceSlot.FrontWeaponID;
 		CoinSlot.BackWeaponID = SourceSlot.BackWeaponID;
-		CoinSlot.HP = ResolveCoinSlotHP(SourceSlot, DataManager);
+		CoinSlot.HP = SlotHP;
 		CoinSlot.AvailableCoinCount = SourceSlot.SameTypeCoinNum;
+		CoinSlot.FrontWeaponStats = BuildWeaponStatDisplayData(FrontFaceStats);
+		CoinSlot.BackWeaponStats = BuildWeaponStatDisplayData(BackFaceStats);
 	}
 
 	BroadcastCoinDataChanged();
 }
 
-void UCoinManagementWSubsystem::CreateTestCoinSlots()
+void UCoinManagementWSubsystem::CreateDummyCoinSlots()
 {
-	UWorld* World = GetWorld();
-	UGameInstance* GameInstance = IsValid(World) ? World->GetGameInstance() : nullptr;
-	UDataManagerSubsystem* DataManager = IsValid(GameInstance)
-		? GameInstance->GetSubsystem<UDataManagerSubsystem>()
-		: nullptr;
+	TArray<FCoinTypeStructure> DummyCoinSlots;
+	DummyCoinSlots.Reserve(UE_ARRAY_COUNT(DummyCoinWeaponPairs));
 
-	if (!IsValid(DataManager) || !DataManager->IsCacheReady() || DataManager->WeaponByID.IsEmpty())
+	for (int32 SlotIndex = 0; SlotIndex < UE_ARRAY_COUNT(DummyCoinWeaponPairs); ++SlotIndex)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[CoinManager] 테스트 코인 생성 실패: DataManager 무기 데이터가 준비되지 않았습니다."));
-		return;
+		const FDummyCoinWeaponPair& WeaponPair = DummyCoinWeaponPairs[SlotIndex];
+		FCoinTypeStructure& DummySlot = DummyCoinSlots.AddDefaulted_GetRef();
+		DummySlot.SlotNum = SlotIndex;
+		DummySlot.FrontWeaponID = WeaponPair.FrontWeaponID;
+		DummySlot.BackWeaponID = WeaponPair.BackWeaponID;
+		DummySlot.SameTypeCoinNum = 3;
+		DummySlot.Level = 1;
 	}
 
-	for (const FTestCoinWeaponPair& WeaponPair : TestCoinWeaponPairs)
-	{
-		FFaceData FrontWeaponData;
-		FFaceData BackWeaponData;
-		if (!DataManager->TryGetWeapon(WeaponPair.FrontWeaponID, FrontWeaponData) ||
-			!DataManager->TryGetWeapon(WeaponPair.BackWeaponID, BackWeaponData))
-		{
-			UE_LOG(LogTemp, Warning,
-				TEXT("[CoinManager] 테스트 코인 생성 실패: 고정 무기 ID를 찾지 못했습니다. Front=%d Back=%d"),
-				WeaponPair.FrontWeaponID, WeaponPair.BackWeaponID);
-			return;
-		}
-	}
-
-	TArray<FCoinTypeStructure> TestCoinSlots;
-	for (int32 SlotIndex = 0; SlotIndex < static_cast<int32>(UE_ARRAY_COUNT(TestCoinWeaponPairs)); ++SlotIndex)
-	{
-		const FTestCoinWeaponPair& WeaponPair = TestCoinWeaponPairs[SlotIndex];
-		FCoinTypeStructure& TestCoinSlot = TestCoinSlots.AddDefaulted_GetRef();
-		TestCoinSlot.SlotNum = SlotIndex + 1;
-		TestCoinSlot.FrontWeaponID = WeaponPair.FrontWeaponID;
-		TestCoinSlot.BackWeaponID = WeaponPair.BackWeaponID;
-		TestCoinSlot.SameTypeCoinNum = 10;
-		TestCoinSlot.Level = SlotIndex + 1;
-	}
-
-	InitializeCoinSlots(TestCoinSlots);
-	bUsingTestCoinData = true;
-
-	for (int32 SlotIndex = 0; SlotIndex < CoinSlots.Num(); ++SlotIndex)
-	{
-		// 테스트 코인이 스탯과 설명을 소유하고, PlayerController는 값을 전달만 합니다.
-		CoinSlots[SlotIndex].FrontWeaponStats = MakeTestWeaponStatData(CoinSlots[SlotIndex].FrontWeaponID);
-		CoinSlots[SlotIndex].BackWeaponStats = MakeTestWeaponStatData(CoinSlots[SlotIndex].BackWeaponID);
-	}
-	BroadcastCoinDataChanged();
+	// 더미는 ID와 슬롯 기본값만 소유하며, 스탯·HP·아이콘·사거리는 실제 DB 초기화 경로에서 조회합니다.
+	InitializeCoinSlots(DummyCoinSlots);
 }
 
 bool UCoinManagementWSubsystem::TryAddReadyCoinFromSlot(int32 SlotNumber)
@@ -320,6 +248,147 @@ bool UCoinManagementWSubsystem::TryCancelReadyCoin(int32 CoinInstanceID)
 	return true;
 }
 
+bool UCoinManagementWSubsystem::ReplaceReadyCoinWithSample(
+	int32 FrontWeaponID,
+	int32 BackWeaponID,
+	int32 ReadySlotNumber)
+{
+	const int32 ReadySlotIndex = ReadySlotNumber - 1;
+	if (!ReadyCoins.IsValidIndex(ReadySlotIndex))
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[CoinManager] CreateSampleCoin 실패: ReadySlot은 1~10이어야 합니다."));
+		return false;
+	}
+
+	const FReadyCoinData PreviousReadyCoin = ReadyCoins[ReadySlotIndex];
+	if (PreviousReadyCoin.CoinInstanceID == INDEX_NONE || PreviousReadyCoin.BaseMaxHP <= 0)
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[CoinManager] CreateSampleCoin 실패: ReadySlot=%d에 교체할 코인이 없습니다."),
+			ReadySlotNumber);
+		return false;
+	}
+	if (IsValid(CoinActionManager) && CoinActionManager->IsActionSequenceActive())
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[CoinManager] CreateSampleCoin 실패: 코인 행동 진행 중에는 교체할 수 없습니다."));
+		return false;
+	}
+
+	UWorld* World = GetWorld();
+	UGameInstance* GameInstance = IsValid(World) ? World->GetGameInstance() : nullptr;
+	UDataManagerSubsystem* DataManager = IsValid(GameInstance)
+		? GameInstance->GetSubsystem<UDataManagerSubsystem>()
+		: nullptr;
+	FFaceData FrontWeaponData;
+	FFaceData BackWeaponData;
+	if (!IsValid(DataManager) || !DataManager->IsCacheReady() ||
+		!DataManager->TryGetWeapon(FrontWeaponID, FrontWeaponData) ||
+		!DataManager->TryGetWeapon(BackWeaponID, BackWeaponData))
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[CoinManager] CreateSampleCoin 실패: DB 무기 조회 실패. Front=%d Back=%d"),
+			FrontWeaponID, BackWeaponID);
+		return false;
+	}
+	if (FrontWeaponData.WeaponType == EWeaponClass::None ||
+		!IsValid(FrontWeaponData.WeaponIcon) || !IsValid(BackWeaponData.WeaponIcon))
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[CoinManager] CreateSampleCoin 실패: 앞면 무기 클래스 또는 앞/뒷면 아이콘이 유효하지 않습니다."));
+		return false;
+	}
+
+	if (RuntimeCoinsByReadySlot.Num() != MaxReadyCoinCount)
+	{
+		RuntimeCoinsByReadySlot.SetNum(MaxReadyCoinCount);
+	}
+	ACoinActor* PreviousRuntimeCoin = RuntimeCoinsByReadySlot[ReadySlotIndex].Get();
+	if (IsValid(PreviousRuntimeCoin) && !IsValid(GridManager))
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[CoinManager] CreateSampleCoin 실패: 필드 코인 교체에 필요한 GridManager가 유효하지 않습니다."));
+		return false;
+	}
+
+	FReadyCoinData ReplacementCoin;
+	ReplacementCoin.CoinInstanceID = PreviousReadyCoin.CoinInstanceID;
+	ReplacementCoin.SourceSlotNumber = INDEX_NONE;
+	ReplacementCoin.FrontWeaponID = FrontWeaponID;
+	ReplacementCoin.BackWeaponID = BackWeaponID;
+	ReplacementCoin.CurrentHP = PreviousReadyCoin.BaseMaxHP;
+	ReplacementCoin.BaseMaxHP = PreviousReadyCoin.BaseMaxHP;
+	ReplacementCoin.Shield = 0;
+	ReplacementCoin.PersistentStatusEffects.Reset();
+	ReplacementCoin.bCanCancel = false;
+
+	if (!IsValid(PreviousRuntimeCoin))
+	{
+		ReadyCoins[ReadySlotIndex] = MoveTemp(ReplacementCoin);
+		BroadcastCoinDataChanged();
+		return true;
+	}
+
+	if (IsValid(CoinActionManager))
+	{
+		CoinActionManager->CancelSelectWeapon();
+	}
+
+	const FTransform PreviousTransform = PreviousRuntimeCoin->GetActorTransform();
+	const bool bWasHidden = PreviousRuntimeCoin->IsHidden();
+	const bool bHadCollision = PreviousRuntimeCoin->GetActorEnableCollision();
+	const EFaceState PreviousFace = PreviousRuntimeCoin->GetCoinDecidedFace();
+	const FGridPoint PreviousGrid = PreviousRuntimeCoin->GetDecidedGrid();
+	// BattleManager는 그리드 점유 성공 뒤에만 면을 결정하므로 None 여부로 배치 전/후를 구분합니다.
+	const bool bHadGridOccupation = PreviousFace != EFaceState::None;
+
+	ReadyCoins[ReadySlotIndex] = ReplacementCoin;
+	ACoinActor* ReplacementRuntimeCoin = SpawnRuntimeCoinActor(
+		ReadySlotIndex, PreviousTransform, bWasHidden, false);
+	if (!IsValid(ReplacementRuntimeCoin))
+	{
+		ReadyCoins[ReadySlotIndex] = PreviousReadyCoin;
+		return false;
+	}
+
+	ReplacementRuntimeCoin->SetGridPoint(PreviousGrid);
+	if (PreviousFace != EFaceState::None)
+	{
+		ReplacementRuntimeCoin->SetCoinFace(PreviousFace);
+	}
+	ReplacementRuntimeCoin->SetCoinIsActed(false);
+	ReplacementRuntimeCoin->SetCoinIsActing(false);
+
+	if (bHadGridOccupation)
+	{
+		GridManager->ReleaseCoinCell(PreviousGrid, PreviousRuntimeCoin);
+		if (!GridManager->TryOccupyCoinCell(PreviousGrid, ReplacementRuntimeCoin))
+		{
+			ReplacementRuntimeCoin->Destroy();
+			ReadyCoins[ReadySlotIndex] = PreviousReadyCoin;
+			GridManager->TryOccupyCoinCell(PreviousGrid, PreviousRuntimeCoin);
+			UE_LOG(LogTemp, Error,
+				TEXT("[CoinManager] CreateSampleCoin 실패: ReadySlot=%d의 그리드 점유 교체에 실패했습니다."),
+				ReadySlotNumber);
+			return false;
+		}
+	}
+
+	UnbindRuntimeCoinInteraction(PreviousRuntimeCoin);
+	PreviousRuntimeCoin->OnCoinDeathStarted.RemoveAll(this);
+	PreviousRuntimeCoin->Destroy();
+
+	ReplacementRuntimeCoin->SetActorHiddenInGame(bWasHidden);
+	ReplacementRuntimeCoin->SetActorEnableCollision(bHadCollision);
+	ReplacementRuntimeCoin->OnCoinDeathStarted.AddUObject(
+		this, &UCoinManagementWSubsystem::HandleRuntimeCoinDeathStarted);
+	BindRuntimeCoinInteraction(ReplacementRuntimeCoin);
+	RuntimeCoinsByReadySlot[ReadySlotIndex] = ReplacementRuntimeCoin;
+	BroadcastCoinDataChanged();
+	return true;
+}
+
 bool UCoinManagementWSubsystem::RemoveReadyCoinByInstanceID(int32 CoinInstanceID)
 {
 	const int32 ReadyCoinIndex = ReadyCoins.IndexOfByPredicate([CoinInstanceID](const FReadyCoinData& ReadyCoin)
@@ -363,26 +432,6 @@ int32 UCoinManagementWSubsystem::InstantiateReadyCoinActors()
 	}
 	BroadcastCoinDataChanged();
 
-	UWorld* World = GetWorld();
-	UGameInstance* GameInstance = IsValid(World) ? World->GetGameInstance() : nullptr;
-	UDataManagerSubsystem* DataManager = IsValid(GameInstance)
-		? GameInstance->GetSubsystem<UDataManagerSubsystem>()
-		: nullptr;
-	const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
-
-	if (!IsValid(World) || !IsValid(DataManager) || !DataManager->IsCacheReady() || !IsValid(Settings))
-	{
-		UE_LOG(LogTemp, Error, TEXT("[CoinManager] CoinActor 생성 실패: World, DataManager 또는 Settings가 유효하지 않습니다."));
-		return 0;
-	}
-
-	UClass* CoinClass = Settings->CoinActor.LoadSynchronous();
-	if (!IsValid(CoinClass) || !CoinClass->IsChildOf(ACoinActor::StaticClass()))
-	{
-		UE_LOG(LogTemp, Error, TEXT("[CoinManager] CoinActor 생성 실패: DeveloperSettings의 CoinActor 클래스가 유효하지 않습니다."));
-		return 0;
-	}
-
 	if (RuntimeCoinsByReadySlot.Num() != MaxReadyCoinCount)
 	{
 		RuntimeCoinsByReadySlot.SetNum(MaxReadyCoinCount);
@@ -396,88 +445,20 @@ int32 UCoinManagementWSubsystem::InstantiateReadyCoinActors()
 	int32 SpawnedCoinCount = 0;
 	for (int32 ReadySlotIndex = 0; ReadySlotIndex < ReadyCoins.Num(); ++ReadySlotIndex)
 	{
-		FReadyCoinData& ReadyCoin = ReadyCoins[ReadySlotIndex];
+		const FReadyCoinData& ReadyCoin = ReadyCoins[ReadySlotIndex];
 		if (ReadyCoin.CoinInstanceID == INDEX_NONE)
 		{
 			continue;
 		}
 
-		FFaceData FrontWeaponData;
-		FFaceData BackWeaponData;
-		if (!DataManager->TryGetWeapon(ReadyCoin.FrontWeaponID, FrontWeaponData) ||
-			!DataManager->TryGetWeapon(ReadyCoin.BackWeaponID, BackWeaponData))
-		{
-			UE_LOG(LogTemp, Error,
-				TEXT("[CoinManager] ReadySlot=%d CoinID=%d 생성 건너뜀: 무기 ID를 찾지 못했습니다. Front=%d Back=%d"),
-				ReadySlotIndex + 1, ReadyCoin.CoinInstanceID, ReadyCoin.FrontWeaponID, ReadyCoin.BackWeaponID);
-			continue;
-		}
-
-		if (!IsValid(FrontWeaponData.WeaponIcon) || !IsValid(BackWeaponData.WeaponIcon))
-		{
-			UE_LOG(LogTemp, Error,
-				TEXT("[CoinManager] ReadySlot=%d CoinID=%d 생성 건너뜀: 앞/뒷면 무기 아이콘이 유효하지 않습니다."),
-				ReadySlotIndex + 1, ReadyCoin.CoinInstanceID);
-			continue;
-		}
-
 		const FTransform SpawnTransform(FRotator::ZeroRotator, FVector(0.0f, 0.0f, -10000.0f));
-		ACoinActor* SpawnedCoin = World->SpawnActorDeferred<ACoinActor>(
-			CoinClass,
-			SpawnTransform,
-			nullptr,
-			nullptr,
-			ESpawnActorCollisionHandlingMethod::AlwaysSpawn
-		);
-
+		ACoinActor* SpawnedCoin = SpawnRuntimeCoinActor(
+			ReadySlotIndex, SpawnTransform, true, false);
 		if (!IsValid(SpawnedCoin))
 		{
-			UE_LOG(LogTemp, Error, TEXT("[CoinManager] ReadySlot=%d CoinID=%d CoinActor Deferred Spawn 실패."),
-				ReadySlotIndex + 1, ReadyCoin.CoinInstanceID);
 			continue;
 		}
 
-		SpawnedCoin->SetActorHiddenInGame(true);
-		SpawnedCoin->SetActorEnableCollision(false);
-
-		FCoinStatInitializeData StatInitializeData;
-		StatInitializeData.FrontWeaponStats = BuildTemporaryWeaponFaceStats(FrontWeaponData);
-		StatInitializeData.BackWeaponStats = BuildTemporaryWeaponFaceStats(BackWeaponData);
-		StatInitializeData.RuntimeState.BaseMaxHP = ReadyCoin.BaseMaxHP > 0
-			? ReadyCoin.BaseMaxHP
-			: ReadyCoin.CurrentHP;
-		StatInitializeData.RuntimeState.CurrentHP = ReadyCoin.CurrentHP;
-		StatInitializeData.RuntimeState.Shield = ReadyCoin.Shield;
-		StatInitializeData.RuntimeState.PersistentStatusEffects = ReadyCoin.PersistentStatusEffects;
-
-		const bool bInitialized = SpawnedCoin->SetCoinValues(
-			ReadyCoin.CoinInstanceID,
-			ReadyCoin.FrontWeaponID,
-			ReadyCoin.BackWeaponID,
-			FrontWeaponData.WeaponType,
-			FrontWeaponData.WeaponIcon,
-			BackWeaponData.WeaponIcon,
-			StatInitializeData
-		);
-
-		SpawnedCoin->SetCoinIsReady(false);
-		SpawnedCoin->SetCoinOnBattle(true);
-		SpawnedCoin->FinishSpawning(SpawnTransform);
-
-		if (!bInitialized || !IsValid(SpawnedCoin))
-		{
-			UE_LOG(LogTemp, Error, TEXT("[CoinManager] ReadySlot=%d CoinID=%d 초기화 실패."),
-				ReadySlotIndex + 1, ReadyCoin.CoinInstanceID);
-			if (IsValid(SpawnedCoin))
-			{
-				SpawnedCoin->Destroy();
-			}
-			continue;
-		}
-
-		SpawnedCoin->SetActorHiddenInGame(true);
-		SpawnedCoin->SetActorEnableCollision(false);
-		SpawnedCoin->SetWeaponDefinitions(FrontWeaponData, BackWeaponData);
 		SpawnedCoin->OnCoinDeathStarted.AddUObject(this, &UCoinManagementWSubsystem::HandleRuntimeCoinDeathStarted);
 		BindRuntimeCoinInteraction(SpawnedCoin);
 		RuntimeCoinsByReadySlot[ReadySlotIndex] = SpawnedCoin;
@@ -665,42 +646,141 @@ const FBattleCoinSlotData* UCoinManagementWSubsystem::FindCoinSlot(int32 SlotNum
 	});
 }
 
-int32 UCoinManagementWSubsystem::ResolveCoinSlotHP(
+bool UCoinManagementWSubsystem::ResolveCoinSlotHP(
 	const FCoinTypeStructure& CoinSlot,
-	const UDataManagerSubsystem* DataManager) const
+	const UDataManagerSubsystem* DataManager,
+	int32& OutHP) const
 {
+	OutHP = 0;
 	int32 Cost = 0;
 	int32 HP = 0;
 	if (IsValid(DataManager) && DataManager->GetCoinSlotLevelStats(CoinSlot, Cost, HP) && HP > 0)
 	{
-		return HP;
+		OutHP = HP;
+		return true;
 	}
 
-	const int32 FallbackHP = FMath::Clamp(CoinSlot.Level, 1, 3) * 5;
-	UE_LOG(LogTemp, Warning,
-		TEXT("[CoinManager] 슬롯 레벨 HP 조회 실패: Level=%d, fallback HP=%d를 사용합니다."),
-		CoinSlot.Level, FallbackHP);
-	return FallbackHP;
+	UE_LOG(LogTemp, Error,
+		TEXT("[CoinManager] 슬롯 레벨 HP 조회 실패: Level=%d. 하드코딩 fallback을 사용하지 않습니다."),
+		CoinSlot.Level);
+	return false;
 }
 
-FWeaponFaceStats UCoinManagementWSubsystem::BuildTemporaryWeaponFaceStats(const FFaceData& LegacyFaceData) const
+ACoinActor* UCoinManagementWSubsystem::SpawnRuntimeCoinActor(
+	int32 ReadySlotIndex,
+	const FTransform& SpawnTransform,
+	bool bHiddenInGame,
+	bool bCollisionEnabled)
 {
-	if (bUsingTestCoinData)
+	if (!ReadyCoins.IsValidIndex(ReadySlotIndex))
 	{
-		return MakeTestWeaponFaceStats(LegacyFaceData.WeaponID);
+		return nullptr;
 	}
 
-	FWeaponFaceStats FaceStats;
-	FaceStats.WeaponID = LegacyFaceData.WeaponID;
-	FaceStats.BaseNumericStats.AttackPoint = FMath::Max(0, LegacyFaceData.AttackPoint);
-	FaceStats.BaseNumericStats.WeaponPoint = FMath::Max(0, LegacyFaceData.BehaviorPoint);
-	// DB에 횟수 필드가 추가되기 전에는 기획대로 0으로 표시합니다.
-	FaceStats.BaseNumericStats.WeaponCnt = 0;
-	FaceStats.AttackAreaSpec = LegacyFaceData.AttackAreaSpec;
-	// TODO(DB_ABILITY_AREA_RECONNECT): DataManager가 능력 사거리 컬럼을 읽기 시작하면 이 값이 채워집니다.
-	FaceStats.AbilityAreaSpec = LegacyFaceData.AbilityAreaSpec;
-	FaceStats.bHasAbilityArea = false;
-	return FaceStats;
+	const FReadyCoinData& ReadyCoin = ReadyCoins[ReadySlotIndex];
+	if (ReadyCoin.CoinInstanceID == INDEX_NONE || ReadyCoin.CurrentHP <= 0)
+	{
+		return nullptr;
+	}
+
+	UWorld* World = GetWorld();
+	UGameInstance* GameInstance = IsValid(World) ? World->GetGameInstance() : nullptr;
+	UDataManagerSubsystem* DataManager = IsValid(GameInstance)
+		? GameInstance->GetSubsystem<UDataManagerSubsystem>()
+		: nullptr;
+	const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+	if (!IsValid(World) || !IsValid(DataManager) || !DataManager->IsCacheReady() || !IsValid(Settings))
+	{
+		UE_LOG(LogTemp, Error,
+			TEXT("[CoinManager] ReadySlot=%d CoinActor 생성 실패: World, DataManager 또는 Settings가 유효하지 않습니다."),
+			ReadySlotIndex + 1);
+		return nullptr;
+	}
+
+	FFaceData FrontWeaponData;
+	FFaceData BackWeaponData;
+	if (!DataManager->TryGetWeapon(ReadyCoin.FrontWeaponID, FrontWeaponData) ||
+		!DataManager->TryGetWeapon(ReadyCoin.BackWeaponID, BackWeaponData))
+	{
+		UE_LOG(LogTemp, Error,
+			TEXT("[CoinManager] ReadySlot=%d CoinID=%d 생성 실패: DB 무기 조회 실패. Front=%d Back=%d"),
+			ReadySlotIndex + 1, ReadyCoin.CoinInstanceID,
+			ReadyCoin.FrontWeaponID, ReadyCoin.BackWeaponID);
+		return nullptr;
+	}
+	if (!IsValid(FrontWeaponData.WeaponIcon) || !IsValid(BackWeaponData.WeaponIcon) ||
+		FrontWeaponData.WeaponType == EWeaponClass::None)
+	{
+		UE_LOG(LogTemp, Error,
+			TEXT("[CoinManager] ReadySlot=%d CoinID=%d 생성 실패: 앞면 무기 클래스 또는 앞/뒷면 아이콘이 유효하지 않습니다."),
+			ReadySlotIndex + 1, ReadyCoin.CoinInstanceID);
+		return nullptr;
+	}
+
+	UClass* CoinClass = Settings->CoinActor.LoadSynchronous();
+	if (!IsValid(CoinClass) || !CoinClass->IsChildOf(ACoinActor::StaticClass()))
+	{
+		UE_LOG(LogTemp, Error,
+			TEXT("[CoinManager] ReadySlot=%d CoinActor 생성 실패: DeveloperSettings의 CoinActor 클래스가 유효하지 않습니다."),
+			ReadySlotIndex + 1);
+		return nullptr;
+	}
+
+	ACoinActor* SpawnedCoin = World->SpawnActorDeferred<ACoinActor>(
+		CoinClass,
+		SpawnTransform,
+		nullptr,
+		nullptr,
+		ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	if (!IsValid(SpawnedCoin))
+	{
+		UE_LOG(LogTemp, Error,
+			TEXT("[CoinManager] ReadySlot=%d CoinID=%d Deferred Spawn 실패."),
+			ReadySlotIndex + 1, ReadyCoin.CoinInstanceID);
+		return nullptr;
+	}
+
+	SpawnedCoin->SetActorHiddenInGame(bHiddenInGame);
+	SpawnedCoin->SetActorEnableCollision(bCollisionEnabled);
+
+	FCoinStatInitializeData StatInitializeData;
+	StatInitializeData.FrontWeaponStats = BuildWeaponFaceStatsFromDefinition(FrontWeaponData);
+	StatInitializeData.BackWeaponStats = BuildWeaponFaceStatsFromDefinition(BackWeaponData);
+	StatInitializeData.RuntimeState.BaseMaxHP = ReadyCoin.BaseMaxHP > 0
+		? ReadyCoin.BaseMaxHP
+		: ReadyCoin.CurrentHP;
+	StatInitializeData.RuntimeState.CurrentHP = ReadyCoin.CurrentHP;
+	StatInitializeData.RuntimeState.Shield = ReadyCoin.Shield;
+	StatInitializeData.RuntimeState.PersistentStatusEffects = ReadyCoin.PersistentStatusEffects;
+
+	const bool bInitialized = SpawnedCoin->SetCoinValues(
+		ReadyCoin.CoinInstanceID,
+		ReadyCoin.FrontWeaponID,
+		ReadyCoin.BackWeaponID,
+		FrontWeaponData.WeaponType,
+		FrontWeaponData.WeaponIcon,
+		BackWeaponData.WeaponIcon,
+		StatInitializeData);
+	SpawnedCoin->SetCoinIsReady(false);
+	SpawnedCoin->SetCoinOnBattle(true);
+	SpawnedCoin->FinishSpawning(SpawnTransform);
+
+	if (!bInitialized || !IsValid(SpawnedCoin))
+	{
+		UE_LOG(LogTemp, Error,
+			TEXT("[CoinManager] ReadySlot=%d CoinID=%d 초기화 실패."),
+			ReadySlotIndex + 1, ReadyCoin.CoinInstanceID);
+		if (IsValid(SpawnedCoin))
+		{
+			SpawnedCoin->Destroy();
+		}
+		return nullptr;
+	}
+
+	SpawnedCoin->SetActorHiddenInGame(bHiddenInGame);
+	SpawnedCoin->SetActorEnableCollision(bCollisionEnabled);
+	SpawnedCoin->SetWeaponDefinitions(FrontWeaponData, BackWeaponData);
+	return SpawnedCoin;
 }
 
 void UCoinManagementWSubsystem::BroadcastCoinDataChanged()

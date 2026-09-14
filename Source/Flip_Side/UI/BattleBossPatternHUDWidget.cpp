@@ -4,8 +4,10 @@
 #include "UI/BattleBossPatternHUDWidget.h"
 
 #include "Components/Button.h"
+#include "Components/Border.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Components/RichTextBlock.h"
 
 void UBattleBossPatternHUDWidget::NativeConstruct()
 {
@@ -31,6 +33,43 @@ void UBattleBossPatternHUDWidget::SetBossHUDData(const FBossHUDData& InData)
 	if (IsValid(PatternName))
 	{
 		PatternName->SetText(FText::FromString(InData.PatternName));
+	}
+
+	if (IsValid(PatternTypeText))
+	{
+		PatternTypeText->SetText(InData.bIsGimmick
+			? NSLOCTEXT("BattleBossPatternHUD", "GimmickType", "<Gimmick>기믹</>")
+			: NSLOCTEXT("BattleBossPatternHUD", "PatternType", "<Pattern>패턴</>"));
+	}
+
+	if (IsValid(PatternTypeBorder))
+	{
+		PatternTypeBorder->SetBrushColor(InData.bIsGimmick
+			? GimmickBackgroundColor : PatternBackgroundColor);
+	}
+
+	if (IsValid(PatternDamage))
+	{
+		PatternDamage->SetText(InData.bShowPatternDamage
+			? (InData.bPatternNoDamage
+				? NSLOCTEXT("BattleBossPatternHUD", "NoDamage", "피해 없음")
+				: FText::AsNumber(InData.PatternDamage))
+			: FText::GetEmpty());
+		PatternDamage->SetVisibility(InData.bShowPatternDamage
+			? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	}
+
+	const bool bShowConditionalDamage = InData.bShowPatternDamage
+		&& !InData.bPatternNoDamage && InData.bHasConditionalPatternDamage;
+	if (IsValid(ConditonalPatternDamage))
+	{
+		ConditonalPatternDamage->SetText(bShowConditionalDamage
+			? FText::AsNumber(InData.ConditionalPatternDamage) : FText::GetEmpty());
+	}
+	if (IsValid(ConditionalPatternDamagePannel))
+	{
+		ConditionalPatternDamagePannel->SetVisibility(bShowConditionalDamage
+			? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 
 	if (IsValid(PatternImage))
@@ -62,6 +101,25 @@ void UBattleBossPatternHUDWidget::HandlePatternUnhovered()
 
 void UBattleBossPatternHUDWidget::ClearPatternData()
 {
+	if (IsValid(PatternTypeText))
+	{
+		PatternTypeText->SetText(FText::GetEmpty());
+	}
+
+	if (IsValid(PatternDamage))
+	{
+		PatternDamage->SetText(FText::GetEmpty());
+		PatternDamage->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	if (IsValid(ConditonalPatternDamage))
+	{
+		ConditonalPatternDamage->SetText(FText::GetEmpty());
+	}
+	if (IsValid(ConditionalPatternDamagePannel))
+	{
+		ConditionalPatternDamagePannel->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
 	if (IsValid(PatternName))
 	{
 		PatternName->SetText(FText::GetEmpty());

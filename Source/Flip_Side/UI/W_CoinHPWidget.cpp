@@ -9,9 +9,11 @@ void UW_CoinHPWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    UMaterialInterface* Mat = Cast<UMaterialInterface>(HpImage->GetBrush().GetResourceObject());
-    MID = UMaterialInstanceDynamic::Create(Mat, this);
-    HpImage->SetBrushFromMaterial(MID);
+    if (IsValid(HpImage))
+    {
+        MID = HpImage->GetDynamicMaterial();
+        SetHpPrgressBar(MaxHp > 0 ? static_cast<float>(CurrentHp) / MaxHp : 0.0f);
+    }
 
 }
 void UW_CoinHPWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -36,10 +38,12 @@ void UW_CoinHPWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
     }
 }
 
-void UW_CoinHPWidget::InitHpWidget(int32 MaxHpValue)
+void UW_CoinHPWidget::InitHpWidget(int32 MaxHpValue, int32 CurrentHpValue)
 {
-    SetMaxHp(MaxHpValue);
-    SetCurrentHp(MaxHpValue);
+    SetMaxHp(FMath::Max(1, MaxHpValue));
+    SetCurrentHp(FMath::Clamp(CurrentHpValue, 0, MaxHp));
+    IsHpAnimating = false;
+    SetHpPrgressBar(static_cast<float>(CurrentHp) / MaxHp);
 }
 	
 void UW_CoinHPWidget::SetMaxHp(int32 MaxHpValue)
@@ -54,25 +58,10 @@ void UW_CoinHPWidget::SetCurrentHp(int32 Hpvalue)
 
 void UW_CoinHPWidget::ChangeMaxHp(int32 Hpvalue)
 {
-    if(MaxHp + Hpvalue < CurrentHp)
-    {
-        ChangeCurrentHp(Hpvalue);
-        return;
-    }
-
-    StartHpPercent =  static_cast<float>(CurrentHp)/MaxHp;
-
-    if(MaxHp + Hpvalue <=0)
-    {
-        TargetHpPercent = 0;
-    }
-    else
-    {
-        MaxHp += Hpvalue;
-    }
-
-    TargetHpPercent =  static_cast<float>(CurrentHp)/MaxHp;
-
+    StartHpPercent = MaxHp > 0 ? static_cast<float>(CurrentHp) / MaxHp : 0.0f;
+    MaxHp = FMath::Max(1, MaxHp + Hpvalue);
+    // 현재 HP 변화는 뒤이어 전달되는 OnHpChanged에서 한 번만 반영합니다.
+    TargetHpPercent = FMath::Clamp(static_cast<float>(CurrentHp) / MaxHp, 0.0f, 1.0f);
     StartHpAnimation();
 }
 
@@ -93,7 +82,7 @@ void UW_CoinHPWidget::ChangeCurrentHp(int32 HPModifier)
 	
 void UW_CoinHPWidget::SetHpPrgressBar(float Percentage)
 {
-    if(MID)
+    if(IsValid(MID))
     {
         MID->SetScalarParameterValue(TEXT("HpPercent"), Percentage);
     }

@@ -59,6 +59,16 @@ void UOthersWSubsystem::RegisterOther(ABase_OtherActor* TargetOther)
 	TargetOther->OnOtherDead.AddUniqueDynamic(this, &UOthersWSubsystem::HandleOtherDead);
 }
 
+void UOthersWSubsystem::AdvanceDurationsAtTurnEnd()
+{
+	// 사망 콜백에서 ActiveOthers가 변경되므로 복사본을 순회합니다.
+	const TArray<ABase_OtherActor*> TurnEndOthers = ActiveOthers;
+	for (ABase_OtherActor* Other : TurnEndOthers)
+	{
+		if (IsValid(Other)) Other->AdvanceDurationAtTurnEnd();
+	}
+}
+
 void UOthersWSubsystem::UnregisterOther(ABase_OtherActor* TargetOther)
 {
 	if(!TargetOther) return;
@@ -95,7 +105,7 @@ void UOthersWSubsystem::RemoveOther(ABase_OtherActor* TargetOther)
 {
 	if(!IsValid(TargetOther)) return;
 
-	if(AGridActor* OccupiedGrid = TargetOther->GetOccupiedGrid())
+	if(AGridActor* OccupiedGrid = TargetOther->GetOccupiedGrid(); IsValid(OccupiedGrid))
 	{
 		if(OccupiedGrid->GetCurrentOccupied() == TargetOther)
 		{

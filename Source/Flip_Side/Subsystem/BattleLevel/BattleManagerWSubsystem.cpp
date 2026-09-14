@@ -18,6 +18,7 @@
 #include "BattleLevelActingWSubsystem.h"
 #include "SoundManagerWSubsystem.h"
 #include "CoinActionManagementWSubsystem.h"
+#include "OthersWSubsystem.h"
 #include "DataManagerSubsystem.h"
 #include "Subsystem/MoneyGISubsystem.h"
 #include "Subsystem/StageCardWSubsystem.h"
@@ -46,6 +47,7 @@ void UBattleManagerWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     ItemManager = Collection.InitializeDependency<UUseableItemWSubsystem>();
     ActingManager = Collection.InitializeDependency<UBattleLevelActingWSubsystem>();
     CoinActionManager = Collection.InitializeDependency<UCoinActionManagementWSubsystem>();
+    Collection.InitializeDependency<UOthersWSubsystem>();
     BossManager = Collection.InitializeDependency<UBossManagerSubsystem>();
     SoundManager = Collection.InitializeDependency<USoundManagerWSubsystem>();
 
@@ -354,7 +356,7 @@ void UBattleManagerWSubsystem::DoCoinBehaviorPhase()
 
     if (IsValid(CoinActionManager))
     {
-        // TODO: DB 기반 CoinBehaviorPhase 행동 리팩터링 완료 후 true로 전환합니다.
+        // DB 코인을 배치하는 동안 입력을 잠그고, 실제 착지가 끝난 콜백에서 다시 엽니다.
         CoinActionManager->SetPhase(false);
     }
 
@@ -441,6 +443,15 @@ void UBattleManagerWSubsystem::DoSettingPhase()
     if (bIsStageEnded) return;
 
     TurnCount++;
+
+    // 첫 SettingPhase는 아직 완료된 턴이 없으므로 설치물 수명을 차감하지 않습니다.
+    if (TurnCount > 1 && IsValid(GetWorld()))
+    {
+        if (UOthersWSubsystem* Others = GetWorld()->GetSubsystem<UOthersWSubsystem>(); IsValid(Others))
+        {
+            Others->AdvanceDurationsAtTurnEnd();
+        }
+    }
 
     if (StageCardManager)
     {

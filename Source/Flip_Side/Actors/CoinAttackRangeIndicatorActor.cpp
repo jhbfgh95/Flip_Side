@@ -2,6 +2,7 @@
 
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 ACoinAttackRangeIndicatorActor::ACoinAttackRangeIndicatorActor()
 {
@@ -38,13 +39,30 @@ void ACoinAttackRangeIndicatorActor::BeginPlay()
 	if (IsValid(EndCapMesh))
 	{
 		DefaultEndCapRelativeScale = EndCapMesh->GetRelativeScale3D();
+		EndCapDynamicMaterial = EndCapMesh->CreateDynamicMaterialInstance(0);
+		if (IsValid(EndCapDynamicMaterial))
+		{
+			bHasDefaultEndCapColor = EndCapDynamicMaterial->GetVectorParameterValue(
+				FMaterialParameterInfo(TEXT("Color")), DefaultEndCapColor);
+		}
 	}
+	if (IsValid(LineBodyMesh))
+	{
+		BodyDynamicMaterial = LineBodyMesh->CreateDynamicMaterialInstance(0);
+		if (IsValid(BodyDynamicMaterial))
+		{
+			bHasDefaultBodyColor = BodyDynamicMaterial->GetVectorParameterValue(
+				FMaterialParameterInfo(TEXT("Color")), DefaultBodyColor);
+		}
+	}
+	HideRange();
 }
 
 bool ACoinAttackRangeIndicatorActor::ShowRange(
 	const FVector& AttackStartCellWorldLocation,
 	const FVector& AttackEndCellWorldLocation,
-	const FVector& ForwardWorldDirection)
+	const FVector& ForwardWorldDirection,
+	bool bBossInRange)
 {
 	HideRange();
 
@@ -66,7 +84,10 @@ bool ACoinAttackRangeIndicatorActor::ShowRange(
 	}
 
 	const FQuat DirectionRotation = FlatDirection.Rotation().Quaternion();
-	const FQuat FinalRotation = DirectionRotation * MeshRotationOffset.Quaternion();
+	// Blender X Forward/Z Up Export 기준의 Body 로컬 +Y를 언리얼 공격 방향(+X)에 맞춥니다.
+	const FQuat BodyAxisCorrection = FRotator(0.0f, -90.0f, 0.0f).Quaternion();
+	const FQuat FinalRotation =
+		DirectionRotation * BodyAxisCorrection * MeshRotationOffset.Quaternion();
 	const float GridVisualHalfLength = FMath::Max(1.0f, GridVisualLength) * 0.5f;
 
 	// 셀 중심 간격에는 그리드 사이의 틈이 포함되므로 실제 메시 크기로 경계를 계산합니다.
@@ -76,41 +97,57 @@ bool ACoinAttackRangeIndicatorActor::ShowRange(
 		AttackEndCellWorldLocation - FlatDirection * GridVisualHalfLength;
 	const FVector EndCapWorldLocation =
 		AttackEndCellWorldLocation + FlatDirection * GridVisualHalfLength;
-	FVector BodyDirection = BodyEndWorldLocation - BodyStartWorldLocation;
-	BodyDirection.Z = 0.0f;
-	const float LineLength = BodyDirection.Size();
+	FVector BaseBodyDirection = BodyEndWorldLocation - BodyStartWorldLocation;
+	BaseBodyDirection.Z = 0.0f;
+	const bool bEndCapOnly = BaseBodyDirection.IsNearlyZero();
 
 	FVector EndCapScale = DefaultEndCapRelativeScale;
-	if (LineLength <= KINDA_SMALL_NUMBER)
+	if (bEndCapOnly)
 	{
 		EndCapScale.Y = SingleCellEndCapYScale;
 	}
 	EndCapMesh->SetRelativeScale3D(EndCapScale);
+	if (bBossInRange)
+	{
+		if (IsValid(BodyDynamicMaterial) && bHasDefaultBodyColor)
+		{
+			BodyDynamicMaterial->SetVectorParameterValue(TEXT("Color"), InRangeColor);
+		}
+		if (IsValid(EndCapDynamicMaterial) && bHasDefaultEndCapColor)
+		{
+			EndCapDynamicMaterial->SetVectorParameterValue(TEXT("Color"), InRangeColor);
+		}
+	}
 
 	FVector RaisedEndCapLocation = EndCapWorldLocation;
 	RaisedEndCapLocation.Z += PreviewHeightOffset;
 	RaisedEndCapLocation.X -= CamOffset;
 	// EndCap의 방향은 BP에서 직접 맞추므로 런타임에는 위치만 변경합니다.
 	EndCapMesh->SetWorldLocation(RaisedEndCapLocation);
-	EndCapMesh->SetVisibility(true);
+	EndCapMesh->SetVisibility(!bBossInRange);
 
 	// 사거리가 한 칸이면 마지막 칸을 EndCap이 전부 차지하므로 Body는 표시하지 않습니다.
-	if (LineLength <= KINDA_SMALL_NUMBER)
+	if (bEndCapOnly)
 	{
 		return true;
 	}
 
 	FVector RaisedStartLocation = BodyStartWorldLocation;
 	RaisedStartLocation.Z += PreviewHeightOffset;
-	FVector RaisedBodyEndLocation = BodyEndWorldLocation;
+	// EndCap 메시의 경계와 살짝 겹치게 해 투명 머테리얼 사이의 이음새가 드러나지 않게 합니다.
+	FVector RaisedBodyEndLocation =
+		BodyEndWorldLocation + FlatDirection * FMath::Max(0.0f, BodyEndOverlap);
 	RaisedBodyEndLocation.Z += PreviewHeightOffset;
+	FVector BodyDirection = RaisedBodyEndLocation - RaisedStartLocation;
+	BodyDirection.Z = 0.0f;
+	const float LineLength = BodyDirection.Size();
 	const FVector Midpoint = (RaisedStartLocation + RaisedBodyEndLocation) * 0.5f;
 	const float SafeNativeLength = FMath::Max(1.0f, LineBodyNativeLength);
 
 	LineBodyMesh->SetWorldLocationAndRotation(Midpoint, FinalRotation);
-	// X는 사거리에 맞게 자동 조절하고, Y/Z는 BP 컴포넌트에서 지정한 두께를 그대로 유지합니다.
+	// Blender의 길이 축인 Y만 자동 조절하고, X/Z는 BP에서 지정한 두께를 그대로 유지합니다.
 	FVector LineBodyScale = LineBodyMesh->GetRelativeScale3D();
-	LineBodyScale.X = LineLength / SafeNativeLength;
+	LineBodyScale.Y = LineLength / SafeNativeLength;
 	LineBodyMesh->SetRelativeScale3D(LineBodyScale);
 	LineBodyMesh->SetVisibility(true);
 	return true;
@@ -118,6 +155,14 @@ bool ACoinAttackRangeIndicatorActor::ShowRange(
 
 void ACoinAttackRangeIndicatorActor::HideRange()
 {
+	if (IsValid(BodyDynamicMaterial) && bHasDefaultBodyColor)
+	{
+		BodyDynamicMaterial->SetVectorParameterValue(TEXT("Color"), DefaultBodyColor);
+	}
+	if (IsValid(EndCapDynamicMaterial) && bHasDefaultEndCapColor)
+	{
+		EndCapDynamicMaterial->SetVectorParameterValue(TEXT("Color"), DefaultEndCapColor);
+	}
 	if (IsValid(LineBodyMesh))
 	{
 		LineBodyMesh->SetVisibility(false);

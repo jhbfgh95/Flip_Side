@@ -24,13 +24,18 @@ class FLIP_SIDE_API ATurret_OtherActor : public ABase_OtherActor, public IBattle
 	UPROPERTY(VisibleAnywhere, Category = "Others | Stat")
 	int32 AttackPoint = 0;
 
-	UPROPERTY(VisibleAnywhere);
-	class ABossActor* CachedBoss = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Others | Range Preview", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class USceneComponent> AttackRangeBracketAnchor;
 
-	class UGridManagerSubsystem* GridManager;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Others | Range Preview", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UStaticMeshComponent> AttackRangeBracketMesh;
 
 	bool bIsActed = false;
 public:
+	ATurret_OtherActor();
+	const FAttackAreaSpec& GetAttackAreaSpec() const { return TurretSpec; }
+	FGridPoint GetAttackOrigin() const { return TurretSpawnGrid; }
+	void SetAttackRangeBracketVisible(bool bVisible);
 	/** 자동포탑을 설치한 무기의 공격 사거리를 그대로 주입합니다. */
 	void InitializeTurret(FGridPoint TargetGrid, const FAttackAreaSpec& AttackAreaSpec);
 

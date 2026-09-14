@@ -24,7 +24,8 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* HpImage;
 
-	UMaterialInstanceDynamic* MID;
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> MID = nullptr;
 
 private:
 	int32 MaxHp = 0;
@@ -50,7 +51,7 @@ private:
 	void SetCurrentHp(int32 Hpvalue);
 	
 public:
-	void InitHpWidget(int32 MaxHpValue);
+	void InitHpWidget(int32 MaxHpValue, int32 CurrentHpValue);
 	void ChangeMaxHp(int32 HPModifier);
 
 	UFUNCTION()

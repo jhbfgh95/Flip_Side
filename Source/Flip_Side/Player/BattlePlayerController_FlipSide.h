@@ -18,7 +18,10 @@ class IBattleHoverInterface;
 class IBattleClickInterface;
 class UBattlePlayerHUDWidget;
 class ABossActor;
+class ABossCoinActor;
 class ACoinActor;
+class ATurret_OtherActor;
+struct FAttackAreaSpec;
 class ACoinAttackRangeIndicatorActor;
 class AAbilityRangeActor;
 class UComponent_Status;
@@ -95,8 +98,13 @@ private:
     void EndBattleCoinActorHover(ACoinActor* ExpectedCoin = nullptr);
     void SpawnBattleRangePreviewActors();
     void RefreshBattleCoinRangePreviews();
+    bool ShowAttackRangePreview(const FGridPoint& Origin, const FAttackAreaSpec& Spec);
+    void UpdateTurretRangePreview();
+    TWeakObjectPtr<ATurret_OtherActor> HoveredRangeTurret;
+    bool bShowingTurretRange = false;
     void ShowBattleCoinRangePreviews(ACoinActor* CoinActor);
     void HideBattleCoinRangePreviews(ACoinActor* CoinActor = nullptr);
+    void SetBossTargetArrowVisible(bool bVisible);
     void ObserveBattleInfoCoin(ACoinActor* CoinActor);
     void StopObservingBattleInfoCoin();
     void RefreshHoveredBattleCoinInfo();
@@ -172,6 +180,14 @@ protected:
     AActor* LastHoveredActor;
 
     TWeakObjectPtr<ACoinActor> HoveredBattleCoin;
+    TWeakObjectPtr<ABossCoinActor> RangePreviewBossCoin;
+    TWeakObjectPtr<ABossActor> RangePreviewBoss;
+    FGridPoint RangePreviewCoinCell = FGridPoint{ -1, -1 };
+    EFaceState RangePreviewCoinFace = EFaceState::None;
+    bool bRangePreviewHasBoss = false;
+    void UpdateActionAbilityRangePreview();
+    bool bShowingActionAbilityRange = false;
+    TArray<FVector> AbilityRangePreviewLocations;
     TWeakObjectPtr<ACoinActor> ObservedBattleInfoCoin;
     TWeakObjectPtr<UComponent_Status> ObservedBattleInfoStatus;
     int32 HoveredReadyCoinInstanceID = INDEX_NONE;
@@ -189,6 +205,10 @@ public:
 	virtual void PlayerTick(float DeltaTime) override; // 매 프레임 마우스 호버 감지용
 
 	bool GetCursorWorldLocationOnPlane(float PlaneZ, FVector& OutWorldLocation) const;
+
+	/** 기존 ReadyCoin을 DB 무기 ID로 만든 초기 상태의 디버그 코인으로 교체합니다. */
+	UFUNCTION(Exec)
+	void CreateSampleCoin(int32 FrontID, int32 BackID, int32 ReadyCoinSlotNum);
 
 	UFUNCTION(BlueprintCallable)
 	void SetInputForTutorial(bool bEnable);

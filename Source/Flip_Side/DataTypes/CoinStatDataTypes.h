@@ -5,6 +5,8 @@
 #include "DataTypes/FlipSide_Enum.h"
 #include "CoinStatDataTypes.generated.h"
 
+struct FFaceData;
+
 /** 상태효과가 현재 턴에만 남는지, 전투가 끝날 때까지 남는지 구분합니다. */
 UENUM(BlueprintType)
 enum class EBuffDurationType : uint8
@@ -330,3 +332,6 @@ struct FStatusEffectsChangedEvent
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsActive = false;
 };
+
+/** DataManager의 무기 정의를 전투 스냅숏이 사용하는 양면 기본 스탯으로 변환합니다. */
+FLIP_SIDE_API FWeaponFaceStats BuildWeaponFaceStatsFromDefinition(const FFaceData& WeaponDefinition);
