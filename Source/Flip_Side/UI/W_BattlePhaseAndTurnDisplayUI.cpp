@@ -2,8 +2,6 @@
 
 
 #include "UI/W_BattlePhaseAndTurnDisplayUI.h"
-#include "Animation/WidgetAnimation.h"
-#include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
@@ -35,33 +33,11 @@ namespace
 void UW_BattlePhaseAndTurnDisplayUI::NativeConstruct()
 {
     Super::NativeConstruct();
-
-    if (IsValid(PhaseProgressButton))
-    {
-        PhaseProgressButton->OnClicked.RemoveAll(this);
-        PhaseProgressButton->OnClicked.AddDynamic(this, &UW_BattlePhaseAndTurnDisplayUI::HandlePhaseProgressButtonClicked);
-    }
-
-	if (IsValid(LeverPull_Player))
-	{
-		FWidgetAnimationDynamicEvent PlayerAnimationFinishedEvent;
-		PlayerAnimationFinishedEvent.BindDynamic(this, &UW_BattlePhaseAndTurnDisplayUI::HandlePlayerLeverAnimationFinished);
-		BindToAnimationFinished(LeverPull_Player, PlayerAnimationFinishedEvent);
-	}
-
-	if (IsValid(LeverPull_Boss))
-	{
-		FWidgetAnimationDynamicEvent BossAnimationFinishedEvent;
-		BossAnimationFinishedEvent.BindDynamic(this, &UW_BattlePhaseAndTurnDisplayUI::HandleBossLeverAnimationFinished);
-		BindToAnimationFinished(LeverPull_Boss, BossAnimationFinishedEvent);
-	}
-
-	UpdatePhaseIndicator(EPhaseState::None);
+    UpdatePhaseIndicator(EPhaseState::None);
 }
 
 void UW_BattlePhaseAndTurnDisplayUI::SetPhaseDisplay(EPhaseState CurrentPhase, int32 TurnCount)
 {
-	DisplayedPhase = CurrentPhase;
 	UpdatePhaseIndicator(CurrentPhase);
 
 	if (CurrentPhase == EPhaseState::SettingPhase)
@@ -70,82 +46,17 @@ void UW_BattlePhaseAndTurnDisplayUI::SetPhaseDisplay(EPhaseState CurrentPhase, i
 		return;
 	}
 
-	UpdatePhaseProgressButtonState();
-
-    if (PhaseRichTextBlock)
+    if (IsValid(PhaseRichTextBlock))
     {
         PhaseRichTextBlock->SetText(GetPhaseText(CurrentPhase));
     }
 
-    if (TurnCountTextBlock)
+    if (IsValid(TurnCountTextBlock))
     {
         TurnCountTextBlock->SetText(FText::AsNumber(TurnCount));
     }
 
 	SetVisibility(ESlateVisibility::Visible);
-}
-
-void UW_BattlePhaseAndTurnDisplayUI::HandlePhaseProgressButtonClicked()
-{
-	if (bIsLeverAnimationPlaying ||
-		(DisplayedPhase != EPhaseState::CoinReadyPhase && DisplayedPhase != EPhaseState::CoinBehaviorPhase))
-	{
-		return;
-	}
-
-	if (!IsValid(LeverPull_Player))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[BattlePhaseUI] LeverPull_Player animation is not bound. Phase progress proceeds without animation."));
-		OnPhaseProgressRequested.Broadcast();
-		return;
-	}
-
-	bIsLeverAnimationPlaying = true;
-	UpdatePhaseProgressButtonState();
-
-	const EUMGSequencePlayMode::Type PlayMode = DisplayedPhase == EPhaseState::CoinReadyPhase
-		? EUMGSequencePlayMode::PingPong
-		: EUMGSequencePlayMode::Forward;
-	PlayAnimation(LeverPull_Player, 0.f, 1, PlayMode);
-}
-
-void UW_BattlePhaseAndTurnDisplayUI::PlayBossPhaseCompletionAnimation()
-{
-	if (!IsValid(LeverPull_Boss))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[BattlePhaseUI] LeverPull_Boss animation is not bound."));
-		return;
-	}
-
-	bIsLeverAnimationPlaying = true;
-	UpdatePhaseProgressButtonState();
-	PlayAnimation(LeverPull_Boss, 0.f, 1, EUMGSequencePlayMode::Forward);
-}
-
-void UW_BattlePhaseAndTurnDisplayUI::HandlePlayerLeverAnimationFinished()
-{
-	OnPhaseProgressRequested.Broadcast();
-	bIsLeverAnimationPlaying = false;
-	UpdatePhaseProgressButtonState();
-}
-
-void UW_BattlePhaseAndTurnDisplayUI::HandleBossLeverAnimationFinished()
-{
-	bIsLeverAnimationPlaying = false;
-	UpdatePhaseProgressButtonState();
-}
-
-void UW_BattlePhaseAndTurnDisplayUI::UpdatePhaseProgressButtonState()
-{
-	if (!IsValid(PhaseProgressButton))
-	{
-		return;
-	}
-
-	const bool bCanProgressPhase =
-		DisplayedPhase == EPhaseState::CoinReadyPhase ||
-		DisplayedPhase == EPhaseState::CoinBehaviorPhase;
-	PhaseProgressButton->SetIsEnabled(bCanProgressPhase && !bIsLeverAnimationPlaying);
 }
 
 void UW_BattlePhaseAndTurnDisplayUI::UpdatePhaseIndicator(EPhaseState CurrentPhase)

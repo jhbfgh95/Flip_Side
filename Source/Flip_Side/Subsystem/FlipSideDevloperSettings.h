@@ -39,6 +39,9 @@ public:
 	UPROPERTY(EditAnywhere, Config, Category = "GridSpawn")
 	TSoftClassPtr<class AGridActor> GridActor;
 
+	UPROPERTY(EditAnywhere, Config, Category = "GridSpawn")
+	TSoftClassPtr<class ABossWallActor> BossWallActorClass;
+
 	// 항상 그리드 가장 뒤 가운데 3x3 자리에 고정 스폰됨
 	UPROPERTY(EditAnywhere, Config, Category = "GridSpawn")
 	TSoftClassPtr<ABossCoinActor> BossCoinActorClass;

@@ -187,14 +187,15 @@ struct FFaceData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 BehaviorPoint = 0;
 
+    // coin_weapon_def.count. 대상 지정형 능력의 선택 개수.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 Count = 0;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FGridPoint AttackRange;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UTexture2D* WeaponIcon = nullptr;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FString BehaviorCode;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString WeaponName;
@@ -217,9 +218,12 @@ struct FFaceData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FAttackAreaSpec AttackAreaSpec;
 
-    // DB 능력 사거리 API가 연결되기 전까지 CoinManager의 테스트 데이터가 채웁니다.
+    // coin_weapon_ability_area에 row가 있는 무기만 채워짐. 없으면 기본값(0)이고 bHasAbilityArea=false.
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FAttackAreaSpec AbilityAreaSpec;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    bool bHasAbilityArea = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FIntPoint AttackAnchorOffset = FIntPoint(0, 0);

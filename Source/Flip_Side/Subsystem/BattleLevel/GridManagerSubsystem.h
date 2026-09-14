@@ -73,6 +73,13 @@ class FLIP_SIDE_API UGridManagerSubsystem : public UWorldSubsystem
 
 public:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+
+private:
+	UPROPERTY(Transient)
+	TObjectPtr<class ABossWallActor> BossWallActor;
+	void SpawnBossWall();
+
+public:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")
@@ -161,6 +168,10 @@ public:
 	/** 보스가 사용할 수 있는 뒤쪽 9x3 영역입니다. 9x9 기준 X=0~8, Y=6~8입니다. */
 	UFUNCTION(BlueprintPure, Category = "Grid|Boss")
 	bool IsBossAreaCell(const FGridPoint& P) const;
+
+	/** 보스 영역이 시작되는 Y값(포함). 이 값 이상이면 IsBossAreaCell이 true입니다. */
+	UFUNCTION(BlueprintPure, Category = "Grid|Boss")
+	int32 GetBossAreaStartY() const;
 
 	/** 현재 보스 코인 발판이 실제로 차지하는 뒤쪽 가운데 3x3 셀입니다. */
 	UFUNCTION(BlueprintPure, Category = "Grid|Boss")

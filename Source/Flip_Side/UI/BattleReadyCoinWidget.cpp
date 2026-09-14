@@ -3,6 +3,7 @@
 
 #include "UI/BattleReadyCoinWidget.h"
 
+#include "Components/TextBlock.h"
 #include "UI/ReadyCoinSlot.h"
 
 void UBattleReadyCoinWidget::NativeConstruct()
@@ -10,10 +11,12 @@ void UBattleReadyCoinWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	CacheReadyCoinSlots();
+	UpdateReadyCoinCountText(0);
 }
 
 void UBattleReadyCoinWidget::SetReadyCoins(const TArray<FBattleReadyCoinViewData>& InReadyCoins)
 {
+	int32 FilledSlotCount = 0;
 	for (int32 SlotIndex = 0; SlotIndex < ReadyCoinSlots.Num(); ++SlotIndex)
 	{
 		UReadyCoinSlot* ReadyCoinSlot = ReadyCoinSlots[SlotIndex];
@@ -25,12 +28,29 @@ void UBattleReadyCoinWidget::SetReadyCoins(const TArray<FBattleReadyCoinViewData
 		if (InReadyCoins.IsValidIndex(SlotIndex) && InReadyCoins[SlotIndex].CoinInstanceID != INDEX_NONE)
 		{
 			ReadyCoinSlot->SetReadyCoinData(InReadyCoins[SlotIndex]);
+			++FilledSlotCount;
 		}
 		else
 		{
 			ReadyCoinSlot->ClearReadyCoinData();
 		}
 	}
+
+	UpdateReadyCoinCountText(FilledSlotCount);
+}
+
+void UBattleReadyCoinWidget::UpdateReadyCoinCountText(int32 FilledSlotCount)
+{
+	if (!IsValid(ReadyCoinCountText))
+	{
+		return;
+	}
+
+	const FLinearColor& CountColor = FilledSlotCount >= 7
+		? ReadyCoinCountHighColor
+		: (FilledSlotCount >= 3 ? ReadyCoinCountMediumColor : ReadyCoinCountLowColor);
+	ReadyCoinCountText->SetText(FText::AsNumber(FilledSlotCount));
+	ReadyCoinCountText->SetColorAndOpacity(FSlateColor(CountColor));
 }
 
 void UBattleReadyCoinWidget::CacheReadyCoinSlots()

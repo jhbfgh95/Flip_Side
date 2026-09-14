@@ -30,6 +30,13 @@ enum class EBossGimmickType : uint8
     Blind      = 6,
 };
 
+/** 보스 기믹이 부여하는 상태효과의 정식 런타임 ID입니다. WeaponBuffTypeID(10001~)와 겹치지 않는 대역을 씁니다. */
+namespace BossBuffTypeID
+{
+    inline constexpr int32 SwampWeaponPowerDown = 20001;
+    inline constexpr int32 SwampAttackPowerDown = 20002;
+}
+
 // 기믹 데이터
 USTRUCT(BlueprintType)
 struct FBossGimmickData
@@ -91,6 +98,10 @@ struct FBossDisplayData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TObjectPtr<UTexture2D> BossImage = nullptr;
 
+    // 보스 코인 발판 머티리얼의 "Boss_Icon" 텍스처 파라미터에 쓰이는 보스별 아이콘. boss_def.boss_icon_path.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<UTexture2D> BossIcon = nullptr;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 AttackPoint = 0;
 
@@ -136,6 +147,10 @@ struct FBossPatternDisplayData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EBossGimmickType GimmickType = EBossGimmickType::None;
+
+    // GimmickType != None을 그대로 옮겨놓은 편의 플래그. 어떤 기믹인지 몰라도 "이 패턴이 기믹이 있는 패턴인지"만 빠르게 확인할 때 사용.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    bool bIsGimmick = false;
 
     // 실명/늪: 지속 턴수, 독: 독 데미지
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -194,6 +209,10 @@ struct FBossPatternBattleData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EBossGimmickType GimmickType = EBossGimmickType::None;
 
+    // GimmickType != None을 그대로 옮겨놓은 편의 플래그. 어떤 기믹인지 몰라도 "이 패턴이 기믹이 있는 패턴인지"만 빠르게 확인할 때 사용.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    bool bIsGimmick = false;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 ShieldHeal = 0;
 };
@@ -215,7 +234,16 @@ struct FBossHUDData
     int32 CurrentGroggy = 0;
     int32 MaxGroggy = 0;
 
+    bool bShowPatternDamage = false;
+
+    bool bPatternNoDamage = false;
+
+    bool bHasConditionalPatternDamage = false;
+
+    int32 ConditionalPatternDamage = 0;
+
     bool bHasPatternInfo = false;
+    bool bIsGimmick = false;
     int32 PatternDisplayIndex = INDEX_NONE;
     FString PatternName;
     FText PatternDescription;
@@ -243,6 +271,10 @@ struct FBossBattleData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TObjectPtr<UTexture2D> BossImage = nullptr;
+
+    // 보스 코인 발판 머티리얼의 "Boss_Icon" 텍스처 파라미터에 쓰이는 보스별 아이콘. boss_def.boss_icon_path.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<UTexture2D> BossIcon = nullptr;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 AttackPoint = 0;
@@ -282,8 +314,4 @@ struct FBossBattleData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TArray<FBossGimmickData> GimmickList;
-
-    // slot 0=Right, 1=Bottom, 2=Left, 3=Front
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    TArray<TObjectPtr<UTexture2D>> BackgroundTextures;
 };

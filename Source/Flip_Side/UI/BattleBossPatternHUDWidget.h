@@ -36,6 +36,27 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> PatternName;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class URichTextBlock> PatternTypeText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBorder> PatternTypeBorder;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Appearance")
+	FLinearColor GimmickBackgroundColor = FLinearColor::White;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Appearance")
+	FLinearColor PatternBackgroundColor = FLinearColor::White;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> PatternDamage;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> ConditonalPatternDamage;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UWidget> ConditionalPatternDamagePannel;
+
 private:
 	UFUNCTION()
 	void HandlePatternHovered();

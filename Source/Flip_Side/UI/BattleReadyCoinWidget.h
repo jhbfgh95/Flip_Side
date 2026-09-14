@@ -29,6 +29,18 @@ public:
 	FOnBattleReadyCoinWidgetUnhovered OnReadyCoinUnhovered;
 
 protected:
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> ReadyCoinCountText;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Battle Ready Coin|Count", meta = (DisplayName = "Count Color (0-2)"))
+	FLinearColor ReadyCoinCountLowColor = FLinearColor::White;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Battle Ready Coin|Count", meta = (DisplayName = "Count Color (3-6)"))
+	FLinearColor ReadyCoinCountMediumColor = FLinearColor::Yellow;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Battle Ready Coin|Count", meta = (DisplayName = "Count Color (7-10)"))
+	FLinearColor ReadyCoinCountHighColor = FLinearColor::Red;
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UReadyCoinSlot> ReadyCoinSlot1;
 
@@ -60,6 +72,7 @@ protected:
 	TObjectPtr<class UReadyCoinSlot> ReadyCoinSlot10;
 
 private:
+	void UpdateReadyCoinCountText(int32 FilledSlotCount);
 	void CacheReadyCoinSlots();
 	void HandleReadyCoinSlotClicked(int32 CoinInstanceID);
 	void HandleReadyCoinSlotHovered(int32 CoinInstanceID);

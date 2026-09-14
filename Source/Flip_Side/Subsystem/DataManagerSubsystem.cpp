@@ -79,6 +79,7 @@ bool UDataManagerSubsystem::ReloadCache()
     bOk &= LoadStageRewards();
     bOk &= LoadGameConfig();
     bOk &= LoadCoinSlotLevelTiers();
+    bOk &= LoadKeywordDefinitions();
 
     bCacheReady = bOk;
 
@@ -189,6 +190,7 @@ void UDataManagerSubsystem::ClearCache()
     StageRewardByStageID.Reset();
     GameConfig = FGameConfigData();
     CoinSlotLevelTierByLevel.Reset();
+    KeywordDefinitionByCode.Reset();
 }
 
 bool UDataManagerSubsystem::OpenDbReadWrite()
@@ -227,15 +229,13 @@ bool UDataManagerSubsystem::LoadWeapons()
         SELECT
             c.id,
             w.weapon_type AS weapon_type,
-            c.behavior_point,
-            c.range_x,
-            c.range_y,
+            c.weapon_power,
             c.icon_path,
-            c.behavior,
             c.vfx_path,
             IFNULL(c.vfx_target, 0) AS vfx_target,
             c.type_id,
-            c.weapon_point,
+            c.attack_point,
+            IFNULL(c.count, 0) AS count,
             c.weapon_name,
             c.KOR_DES,
             c.ENG_DES,
@@ -251,13 +251,25 @@ bool UDataManagerSubsystem::LoadWeapons()
             IFNULL(a.flags,        0) AS flags,
             IFNULL(a.action_repeat_type,  0) AS action_repeat_type,
             IFNULL(c.price,        0) AS price,
-            c.sfx_path
+            c.sfx_path,
+
+            b.weapon_id AS has_ability_area,            -- NULL이면 능력 사거리 없음
+            IFNULL(b.pattern,      8) AS ability_pattern,
+            IFNULL(b.anchor_dx,    0) AS ability_anchor_dx,
+            IFNULL(b.anchor_dy,    0) AS ability_anchor_dy,
+            IFNULL(b.anchor_mode,  0) AS ability_anchor_mode,
+            IFNULL(b.param_a,      1) AS ability_param_a,
+            IFNULL(b.param_b,      1) AS ability_param_b,
+            IFNULL(b.side,         0) AS ability_side,
+            IFNULL(b.flags,        0) AS ability_flags
 
         FROM coin_weapon_def AS c
         JOIN weapon_type AS w
             ON c.type_id = w.type_id
         LEFT JOIN coin_weapon_attack_area AS a
-            ON a.weapon_id = c.id;
+            ON a.weapon_id = c.id
+        LEFT JOIN coin_weapon_ability_area AS b
+            ON b.weapon_id = c.id;
     )SQL");
 
     FSQLitePreparedStatement Stmt;
@@ -279,17 +291,11 @@ bool UDataManagerSubsystem::LoadWeapons()
 
         Data.BehaviorPoint = GetColInt(Stmt, Col++);
 
-        // 기존 range_x/y (이거 어떻게 할지..)
-        Data.AttackRange.GridX = GetColDouble(Stmt, Col++);
-        Data.AttackRange.GridY = GetColDouble(Stmt, Col++);
-
         const FString IconPath = GetColText(Stmt, Col++);
         if (!IconPath.IsEmpty())
         {
             Data.WeaponIcon = LoadObject<UTexture2D>(nullptr, *IconPath);
         }
-
-        Data.BehaviorCode = GetColText(Stmt, Col++);
 
         const FString VfxPath = GetColText(Stmt, Col++);
         if (!VfxPath.IsEmpty())
@@ -302,6 +308,7 @@ bool UDataManagerSubsystem::LoadWeapons()
         Data.TypeID = GetColInt(Stmt, Col++);
         // Data.HP: A.2에서 슬롯 레벨 기반 HP(coin_slot_level_tier)로 대체됨. weapon_type.HP 컬럼도 삭제됨.
         Data.AttackPoint = GetColInt(Stmt, Col++);
+        Data.Count = GetColInt(Stmt, Col++);
 
         Data.WeaponName = GetColTextUTF8(Stmt, Col++);
 
@@ -346,6 +353,29 @@ bool UDataManagerSubsystem::LoadWeapons()
         if (!SfxPath.IsEmpty())
         {
             Data.WeaponSFX = LoadObject<USoundBase>(nullptr, *SfxPath);
+        }
+
+        // coin_weapon_ability_area에 매칭되는 row가 있을 때만 has_ability_area가 0이 아님(weapon_id는 항상 >0)
+        Data.bHasAbilityArea = GetColInt(Stmt, Col++) != 0;
+
+        const int32 AbilityPattern = GetColInt(Stmt, Col++);
+        const int32 AbilityAnchorDX = GetColInt(Stmt, Col++);
+        const int32 AbilityAnchorDY = GetColInt(Stmt, Col++);
+        const int32 AbilityAnchorMode = GetColInt(Stmt, Col++);
+        const int32 AbilityParamA = GetColInt(Stmt, Col++);
+        const int32 AbilityParamB = GetColInt(Stmt, Col++);
+        const int32 AbilitySide = GetColInt(Stmt, Col++);
+        const int32 AbilityFlags = GetColInt(Stmt, Col++);
+
+        if (Data.bHasAbilityArea)
+        {
+            Data.AbilityAreaSpec.Pattern = (EAttackAreaPattern)AbilityPattern;
+            Data.AbilityAreaSpec.AnchorCell = FGridPoint(AbilityAnchorDX, AbilityAnchorDY);
+            Data.AbilityAreaSpec.AnchorMode = (EAreaAnchor)AbilityAnchorMode;
+            Data.AbilityAreaSpec.ParamA = AbilityParamA;
+            Data.AbilityAreaSpec.ParamB = AbilityParamB;
+            Data.AbilityAreaSpec.Side = (EAreaSide)AbilitySide;
+            Data.AbilityAreaSpec.Flags = AbilityFlags;
         }
 
         WeaponByID.Add(Data.WeaponID, Data);
@@ -412,7 +442,7 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
 {
     {
         const TCHAR* Sql = TEXT(
-            "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, ability_description, attack_point, boss_hp, shield_value "
+            "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, ability_description, attack_point, boss_hp, shield_value, boss_icon_path "
             "FROM boss_def;"
         );
 
@@ -439,6 +469,10 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
             Boss.AttackPoint = GetColInt(Stmt, 6);
             Boss.BossHP      = GetColInt(Stmt, 7);
             Boss.ShieldValue = GetColInt(Stmt, 8);
+
+            const FString IconPath = GetColText(Stmt, 9);
+            if (!IconPath.IsEmpty())
+                Boss.BossIcon = LoadObject<UTexture2D>(nullptr, *IconPath);
 
             BossByID.Add(Boss.BossID, Boss);
             BossIDByStage.Add(Boss.BossStage, Boss.BossID);
@@ -526,15 +560,16 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
 
         Pattern.ShieldHeal   = GetColInt(Stmt, 14);
         Pattern.GimmickType  = static_cast<EBossGimmickType>(GetColInt(Stmt, 15));
+        Pattern.bIsGimmick   = Pattern.GimmickType != EBossGimmickType::None;
 
-        // 실명(Blind=6): param_a = 지속 턴수
+        // 실명(Blind=6): gimmick_int_a(boss_gimmick.param_int_a) = 지속 턴수
         // 늪(GridDebuff=2): param_a = 지속 턴수, param_b = 공격력 디버프
         // 독(Poison=5): gimmick_int_a = 독 데미지
         const int32 PatternParamA  = GetColInt(Stmt, 16);
         const int32 PatternParamB  = GetColInt(Stmt, 17);
         const int32 GimmickIntA    = GetColInt(Stmt, 18);
 
-        if (Pattern.GimmickType == EBossGimmickType::Poison)
+        if (Pattern.GimmickType == EBossGimmickType::Poison || Pattern.GimmickType == EBossGimmickType::Blind)
         {
             Pattern.GimmickParamA = GimmickIntA;
         }
@@ -574,7 +609,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, "
             "attack_point, boss_hp, spawn_loc_x, spawn_loc_y, spawn_loc_z, spawn_rot_yaw, "
             "boss_class_path, pattern_class_path, stage_multiplier_stat, stage_multiplier_gimmick, shield_value, "
-            "clear_anim_path, hit_anim_path "
+            "clear_anim_path, hit_anim_path, boss_icon_path "
             "FROM boss_def WHERE boss_id = ?;"
         );
 
@@ -624,6 +659,10 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
         const FString HitAnimPath = GetColText(Stmt, 17);
         if (!HitAnimPath.IsEmpty())
             Out.HitAnim = TSoftObjectPtr<UAnimMontage>(FSoftObjectPath(HitAnimPath));
+
+        const FString IconPath = GetColText(Stmt, 18);
+        if (!IconPath.IsEmpty())
+            Out.BossIcon = LoadObject<UTexture2D>(nullptr, *IconPath);
 
         Stmt.Destroy();
     }
@@ -677,6 +716,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
 
             P.bNoDamage          = GetColInt(Stmt, 19) != 0;
             P.GimmickType        = static_cast<EBossGimmickType>(GetColInt(Stmt, 20));
+            P.bIsGimmick         = P.GimmickType != EBossGimmickType::None;
             P.ShieldHeal         = GetColInt(Stmt, 21);
             P.PatternEffectTarget = static_cast<EBossPatternTarget>(GetColInt(Stmt, 22));
 
@@ -688,7 +728,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
     // boss_gimmick
     {
         const TCHAR* Sql = TEXT(
-            "SELECT gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description, shield_value, gimmick_class_path "
+            "SELECT gimmick_type, param_int_a, param_int_b, param_float_a, param_float_b, param_str_a, gimmick_name, gimmick_description, shield_value, gimmick_class_path, param_float_c "
             "FROM boss_gimmick WHERE boss_id = ?;"
         );
 
@@ -709,31 +749,10 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             G.GimmickDescription = GetColTextUTF8(Stmt, 7);
             G.ShieldValue        = GetColInt(Stmt, 8);
             G.GimmickClassPath   = GetColText(Stmt, 9);
+            G.ParamFloatC        = (float)GetColDouble(Stmt, 10);
             Out.GimmickList.Add(G);
         }
         Stmt.Destroy();
-    }
-
-    // boss_background
-    {
-        const TCHAR* Sql = TEXT(
-            "SELECT slot, texture_path FROM boss_background WHERE boss_id = ? ORDER BY slot;"
-        );
-
-        FSQLitePreparedStatement Stmt;
-        if (PrepareStmt(Db, Sql, Stmt))
-        {
-            Stmt.SetBindingValueByIndex(1, BossID);
-            Out.BackgroundTextures.SetNum(4);
-            while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
-            {
-                const int32 Slot = GetColInt(Stmt, 0);
-                const FString TexPath = GetColText(Stmt, 1);
-                if (Out.BackgroundTextures.IsValidIndex(Slot) && !TexPath.IsEmpty())
-                    Out.BackgroundTextures[Slot] = LoadObject<UTexture2D>(nullptr, *TexPath);
-            }
-            Stmt.Destroy();
-        }
     }
 
     return true;
@@ -980,5 +999,182 @@ bool UDataManagerSubsystem::GetCoinSlotLevelStats(const FCoinTypeStructure& Coin
     OutCost = 0;
     OutHP   = 0;
     return false;
+}
+
+bool UDataManagerSubsystem::LoadKeywordDefinitions()
+{
+    const TCHAR* Sql = TEXT("SELECT keyword_id, keyword_code, display_name_ko, description_ko, ui_color_rgba, is_enabled, sort_order FROM keyword_definition;");
+
+    FSQLitePreparedStatement Stmt;
+    if (!PrepareStmt(Db, Sql, Stmt))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[DB] LoadKeywordDefinitions: PrepareStatement failed"));
+        return false;
+    }
+
+    while (Stmt.Step() == ESQLitePreparedStatementStepResult::Row)
+    {
+        FKeywordDefinitionData Data;
+        Data.KeywordID = GetColInt(Stmt, 0);
+
+        const FString CodeStr = GetColText(Stmt, 1);
+        Data.KeywordCode = FName(*CodeStr);
+
+        Data.DisplayName = FText::FromString(GetColTextUTF8(Stmt, 2));
+        Data.Description = FText::FromString(GetColTextUTF8(Stmt, 3));
+
+        const FString ColorHex = GetColText(Stmt, 4);
+        if (!TryParseHexColor_RRGGBBAA(ColorHex, Data.UIColor))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[DB] LoadKeywordDefinitions: invalid ui_color_rgba '%s' for keyword '%s'"), *ColorHex, *CodeStr);
+            Data.UIColor = FLinearColor::White;
+        }
+
+        Data.bEnabled  = GetColInt(Stmt, 5) != 0;
+        Data.SortOrder = GetColInt(Stmt, 6);
+
+        if (KeywordDefinitionByCode.Contains(Data.KeywordCode))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[DB] LoadKeywordDefinitions: duplicate keyword_code '%s'"), *CodeStr);
+        }
+        KeywordDefinitionByCode.Add(Data.KeywordCode, Data);
+    }
+
+    Stmt.Destroy();
+    return true;
+}
+
+bool UDataManagerSubsystem::GetAllEnabledKeywordDefinitions(TArray<FKeywordDefinitionData>& OutDefinitions) const
+{
+    OutDefinitions.Reset();
+    for (const auto& Pair : KeywordDefinitionByCode)
+    {
+        if (Pair.Value.bEnabled)
+        {
+            OutDefinitions.Add(Pair.Value);
+        }
+    }
+    OutDefinitions.Sort([](const FKeywordDefinitionData& A, const FKeywordDefinitionData& B)
+    {
+        return A.SortOrder < B.SortOrder;
+    });
+    return true;
+}
+
+bool UDataManagerSubsystem::TryGetKeywordByCode(FName KeywordCode, FKeywordDefinitionData& OutDefinition, bool bIncludeDisabled) const
+{
+    if (const FKeywordDefinitionData* Found = KeywordDefinitionByCode.Find(KeywordCode))
+    {
+        if (Found->bEnabled || bIncludeDisabled)
+        {
+            OutDefinition = *Found;
+            return true;
+        }
+    }
+    OutDefinition = FKeywordDefinitionData();
+    return false;
+}
+
+bool UDataManagerSubsystem::ValidateWeaponDescriptionTokens(const FString& RawDescription, TArray<FString>& OutErrors) const
+{
+    // STAT/BUFF는 별도 DB 테이블이 아니라 명세서(섹션 2.2/2.3) 기준 고정 목록
+    static const TSet<FString> ValidStatCodes = {
+        TEXT("AttackPower"), TEXT("WeaponPower"), TEXT("Count"),
+        TEXT("AttackRange"), TEXT("AbilityRange"), TEXT("BossPatternAttackPower")
+    };
+    static const TSet<FString> ValidBuffCodes = {
+        TEXT("Absorb"), TEXT("Strike")
+    };
+
+    OutErrors.Reset();
+
+    int32 SearchStart = 0;
+    for (;;)
+    {
+        const int32 OpenIdx = RawDescription.Find(TEXT("["), ESearchCase::CaseSensitive, ESearchDir::FromStart, SearchStart);
+        if (OpenIdx == INDEX_NONE)
+        {
+            break;
+        }
+
+        const int32 NextOpenIdx = RawDescription.Find(TEXT("["), ESearchCase::CaseSensitive, ESearchDir::FromStart, OpenIdx + 1);
+        const int32 CloseIdx = RawDescription.Find(TEXT("]"), ESearchCase::CaseSensitive, ESearchDir::FromStart, OpenIdx + 1);
+
+        if (CloseIdx == INDEX_NONE || (NextOpenIdx != INDEX_NONE && NextOpenIdx < CloseIdx))
+        {
+            OutErrors.Add(FString::Printf(TEXT("닫히지 않은 '[' (위치 %d)"), OpenIdx));
+            SearchStart = OpenIdx + 1;
+            continue;
+        }
+
+        const FString Token = RawDescription.Mid(OpenIdx + 1, CloseIdx - OpenIdx - 1);
+        SearchStart = CloseIdx + 1;
+
+        FString TypeStr, CodeStr;
+        if (!Token.Split(TEXT(":"), &TypeStr, &CodeStr))
+        {
+            OutErrors.Add(FString::Printf(TEXT("지원하지 않는 토큰 형식: [%s]"), *Token));
+            continue;
+        }
+
+        if (CodeStr.IsEmpty())
+        {
+            OutErrors.Add(FString::Printf(TEXT("빈 코드: [%s:]"), *TypeStr));
+            continue;
+        }
+
+        if (TypeStr == TEXT("KW"))
+        {
+            const FKeywordDefinitionData* Found = KeywordDefinitionByCode.Find(FName(*CodeStr));
+            if (!Found)
+            {
+                OutErrors.Add(FString::Printf(TEXT("존재하지 않는 KW 코드: %s"), *CodeStr));
+            }
+            else if (!Found->bEnabled)
+            {
+                OutErrors.Add(FString::Printf(TEXT("비활성 키워드 사용: %s"), *CodeStr));
+            }
+        }
+        else if (TypeStr == TEXT("STAT"))
+        {
+            if (!ValidStatCodes.Contains(CodeStr))
+            {
+                OutErrors.Add(FString::Printf(TEXT("존재하지 않는 STAT 코드: %s"), *CodeStr));
+            }
+        }
+        else if (TypeStr == TEXT("BUFF"))
+        {
+            if (!ValidBuffCodes.Contains(CodeStr))
+            {
+                OutErrors.Add(FString::Printf(TEXT("존재하지 않는 BUFF 코드: %s"), *CodeStr));
+            }
+        }
+        else if (TypeStr == TEXT("VALUE"))
+        {
+            // 리터럴 상수 - 별도 조회 불필요
+        }
+        else
+        {
+            OutErrors.Add(FString::Printf(TEXT("지원하지 않는 토큰 종류: %s"), *TypeStr));
+        }
+    }
+
+    // 여는 '[' 없이 등장하는 ']' 검출
+    int32 Balance = 0;
+    for (const TCHAR Ch : RawDescription)
+    {
+        if (Ch == TEXT('[')) { ++Balance; }
+        else if (Ch == TEXT(']'))
+        {
+            --Balance;
+            if (Balance < 0)
+            {
+                OutErrors.Add(TEXT("짝이 맞지 않는 ']' 발견"));
+                break;
+            }
+        }
+    }
+
+    return OutErrors.Num() == 0;
 }
 

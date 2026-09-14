@@ -63,12 +63,14 @@ void UBossPatternBase::BuildTargetCells(
 	}
 
 	// CrossOnCell UseAnchorCell 모드면 AnchorCell 랜덤 선택
+	// (십자는 앵커 기준 상하좌우로 대칭 확장되므로, 보스 자기 영역까지 포함해서 잘리지 않도록 Y 상한도 보스 영역 시작 지점 앞으로 제한)
 	if (Spec.Pattern == EAttackAreaPattern::CrossOnCell && Spec.AnchorMode == EAreaAnchor::UseAnchorCell)
 	{
 		const int32 HalfX = FMath::Max(0, Spec.ParamA);
 		const int32 HalfY = FMath::Max(0, Spec.ParamB);
+		const int32 MaxY = FMath::Max(HalfY, GridMgr->GetBossAreaStartY() - 1 - HalfY);
 		Spec.AnchorCell.GridX = FMath::RandRange(HalfX, GridMgr->GridXSize - 1 - HalfX);
-		Spec.AnchorCell.GridY = FMath::RandRange(HalfY, GridMgr->GridYSize - 1 - HalfY);
+		Spec.AnchorCell.GridY = FMath::RandRange(HalfY, MaxY);
 	}
 
 	// RectFromCell UseAnchorCell 모드면 AnchorCell 랜덤 선택 (패턴이 그리드 밖으로 안 나가도록 범위 제한)
@@ -82,7 +84,11 @@ void UBossPatternBase::BuildTargetCells(
 
 		int32 MinY = 0;
 		int32 MaxY = GridMgr->GridYSize - 1;
-		if (Spec.Side == EAreaSide::Up)   { MaxY = GridMgr->GridYSize - 1 - Depth; }
+		if (Spec.Side == EAreaSide::Up)
+		{
+			// 패턴이 보스 자기 영역(뒤쪽 3x9)까지 침범하지 않도록 상한을 보스 영역 시작 지점 앞으로 제한
+			MaxY = GridMgr->GetBossAreaStartY() - 1 - Depth;
+		}
 		else if (Spec.Side == EAreaSide::Down) { MinY = Depth; }
 
 		Spec.AnchorCell.GridX = FMath::RandRange(MinX, MaxX);

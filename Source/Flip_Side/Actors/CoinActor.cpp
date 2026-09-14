@@ -70,7 +70,8 @@ void ACoinActor::BeginPlay()
 		if (HPWidget && StatComponent)
 		{
 			StatComponent->OnHpChanged.AddUObject(HPWidget, &UW_CoinHPWidget::ChangeCurrentHp);
-			HPWidget->InitHpWidget(StatComponent->GetHP());
+			StatComponent->OnMaxHPChanged.AddUObject(HPWidget, &UW_CoinHPWidget::ChangeMaxHp);
+			HPWidget->InitHpWidget(StatComponent->GetMaxHP(), StatComponent->GetHP());
 		}
 
 		CoinHPUI->SetVisibility(false);
@@ -420,6 +421,7 @@ void ACoinActor::CompleteLandingCallback()
 
 void ACoinActor::OnHover_Implementation()
 {
+	if (GetCoinIsActing()) return;
 	if (GetCoinOnBattle())
 	{
 		OnHoverBattleCoin.Broadcast(this);

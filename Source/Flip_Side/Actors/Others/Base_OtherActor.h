@@ -47,6 +47,7 @@ class FLIP_SIDE_API ABase_OtherActor : public AActor, public IBattleClickInterfa
 	class AGridActor* OccupiedGrid = nullptr;
 public:	
 	ABase_OtherActor();
+	void AdvanceDurationAtTurnEnd();
 
 	UPROPERTY()
 	FOnOtherClickedDelegate OnOtherClicked;
@@ -73,6 +74,15 @@ public:
 	void OnDefaultClicked();
 
 protected:
+	// BossPhase 종료 후 SettingPhase에서 차감하며, -1은 무제한입니다.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Others | Lifetime", meta = (ClampMin = "-1"))
+	int32 InitialDurationTurns = -1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Others | Lifetime")
+	int32 RemainingDurationTurns = -1;
+
+	bool bDeathStarted = false;
+
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaTime) override;

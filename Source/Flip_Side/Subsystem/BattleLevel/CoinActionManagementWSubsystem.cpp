@@ -335,6 +335,8 @@ void UCoinActionManagementWSubsystem::AdvancePipeline()
 		PipelineStage = ECoinWeaponPipelineStage::Attack;
 		RemainingAttackCount = ResolveRepeatCount(
 			GetCurrentLogicSet() ? GetCurrentLogicSet()->AttackRepeatCountSource : ERepeatCountSource::One);
+		// 공격 반복에만 적용하며 대상 선택과 상승/하강 연출 속도는 유지합니다.
+		AttackSpeedMultiplier = RemainingAttackCount >= 2 ? 3.0f : 1.0f;
 		BeginAttackStep();
 		break;
 
@@ -401,6 +403,14 @@ void UCoinActionManagementWSubsystem::BeginAttackStep()
 	{
 		return;
 	}
+	const FWeaponLogicSet* LogicSet = GetCurrentLogicSet();
+	if (LogicSet && LogicSet->AbilityLogics.IsEmpty() && !IsValid(SelectedAction->GetAttackBoss()))
+	{
+		// 공격 전용 무기는 사거리 내 대상이 없으면 실패 연출 후 바로 하강합니다.
+		PlayFailedVFX();
+		FinishCoinActionSequence();
+		return;
+	}
 	if (RemainingAttackCount <= 0)
 	{
 		PipelineStage = SelectedAction->GetExecutionState().TotalDamageDealt > 0
@@ -424,7 +434,7 @@ void UCoinActionManagementWSubsystem::BeginAttackStep()
 	if (UBattleLevelActingWSubsystem* ActingManager = GetActingManager())
 	{
 		ActingManager->ShakeCoinForAction(
-			CasterCoin, FSimpleDelegate::CreateUObject(this, &UCoinActionManagementWSubsystem::ResolveAttackStep));
+			CasterCoin, FSimpleDelegate::CreateUObject(this, &UCoinActionManagementWSubsystem::ResolveAttackStep), AttackSpeedMultiplier);
 	}
 	else
 	{
@@ -445,7 +455,7 @@ void UCoinActionManagementWSubsystem::ResolveAttackStep()
 	--RemainingAttackCount;
 
 	const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
-	const float Delay = IsValid(Settings) ? Settings->CommonVFXDelayAfterCoinVFX : 0.0f;
+	const float Delay = IsValid(Settings) ? Settings->CommonVFXDelayAfterCoinVFX / AttackSpeedMultiplier : 0.0f;
 	auto ContinuePipeline = [this, AttackResult]()
 	{
 		PlayCommonVFX(AttackResult);
@@ -750,6 +760,18 @@ void UCoinActionManagementWSubsystem::TryCancelCurrentAction()
 		return;
 	}
 	FinishCoinActionSequence();
+}
+
+bool UCoinActionManagementWSubsystem::GetActiveAbilityPreviewCells(TArray<FGridPoint>& OutCells) const
+{
+	OutCells.Reset();
+	if (!bActionSequenceActive || !IsValid(SelectedAction) ||
+		!IsValid(SelectedAction->GetCasterCoin()) ||
+		PipelineStage == ECoinWeaponPipelineStage::Finishing ||
+		!SelectedAction->GetSnapshot().bHasAbilityArea) return false;
+	// 상승부터 행동 종료까지 호버와 독립적으로 확정 스냅숏의 능력 범위를 유지합니다.
+	OutCells = SelectedAction->GetAbilityCells();
+	return true;
 }
 
 void UCoinActionManagementWSubsystem::CancelSingleCellAction(ACoinActor* ClickedCoin)

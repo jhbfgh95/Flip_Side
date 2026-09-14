@@ -31,6 +31,7 @@ protected:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 
 public:
+	void AdvanceDurationsAtTurnEnd();
 	void RegisterOther(ABase_OtherActor* TargetOther);
 
 	void UnregisterOther(ABase_OtherActor* TargetOther);

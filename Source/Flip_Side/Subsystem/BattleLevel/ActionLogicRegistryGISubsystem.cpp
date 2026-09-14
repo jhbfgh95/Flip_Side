@@ -93,7 +93,8 @@ void UActionLogicRegistryGISubsystem::RegisterAllWeaponLogic()
 	RegisterAttackLogic(15, UAttackLogicLibrary::BasicAttack);
 	RegisterAttackLogic(16, UAttackLogicLibrary::BasicAttack);
 	RegisterAttackLogic(17, UAttackLogicLibrary::BasicAttack);
-	RegisterAttackLogic(18, UAttackLogicLibrary::BasicAttack);
+	// WeaponID 18 수리 키트와 19 증기 피스톤은 폐기된 레거시 기획이므로 등록하지 않습니다.
+	RegisterAttackLogic(20, UAttackLogicLibrary::BasicAttack);
 
 	RegisterAbilityLogic(3, EAbilityTiming::AfterAttackAlways, NoTargetRule(),
 		UAbilityLogicLibrary::BurgerAfterAttack, TEXT("BurgerAfterAttack"));
@@ -161,10 +162,9 @@ void UActionLogicRegistryGISubsystem::RegisterAllWeaponLogic()
 			ERepeatCountSource::WeaponCount),
 		UAbilityLogicLibrary::CrushingDrillAfterAttack, TEXT("CrushingDrillAfterAttack"));
 
-	// WeaponID 18은 기존 Fixkit 대신 코르티솔을 사용합니다.
-	RegisterAbilityLogic(18, EAbilityTiming::OnHit, NoTargetRule(),
+	RegisterAbilityLogic(20, EAbilityTiming::OnHit, NoTargetRule(),
 		UAbilityLogicLibrary::GrantStrikeBuff, TEXT("CortisolStrike"));
-	RegisterAbilityLogic(18, EAbilityTiming::OnHit,
+	RegisterAbilityLogic(20, EAbilityTiming::OnHit,
 		MakeTargetRule(EAbilityTargetFlags::Coin, EAbilitySelectionMode::UpToRepeatCount,
 			ERepeatCountSource::WeaponCount, true),
 		UAbilityLogicLibrary::CortisolOnHit, TEXT("CortisolOnHit"));
