@@ -1,46 +1,7 @@
 #include "BattlePlayerPawn_FlipSide.h"
 #include "Components/SceneComponent.h"
-#include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Actors/Boss/BossActor.h"
-#include "Subsystem/BattleLevel/BossManagerSubsystem.h"
-
-namespace
-{
-	struct FCameraSettingPreset
-	{
-		FVector RelativeLocation = FVector::ZeroVector;
-		FRotator RelativeRotation = FRotator::ZeroRotator;
-		FVector RelativeScale3D = FVector::OneVector;
-		float FieldOfView = 90.0f;
-	};
-
-	bool TryGetCameraSettingPreset(int32 Version, FCameraSettingPreset& OutPreset)
-	{
-		switch (Version)
-		{
-		case 0:
-			OutPreset.RelativeLocation = FVector(-852.0f, 200.0f, 2785.0f);
-			OutPreset.RelativeRotation = FRotator(-21.0f, 0.0f, 0.0f);
-			OutPreset.FieldOfView = 55.0f;
-			return true;
-		case 1:
-			OutPreset.RelativeLocation = FVector(-2354.0f, 242.0f, 3296.0f);
-			OutPreset.RelativeRotation = FRotator(-20.0f, 0.0f, 0.0f);
-			OutPreset.FieldOfView = 50.0f;
-			return true;
-		case 2:
-			OutPreset.RelativeLocation = FVector(-3036.0f, 242.0f, 3412.0f);
-			OutPreset.RelativeRotation = FRotator(-19.0f, 0.0f, 0.0f);
-			OutPreset.RelativeScale3D = FVector::OneVector;
-			OutPreset.FieldOfView = 45.0f;
-			return true;
-		default:
-			return false;
-		}
-	}
-}
 
 ABattlePlayerPawn_FlipSide::ABattlePlayerPawn_FlipSide()
 {
@@ -58,13 +19,7 @@ ABattlePlayerPawn_FlipSide::ABattlePlayerPawn_FlipSide()
 	// 카메라, 스프링 암 끝에
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-	Camera->SetRelativeLocation(FVector(-852.0f, 200.0f, 2785.0f));
-	Camera->SetRelativeRotation(FRotator(-21.0f, 0.0f, 0.0f));
-	Camera->SetRelativeScale3D(FVector::OneVector);
-
-	// Perspective 모드 for 시각적 깊이감
-	Camera->ProjectionMode = ECameraProjectionMode::Perspective;
-	Camera->FieldOfView = 55.0f;
+	ApplyFixedCameraSettings();
 
 	// 초기 목표 상태 설정
 	TargetLocation = GetActorLocation();
@@ -75,6 +30,9 @@ ABattlePlayerPawn_FlipSide::ABattlePlayerPawn_FlipSide()
 void ABattlePlayerPawn_FlipSide::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// BP에 저장된 이전 기본값도 확정된 카메라 세팅으로 통일합니다.
+	ApplyFixedCameraSettings();
 	
 	// 고정 좌푯값
     TargetLocation = FVector(-3086.0f, -990.0f, 2438.0f); 
@@ -111,42 +69,18 @@ void ABattlePlayerPawn_FlipSide::Tick(float DeltaTime)
 	}
 }
 
-void ABattlePlayerPawn_FlipSide::SetCamSettingVer(int32 Version, float BossScaleXYZ)
+void ABattlePlayerPawn_FlipSide::ApplyFixedCameraSettings()
 {
-	FCameraSettingPreset Preset;
-	if (!TryGetCameraSettingPreset(Version, Preset))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[BattlePlayerPawn] SetCamSettingVer: 지원하지 않는 버전입니다. Version=%d"), Version);
-		return;
-	}
-
 	if (!IsValid(Camera))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[BattlePlayerPawn] SetCamSettingVer: Camera가 유효하지 않습니다."));
 		return;
 	}
 
-	Camera->SetRelativeLocation(Preset.RelativeLocation);
-	Camera->SetRelativeRotation(Preset.RelativeRotation);
-	Camera->SetRelativeScale3D(Preset.RelativeScale3D);
-	Camera->SetFieldOfView(Preset.FieldOfView);
-
-	UWorld* World = GetWorld();
-	UBossManagerSubsystem* BossManager = IsValid(World) ? World->GetSubsystem<UBossManagerSubsystem>() : nullptr;
-	ABossActor* Boss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
-	if (!IsValid(Boss) || !IsValid(Boss->BossMesh))
-	{
-		UE_LOG(LogTemp, Warning,
-			TEXT("[BattlePlayerPawn] SetCamSettingVer %d: 카메라는 적용했지만 현재 BossMesh가 유효하지 않습니다."),
-			Version);
-		return;
-	}
-
-	Boss->BossMesh->SetRelativeScale3D(FVector(BossScaleXYZ));
-	UE_LOG(LogTemp, Log,
-		TEXT("[BattlePlayerPawn] SetCamSettingVer %d 적용 완료, BossScaleXYZ=%.3f"),
-		Version,
-		BossScaleXYZ);
+	Camera->SetRelativeLocation(FVector(-3120.0f, 242.0f, 3412.0f));
+	Camera->SetRelativeRotation(FRotator(-19.0f, 0.0f, 0.0f));
+	Camera->SetRelativeScale3D(FVector::OneVector);
+	Camera->ProjectionMode = ECameraProjectionMode::Perspective;
+	Camera->SetFieldOfView(45.0f);
 }
 
 void ABattlePlayerPawn_FlipSide::MoveCameraToArea(FVector NewTargetLocation, FRotator NewTargetRotation, float NewTargetArmLength)

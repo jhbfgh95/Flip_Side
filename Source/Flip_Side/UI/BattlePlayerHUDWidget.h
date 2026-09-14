@@ -57,8 +57,11 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UBattleBossPatternHUDWidget> BossPatternWidget;
 
-	UPROPERTY(meta = (BindWidgetOptional))
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UW_BattlePhaseAndTurnDisplayUI> PhaseAndTurnDisplayWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UW_Battle_Lever> LeverWidget;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UPanelWidget> CoinSlotContainer;

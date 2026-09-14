@@ -38,6 +38,7 @@ public:
 	void SetPhase(bool bIsPhase);
 	void StopActionSequenceForStageEnd();
 	bool IsActionSequenceActive() const { return bActionSequenceActive; }
+	bool GetActiveAbilityPreviewCells(TArray<FGridPoint>& OutCells) const;
 
 	UFUNCTION()
 	void SetSelectedWeapon(ACoinActor* HoveredCoin);
@@ -111,6 +112,7 @@ private:
 	int32 PendingAbilityIndex = INDEX_NONE;
 	int32 PendingSelectionCount = 0;
 	int32 RemainingAttackCount = 0;
+	float AttackSpeedMultiplier = 1.0f;
 
 	FTimerHandle CommonVFXTimerHandle;
 

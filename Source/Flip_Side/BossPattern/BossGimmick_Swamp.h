@@ -12,6 +12,9 @@ class FLIP_SIDE_API UBossGimmick_Swamp : public UBossGimmickBase
 	GENERATED_BODY()
 
 public:
+	// 실제 공격과 HUD가 공유하는 피해 값입니다. 조건부 값은 추가 피해가 아닌 최종 피해입니다.
+	int32 GetPatternDamage(int32 PatternIndex, bool bHasDebuff = false) const;
+
 	// 패턴 실행 직전: 고정 데미지(1) 보정, 3번 패턴은 코인별 개별 데미지를 위해 엔진 기본 데미지를 스킵
 	virtual void OnBeforePatternExecute(ABossActor* Boss, FBossPhaseContext& Context) override;
 

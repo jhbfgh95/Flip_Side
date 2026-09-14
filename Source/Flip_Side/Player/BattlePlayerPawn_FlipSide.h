@@ -29,13 +29,12 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(Exec)
-	void SetCamSettingVer(int32 Version, float BossScaleXYZ);
-
 	// 카메라 이동: 시점 전환
 	void MoveCameraToArea(FVector NewTargetLocation, FRotator NewTargetRotation, float NewTargetArmLength);
 
 private:
+	void ApplyFixedCameraSettings();
+
 	// 카메라의 부드러운 이동을 위한 목표 상태 저장
     FVector TargetLocation;      // 목표 위치 (Pawn의 위치)
     FRotator TargetRotation;     // 목표 회전 (SpringArm의 회전)

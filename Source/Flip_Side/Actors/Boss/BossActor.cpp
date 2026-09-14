@@ -1,4 +1,5 @@
 #include "BossActor.h"
+#include "BossGimmick_Swamp.h"
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -446,8 +447,31 @@ FBossHUDData ABossActor::GetBossHUDData() const
 	{
 		HUDData.PatternDisplayIndex = CachedPatternIndex + 1;
 		HUDData.PatternName = CachedPatternData.PatternName;
+		HUDData.bIsGimmick = CachedPatternData.bIsGimmick;
 		HUDData.PatternDescription = CachedPatternData.PatternDescription;
 		HUDData.PatternDamage = AttackPoint;
+		HUDData.bPatternNoDamage = CachedPatternData.bNoDamage;
+		HUDData.bShowPatternDamage = CachedPatternData.bNoDamage
+			|| CachedPatternData.GimmickType != EBossGimmickType::RoleTarget;
+		// 표시용 조회에서는 실행 훅을 호출하지 않습니다(턴/기믹 상태 변경 방지).
+		if (!CachedPatternData.bNoDamage && HUDData.bShowPatternDamage)
+		{
+			for (const UBossGimmickBase* Gimmick : GimmickList)
+			{
+				if (!IsValid(Gimmick)) continue;
+				const UBossGimmick_Swamp* Swamp = Cast<UBossGimmick_Swamp>(Gimmick);
+				if (IsValid(Swamp) && CachedPatternIndex >= 0 && CachedPatternIndex <= 2)
+				{
+					HUDData.PatternDamage = Swamp->GetPatternDamage(CachedPatternIndex);
+					HUDData.bHasConditionalPatternDamage = CachedPatternIndex == 2;
+					if (HUDData.bHasConditionalPatternDamage)
+					{
+						HUDData.ConditionalPatternDamage = Swamp->GetPatternDamage(CachedPatternIndex, true);
+					}
+					break;
+				}
+			}
+		}
 		HUDData.PatternIcon = CachedPatternData.PatternIcon;
 	}
 

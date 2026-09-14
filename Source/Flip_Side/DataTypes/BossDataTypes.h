@@ -234,7 +234,16 @@ struct FBossHUDData
     int32 CurrentGroggy = 0;
     int32 MaxGroggy = 0;
 
+    bool bShowPatternDamage = false;
+
+    bool bPatternNoDamage = false;
+
+    bool bHasConditionalPatternDamage = false;
+
+    int32 ConditionalPatternDamage = 0;
+
     bool bHasPatternInfo = false;
+    bool bIsGimmick = false;
     int32 PatternDisplayIndex = INDEX_NONE;
     FString PatternName;
     FText PatternDescription;

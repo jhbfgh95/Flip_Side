@@ -16,6 +16,7 @@
 #include "UI/W_BossHP.h"
 #include "UI/BattleBossPatternHUDWidget.h"
 #include "UI/W_BattlePhaseAndTurnDisplayUI.h"
+#include "UI/W_Battle_Lever.h"
 
 void UBattlePlayerHUDWidget::NativeConstruct()
 {
@@ -31,10 +32,10 @@ void UBattlePlayerHUDWidget::NativeConstruct()
 		BattleReadyCoinWidget->OnReadyCoinUnhovered.AddUObject(this, &UBattlePlayerHUDWidget::HandleReadyCoinUnhovered);
 	}
 
-	if (IsValid(PhaseAndTurnDisplayWidget))
+	if (IsValid(LeverWidget))
 	{
-		PhaseAndTurnDisplayWidget->OnPhaseProgressRequested.RemoveAll(this);
-		PhaseAndTurnDisplayWidget->OnPhaseProgressRequested.AddUObject(this, &UBattlePlayerHUDWidget::HandlePhaseProgressRequested);
+		LeverWidget->OnPhaseProgressRequested.RemoveAll(this);
+		LeverWidget->OnPhaseProgressRequested.AddUObject(this, &UBattlePlayerHUDWidget::HandlePhaseProgressRequested);
 	}
 
 	CacheFixedItemSlots();
@@ -139,6 +140,11 @@ void UBattlePlayerHUDWidget::SetCardSlots(const TArray<FBattleCardSlotViewData>&
 
 void UBattlePlayerHUDWidget::SetPhaseDisplay(EPhaseState CurrentPhase, int32 TurnCount)
 {
+	if (IsValid(LeverWidget))
+	{
+		LeverWidget->SetPhase(CurrentPhase);
+	}
+
 	if (IsValid(PhaseAndTurnDisplayWidget))
 	{
 		PhaseAndTurnDisplayWidget->SetPhaseDisplay(CurrentPhase, TurnCount);
@@ -147,9 +153,9 @@ void UBattlePlayerHUDWidget::SetPhaseDisplay(EPhaseState CurrentPhase, int32 Tur
 
 void UBattlePlayerHUDWidget::PlayBossPhaseCompletionAnimation()
 {
-	if (IsValid(PhaseAndTurnDisplayWidget))
+	if (IsValid(LeverWidget))
 	{
-		PhaseAndTurnDisplayWidget->PlayBossPhaseCompletionAnimation();
+		LeverWidget->PlayBossPhaseCompletionAnimation();
 	}
 }
 

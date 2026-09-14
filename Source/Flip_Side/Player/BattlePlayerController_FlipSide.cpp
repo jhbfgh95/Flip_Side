@@ -16,6 +16,7 @@
 #include "BattleHoverInterface.h"
 #include "BattleClickInterface.h"
 #include "Subsystem/BattleLevel/CoinActionManagementWSubsystem.h"
+#include "Actors/Others/Turret_OtherActor.h"
 #include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
 #include "Subsystem/BattleLevel/CoinManagementWSubsystem.h"
@@ -109,6 +110,8 @@ void ABattlePlayerController_FlipSide::PlayerTick(float DeltaTime)
 {
     Super::PlayerTick(DeltaTime);
     CheckMouseHover();
+    UpdateTurretRangePreview();
+    UpdateActionAbilityRangePreview();
 }
 
 void ABattlePlayerController_FlipSide::BeginPlay()
@@ -144,18 +147,29 @@ void ABattlePlayerController_FlipSide::BeginPlay()
         Acting->OnBossDeadAct.BindUObject(this, &ABattlePlayerController_FlipSide::MoveCameraForBossDead);
     }
 
-    if (BattleHUDWidgetClass)
+    if (IsLocalController())
     {
-        BattleHUDWidget = CreateWidget<UBattlePlayerHUDWidget>(this, BattleHUDWidgetClass);
-        if (IsValid(BattleHUDWidget))
+        if (IsValid(BattleHUDWidgetClass.Get()) && !BattleHUDWidgetClass->HasAnyClassFlags(CLASS_Abstract))
         {
-            BattleHUDWidget->AddToViewport();
-            BattleHUDWidget->OnCoinSlotClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleCoinSlotClicked);
-			BattleHUDWidget->OnReadyCoinClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinClicked);
-            BattleHUDWidget->OnReadyCoinHovered.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinHovered);
-            BattleHUDWidget->OnReadyCoinUnhovered.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinUnhovered);
-			BattleHUDWidget->OnItemSlotClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleItemSlotClicked);
-			BattleHUDWidget->OnPhaseProgressClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattlePhaseProgressClicked);
+            BattleHUDWidget = CreateWidget<UBattlePlayerHUDWidget>(this, BattleHUDWidgetClass);
+            if (IsValid(BattleHUDWidget))
+            {
+                BattleHUDWidget->OnCoinSlotClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleCoinSlotClicked);
+                BattleHUDWidget->OnReadyCoinClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinClicked);
+                BattleHUDWidget->OnReadyCoinHovered.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinHovered);
+                BattleHUDWidget->OnReadyCoinUnhovered.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinUnhovered);
+                BattleHUDWidget->OnItemSlotClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleItemSlotClicked);
+                BattleHUDWidget->OnPhaseProgressClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattlePhaseProgressClicked);
+                BattleHUDWidget->AddToViewport();
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("[BattleHUD] Failed to create the battle HUD."));
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[BattleHUD] No usable BattleHUDWidgetClass is assigned."));
         }
     }
 
@@ -368,6 +382,12 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
     if (GetHitResultUnderCursor(ECC_Camera, true, Hit))
     {
         CurrentActor = Hit.GetActor();
+    }
+
+    // 행동 중인 코인은 커서 아래에 있어도 팝업/호버 연출 대상으로 삼지 않습니다.
+    if (ACoinActor* Coin = Cast<ACoinActor>(CurrentActor); IsValid(Coin) && Coin->GetCoinIsActing())
+    {
+        CurrentActor = nullptr;
     }
 
     if (LastHoveredActor != CurrentActor)
@@ -797,6 +817,10 @@ void ABattlePlayerController_FlipSide::RefreshBattleCoinRangePreviews()
 
 void ABattlePlayerController_FlipSide::ShowBattleCoinRangePreviews(ACoinActor* CoinActor)
 {
+	UWorld* PreviewWorld = GetWorld();
+	UCoinActionManagementWSubsystem* ActionManager = IsValid(PreviewWorld)
+		? PreviewWorld->GetSubsystem<UCoinActionManagementWSubsystem>() : nullptr;
+	if (IsValid(ActionManager) && ActionManager->IsActionSequenceActive()) return;
 	HideBattleCoinRangePreviews(CoinActor);
 
 	UWorld* World = GetWorld();
@@ -832,43 +856,7 @@ void ABattlePlayerController_FlipSide::ShowBattleCoinRangePreviews(ACoinActor* C
 		return;
 	}
 
-	bool bAttackRangeVisible = false;
-	TArray<FGridPoint> AttackCells;
-	ABossActor* AttackBoss = nullptr;
-	GridManager->CollectAttackRangeTargets(CoinCell, PreviewSnapshot.AttackAreaSpec, AttackCells, AttackBoss);
-	const bool bBossInRange = IsValid(AttackBoss);
-	SetBossTargetArrowVisible(bBossInRange);
-	if (IsValid(AttackRangeIndicatorActor))
-	{
-		FGridPoint AttackStartCell;
-		FGridPoint AttackEndCell;
-		if (GridManager->TryBuildStraightRangeEndpoints(
-			CoinCell,
-			PreviewSnapshot.AttackAreaSpec,
-			bRangePreviewHasBoss,
-			AttackStartCell,
-			AttackEndCell))
-		{
-			FVector CoinWorldLocation;
-			FVector AttackStartWorldLocation;
-			FVector AttackEndWorldLocation;
-			if (GridManager->TryGetGridWorldLocation(CoinCell, CoinWorldLocation) &&
-				GridManager->TryGetGridWorldLocation(AttackStartCell, AttackStartWorldLocation) &&
-				GridManager->TryGetGridWorldLocation(AttackEndCell, AttackEndWorldLocation))
-			{
-				// 셀 중심 사이의 간격은 방향으로만 쓰고, 실제 메시 경계는 Indicator가 계산합니다.
-				const FVector GridStepWorld = AttackStartWorldLocation - CoinWorldLocation;
-
-				bAttackRangeVisible = AttackRangeIndicatorActor->ShowRange(
-					AttackStartWorldLocation,
-					AttackEndWorldLocation,
-					GridStepWorld,
-					bBossInRange
-				);
-			}
-		}
-	}
-	CoinActor->SetAttackRangeBracketVisible(bAttackRangeVisible);
+	CoinActor->SetAttackRangeBracketVisible(ShowAttackRangePreview(CoinCell, PreviewSnapshot.AttackAreaSpec));
 
 	if (PreviewSnapshot.bHasAbilityArea && IsValid(AbilityRangeActor))
 	{
@@ -890,11 +878,99 @@ void ABattlePlayerController_FlipSide::ShowBattleCoinRangePreviews(ACoinActor* C
 			}
 		}
 		AbilityRangeActor->ShowRangeAtWorldLocations(AbilityWorldLocations);
+		// 클릭 직후 동일 범위라면 인스턴스를 지웠다 만들지 않고 그대로 인계합니다.
+		AbilityRangePreviewLocations = MoveTemp(AbilityWorldLocations);
+	}
+}
+
+
+bool ABattlePlayerController_FlipSide::ShowAttackRangePreview(const FGridPoint& Origin, const FAttackAreaSpec& Spec)
+{
+	UWorld* World = GetWorld();
+	UGridManagerSubsystem* GridManager = IsValid(World) ? World->GetSubsystem<UGridManagerSubsystem>() : nullptr;
+	if (!IsValid(GridManager)) return false;
+	UBossManagerSubsystem* BossManager = World->GetSubsystem<UBossManagerSubsystem>();
+	ABossActor* Boss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
+	RangePreviewBoss = Boss;
+	bRangePreviewHasBoss = IsValid(Boss);
+	bool bAttackRangeVisible = false;
+	TArray<FGridPoint> AttackCells;
+	ABossActor* AttackBoss = nullptr;
+	GridManager->CollectAttackRangeTargets(Origin, Spec, AttackCells, AttackBoss);
+	const bool bBossInRange = IsValid(AttackBoss);
+	SetBossTargetArrowVisible(bBossInRange);
+	if (IsValid(AttackRangeIndicatorActor))
+	{
+		FGridPoint AttackStartCell;
+		FGridPoint AttackEndCell;
+		if (GridManager->TryBuildStraightRangeEndpoints(
+			Origin,
+			Spec,
+			bRangePreviewHasBoss,
+			AttackStartCell,
+			AttackEndCell))
+		{
+			FVector CoinWorldLocation;
+			FVector AttackStartWorldLocation;
+			FVector AttackEndWorldLocation;
+			if (GridManager->TryGetGridWorldLocation(Origin, CoinWorldLocation) &&
+				GridManager->TryGetGridWorldLocation(AttackStartCell, AttackStartWorldLocation) &&
+				GridManager->TryGetGridWorldLocation(AttackEndCell, AttackEndWorldLocation))
+			{
+				// 셀 중심 사이의 간격은 방향으로만 쓰고, 실제 메시 경계는 Indicator가 계산합니다.
+				const FVector GridStepWorld = AttackStartWorldLocation - CoinWorldLocation;
+
+				bAttackRangeVisible = AttackRangeIndicatorActor->ShowRange(
+					AttackStartWorldLocation,
+					AttackEndWorldLocation,
+					GridStepWorld,
+					bBossInRange
+				);
+			}
+		}
+	}
+	if (!bAttackRangeVisible && IsValid(AttackRangeIndicatorActor)) AttackRangeIndicatorActor->HideRange();
+	return bAttackRangeVisible;
+}
+
+void ABattlePlayerController_FlipSide::UpdateTurretRangePreview()
+{
+	UWorld* World = GetWorld();
+	UCoinActionManagementWSubsystem* ActionManager = IsValid(World)
+		? World->GetSubsystem<UCoinActionManagementWSubsystem>() : nullptr;
+	ATurret_OtherActor* Turret = !bIsUIOnly && IsValid(LastHoveredActor)
+		? Cast<ATurret_OtherActor>(LastHoveredActor) : nullptr;
+	if (IsValid(ActionManager) && ActionManager->IsActionSequenceActive()) Turret = nullptr;
+	if (IsValid(Turret) && Turret->GetHP() <= 0) Turret = nullptr;
+
+	if (HoveredRangeTurret.Get() != Turret || (!IsValid(Turret) && bShowingTurretRange))
+	{
+		if (ATurret_OtherActor* Previous = HoveredRangeTurret.Get(); IsValid(Previous))
+		{
+			Previous->SetAttackRangeBracketVisible(false);
+		}
+		if (bShowingTurretRange)
+		{
+			HideBattleCoinRangePreviews();
+		}
+		HoveredRangeTurret = Turret;
+		bShowingTurretRange = false;
+		if (!IsValid(Turret)) RefreshBattleCoinRangePreviews();
+	}
+	if (IsValid(Turret))
+	{
+		if (!bShowingTurretRange) HideBattleCoinRangePreviews();
+		Turret->SetAttackRangeBracketVisible(ShowAttackRangePreview(Turret->GetAttackOrigin(), Turret->GetAttackAreaSpec()));
+		bShowingTurretRange = true;
 	}
 }
 
 void ABattlePlayerController_FlipSide::HideBattleCoinRangePreviews(ACoinActor* CoinActor)
 {
+	if (ATurret_OtherActor* Turret = HoveredRangeTurret.Get(); IsValid(Turret))
+	{
+		Turret->SetAttackRangeBracketVisible(false);
+	}
 	SetBossTargetArrowVisible(false);
 	ACoinActor* TargetCoin = IsValid(CoinActor) ? CoinActor : HoveredBattleCoin.Get();
 	if (IsValid(TargetCoin))
@@ -907,9 +983,49 @@ void ABattlePlayerController_FlipSide::HideBattleCoinRangePreviews(ACoinActor* C
 		AttackRangeIndicatorActor->HideRange();
 	}
 
-	if (IsValid(AbilityRangeActor))
+	TArray<FGridPoint> SelectionCells;
+	UWorld* PreviewWorld = GetWorld();
+	UCoinActionManagementWSubsystem* ActionManager = IsValid(PreviewWorld)
+		? PreviewWorld->GetSubsystem<UCoinActionManagementWSubsystem>() : nullptr;
+	const bool bKeepSelectionRange = !bIsUIOnly && IsValid(ActionManager) &&
+		ActionManager->GetActiveAbilityPreviewCells(SelectionCells);
+	if (IsValid(AbilityRangeActor) && !bKeepSelectionRange)
 	{
 		AbilityRangeActor->HideRange();
+		bShowingActionAbilityRange = false;
+		AbilityRangePreviewLocations.Reset();
+	}
+}
+
+void ABattlePlayerController_FlipSide::UpdateActionAbilityRangePreview()
+{
+	UWorld* World = GetWorld();
+	if (!IsValid(World) || !IsValid(AbilityRangeActor)) return;
+	UCoinActionManagementWSubsystem* ActionManager = World->GetSubsystem<UCoinActionManagementWSubsystem>();
+	UGridManagerSubsystem* GridManager = World->GetSubsystem<UGridManagerSubsystem>();
+	TArray<FGridPoint> Cells;
+	if (!bIsUIOnly && IsValid(ActionManager) && IsValid(GridManager) &&
+		ActionManager->GetActiveAbilityPreviewCells(Cells))
+	{
+		TArray<FVector> Locations;
+		for (const FGridPoint& Cell : Cells)
+		{
+			FVector Location;
+			if (GridManager->TryGetGridWorldLocation(Cell, Location)) Locations.Add(Location);
+		}
+		// 선택 대상 호버가 바뀌어도 시전자의 범위를 유지하고 변경 시에만 메시를 갱신합니다.
+		if (AbilityRangePreviewLocations != Locations)
+		{
+			AbilityRangeActor->ShowRangeAtWorldLocations(Locations);
+			AbilityRangePreviewLocations = MoveTemp(Locations);
+		}
+		bShowingActionAbilityRange = true;
+	}
+	else if (bShowingActionAbilityRange)
+	{
+		AbilityRangeActor->HideRange();
+		bShowingActionAbilityRange = false;
+		AbilityRangePreviewLocations.Reset();
 	}
 }
 
@@ -1298,7 +1414,6 @@ void ABattlePlayerController_FlipSide::HandleBattlePhaseProgressClicked()
 
 	if (UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>())
 	{
-		// TODO: UI 애니메이션 완료 시점이 확정되면 그 콜백에서 요청하도록 변경합니다.
 		BattleManager->RequestPhaseProgress();
 	}
 }

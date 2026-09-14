@@ -107,7 +107,8 @@ public:
 
 	void RaiseCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished);
 
-	void ShakeCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished);
+	void ShakeCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished, float SpeedMultiplier = 1.0f);
+	float CurrentAttackShakeSpeed = 1.0f;
 
 	void LowerCoinAfterAction(ACoinActor* Coin, FSimpleDelegate OnFinished);
 

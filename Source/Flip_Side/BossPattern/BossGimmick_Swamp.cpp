@@ -48,6 +48,17 @@ namespace
 	}
 }
 
+int32 UBossGimmick_Swamp::GetPatternDamage(int32 PatternIndex, bool bHasDebuff) const
+{
+	if (PatternIndex == 0 || PatternIndex == 1)
+	{
+		return 1;
+	}
+	return PatternIndex == 2
+		? FMath::RoundToInt(bHasDebuff ? GimmickData.ParamFloatC : GimmickData.ParamFloatB)
+		: 0;
+}
+
 void UBossGimmick_Swamp::OnBeforePatternExecute(ABossActor* Boss, FBossPhaseContext& Context)
 {
 	if (!Boss) return;
@@ -58,7 +69,7 @@ void UBossGimmick_Swamp::OnBeforePatternExecute(ABossActor* Boss, FBossPhaseCont
 	{
 	case 0: // 1x6, 무기력 디버프 - 고정 피해 1
 	case 1: // 1x6, 공격력 디버프 - 고정 피해 1
-		Context.BonusDamage = 1 - Context.BaseDamage;
+		Context.BonusDamage = GetPatternDamage(Context.CurrentPatternIndex) - Context.BaseDamage;
 		break;
 	case 2: // 2x2, 디버프 보유 여부로 코인별 개별 데미지 - 엔진 기본(균일) 데미지 스킵
 		Context.bSkipAttack = true;
@@ -97,9 +108,7 @@ void UBossGimmick_Swamp::OnPatternExecute(
 			{
 				continue;
 			}
-			const int32 Damage = CoinHasSwampDebuff(Coin)
-				? FMath::RoundToInt(GimmickData.ParamFloatC)
-				: FMath::RoundToInt(GimmickData.ParamFloatB);
+			const int32 Damage = GetPatternDamage(PendingPatternIndex, CoinHasSwampDebuff(Coin));
 			Coin->StatComponent->ApplyDamage(Damage, Boss);
 		}
 		break;

@@ -415,8 +415,9 @@ void UBattleLevelActingWSubsystem::UpdateCoinActionRaise()
     }
 }
 
-void UBattleLevelActingWSubsystem::ShakeCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished)
+void UBattleLevelActingWSubsystem::ShakeCoinForAction(ACoinActor* Coin, FSimpleDelegate OnFinished, float SpeedMultiplier)
 {
+    CurrentAttackShakeSpeed = FMath::Max(1.0f, SpeedMultiplier);
     UWorld* World = GetWorld();
     if(!World || !IsValid(Coin))
     {
@@ -446,7 +447,7 @@ void UBattleLevelActingWSubsystem::UpdateCoinActionShake()
     }
 
     CoinActionElapsedTime += 0.01f;
-    const float Alpha = FMath::Clamp(CoinActionElapsedTime / FMath::Max(CoinActionShakeDuration, KINDA_SMALL_NUMBER), 0.0f, 1.0f);
+    const float Alpha = FMath::Clamp(CoinActionElapsedTime * CurrentAttackShakeSpeed / FMath::Max(CoinActionShakeDuration, KINDA_SMALL_NUMBER), 0.0f, 1.0f);
     FRotator NewRotation = CoinActionStartRotation;
     NewRotation.Roll += FMath::Sin(Alpha * 4.0f * PI) * CoinActionShakeRoll;
     Coin->SetActorRotation(NewRotation);

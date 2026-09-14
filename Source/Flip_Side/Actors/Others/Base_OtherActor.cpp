@@ -22,6 +22,14 @@ void ABase_OtherActor::BeginPlay()
 	Super::BeginPlay();
 	
 	CurrentHP = OtherActorMaxHP;
+	RemainingDurationTurns = FMath::Max(-1, InitialDurationTurns);
+}
+
+void ABase_OtherActor::AdvanceDurationAtTurnEnd()
+{
+	if (bDeathStarted || RemainingDurationTurns < 0) return;
+	RemainingDurationTurns = FMath::Max(0, RemainingDurationTurns - 1);
+	if (RemainingDurationTurns == 0) OnDead();
 }
 
 void ABase_OtherActor::Tick(float DeltaTime)
@@ -51,6 +59,8 @@ void ABase_OtherActor::ApplyHeal(const int32 heal, AActor* healCauser)
 
 void ABase_OtherActor::OnDead()
 {
+	if (bDeathStarted) return;
+	bDeathStarted = true;
 	ActingDeadEffect();
 	OnOtherDead.Broadcast(this);
 }
