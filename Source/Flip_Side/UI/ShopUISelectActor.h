@@ -11,6 +11,9 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickShopPageChangeActor, EShopPage, ConnectedPage);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoverShopPageChangeActor, EShopPage, ConnectedPage);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoverShopPageChangeActor);
+
 UCLASS()
 class FLIP_SIDE_API AShopUISelectActor : public AActor, public IShopMouseInterface
 {
@@ -39,6 +42,8 @@ private:
 
 public:
 	FOnClickShopPageChangeActor OnClickShopPageChangeActor;
+	FOnHoverShopPageChangeActor OnHoverShopPageChangeActor;
+	FOnUnhoverShopPageChangeActor OnUnhoverShopPageChangeActor;
 protected:
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))

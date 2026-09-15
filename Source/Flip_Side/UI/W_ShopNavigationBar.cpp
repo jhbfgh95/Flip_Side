@@ -1,11 +1,13 @@
 #include "UI/W_ShopNavigationBar.h"
 
+#include "Animation/WidgetAnimation.h"
 #include "Components/Button.h"
 
 void UW_ShopNavigationBar::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
+	NavigationToggleButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ToggleNavigationBar);
 	MainButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowMainPage);
 	CoinButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowCoinPage);
 	ItemButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowItemPage);
@@ -13,6 +15,22 @@ void UW_ShopNavigationBar::NativeOnInitialized()
 	UnlockWeaponButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowUnlockWeaponPage);
 	BossButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowBossPage);
 	StartGameButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowStartGamePage);
+}
+
+void UW_ShopNavigationBar::ToggleNavigationBar()
+{
+	bNavigationBarOpen = !bNavigationBarOpen;
+
+	if (SlideNavigationAnim)
+	{
+		PlayAnimation(
+			SlideNavigationAnim,
+			0.f,
+			1,
+			bNavigationBarOpen
+				? EUMGSequencePlayMode::Forward
+				: EUMGSequencePlayMode::Reverse);
+	}
 }
 
 void UW_ShopNavigationBar::ShowCoinPage()

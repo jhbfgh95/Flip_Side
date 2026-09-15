@@ -89,6 +89,7 @@ void UUnlockWeaponPresenter::StartHoldWeapon(int32 WeaponID)
 	if (!IsValid(ShopUnlockWeaponUIActor) || WeaponID == -1)
 		return;
 
+	CurrentSelectedWeaponID = WeaponID;
 	ShopUnlockWeaponUIActor->StartHoldShake();
 }
 
@@ -97,7 +98,7 @@ void UUnlockWeaponPresenter::CancelHoldWeapon(int32 WeaponID)
 	if (CurrentSelectedWeaponID != WeaponID)
 		return;
 
-	CurrentSelectedWeaponID = -1;
+	// Keep the hovered selection so repeated presses can still cancel or complete.
 	if (IsValid(ShopUnlockWeaponUIActor))
 		ShopUnlockWeaponUIActor->StopHoldShake();
 }

@@ -74,7 +74,7 @@ void AShopCoinUIActor::SetFrontCoin(const FFaceData& InFrontFaceData)
 	if (IsValid(FrontMaterialInstance))
 	{
 		FrontMaterialInstance->SetTextureParameterValue(FName("Front_Texture"), FrontFaceData.WeaponIcon);
-		FrontMaterialInstance->SetVectorParameterValue(FName("Front_Color"), TypeColor);
+		FrontMaterialInstance->SetVectorParameterValue(FName("Front_Color"), FLinearColor(0.862745f, 0.913725f, 0.313725f, 1.0f));
 	}
 }
 
@@ -101,7 +101,7 @@ void AShopCoinUIActor::SetBackCoin(const FFaceData& InBackFaceData)
 	if (IsValid(BackMaterialInstance))
 	{
 		BackMaterialInstance->SetTextureParameterValue(FName("Back_Texture"), BackFaceData.WeaponIcon);
-		BackMaterialInstance->SetVectorParameterValue(FName("Back_Color"), TypeColor);
+		BackMaterialInstance->SetVectorParameterValue(FName("Back_Color"), FLinearColor(0.905882f, 0.933333f, 0.917647f, 1.0f));
 	}
 }
 

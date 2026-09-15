@@ -26,8 +26,8 @@ protected:
 
 	virtual void LeftClickCard();
 private:
-	UPROPERTY(meta = (BindWidget))
-	class UImage* LockImage;
+	//UPROPERTY(meta = (BindWidget))
+	//class UImage* LockImage;
 
 	FCardData CurrentCardData;
 

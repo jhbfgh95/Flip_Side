@@ -18,6 +18,7 @@ class UButton;
 class UImage;
 class UTextBlock;
 class UBorder;
+class UMaterialInstanceDynamic;
 UCLASS()
 class FLIP_SIDE_API UW_ShopPlayerItemSlot : public UUserWidget
 {
@@ -36,11 +37,14 @@ protected:
 	TObjectPtr<UTextBlock> ItemCountTextBlock;
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UImage> EmptySlotImage;
+	TObjectPtr<UBorder> EmptySlotImage;
 
 	// 슬롯 위에 표시되며, 입력은 통과시키는 호버 테두리입니다.
 	UPROPERTY(EditAnywhere, meta = (BindWidgetOptional))
 	TObjectPtr<UBorder> HoverBorder;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> ItemIconMI;
 
 public:
 
@@ -58,6 +62,9 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	int32 PlayerInvenIndex = INDEX_NONE;
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
+	TObjectPtr<class UTexture2D> DefaultsTexture;
 
 public:
 	void InitItemWidget(int32 ItemIndex, FItemData InItemData, FSelectItem InSelectItemData);

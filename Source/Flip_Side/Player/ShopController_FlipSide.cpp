@@ -24,6 +24,7 @@
 #include "UI/ShopUnlockWeapon/UnlockWeaponPresenter.h"
 #include "UI/ShopPageChangePresenter.h"
 #include "UI/ShopUISelectRegistry.h"
+#include "UI/W_ESCWidget.h"
 
 #include "Interface/ShopMouseInterface.h"
 #include "UI/W_ShopWidgetContainer.h"
@@ -39,8 +40,9 @@ void AShopController_FlipSide::BeginPlay()
     
     this->bShowMouseCursor = true;
     this->bEnableMouseOverEvents = true;
-    CanClick = true;
+    SetLockMouse(false);
 ////////////////////////////
+    /*서브시스템*/
     UDataManagerSubsystem* DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
     UShopItemWSubsystem* ItemSubsystem = GetWorld()->GetSubsystem<UShopItemWSubsystem>();
     UUnlockGISubsystem* UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
@@ -49,55 +51,40 @@ void AShopController_FlipSide::BeginPlay()
     UShopUnlockWeaponWSubsystem* UnlockWeaponWSubsystem = GetWorld()->GetSubsystem<UShopUnlockWeaponWSubsystem>();
     ShopWidgetContainer = Cast<UW_ShopWidgetContainer>(CreateWidget<UUserWidget>(this, ShopWidgetContainerClass));
     
+    /*메인 및 각 UI 액터들 탐색*/
     ShopUISelectRegistry = Cast<AShopUISelectRegistry>(
         UGameplayStatics::GetActorOfClass(this, AShopUISelectRegistry::StaticClass()));
 
-    if (!ensure(ShopWidgetContainer))
-    {
-        return;
-    }
+    if (!ensure(ShopWidgetContainer)){return;}
 
     // 레벨에 배치된 상점 아이템 UI 액터를 찾아 프레젠터에 전달한다.
     ShopItemUIActor = Cast<AShopItemUIActor>(
         UGameplayStatics::GetActorOfClass(this, AShopItemUIActor::StaticClass()));
 
-    if (!ensure(IsValid(ShopItemUIActor)))
-    {
-        return;
-    }
+    if (!ensure(IsValid(ShopItemUIActor)))return;
 
 	ShopCoinUIActor = Cast<AShopCoinUIActor>(
 		UGameplayStatics::GetActorOfClass(this, AShopCoinUIActor::StaticClass()));
 
-	if (!ensure(IsValid(ShopCoinUIActor)))
-	{
-		return;
-	}
+	if (!ensure(IsValid(ShopCoinUIActor))){return;}
 
 	ShopUnlockWeaponUIActor = Cast<AShopUnlockWeaponUIActor>(
 		UGameplayStatics::GetActorOfClass(this, AShopUnlockWeaponUIActor::StaticClass()));
+	if (!ensure(IsValid(ShopUnlockWeaponUIActor))){return;}
 
-	if (!ensure(IsValid(ShopUnlockWeaponUIActor)))
-	{
-		return;
-	}
-
+    /*Presenter 초기화*/
     ItemPresenter = NewObject<UShopItemPresenter>(this);
-    ItemPresenter->InitPresenter(
-        ShopWidgetContainer->GetShopItemWidget(), ItemSubsystem, DataManager, ShopItemUIActor);
+    ItemPresenter->InitPresenter(ShopWidgetContainer->GetShopItemWidget(), ItemSubsystem, DataManager, ShopItemUIActor);
     
     CardPresenter = NewObject<UShopCardPresenter>();
     CardPresenter->InitPresenter(ShopWidgetContainer->GetShopCardWidget(), CardSubsystem, DataManager, UnlockSubsystem);
 
     CoinPresenter = NewObject<UShopCoinPresenter>(this);
-    CoinPresenter->InitPresenter(
-		ShopWidgetContainer->GetShopCoinWidget(), CoinSubsystem, DataManager, UnlockSubsystem, ShopCoinUIActor);
+    CoinPresenter->InitPresenter(ShopWidgetContainer->GetShopCoinWidget(), CoinSubsystem, DataManager, UnlockSubsystem, ShopCoinUIActor);
 
     UnlockWeaponPresenter = NewObject<UUnlockWeaponPresenter>(this);
-    UnlockWeaponPresenter->InitPresenter(ShopWidgetContainer->GetShopUnlockWeaponWidget(),
-		UnlockWeaponWSubsystem, DataManager, UnlockSubsystem, ShopUnlockWeaponUIActor);
+    UnlockWeaponPresenter->InitPresenter(ShopWidgetContainer->GetShopUnlockWeaponWidget(),UnlockWeaponWSubsystem, DataManager, UnlockSubsystem, ShopUnlockWeaponUIActor);
 
-    UE_LOG(LogTemp, Warning, TEXT("에서 시작 "));
     TryInitPageChangePresenter();
     
     ShopWidgetContainer->AddToViewport();
@@ -105,7 +92,15 @@ void AShopController_FlipSide::BeginPlay()
     if(MoneySubsystem)
         MoneySubsystem->UpdateMoneyDisplayWidget();
 
+	if (IsValid(ESCWidgetClass))
+    {
+        ESCWidget = Cast<UW_ESCWidget>(CreateWidget<UUserWidget>(this, ESCWidgetClass));
+	    ESCWidget->AddToViewport();
+	    ESCWidget->SetVisibility(ESlateVisibility::Collapsed);
+	    ESCWidget->OnContinueGameClicked.AddDynamic(this, &AShopController_FlipSide::ToggleESCMenu);
+    }
 
+    
     //InitWidget(BlockWidgetClass,BlockWidget,20);
     //InitWidget(ShopMainWidgetClass,ShopMainWidget,0);
     //InitWidget(ShopModeWidgetClass,ShopModeWidget,0);
@@ -143,7 +138,27 @@ void AShopController_FlipSide::SetupInputComponent()
     }
 
     InputComponent->BindKey(EKeys::LeftMouseButton, IE_Pressed, this, &AShopController_FlipSide::OnLeftClick);
+	InputComponent->BindKey(EKeys::Escape, IE_Pressed, this, &AShopController_FlipSide::ToggleESCMenu);
+	InputComponent->BindKey(EKeys::CapsLock, IE_Pressed, this, &AShopController_FlipSide::ToggleESCMenu);
     //InputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnRightClick);
+}
+
+void AShopController_FlipSide::ToggleESCMenu()
+{
+	if (!IsValid(ESCWidget)){return;}
+
+    if (ESCWidget->GetVisibility() == ESlateVisibility::Visible)
+    {
+        if(ESCWidget->CloseESCWidget())
+        {
+            SetLockMouse(false);
+        }
+    }
+    else
+    {
+        SetLockMouse(true);
+        ESCWidget->SetVisibility(ESlateVisibility::Visible);
+    }
 }
 
 //폰하고 연결
@@ -166,7 +181,6 @@ void AShopController_FlipSide::TryInitPageChangePresenter()
         return;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("찾음 초기화 시작 "));
     PageChangePresenter = NewObject<UShopPageChangePresenter>(this);
     PageChangePresenter->InitPresenter(ShopUISelectRegistry, ShopWidgetContainer, ControlledPawn);
 }
@@ -260,6 +274,8 @@ void AShopController_FlipSide::OnRightClick()
 
 void AShopController_FlipSide::CheckMouseHover()
 {
+    if(!CanClick)
+        return;
     FHitResult Hit;
     AActor* NewHoverActor = nullptr;
     if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
@@ -290,12 +306,12 @@ void AShopController_FlipSide::SetLockMouse(bool IsMouseLock)
 {
     if(IsMouseLock)
     {
-        BlockWidget->SetVisibility(ESlateVisibility::Visible);
+        //BlockWidget->SetVisibility(ESlateVisibility::Visible);
         CanClick = false;
     }
     else
     {
-        BlockWidget->SetVisibility(ESlateVisibility::Hidden);
+        //BlockWidget->SetVisibility(ESlateVisibility::Hidden);
         CanClick = true;
     }
 }

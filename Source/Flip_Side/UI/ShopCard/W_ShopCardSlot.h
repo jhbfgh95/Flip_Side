@@ -18,13 +18,20 @@ class UImage;
 class UTextBlock;
 class UBorder;
 class UShopCardWSubsystem;
+class UMaterialInstanceDynamic;
 UCLASS()
 class FLIP_SIDE_API UW_ShopCardSlot : public UW_ShopCardBase
 {
 	GENERATED_BODY()
 protected:
+	virtual void NativeConstruct() override;
+
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UImage> CardImage;
+
+	// CardImage에 적용된 동적 머티리얼의 Weapon_Color 파라미터 값입니다.
+	UPROPERTY(EditAnywhere, Category = "Shop Card")
+	FLinearColor CardIconColor = FLinearColor::White;
 	
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UTextBlock> CardNameTextBlock;
@@ -42,6 +49,9 @@ public:
 protected:
 
 	FCardData WidgetCardData;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> CardImageMI;
 
 public:
 
