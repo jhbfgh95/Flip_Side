@@ -66,6 +66,9 @@ protected:
 	class UTextBlock* PatternDescriptionText;
 
 	UPROPERTY(meta = (BindWidgetOptional))
+	class UButton* PassiveButton;
+
+	UPROPERTY(meta = (BindWidgetOptional))
 	class UButton* PatternButton_1;
 
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -156,6 +159,9 @@ public:
 	void SetPatternButtonCount(int32 PatternCount);
 
 protected:
+	UFUNCTION()
+	void SelectPassive();
+
 	UFUNCTION()
 	void SelectPattern1();
 

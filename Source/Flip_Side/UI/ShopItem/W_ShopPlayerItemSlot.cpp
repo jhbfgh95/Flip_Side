@@ -20,7 +20,7 @@ void UW_ShopPlayerItemSlot::NativeConstruct()
     {
         HoverBorder->SetVisibility(ESlateVisibility::Hidden);
     }
-
+    
     ItemIconMI = ItemImage->GetDynamicMaterial();
 }
 
@@ -28,6 +28,15 @@ void UW_ShopPlayerItemSlot::InitItemWidget(int32 ItemIndex, FItemData InItemData
 {
     PlayerInvenIndex = ItemIndex;
     SetItemWidget(InItemData, InSelectItemData);
+
+    if (HoverBorder)
+    {
+        HoverBorder->SetVisibility(ESlateVisibility::Hidden);
+    }
+    
+    ItemIconMI = ItemImage->GetDynamicMaterial();
+    
+    DeleteItemWidget();
 }
 
 void UW_ShopPlayerItemSlot::SetItemWidget(FItemData InItemData, FSelectItem InSelectItemData)
@@ -62,7 +71,7 @@ void UW_ShopPlayerItemSlot::DeleteItemWidget()
 {
     if (ItemIconMI)
     {
-        ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), nullptr);
+        ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), DefaultsTexture);
     }
     ItemNameTextBlock->SetText(FText::GetEmpty());
     ItemCountTextBlock->SetText(FText::GetEmpty());

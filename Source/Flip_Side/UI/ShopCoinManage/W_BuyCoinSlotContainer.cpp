@@ -76,6 +76,7 @@ void UW_BuyCoinSlotContainer::CloseSlotBuyPopupBorder()
 {
 	if (IsValid(SlotBuyBorder))
 	{
+		SlotBuyButtonText->SetText(FText::FromString(TEXT("슬롯 구매")));
 		IsPopupOpen = false;
 		SlotBuyBorder->SetVisibility(ESlateVisibility::Hidden);
 	}
