@@ -72,6 +72,7 @@ private:
 	);
 
 	int32 SlotNumber = INDEX_NONE;
+	int32 AvailableCoinCount = 0;
 
 	UPROPERTY()
 	TObjectPtr<class UMaterialInstanceDynamic> FrontWeaponIconMaterialInstance;

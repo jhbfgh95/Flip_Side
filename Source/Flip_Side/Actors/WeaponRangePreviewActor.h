@@ -1,5 +1,4 @@
 #pragma once
-
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GridTypes.h"
@@ -7,117 +6,85 @@
 #include "WeaponRangePreviewActor.generated.h"
 
 class AGridActor;
+class UChildActorComponent;
+class USceneCaptureComponent2D;
 
-/**
- * 레벨 내 별도 위치에 5x8 그리드 2개를 스폰.
- * - 왼쪽 그리드: 앞면 무기 사거리
- * - 오른쪽 그리드: 뒷면 무기 사거리
- *
- * HandleCoinSlotHovered에서 ShowBothFacePreview() 호출.
- */
+UENUM(BlueprintType)
+enum class EPreviewCoinOrigin : uint8
+{
+	Bottom UMETA(DisplayName="Bottom (4,0)"),
+	Center UMETA(DisplayName="Center (4,2)")
+};
+
+/** DB 기본 사거리 전용. 전장 GridManager/버프 스냅숏과 독립적으로 슬롯 팝업을 촬영합니다. */
 UCLASS()
 class FLIP_SIDE_API AWeaponRangePreviewActor : public AActor
 {
 	GENERATED_BODY()
-
 public:
 	AWeaponRangePreviewActor();
+	virtual void OnConstruction(const FTransform& Transform) override;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Preview|Components")
+	TObjectPtr<USceneComponent> FrontAttackPreviewRangeComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Preview|Components")
+	TObjectPtr<USceneComponent> FrontAbilityPreviewRangeComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Preview|Components")
+	TObjectPtr<USceneComponent> BackAttackPreviewRangeComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Preview|Components")
+	TObjectPtr<USceneComponent> BackAbilityPreviewRangeComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Preview|Capture")
+	TObjectPtr<USceneCaptureComponent2D> FrontAttackCapture;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Preview|Capture")
+	TObjectPtr<USceneCaptureComponent2D> FrontAbilityCapture;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Preview|Capture")
+	TObjectPtr<USceneCaptureComponent2D> BackAttackCapture;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Preview|Capture")
+	TObjectPtr<USceneCaptureComponent2D> BackAbilityCapture;
 
-protected:
-	virtual void BeginPlay() override;
-
-public:
-	// 앞면 그리드 원점
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
-	FVector FrontGridOrigin = FVector(100000.f, 0.f, 0.f);
-
-	// 뒷면 그리드 원점
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
-	FVector BackGridOrigin = FVector(100000.f, -4000.f, 0.f);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
-	float SpacingX = 440.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
-	float SpacingY = 440.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
-	int32 GridXSize = 8;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
-	int32 GridYSize = 5;
-
-	// 에디터에서 BP_GridActor 할당
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
+	// 기존 BP_Grid 재사용. 네 그룹의 상대 Transform은 컴포넌트에서 편집합니다.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Preview|Grid")
 	TSubclassOf<AGridActor> GridActorClass;
-
-	// 코인이 올라갈 기준 셀 (두 그리드 모두 동일)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
-	FGridPoint CoinCell = FGridPoint{ 3, 2 };
-
-	// 사거리 하이라이트 색
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Visual")
-	FLinearColor RangeHighlightColor = FLinearColor(1.f, 0.5f, 0.f, 1.f);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Visual")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Preview|Grid", meta=(ClampMin="1"))
+	float SpacingX = 440.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Preview|Grid", meta=(ClampMin="1"))
+	float SpacingY = 440.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Preview|Ability")
+	TMap<EAttackAreaPattern, EPreviewCoinOrigin> AbilityCoinOrigins;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Preview|Visual")
+	FLinearColor AttackHighlightColor = FLinearColor(1.f, 0.5f, 0.f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Preview|Visual")
+	FLinearColor AbilityHighlightColor = FLinearColor(0.2f, 0.5f, 1.f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Preview|Visual")
+	FLinearColor CoinCellColor = FLinearColor(0.f, 1.f, 0.3f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Preview|Visual")
+	FLinearColor DefaultCellColor = FLinearColor::White;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Preview|Visual")
 	float RangeFillIntensity = 0.8f;
-
-	// 코인 위치 셀 색
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Visual")
-	FLinearColor CoinCellColor = FLinearColor(0.f, 1.f, 0.3f, 1.f);
-
-	// 기본 셀 색
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Visual")
-	FLinearColor DefaultCellColor = FLinearColor(1.f, 1.f, 1.f, 1.f);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Visual")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Preview|Visual")
 	float DefaultFillIntensity = 0.4f;
 
-	/** 앞면/뒷면 사거리 동시 표시. HandleCoinSlotHovered에서 호출 */
-	UFUNCTION(BlueprintCallable, Category = "Preview")
-	void ShowBothFacePreview(const FAttackAreaSpec& FrontSpec, const FAttackAreaSpec& BackSpec);
-
-	/** 미리보기 초기화 */
-	UFUNCTION(BlueprintCallable, Category = "Preview")
+	// PlayerController에서 TryGetWeapon으로 조회한 기본 정의만 전달합니다.
+	void ShowDefinitionPreview(const FAttackAreaSpec& FrontAttack, const FAttackAreaSpec& FrontAbility,
+		bool bFrontAbility, const FAttackAreaSpec& BackAttack, const FAttackAreaSpec& BackAbility, bool bBackAbility);
+	UFUNCTION(BlueprintCallable, Category="Preview")
 	void ClearPreview();
-
-	/**
-	 * GridManagerSubsystem이 계산한 RangeCells를 받아서 자신의 그리드에 표시.
-	 * 직접 호출하지 말고 UGridManagerSubsystem::PreviewHoveredCoinRange를 사용할 것.
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Preview")
+	UFUNCTION(BlueprintCallable, CallInEditor, Category="Preview")
+	void RebuildGrid();
+	// 기존 BP/C++ 참조 보존용. 새 슬롯 경로에서는 호출하지 않습니다.
+	UFUNCTION(BlueprintCallable, Category="Preview", meta=(DeprecatedFunction, DeprecationMessage="Use definition-only slot preview"))
+	void ShowBothFacePreview(const FAttackAreaSpec& FrontSpec, const FAttackAreaSpec& BackSpec);
+	UFUNCTION(BlueprintCallable, Category="Preview", meta=(DeprecatedFunction, DeprecationMessage="World-cell preview is no longer supported"))
 	void ShowPreview(const FGridPoint& CoinXY, const TArray<FGridPoint>& RangeCells);
 
-	/** 그리드 재생성 */
-	UFUNCTION(BlueprintCallable, Category = "Preview")
-	void RebuildGrid();
-
+	// 설명용 보드의 순수 계산 함수. 실제 전장 범위를 변경하지 않습니다.
+	static void BuildPreviewCells(const FAttackAreaSpec& Spec, bool bAttack, EPreviewCoinOrigin Origin,
+		TArray<FGridPoint>& OutCells, FGridPoint& OutCoin, bool& bOutShowCoin);
+protected:
+	virtual void BeginPlay() override;
 private:
-	void SpawnGrids();
-	void DestroyGrids();
-
-	void ApplyPreviewToGrid(
-		TMap<FGridPoint, TObjectPtr<AGridActor>>& GridMap,
-		const FAttackAreaSpec& Spec,
-		TArray<FGridPoint>& OutHighlightedCells
-	);
-
-	void ClearGridHighlight(
-		TMap<FGridPoint, TObjectPtr<AGridActor>>& GridMap,
-		TArray<FGridPoint>& HighlightedCells
-	);
-
-	AGridActor* GetGridActorAt(TMap<FGridPoint, TObjectPtr<AGridActor>>& GridMap, int32 X, int32 Y) const;
-	bool IsInGrid(int32 X, int32 Y) const;
-
-	// 앞면 그리드
 	UPROPERTY()
-	TMap<FGridPoint, TObjectPtr<AGridActor>> FrontGridActors;
-
-	// 뒷면 그리드
-	UPROPERTY()
-	TMap<FGridPoint, TObjectPtr<AGridActor>> BackGridActors;
-
-	TArray<FGridPoint> FrontHighlightedCells;
-	TArray<FGridPoint> BackHighlightedCells;
+	TArray<TObjectPtr<UChildActorComponent>> PreviewCells;
+	void ConfigureCells();
+	void ApplyRange(int32 Group, const FAttackAreaSpec& Spec, bool bEnabled);
+	void CapturePreviews();
 };

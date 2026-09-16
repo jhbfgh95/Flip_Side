@@ -128,6 +128,8 @@ FWeaponAttackResult UWeapon_Action::ExecuteAttack()
 	const FWeaponLogicSet* LogicSet = IsValid(Registry) ? Registry->FindWeaponLogic(LogicID) : nullptr;
 	if (!LogicSet || !LogicSet->AttackLogic)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[CoinAbilityTrace] AttackSkipped Weapon=%d World=%s Registry=%s Reason=MissingAttackLogic"),
+			LogicID, *GetNameSafe(World), *GetNameSafe(Registry));
 		return Result;
 	}
 
@@ -139,7 +141,11 @@ FWeaponAttackResult UWeapon_Action::ExecuteAttack()
 
 bool UWeapon_Action::ExecuteAbility(const FRegisteredAbilityLogic& AbilityLogic)
 {
-	return AbilityLogic.Logic ? AbilityLogic.Logic(this) : false;
+	const bool bSucceeded = AbilityLogic.Logic ? AbilityLogic.Logic(this) : false;
+	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] AbilityResult Weapon=%d Caster=%s Name=%s Success=%d Coins=%d Others=%d Strike=%d"),
+		LogicID, *GetNameSafe(CasterCoin.Get()), *AbilityLogic.DebugName.ToString(), bSucceeded,
+		InRangeCoins.Num(), InRangeOthers.Num(), ExecutionState.StrikeAmount);
+	return bSucceeded;
 }
 
 void UWeapon_Action::ExecuteAction()

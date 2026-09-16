@@ -13,11 +13,14 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDCoinSlotClicked, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDCoinSlotHovered, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDCoinSlotUnhovered, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDCoinSlotInfoDismissed, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDReadyCoinClicked, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDReadyCoinHovered, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDReadyCoinUnhovered, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDItemSlotClicked, int32);
 DECLARE_MULTICAST_DELEGATE(FOnBattleHUDPhaseProgressClicked);
+
+enum class ECoinPopupPointerRegion : uint8 { OutsideGame, CoinUI, OtherUI, World };
 
 /**
  * 
@@ -29,6 +32,19 @@ class FLIP_SIDE_API UBattlePlayerHUDWidget : public UUserWidget
 
 public:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
+	bool IsCoinSlotInfoOpen() const;
+	ECoinPopupPointerRegion GetCoinPopupPointerRegion(const FVector2D& ScreenPosition) const;
+	// 별도 메뉴/팝업 BP도 이 함수를 호출하여 코인 인포를 닫을 수 있습니다.
+	UFUNCTION(BlueprintCallable, Category = "Battle HUD|Coin")
+	void DismissCoinSlotInfo();
+	// HUD 밖의 커스텀 UI는 호버/클릭으로 인포를 닫을 영역을 명시적으로 등록합니다.
+	UFUNCTION(BlueprintCallable, Category = "Battle HUD|Coin")
+	void RegisterCoinInfoDismissRegion(UWidget* Widget);
+	UFUNCTION(BlueprintCallable, Category = "Battle HUD|Coin")
+	void UnregisterCoinInfoDismissRegion(UWidget* Widget);
+	void SetCoinDescriptionDetailInputHeld(bool bHeld);
+	void UpdateCoinDescriptionDetailHover();
 
 	void SetCoinSlots(const TArray<FBattleCoinSlotViewData>& InCoinSlots);
 	void SetReadyCoins(const TArray<FBattleReadyCoinViewData>& InReadyCoins);
@@ -44,6 +60,8 @@ public:
 	FOnBattleHUDCoinSlotClicked OnCoinSlotClicked;
 	FOnBattleHUDCoinSlotHovered OnCoinSlotHovered;
 	FOnBattleHUDCoinSlotUnhovered OnCoinSlotUnhovered;
+	// 슬롯 Unhover와 달리, 이 이벤트만 표시 중인 슬롯의 프리뷰를 종료합니다.
+	FOnBattleHUDCoinSlotInfoDismissed OnCoinSlotInfoDismissed;
 	FOnBattleHUDReadyCoinClicked OnReadyCoinClicked;
 	FOnBattleHUDReadyCoinHovered OnReadyCoinHovered;
 	FOnBattleHUDReadyCoinUnhovered OnReadyCoinUnhovered;
@@ -121,6 +139,10 @@ protected:
 	TSubclassOf<class UW_CardWidget> CardInfoWidgetClass;
 
 private:
+	TArray<TWeakObjectPtr<UWidget>> CoinInfoDismissRegions;
+	TSharedPtr<class FCoinSlotPopupInputProcessor> CoinPopupInputProcessor;
+	int32 DisplayedCoinSlotNumber = INDEX_NONE;
+	bool bCoinDescriptionDetailHeld = false;
 	void EnsureCoinSlotWidgets(int32 RequiredCount);
 	void CacheFixedItemSlots();
 	void CacheFixedCardSlots();

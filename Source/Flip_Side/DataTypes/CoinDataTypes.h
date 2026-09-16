@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CoinStatDataTypes.h"
+#include "CoinDescriptionDataTypes.h"
 #include "GridTypes.h"
 #include "FlipSide_Enum.h"
 #include "CoinDataTypes.generated.h"
@@ -157,6 +158,12 @@ struct FBattleCoinSlotViewData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FWeaponStatDisplayData BackWeaponStats;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FCoinWeaponDescriptionData FrontDescription;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FCoinWeaponDescriptionData BackDescription;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FLinearColor FrontWeaponColor = FLinearColor::White;

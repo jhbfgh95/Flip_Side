@@ -92,10 +92,10 @@ public:
 	float SpacingY = 440.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")
-	int32 GridXSize = 8; // ����
+	int32 GridXSize = 9; // ����
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")
-	int32 GridYSize = 5; // ����
+	int32 GridYSize = 8; // ����
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void InitGrid(int32 InGridXSize, int32 InGridYSize);
@@ -165,7 +165,7 @@ public:
 		FGridPoint& OutEnd
 	) const;
 
-	/** 보스가 사용할 수 있는 뒤쪽 9x3 영역입니다. 9x9 기준 X=0~8, Y=6~8입니다. */
+	/** 보스가 사용할 수 있는 뒤쪽 9x3 영역입니다. 9x8 기준 X=0~8, Y=5~7입니다. */
 	UFUNCTION(BlueprintPure, Category = "Grid|Boss")
 	bool IsBossAreaCell(const FGridPoint& P) const;
 

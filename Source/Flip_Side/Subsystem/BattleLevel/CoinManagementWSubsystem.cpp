@@ -780,6 +780,12 @@ ACoinActor* UCoinManagementWSubsystem::SpawnRuntimeCoinActor(
 	SpawnedCoin->SetActorHiddenInGame(bHiddenInGame);
 	SpawnedCoin->SetActorEnableCollision(bCollisionEnabled);
 	SpawnedCoin->SetWeaponDefinitions(FrontWeaponData, BackWeaponData);
+	const FWeaponActionSnapshot FrontSnapshot = SpawnedCoin->StatComponent->BuildActionSnapshot(EFaceState::Front);
+	const FWeaponActionSnapshot BackSnapshot = SpawnedCoin->StatComponent->BuildActionSnapshot(EFaceState::Back);
+	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] CoinSpawn Actor=%s CoinID=%d Front=%d Back=%d DBHasArea=(%d,%d) RuntimeHasArea=(%d,%d) DBCount=(%d,%d) RuntimeCount=(%d,%d)"),
+		*GetNameSafe(SpawnedCoin), ReadyCoin.CoinInstanceID, FrontWeaponData.WeaponID, BackWeaponData.WeaponID,
+		FrontWeaponData.bHasAbilityArea, BackWeaponData.bHasAbilityArea, FrontSnapshot.bHasAbilityArea, BackSnapshot.bHasAbilityArea,
+		FrontWeaponData.Count, BackWeaponData.Count, FrontSnapshot.FinalNumericStats.WeaponCnt, BackSnapshot.FinalNumericStats.WeaponCnt);
 	return SpawnedCoin;
 }
 
@@ -790,6 +796,8 @@ void UCoinManagementWSubsystem::BroadcastCoinDataChanged()
 
 void UCoinManagementWSubsystem::BindRuntimeCoinInteraction(ACoinActor* RuntimeCoin)
 {
+	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] BindCoin Actor=%s Manager=%s"),
+		*GetNameSafe(RuntimeCoin), *GetNameSafe(CoinActionManager));
 	if (!IsValid(RuntimeCoin) || !IsValid(CoinActionManager))
 	{
 		return;

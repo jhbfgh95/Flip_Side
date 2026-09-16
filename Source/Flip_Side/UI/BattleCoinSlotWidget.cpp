@@ -31,6 +31,7 @@ void UBattleCoinSlotWidget::NativeConstruct()
 void UBattleCoinSlotWidget::SetSlotData(const FBattleCoinSlotViewData& InData)
 {
 	SlotNumber = InData.SlotNumber;
+	AvailableCoinCount = FMath::Max(0, InData.CoinCount);
 
 	if (IsValid(SlotNumberText))
 	{
@@ -70,7 +71,8 @@ void UBattleCoinSlotWidget::SetSlotData(const FBattleCoinSlotViewData& InData)
 	// TODO: 코인 아이콘 Dynamic Material과 타입 색상 처리는 머티리얼 준비 후 추가합니다.
 	if (IsValid(CoinSlotButton))
 	{
-		CoinSlotButton->SetIsEnabled(InData.CoinCount > 0);
+		// 수량이 0이어도 호버로 설명을 볼 수 있고, 클릭 처리에서 수량을 검사합니다.
+		CoinSlotButton->SetIsEnabled(true);
 	}
 	SetVisibility(ESlateVisibility::Visible);
 }
@@ -78,6 +80,7 @@ void UBattleCoinSlotWidget::SetSlotData(const FBattleCoinSlotViewData& InData)
 void UBattleCoinSlotWidget::ClearSlotData()
 {
 	SlotNumber = INDEX_NONE;
+	AvailableCoinCount = 0;
 	if (IsValid(CoinSlotButton))
 	{
 		CoinSlotButton->SetIsEnabled(false);
@@ -87,7 +90,7 @@ void UBattleCoinSlotWidget::ClearSlotData()
 
 void UBattleCoinSlotWidget::HandleCoinButtonClicked()
 {
-	if (SlotNumber != INDEX_NONE)
+	if (SlotNumber != INDEX_NONE && AvailableCoinCount > 0)
 	{
 		OnBattleCoinSlotClicked.Broadcast(SlotNumber);
 	}
