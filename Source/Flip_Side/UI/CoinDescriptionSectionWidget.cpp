@@ -1,5 +1,6 @@
 #include "UI/CoinDescriptionSectionWidget.h"
 #include "UI/CoinDescriptionFormatter.h"
+#include "UI/CoinDescriptionExpression.h"
 #include "UI/CoinDescriptionRichTextDecorator.h"
 #include "Components/RichTextBlock.h"
 #include "Engine/Texture2D.h"
@@ -81,13 +82,31 @@ TSharedPtr<SWidget> UCoinDescriptionSectionWidget::CreateInlineDisplay(FName Key
 	if (bDetailed) Font.TypefaceFontName = DetailedTypeface;
 	const FSlateColor Color(bDetailed && DisplayStyle ? DisplayStyle->DetailedTextColor : FLinearColor::White);
 	TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox).Visibility(EVisibility::HitTestInvisible);
-	auto AddText = [&Row, &Font, &Color](const FString& Text)
+	auto AddText = [&Row, &Font, &Color](const FString& Text, float LeftSpacing = 0.0f)
 	{
 		if (Text.IsEmpty()) return;
-		Row->AddSlot().AutoWidth().VAlign(VAlign_Center)
+		Row->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(LeftSpacing, 0.0f, 0.0f, 0.0f)
 			[SNew(STextBlock).Text(FText::FromString(Text)).Font(Font).ColorAndOpacity(Color)];
 	};
-	AddText(Parts.BeforeIcon);
+	const bool bHasVisibleValue = Data.bHasValue && (!DisplayStyle || DisplayStyle->bShowValue);
+	const float ValueSpacing = FMath::Max(0.0f, IconValueSpacing);
+	// 수치와 아이콘의 간격만 WBP 값으로 제어하며 대괄호/이름 서식은 유지합니다.
+	if (bDetailed && bHasVisibleValue)
+	{
+		AddText(FString::FromInt(Data.Value));
+		AddText(TEXT("["), ValueSpacing);
+	}
+	else AddText(Parts.BeforeIcon);
+	Row->AddSlot().AutoWidth().VAlign(VAlign_Center)[CreateInlineIcon(Key, Style)];
+	if (bDetailed) AddText(Data.Label.ToString() + TEXT("]"), FMath::Max(0.0f, IconNameSpacing));
+	else if (bHasVisibleValue) AddText(FString::FromInt(Data.Value), ValueSpacing);
+	else AddText(Parts.AfterIcon);
+	return Row;
+}
+
+TSharedRef<SWidget> UCoinDescriptionSectionWidget::CreateInlineIcon(FName Key, const FTextBlockStyle& Style)
+{
+	const FCoinDescriptionInlineStyle* DisplayStyle = InlineStyles.Find(Key);
 	UTexture2D* Texture = DisplayStyle ? DisplayStyle->IconTexture.Get() : nullptr;
 	if (IsValid(Texture))
 	{
@@ -97,15 +116,47 @@ TSharedPtr<SWidget> UCoinDescriptionSectionWidget::CreateInlineDisplay(FName Key
 		Brush->DrawAs = ESlateBrushDrawType::Image;
 		const FVector2D IconSize(FMath::Max(1.0, InlineIconSize.X), FMath::Max(1.0, InlineIconSize.Y));
 		Brush->ImageSize = IconSize;
-		Row->AddSlot().AutoWidth().VAlign(VAlign_Center)
-			[SNew(SBox).WidthOverride(IconSize.X).HeightOverride(IconSize.Y)
-				[SNew(SImage).Image_Lambda([Brush]() -> const FSlateBrush* { return &Brush.Get(); })]];
+		return SNew(SBox).WidthOverride(IconSize.X).HeightOverride(IconSize.Y)
+			[SNew(SImage).Image_Lambda([Brush]() -> const FSlateBrush* { return &Brush.Get(); })];
+	}
+	return SNew(STextBlock).Text(FText::FromString(TEXT("?"))).Font(Style.Font).ColorAndOpacity(FLinearColor::White);
+}
+
+TSharedPtr<SWidget> UCoinDescriptionSectionWidget::CreateExpressionDisplay(const FString& Expression, const FTextBlockStyle& Style)
+{
+	const FCoinExpressionResult Result = FCoinDescriptionExpression::Evaluate(Expression, SectionData);
+	// 잘못된 DB 수식은 원문을 남깁니다. 실패를 0으로 표시하지 않습니다.
+	if (!Result.bValid)
+		return SNew(STextBlock).Text(FText::FromString(Expression)).Font(Style.Font).ColorAndOpacity(FLinearColor::White);
+	TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox).Visibility(EVisibility::HitTestInvisible);
+	FSlateFontInfo Font = Style.Font;
+	if (bDetailed) Font.TypefaceFontName = DetailedTypeface;
+	auto AddText = [&Row, &Font](const FString& Text, float LeftSpacing = 0.0f)
+	{
+		Row->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(LeftSpacing, 0.0f, 0.0f, 0.0f)
+			[SNew(STextBlock).Text(FText::FromString(Text)).Font(Font).ColorAndOpacity(FLinearColor::White)];
+	};
+	if (!bDetailed && !Result.bHasUnknownValue)
+	{
+		// 결과 모드에서만 중복 아이콘을 제거하며, 수식 자체는 변경하지 않습니다.
+		for (FName Key : Result.UniqueKeys)
+			Row->AddSlot().AutoWidth().VAlign(VAlign_Center)[CreateInlineIcon(Key, Style)];
+		FNumberFormattingOptions Options;
+		Options.SetMaximumFractionalDigits(0).SetMinimumFractionalDigits(0);
+		AddText(FText::AsNumber(Result.DisplayValue, &Options).ToString(), FMath::Max(0.0f, IconValueSpacing));
 	}
 	else
 	{
-		// 미등록 아이콘은 잘못된 다른 아이콘으로 대체하지 않고 누락을 표시합니다.
-		AddText(TEXT("?"));
+		// 슬롯에는 버프 수치가 없으므로 Shift를 누르지 않아도 기호식으로 남깁니다.
+		AddText(TEXT("( "));
+		for (const FCoinExpressionPart& Part : Result.Parts)
+		{
+			if (Part.Key.IsNone()) AddText(Part.Text);
+			else if (TSharedPtr<SWidget> Display = CreateInlineDisplay(Part.Key, Style))
+				Row->AddSlot().AutoWidth().VAlign(VAlign_Center)[Display.ToSharedRef()];
+			AddText(TEXT(" "));
+		}
+		AddText(TEXT(")"));
 	}
-	AddText(Parts.AfterIcon);
 	return Row;
 }

@@ -1,5 +1,8 @@
 #include "UI/CoinDescriptionBookmarkWidget.h"
 #include "Components/Button.h"
+#include "Components/Border.h"
+#include "Components/HorizontalBox.h"
+#include "Components/Spacer.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Engine/Texture2D.h"
@@ -59,12 +62,29 @@ void UCoinDescriptionBookmarkWidget::RefreshKeywords()
 	SetKeyword(MainKeywordImage, MainKeywordText, BookmarkData.MainKeywordCode);
 	UImage* Images[] = { AdditionalKeywordImage1, AdditionalKeywordImage2, AdditionalKeywordImage3, AdditionalKeywordImage4 };
 	UTextBlock* Texts[] = { AdditionalKeywordText1, AdditionalKeywordText2, AdditionalKeywordText3, AdditionalKeywordText4 };
+	UBorder* Borders[] = { AdditionalKeywordBorder1, AdditionalKeywordBorder2, AdditionalKeywordBorder3, AdditionalKeywordBorder4 };
+	USpacer* Spacers[] = { AdditionalKeywordSpacer1, AdditionalKeywordSpacer2, AdditionalKeywordSpacer3 };
+	bool HasKeyword[UE_ARRAY_COUNT(Images)] = {};
 	for (int32 Index = 0; Index < UE_ARRAY_COUNT(Images); ++Index)
 	{
 		const FName Code = BookmarkData.AdditionalKeywordCodes.IsValidIndex(Index)
 			? BookmarkData.AdditionalKeywordCodes[Index] : NAME_None;
 		SetKeyword(Images[Index], Texts[Index], Code);
+		HasKeyword[Index] = !Code.IsNone();
+		if (IsValid(Borders[Index]))
+			Borders[Index]->SetVisibility(HasKeyword[Index] ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
+	// 빈 칸이 중간에 있어도 실제로 표시되는 두 키워드 사이에만 간격을 둡니다.
+	bool bHasLaterKeyword = false;
+	for (int32 Index = static_cast<int32>(UE_ARRAY_COUNT(Images)) - 1; Index >= 0; --Index)
+	{
+		if (Index < UE_ARRAY_COUNT(Spacers) && IsValid(Spacers[Index]))
+			Spacers[Index]->SetVisibility(HasKeyword[Index] && bHasLaterKeyword
+				? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		bHasLaterKeyword |= HasKeyword[Index];
+	}
+	if (IsValid(AdditionalKeywordRow))
+		AdditionalKeywordRow->SetVisibility(bHasLaterKeyword ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	if (BookmarkData.AdditionalKeywordCodes.Num() > UE_ARRAY_COUNT(Images))
 		UE_LOG(LogTemp, Warning, TEXT("Coin bookmark supports four additional keywords; received %d."), BookmarkData.AdditionalKeywordCodes.Num());
 }

@@ -1,4 +1,5 @@
 #include "UI/CoinDescriptionFormatter.h"
+#include "Misc/Base64.h"
 
 namespace CoinDescriptionFormatterPrivate
 {
@@ -57,6 +58,8 @@ namespace CoinDescriptionFormatterPrivate
 			FString CountText = Remaining.RightChop(1).TrimStartAndEnd();
 			CountText.RemoveFromEnd(TEXT("."));
 			CountText.TrimEndInline();
+			if (CountText.StartsWith(TEXT("<Stat>")) && CountText.EndsWith(TEXT("</Stat>")))
+				CountText = CountText.Mid(6, CountText.Len() - 13).TrimStartAndEnd();
 			if (CountText != TEXT("[STAT:Count]") && CountText != TEXT("[STAT:WeaponPower]") && !CountText.IsNumeric()) return false;
 			Section.HeaderSuffix = Remaining;
 		}
@@ -167,7 +170,7 @@ FCoinDescriptionInlineParts FCoinDescriptionFormatter::BuildInlineParts(const FC
 	if (bDetailed)
 	{
 		Parts.BeforeIcon = (bHasValue ? FString::FromInt(Data.Value) + TEXT(" ") : FString()) + TEXT("[");
-		Parts.AfterIcon = TEXT("] (") + Data.Label.ToString() + TEXT(")");
+		Parts.AfterIcon = TEXT(" ") + Data.Label.ToString() + TEXT("]");
 	}
 	else if (bHasValue)
 	{
@@ -191,6 +194,17 @@ FString FCoinDescriptionFormatter::ToRichText(const FString& RawText)
 	while (Cursor < Text.Len())
 	{
 		const int32 Open = Text.Find(TEXT("["), ESearchCase::CaseSensitive, ESearchDir::FromStart, Cursor);
+		const int32 Formula = Text.Find(TEXT("<Stat>"), ESearchCase::CaseSensitive, ESearchDir::FromStart, Cursor);
+		if (Formula != INDEX_NONE && (Open == INDEX_NONE || Formula < Open))
+		{
+			Result += CoinDescriptionFormatterPrivate::Escape(Text.Mid(Cursor, Formula - Cursor));
+			const int32 End = Text.Find(TEXT("</Stat>"), ESearchCase::CaseSensitive, ESearchDir::FromStart, Formula + 6);
+			if (End == INDEX_NONE) { Result += CoinDescriptionFormatterPrivate::Escape(Text.Mid(Formula)); break; }
+			// DB 수식은 속성에서 안전하게 전달하고, 계산은 전용 Decorator에서 수행합니다.
+			Result += FString::Printf(TEXT("<coinexpr expr=\"%s\"/>"), *FBase64::Encode(Text.Mid(Formula + 6, End - Formula - 6)));
+			Cursor = End + 7;
+			continue;
+		}
 		if (Open == INDEX_NONE) { Result += CoinDescriptionFormatterPrivate::Escape(Text.Mid(Cursor)); break; }
 		Result += CoinDescriptionFormatterPrivate::Escape(Text.Mid(Cursor, Open - Cursor));
 		const int32 Close = Text.Find(TEXT("]"), ESearchCase::CaseSensitive, ESearchDir::FromStart, Open + 1);

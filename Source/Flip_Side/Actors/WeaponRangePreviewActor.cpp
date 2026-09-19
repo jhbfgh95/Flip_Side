@@ -8,8 +8,8 @@
 
 namespace
 {
-	constexpr int32 Starts[] = {0, 6, 51, 57};
-	constexpr int32 Counts[] = {6, 45, 6, 45};
+	constexpr int32 PreviewCellStarts[] = {0, 6, 51, 57};
+	constexpr int32 PreviewCellCounts[] = {6, 45, 6, 45};
 }
 
 AWeaponRangePreviewActor::AWeaponRangePreviewActor()
@@ -42,7 +42,7 @@ AWeaponRangePreviewActor::AWeaponRangePreviewActor()
 		Captures[Group]->bCaptureEveryFrame = false;
 		Captures[Group]->bCaptureOnMovement = false;
 		Captures[Group]->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
-		for (int32 Cell = 0; Cell < Counts[Group]; ++Cell)
+		for (int32 Cell = 0; Cell < PreviewCellCounts[Group]; ++Cell)
 		{
 			const FName Name(*FString::Printf(TEXT("Range%d_Cell_%02d"), Group, Cell));
 			UChildActorComponent* Child = CreateDefaultSubobject<UChildActorComponent>(Name);
@@ -94,9 +94,9 @@ void AWeaponRangePreviewActor::ConfigureCells()
 	for (int32 Group = 0; Group < 4; ++Group)
 	{
 		const int32 Width = Group % 2 == 0 ? 1 : 9;
-		for (int32 Cell = 0; Cell < Counts[Group]; ++Cell)
+		for (int32 Cell = 0; Cell < PreviewCellCounts[Group]; ++Cell)
 		{
-			const int32 Index = Starts[Group] + Cell;
+			const int32 Index = PreviewCellStarts[Group] + Cell;
 			if (!PreviewCells.IsValidIndex(Index) || !IsValid(PreviewCells[Index])) continue;
 			UChildActorComponent* Child = PreviewCells[Index];
 			Child->SetRelativeLocation(FVector((Cell / Width) * FMath::Max(1.f, SpacingY),
@@ -182,9 +182,9 @@ void AWeaponRangePreviewActor::ApplyRange(int32 Group, const FAttackAreaSpec& Sp
 	const EPreviewCoinOrigin* Origin = AbilityCoinOrigins.Find(Spec.Pattern);
 	if (bEnabled) BuildPreviewCells(Spec, bAttack, Origin ? *Origin : EPreviewCoinOrigin::Center, Cells, Coin, bShowCoin);
 	const int32 Width = bAttack ? 1 : 9;
-	for (int32 Cell = 0; Cell < Counts[Group]; ++Cell)
+	for (int32 Cell = 0; Cell < PreviewCellCounts[Group]; ++Cell)
 	{
-		const int32 Index = Starts[Group] + Cell;
+		const int32 Index = PreviewCellStarts[Group] + Cell;
 		if (!PreviewCells.IsValidIndex(Index) || !IsValid(PreviewCells[Index])) continue;
 		AGridActor* Grid = Cast<AGridActor>(PreviewCells[Index]->GetChildActor());
 		if (!IsValid(Grid)) continue;
@@ -227,9 +227,9 @@ void AWeaponRangePreviewActor::CapturePreviews()
 		Capture->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 		Capture->ShowOnlyActors.Reset();
 		Capture->ClearShowOnlyComponents();
-		for (int32 Cell = 0; Cell < Counts[Group]; ++Cell)
+		for (int32 Cell = 0; Cell < PreviewCellCounts[Group]; ++Cell)
 		{
-			const int32 Index = Starts[Group] + Cell;
+			const int32 Index = PreviewCellStarts[Group] + Cell;
 			if (PreviewCells.IsValidIndex(Index) && IsValid(PreviewCells[Index]))
 				if (AActor* Grid = PreviewCells[Index]->GetChildActor(); IsValid(Grid)) Capture->ShowOnlyActorComponents(Grid);
 		}

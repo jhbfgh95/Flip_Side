@@ -144,6 +144,7 @@ private:
 	int32 DisplayedCoinSlotNumber = INDEX_NONE;
 	bool bCoinDescriptionDetailHeld = false;
 	void EnsureCoinSlotWidgets(int32 RequiredCount);
+	void RefreshCoinSlotInfoSelection();
 	void CacheFixedItemSlots();
 	void CacheFixedCardSlots();
 	void HandleCoinSlotClicked(int32 SlotNumber);

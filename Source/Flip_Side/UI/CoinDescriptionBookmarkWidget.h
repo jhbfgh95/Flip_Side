@@ -42,6 +42,24 @@ protected:
 	TObjectPtr<class UImage> AdditionalKeywordImage4;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> AdditionalKeywordText4;
+	// 키워드 이미지/텍스트뿐 아니라 배경과 간격까지 접어서 빈 칸의 크기를 없앱니다.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UHorizontalBox> AdditionalKeywordRow;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBorder> AdditionalKeywordBorder1;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBorder> AdditionalKeywordBorder2;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBorder> AdditionalKeywordBorder3;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBorder> AdditionalKeywordBorder4;
+	// SpacerN은 BorderN 바로 뒤에 배치합니다. 마지막으로 표시되는 칸 뒤에는 간격을 남기지 않습니다.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class USpacer> AdditionalKeywordSpacer1;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class USpacer> AdditionalKeywordSpacer2;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class USpacer> AdditionalKeywordSpacer3;
 	// 키는 KW:Attack 등 설명과 동일합니다. 각 Image Brush의 기존 머테리얼을 사용합니다.
 	UPROPERTY(EditDefaultsOnly, Category = "Coin Description|Style", meta = (GetKeyOptions = "GetKeywordIconKeys"))
 	TMap<FName, TObjectPtr<class UTexture2D>> KeywordIcons;

@@ -71,6 +71,7 @@ void UBattlePlayerHUDWidget::DismissCoinSlotInfo()
 {
 	const int32 PreviousSlot = DisplayedCoinSlotNumber;
 	DisplayedCoinSlotNumber = INDEX_NONE;
+	RefreshCoinSlotInfoSelection();
 	if (IsValid(CoinSlotInfoWidget))
 	{
 		CoinSlotInfoWidget->SetDetailedDescriptions(false);
@@ -155,6 +156,16 @@ ECoinPopupPointerRegion UBattlePlayerHUDWidget::GetCoinPopupPointerRegion(const 
 	return ECoinPopupPointerRegion::World;
 }
 
+void UBattlePlayerHUDWidget::RefreshCoinSlotInfoSelection()
+{
+	const bool bInfoOpen = IsCoinSlotInfoOpen();
+	for (UBattleCoinSlotWidget* CoinSlot : CoinSlotWidgets)
+	{
+		if (IsValid(CoinSlot))
+			CoinSlot->SetInfoSelected(bInfoOpen && CoinSlot->GetSlotNumber() == DisplayedCoinSlotNumber);
+	}
+}
+
 void UBattlePlayerHUDWidget::SetCoinSlots(const TArray<FBattleCoinSlotViewData>& InCoinSlots)
 {
 	CoinSlotViewDataByNumber.Reset();
@@ -184,6 +195,7 @@ void UBattlePlayerHUDWidget::SetCoinSlots(const TArray<FBattleCoinSlotViewData>&
 			Data && IsValid(CoinSlotInfoWidget)) CoinSlotInfoWidget->SetCoinSlotInfo(*Data);
 		else DismissCoinSlotInfo();
 	}
+	RefreshCoinSlotInfoSelection();
 }
 
 void UBattlePlayerHUDWidget::SetReadyCoins(const TArray<FBattleReadyCoinViewData>& InReadyCoins)
@@ -420,6 +432,7 @@ void UBattlePlayerHUDWidget::HandleCoinSlotHovered(int32 SlotNumber)
 			CoinSlotInfoWidget->SetCoinSlotInfo(*CoinSlotData);
 			if (!bWasOpen) CoinSlotInfoWidget->ResetDescriptionSelection();
 			CoinSlotInfoWidget->SetVisibility(ESlateVisibility::Visible);
+			RefreshCoinSlotInfoSelection();
 			ApplyPopupAnchorLayout(CoinSlotInfoWidget, CoinSlotPopupAnchor);
 			OnCoinSlotHovered.Broadcast(SlotNumber);
 		}

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "CoinDataTypes.h"
+#include "Styling/SlateTypes.h"
 #include "BattleCoinSlotWidget.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleCoinSlotWidgetClicked, int32);
@@ -21,15 +22,25 @@ class FLIP_SIDE_API UBattleCoinSlotWidget : public UUserWidget
 
 public:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	void SetSlotData(const FBattleCoinSlotViewData& InData);
 	void ClearSlotData();
+	void SetInfoSelected(bool bSelected);
+	int32 GetSlotNumber() const { return SlotNumber; }
 
 	FOnBattleCoinSlotWidgetClicked OnBattleCoinSlotClicked;
 	FOnBattleCoinSlotWidgetHovered OnBattleCoinSlotHovered;
 	FOnBattleCoinSlotWidgetUnhovered OnBattleCoinSlotUnhovered;
 
 protected:
+	// 실제 마우스 호버가 아니라, HUD에 현재 정보가 표시되고 있는 슬롯입니다.
+	UPROPERTY(BlueprintReadOnly, Category = "Battle Coin Slot|Selection")
+	bool bIsInfoSelected = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Battle Coin Slot|Selection")
+	bool bUseHoveredStyleForInfoSelection = true;
+	UFUNCTION(BlueprintImplementableEvent, Category = "Battle Coin Slot|Selection")
+	void OnInfoSelectionChanged(bool bSelected);
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UButton> CoinSlotButton;
 
@@ -55,6 +66,10 @@ protected:
 	TObjectPtr<class UTextBlock> HPText;
 
 private:
+	void RefreshInfoSelectionStyle();
+	UPROPERTY(Transient)
+	FButtonStyle UnselectedButtonStyle;
+	bool bHasUnselectedButtonStyle = false;
 	UFUNCTION()
 	void HandleCoinButtonClicked();
 
