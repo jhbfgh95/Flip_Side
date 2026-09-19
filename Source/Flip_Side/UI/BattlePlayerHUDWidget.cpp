@@ -74,7 +74,7 @@ void UBattlePlayerHUDWidget::DismissCoinSlotInfo()
 	RefreshCoinSlotInfoSelection();
 	if (IsValid(CoinSlotInfoWidget))
 	{
-		CoinSlotInfoWidget->SetDetailedDescriptions(false);
+		CoinSlotInfoWidget->ResetDetailedDescriptions();
 		CoinSlotInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 	if (PreviousSlot != INDEX_NONE) OnCoinSlotInfoDismissed.Broadcast(PreviousSlot);

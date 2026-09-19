@@ -15,12 +15,21 @@ class FLIP_SIDE_API UW_CoinSlotInfo : public UUserWidget
 
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UContentWidget> FrontDescriptionContainer;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UContentWidget> BackDescriptionContainer;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UContentWidget> MainKeywordDescriptionContainer;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UContentWidget> AdditionalKeywordDescriptionContainer;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> DetailedDescriptionToggleButton;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> DetailedDescriptionToggleText;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UPanelWidget> FrontBookmarkContainer;
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -91,8 +100,19 @@ public:
 	void SetFaceDescriptions(bool bFrontFace, const TArray<FCoinDescriptionSectionData>& Sections);
 	void ResetDescriptionSelection();
 	void SetDetailedDescriptions(bool bDetailed);
+	void ResetDetailedDescriptions();
+	UFUNCTION(BlueprintCallable, Category = "Coin Description")
+	void ToggleDetailedDescriptions();
 
 private:
+	void RefreshDetailedDescriptions();
+	bool bDetailInputHeld = false;
+	UPROPERTY(BlueprintReadOnly, Category = "Coin Description", meta = (AllowPrivateAccess = "true"))
+	bool bDetailToggleEnabled = false;
+	UPROPERTY(Transient)
+	TObjectPtr<class UKeywordDescriptionWidget> MainKeywordDescriptionWidget;
+	UPROPERTY(Transient)
+	TObjectPtr<class UKeywordDescriptionWidget> AdditionalKeywordDescriptionWidget;
 	void HandleBookmarkClicked(bool bFrontFace, int32 SectionIndex);
 	void SelectDescription(bool bFrontFace, int32 SectionIndex);
 	bool bShowingDetailedDescriptions = false;
