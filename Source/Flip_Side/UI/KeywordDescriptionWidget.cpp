@@ -52,7 +52,9 @@ void UKeywordDescriptionWidget::RefreshFromDatabase()
 	for (const FKeywordDefinitionData& Keyword : Keywords) Definitions.Add(Keyword.KeywordCode, Keyword);
 	const TArray<FName> Codes = KeywordGroup == EKeywordDescriptionGroup::Main
 		? TArray<FName>{TEXT("Attack"), TEXT("Hit"), TEXT("Mobility")}
-		: TArray<FName>{TEXT("Continuous"), TEXT("Strike"), TEXT("Absorb")};
+		: KeywordGroup == EKeywordDescriptionGroup::Item
+			? TArray<FName>{TEXT("Attack"), TEXT("Hit"), TEXT("Instant")}
+			: TArray<FName>{TEXT("Continuous"), TEXT("Strike"), TEXT("Absorb")};
 	// 재구성 중 발생하는 ClearOptions 이벤트는 선택 처리에서 제외합니다.
 	if (IsValid(KeywordDropdown)) KeywordDropdown->OnSelectionChanged.RemoveDynamic(this, &UKeywordDescriptionWidget::HandleSelectionChanged);
 	if (IsValid(KeywordDropdown)) KeywordDropdown->ClearOptions();

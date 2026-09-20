@@ -10,7 +10,8 @@ UENUM(BlueprintType)
 enum class EKeywordDescriptionGroup : uint8
 {
 	Main,
-	Additional
+	Additional,
+	Item
 };
 
 // 다른 화면에서도 독립적으로 배치할 수 있는 DB 기반 키워드 사전입니다.

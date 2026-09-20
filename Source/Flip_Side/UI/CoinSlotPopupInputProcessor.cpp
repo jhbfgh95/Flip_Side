@@ -3,30 +3,43 @@
 #include "Framework/Application/SlateApplication.h"
 #include "InputCoreTypes.h"
 
+bool FCoinSlotPopupInputProcessor::ShouldDismissOnHover(bool bItemPopup, ECoinPopupPointerRegion Region)
+{
+	return Region == ECoinPopupPointerRegion::OtherUI ||
+		Region == (bItemPopup ? ECoinPopupPointerRegion::CoinUI : ECoinPopupPointerRegion::ItemUI);
+}
+
+bool FCoinSlotPopupInputProcessor::ShouldConsumeDismissClick(ECoinPopupPointerRegion Region, FKey Button)
+{
+	return Region != ECoinPopupPointerRegion::OutsideGame &&
+		(Button == EKeys::RightMouseButton || (Button == EKeys::LeftMouseButton && Region == ECoinPopupPointerRegion::World));
+}
+
 void FCoinSlotPopupInputProcessor::Tick(float DeltaTime, FSlateApplication& SlateApp, TSharedRef<ICursor> Cursor)
 {
-	if (HUD.IsValid() && HUD->IsCoinSlotInfoOpen() &&
-		HUD->GetCoinPopupPointerRegion(SlateApp.GetCursorPos()) == ECoinPopupPointerRegion::OtherUI)
-	{
+	if (!HUD.IsValid() || (!HUD->IsCoinSlotInfoOpen() && !HUD->IsItemInfoOpen())) return;
+	const ECoinPopupPointerRegion Region = HUD->GetCoinPopupPointerRegion(SlateApp.GetCursorPos());
+	if (HUD->IsCoinSlotInfoOpen() && ShouldDismissOnHover(false, Region))
 		HUD->DismissCoinSlotInfo();
-	}
-	// 닫기 판정을 먼저 적용해 다른 UI로 이동한 프레임에 상세 표시가 다시 켜지지 않게 합니다.
-	if (HUD.IsValid()) HUD->UpdateCoinDescriptionDetailHover();
+	if (HUD->IsItemInfoOpen() && ShouldDismissOnHover(true, Region))
+		HUD->DismissItemInfo();
 }
 
 bool FCoinSlotPopupInputProcessor::HandleMouseButtonDownEvent(FSlateApplication& SlateApp, const FPointerEvent& Event)
 {
-	if (!HUD.IsValid() || !HUD->IsCoinSlotInfoOpen()) return false;
+	if (!HUD.IsValid() || (!HUD->IsCoinSlotInfoOpen() && !HUD->IsItemInfoOpen())) return false;
 	const ECoinPopupPointerRegion Region = HUD->GetCoinPopupPointerRegion(Event.GetScreenSpacePosition());
 	if (Region == ECoinPopupPointerRegion::OutsideGame) return false;
 	const FKey Button = Event.GetEffectingButton();
-	if (Button == EKeys::RightMouseButton || (Button == EKeys::LeftMouseButton && Region == ECoinPopupPointerRegion::World))
+	if (ShouldConsumeDismissClick(Region, Button))
 	{
 		HUD->DismissCoinSlotInfo();
+		HUD->DismissItemInfo();
 		ConsumedButtons.Add(Button);
 		return true;
 	}
-	if (Region == ECoinPopupPointerRegion::OtherUI) HUD->DismissCoinSlotInfo();
+	if (ShouldDismissOnHover(false, Region)) HUD->DismissCoinSlotInfo();
+	if (ShouldDismissOnHover(true, Region)) HUD->DismissItemInfo();
 	return false;
 }
 

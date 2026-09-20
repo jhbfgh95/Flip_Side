@@ -20,7 +20,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDReadyCoinUnhovered, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleHUDItemSlotClicked, int32);
 DECLARE_MULTICAST_DELEGATE(FOnBattleHUDPhaseProgressClicked);
 
-enum class ECoinPopupPointerRegion : uint8 { OutsideGame, CoinUI, OtherUI, World };
+enum class ECoinPopupPointerRegion : uint8 { OutsideGame, CoinUI, OtherUI, World, ItemUI };
 
 /**
  * 
@@ -34,6 +34,9 @@ public:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 	bool IsCoinSlotInfoOpen() const;
+	bool IsItemInfoOpen() const;
+	UFUNCTION(BlueprintCallable, Category = "Battle HUD|Item")
+	void DismissItemInfo();
 	ECoinPopupPointerRegion GetCoinPopupPointerRegion(const FVector2D& ScreenPosition) const;
 	// 별도 메뉴/팝업 BP도 이 함수를 호출하여 코인 인포를 닫을 수 있습니다.
 	UFUNCTION(BlueprintCallable, Category = "Battle HUD|Coin")
@@ -43,8 +46,7 @@ public:
 	void RegisterCoinInfoDismissRegion(UWidget* Widget);
 	UFUNCTION(BlueprintCallable, Category = "Battle HUD|Coin")
 	void UnregisterCoinInfoDismissRegion(UWidget* Widget);
-	void SetCoinDescriptionDetailInputHeld(bool bHeld);
-	void UpdateCoinDescriptionDetailHover();
+	void ToggleCoinDescriptionDetails();
 
 	void SetCoinSlots(const TArray<FBattleCoinSlotViewData>& InCoinSlots);
 	void SetReadyCoins(const TArray<FBattleReadyCoinViewData>& InReadyCoins);
@@ -142,9 +144,10 @@ private:
 	TArray<TWeakObjectPtr<UWidget>> CoinInfoDismissRegions;
 	TSharedPtr<class FCoinSlotPopupInputProcessor> CoinPopupInputProcessor;
 	int32 DisplayedCoinSlotNumber = INDEX_NONE;
-	bool bCoinDescriptionDetailHeld = false;
+	int32 DisplayedItemID = INDEX_NONE;
 	void EnsureCoinSlotWidgets(int32 RequiredCount);
 	void RefreshCoinSlotInfoSelection();
+	void RefreshItemInfoSelection();
 	void CacheFixedItemSlots();
 	void CacheFixedCardSlots();
 	void HandleCoinSlotClicked(int32 SlotNumber);

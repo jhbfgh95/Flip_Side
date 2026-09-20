@@ -19,14 +19,56 @@ void UBattleItemSlotWidget::NativeConstruct()
 
 	if (IsValid(ItemButton))
 	{
-		ItemButton->OnClicked.AddDynamic(this, &UBattleItemSlotWidget::HandleItemButtonClicked);
-		ItemButton->OnHovered.AddDynamic(this, &UBattleItemSlotWidget::HandleItemButtonHovered);
-		ItemButton->OnUnhovered.AddDynamic(this, &UBattleItemSlotWidget::HandleItemButtonUnhovered);
+		ItemButton->OnClicked.AddUniqueDynamic(this, &UBattleItemSlotWidget::HandleItemButtonClicked);
+		ItemButton->OnHovered.AddUniqueDynamic(this, &UBattleItemSlotWidget::HandleItemButtonHovered);
+		ItemButton->OnUnhovered.AddUniqueDynamic(this, &UBattleItemSlotWidget::HandleItemButtonUnhovered);
 	}
+	RefreshInfoSelectionStyle();
+	OnInfoSelectionChanged(bIsInfoSelected);
+}
+
+void UBattleItemSlotWidget::NativeDestruct()
+{
+	if (IsValid(ItemButton))
+	{
+		ItemButton->OnClicked.RemoveDynamic(this, &UBattleItemSlotWidget::HandleItemButtonClicked);
+		ItemButton->OnHovered.RemoveDynamic(this, &UBattleItemSlotWidget::HandleItemButtonHovered);
+		ItemButton->OnUnhovered.RemoveDynamic(this, &UBattleItemSlotWidget::HandleItemButtonUnhovered);
+		if (bHasUnselectedButtonStyle) ItemButton->SetStyle(UnselectedButtonStyle);
+	}
+	bHasUnselectedButtonStyle = false;
+	Super::NativeDestruct();
+}
+
+void UBattleItemSlotWidget::SetInfoSelected(bool bSelected)
+{
+	bSelected = bSelected && ItemID != INDEX_NONE && AvailableCount > 0;
+	if (bIsInfoSelected == bSelected) return;
+	bIsInfoSelected = bSelected;
+	RefreshInfoSelectionStyle();
+	OnInfoSelectionChanged(bIsInfoSelected);
+}
+
+void UBattleItemSlotWidget::RefreshInfoSelectionStyle()
+{
+	if (!IsValid(ItemButton) || !bUseHoveredStyleForInfoSelection) return;
+	if (!bHasUnselectedButtonStyle)
+	{
+		UnselectedButtonStyle = ItemButton->GetStyle();
+		bHasUnselectedButtonStyle = true;
+	}
+	FButtonStyle DisplayStyle = UnselectedButtonStyle;
+	if (bIsInfoSelected)
+	{
+		DisplayStyle.Normal = UnselectedButtonStyle.Hovered;
+		DisplayStyle.NormalForeground = UnselectedButtonStyle.HoveredForeground;
+	}
+	ItemButton->SetStyle(DisplayStyle);
 }
 
 void UBattleItemSlotWidget::SetItemData(const FBattleItemSlotViewData& InData)
 {
+	if (ItemID != InData.ItemData.ItemID || InData.AvailableCount <= 0) SetInfoSelected(false);
 	ItemID = InData.ItemData.ItemID;
 	AvailableCount = InData.AvailableCount;
 	bCanUse = InData.bCanUse;
@@ -61,6 +103,7 @@ void UBattleItemSlotWidget::SetItemData(const FBattleItemSlotViewData& InData)
 
 void UBattleItemSlotWidget::ClearItemData()
 {
+	SetInfoSelected(false);
 	ItemID = INDEX_NONE;
 	AvailableCount = 0;
 	bCanUse = false;

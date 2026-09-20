@@ -777,7 +777,7 @@ void ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsStarted(
     const FInputActionValue& InputActionValue)
 {
     bShowAdditionalBuffsHeld = InputActionValue.Get<bool>();
-	if (IsValid(BattleHUDWidget)) BattleHUDWidget->SetCoinDescriptionDetailInputHeld(bShowAdditionalBuffsHeld);
+	if (IsValid(BattleHUDWidget)) BattleHUDWidget->ToggleCoinDescriptionDetails();
     if (IsValid(BattleHUDWidget) &&
         (HoveredReadyCoinInstanceID != INDEX_NONE || HoveredBattleCoin.IsValid()))
     {
@@ -791,7 +791,6 @@ void ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsCompleted(
 {
     static_cast<void>(InputActionValue);
     bShowAdditionalBuffsHeld = false;
-	if (IsValid(BattleHUDWidget)) BattleHUDWidget->SetCoinDescriptionDetailInputHeld(false);
     if (IsValid(BattleHUDWidget))
     {
         BattleHUDWidget->SetAdditionalBattleCoinBuffsVisible(false);

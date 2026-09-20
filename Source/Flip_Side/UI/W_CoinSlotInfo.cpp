@@ -13,6 +13,8 @@
 void UW_CoinSlotInfo::NativeConstruct()
 {
 	Super::NativeConstruct();
+	if (IsValid(CloseButton))
+		CloseButton->OnClicked.AddUniqueDynamic(this, &UW_CoinSlotInfo::HandleCloseClicked);
 	if (IsValid(DetailedDescriptionToggleButton))
 		DetailedDescriptionToggleButton->OnClicked.AddUniqueDynamic(this, &UW_CoinSlotInfo::ToggleDetailedDescriptions);
 	auto ConfigureKeywordWidget = [](UContentWidget* Container, TObjectPtr<UKeywordDescriptionWidget>& Widget, EKeywordDescriptionGroup Group)
@@ -37,10 +39,18 @@ void UW_CoinSlotInfo::NativeConstruct()
 
 void UW_CoinSlotInfo::NativeDestruct()
 {
+	if (IsValid(CloseButton))
+		CloseButton->OnClicked.RemoveDynamic(this, &UW_CoinSlotInfo::HandleCloseClicked);
 	if (IsValid(DetailedDescriptionToggleButton))
 		DetailedDescriptionToggleButton->OnClicked.RemoveDynamic(this, &UW_CoinSlotInfo::ToggleDetailedDescriptions);
 	ResetDetailedDescriptions();
 	Super::NativeDestruct();
+}
+
+void UW_CoinSlotInfo::HandleCloseClicked()
+{
+	// HUD가 우클릭과 동일한 경로로 팝업 상태와 선택 표시를 함께 정리합니다.
+	OnCloseRequested.Broadcast();
 }
 
 void UW_CoinSlotInfo::SetCoinSlotInfo(const FBattleCoinSlotViewData& InData)
@@ -161,17 +171,11 @@ void UW_CoinSlotInfo::SelectDescription(bool bFrontFace, int32 SectionIndex)
 	if (SelectedIndex == SectionIndex) return;
 	SelectedIndex = SectionIndex;
 	DisplayWidget->SetSectionData(Descriptions[SectionIndex]);
-	DisplayWidget->SetDetailed(bShowingDetailedDescriptions);
+	DisplayWidget->SetDetailed(bDetailToggleEnabled);
 	DisplayWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	const auto& Bookmarks = bFrontFace ? FrontBookmarks : BackBookmarks;
 	for (int32 Index = 0; Index < Bookmarks.Num(); ++Index)
 		if (IsValid(Bookmarks[Index])) Bookmarks[Index]->SetBookmarkActive(Index == SelectedIndex);
-}
-
-void UW_CoinSlotInfo::SetDetailedDescriptions(bool bDetailed)
-{
-	bDetailInputHeld = bDetailed;
-	RefreshDetailedDescriptions();
 }
 
 void UW_CoinSlotInfo::ToggleDetailedDescriptions()
@@ -182,7 +186,6 @@ void UW_CoinSlotInfo::ToggleDetailedDescriptions()
 
 void UW_CoinSlotInfo::ResetDetailedDescriptions()
 {
-	bDetailInputHeld = false;
 	bDetailToggleEnabled = false;
 	RefreshDetailedDescriptions();
 }
@@ -193,9 +196,7 @@ void UW_CoinSlotInfo::RefreshDetailedDescriptions()
 		DetailedDescriptionToggleText->SetText(bDetailToggleEnabled
 			? NSLOCTEXT("CoinDescription", "DetailOn", "상세 표시: 켜짐")
 			: NSLOCTEXT("CoinDescription", "DetailOff", "상세 표시: 꺼짐"));
-	const bool bDetailed = bDetailInputHeld || bDetailToggleEnabled;
-	if (bShowingDetailedDescriptions == bDetailed) return;
-	bShowingDetailedDescriptions = bDetailed;
+	const bool bDetailed = bDetailToggleEnabled;
 	// Shift는 현재 선택을 유지한 채 앞/뒷면의 표시 서식만 변경합니다.
 	if (IsValid(FrontDescriptionWidget)) FrontDescriptionWidget->SetDetailed(bDetailed);
 	if (IsValid(BackDescriptionWidget)) BackDescriptionWidget->SetDetailed(bDetailed);

@@ -8,6 +8,8 @@
 #include "UI/CoinDescriptionSectionWidget.h"
 #include "W_CoinSlotInfo.generated.h"
 
+DECLARE_MULTICAST_DELEGATE(FOnCoinSlotInfoCloseRequested);
+
 UCLASS()
 class FLIP_SIDE_API UW_CoinSlotInfo : public UUserWidget
 {
@@ -28,6 +30,8 @@ protected:
 	TObjectPtr<class UContentWidget> AdditionalKeywordDescriptionContainer;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UButton> DetailedDescriptionToggleButton;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> CloseButton;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> DetailedDescriptionToggleText;
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -95,18 +99,19 @@ private:
 	class UMaterialInstanceDynamic* BackDynamicMaterial;
 
 public:
+	FOnCoinSlotInfoCloseRequested OnCloseRequested;
 	void SetCoinSlotInfo(const FBattleCoinSlotViewData& InData);
 	UFUNCTION(BlueprintCallable, Category = "Coin Description")
 	void SetFaceDescriptions(bool bFrontFace, const TArray<FCoinDescriptionSectionData>& Sections);
 	void ResetDescriptionSelection();
-	void SetDetailedDescriptions(bool bDetailed);
 	void ResetDetailedDescriptions();
 	UFUNCTION(BlueprintCallable, Category = "Coin Description")
 	void ToggleDetailedDescriptions();
 
 private:
 	void RefreshDetailedDescriptions();
-	bool bDetailInputHeld = false;
+	UFUNCTION()
+	void HandleCloseClicked();
 	UPROPERTY(BlueprintReadOnly, Category = "Coin Description", meta = (AllowPrivateAccess = "true"))
 	bool bDetailToggleEnabled = false;
 	UPROPERTY(Transient)
@@ -115,7 +120,6 @@ private:
 	TObjectPtr<class UKeywordDescriptionWidget> AdditionalKeywordDescriptionWidget;
 	void HandleBookmarkClicked(bool bFrontFace, int32 SectionIndex);
 	void SelectDescription(bool bFrontFace, int32 SectionIndex);
-	bool bShowingDetailedDescriptions = false;
 	// 면별 설명 위젯은 한 개만 유지하며 책갈피 클릭 시 내용만 교체합니다.
 	UPROPERTY(Transient)
 	TObjectPtr<UCoinDescriptionSectionWidget> FrontDescriptionWidget;

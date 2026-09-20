@@ -55,6 +55,9 @@ void UBattlePlayerHUDWidget::NativeConstruct()
 void UBattlePlayerHUDWidget::NativeDestruct()
 {
 	DismissCoinSlotInfo();
+	DismissItemInfo();
+	if (IsValid(ItemInfoWidget)) ItemInfoWidget->OnCloseRequested.RemoveAll(this);
+	if (IsValid(CoinSlotInfoWidget)) CoinSlotInfoWidget->OnCloseRequested.RemoveAll(this);
 	if (FSlateApplication::IsInitialized() && CoinPopupInputProcessor.IsValid())
 		FSlateApplication::Get().UnregisterInputPreProcessor(CoinPopupInputProcessor);
 	CoinPopupInputProcessor.Reset();
@@ -65,6 +68,25 @@ bool UBattlePlayerHUDWidget::IsCoinSlotInfoOpen() const
 {
 	return IsVisible() && DisplayedCoinSlotNumber != INDEX_NONE &&
 		IsValid(CoinSlotInfoWidget) && CoinSlotInfoWidget->IsVisible();
+}
+
+bool UBattlePlayerHUDWidget::IsItemInfoOpen() const
+{
+	return IsVisible() && DisplayedItemID != INDEX_NONE && IsValid(ItemInfoWidget) && ItemInfoWidget->IsVisible();
+}
+
+void UBattlePlayerHUDWidget::DismissItemInfo()
+{
+	DisplayedItemID = INDEX_NONE;
+	if (IsValid(ItemInfoWidget)) ItemInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
+	RefreshItemInfoSelection();
+}
+
+void UBattlePlayerHUDWidget::RefreshItemInfoSelection()
+{
+	const bool bOpen = IsItemInfoOpen();
+	for (UBattleItemSlotWidget* ItemSlot : ItemSlotWidgets)
+		if (IsValid(ItemSlot)) ItemSlot->SetInfoSelected(bOpen && ItemSlot->GetItemID() == DisplayedItemID);
 }
 
 void UBattlePlayerHUDWidget::DismissCoinSlotInfo()
@@ -93,21 +115,9 @@ void UBattlePlayerHUDWidget::UnregisterCoinInfoDismissRegion(UWidget* Widget)
 	});
 }
 
-void UBattlePlayerHUDWidget::SetCoinDescriptionDetailInputHeld(bool bHeld)
+void UBattlePlayerHUDWidget::ToggleCoinDescriptionDetails()
 {
-	bCoinDescriptionDetailHeld = bHeld;
-	UpdateCoinDescriptionDetailHover();
-}
-
-void UBattlePlayerHUDWidget::UpdateCoinDescriptionDetailHover()
-{
-	if (IsValid(CoinSlotInfoWidget))
-	{
-		// 동일 IA를 이용하되, 상세 표시 대상/스탯은 코인 슬롯 팝업 안에서만 처리합니다.
-		const bool bPopupHovered = FSlateApplication::IsInitialized() &&
-			CoinSlotInfoWidget->GetCachedGeometry().IsUnderLocation(FSlateApplication::Get().GetCursorPos());
-		CoinSlotInfoWidget->SetDetailedDescriptions(IsCoinSlotInfoOpen() && bPopupHovered && bCoinDescriptionDetailHeld);
-	}
+	if (IsCoinSlotInfoOpen()) CoinSlotInfoWidget->ToggleDetailedDescriptions();
 }
 
 ECoinPopupPointerRegion UBattlePlayerHUDWidget::GetCoinPopupPointerRegion(const FVector2D& ScreenPosition) const
@@ -125,13 +135,14 @@ ECoinPopupPointerRegion UBattlePlayerHUDWidget::GetCoinPopupPointerRegion(const 
 	if (InPath(CoinSlotInfoWidget)) return ECoinPopupPointerRegion::CoinUI;
 	for (const UBattleCoinSlotWidget* CoinSlot : CoinSlotWidgets)
 		if (InPath(CoinSlot)) return ECoinPopupPointerRegion::CoinUI;
+	if (InPath(ItemInfoWidget)) return ECoinPopupPointerRegion::ItemUI;
+	for (const UBattleItemSlotWidget* Item : ItemSlotWidgets)
+		if (InPath(Item)) return ECoinPopupPointerRegion::ItemUI;
 
 	// 알려진 다른 UI와 명시적으로 등록한 영역만 닫기 대상으로 취급합니다.
 	// ReadyCoin 전체 레이아웃은 제외합니다. 개별 슬롯 버튼/호버 이벤트에서 닫습니다.
-	if (InPath(ItemInfoWidget) || InPath(CardInfoWidget) || InPath(BattleCoinInfoWidget))
+	if (InPath(CardInfoWidget) || InPath(BattleCoinInfoWidget))
 		return ECoinPopupPointerRegion::OtherUI;
-	for (const UBattleItemSlotWidget* Item : ItemSlotWidgets)
-		if (InPath(Item)) return ECoinPopupPointerRegion::OtherUI;
 	for (const UBattleCardSlotWidget* Card : CardSlotWidgets)
 		if (InPath(Card)) return ECoinPopupPointerRegion::OtherUI;
 	for (const TWeakObjectPtr<UWidget>& Region : CoinInfoDismissRegions)
@@ -153,6 +164,9 @@ ECoinPopupPointerRegion UBattlePlayerHUDWidget::GetCoinPopupPointerRegion(const 
 	if (IsCoinSlotInfoOpen() && ContainsPoint(CoinSlotInfoWidget)) return ECoinPopupPointerRegion::CoinUI;
 	for (const UBattleCoinSlotWidget* CoinSlot : CoinSlotWidgets)
 		if (ContainsPoint(CoinSlot)) return ECoinPopupPointerRegion::CoinUI;
+	if (IsItemInfoOpen() && ContainsPoint(ItemInfoWidget)) return ECoinPopupPointerRegion::ItemUI;
+	for (const UBattleItemSlotWidget* Item : ItemSlotWidgets)
+		if (ContainsPoint(Item)) return ECoinPopupPointerRegion::ItemUI;
 	return ECoinPopupPointerRegion::World;
 }
 
@@ -242,6 +256,8 @@ void UBattlePlayerHUDWidget::SetItemSlots(const TArray<FBattleItemSlotViewData>&
 			ItemSlotWidget->ClearItemData();
 		}
 	}
+	// 수량 갱신/슬롯 재배치에도 현재 표시 중인 아이템의 선택 외형을 유지합니다.
+	RefreshItemInfoSelection();
 }
 
 void UBattlePlayerHUDWidget::SetCardSlots(const TArray<FBattleCardSlotViewData>& InCardSlots)
@@ -295,8 +311,12 @@ void UBattlePlayerHUDWidget::ShowBattleCoinInfo(
 	bool bUseReadyCoinAnchor)
 {
 	// 필드의 단순 호버로 고정된 슬롯 설명을 덮지 않습니다. 레디 UI 조작은 교체합니다.
-	if (bUseReadyCoinAnchor) DismissCoinSlotInfo();
-	else if (IsCoinSlotInfoOpen()) return;
+	if (bUseReadyCoinAnchor)
+	{
+		DismissCoinSlotInfo();
+		DismissItemInfo();
+	}
+	else if (IsCoinSlotInfoOpen() || IsItemInfoOpen()) return;
 	if (!IsValid(PopupLayer) || !BattleCoinInfoWidgetClass)
 	{
 		return;
@@ -403,11 +423,13 @@ void UBattlePlayerHUDWidget::CacheFixedCardSlots()
 
 void UBattlePlayerHUDWidget::HandleCoinSlotClicked(int32 SlotNumber)
 {
+	DismissItemInfo();
 	OnCoinSlotClicked.Broadcast(SlotNumber);
 }
 
 void UBattlePlayerHUDWidget::HandleCoinSlotHovered(int32 SlotNumber)
 {
+	DismissItemInfo();
 	// 같은 슬롯 내부의 재호버는 데이터/스크롤/사거리 프리뷰를 다시 초기화하지 않습니다.
 	if (IsCoinSlotInfoOpen() && DisplayedCoinSlotNumber == SlotNumber) return;
 	const FBattleCoinSlotViewData* CoinSlotData = CoinSlotViewDataByNumber.Find(SlotNumber);
@@ -425,9 +447,11 @@ void UBattlePlayerHUDWidget::HandleCoinSlotHovered(int32 SlotNumber)
 		if (IsValid(CoinSlotInfoWidget))
 		{
 			const bool bWasOpen = IsCoinSlotInfoOpen();
+			CoinSlotInfoWidget->OnCloseRequested.RemoveAll(this);
+			CoinSlotInfoWidget->OnCloseRequested.AddUObject(this, &UBattlePlayerHUDWidget::DismissCoinSlotInfo);
 			DisplayedCoinSlotNumber = SlotNumber;
 			HideBattleCoinInfo();
-			if (IsValid(ItemInfoWidget)) ItemInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
+			DismissItemInfo();
 			if (IsValid(CardInfoWidget)) CardInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
 			CoinSlotInfoWidget->SetCoinSlotInfo(*CoinSlotData);
 			if (!bWasOpen) CoinSlotInfoWidget->ResetDescriptionSelection();
@@ -448,12 +472,14 @@ void UBattlePlayerHUDWidget::HandleCoinSlotUnhovered(int32 SlotNumber)
 void UBattlePlayerHUDWidget::HandleReadyCoinClicked(int32 CoinInstanceID)
 {
 	DismissCoinSlotInfo();
+	DismissItemInfo();
 	OnReadyCoinClicked.Broadcast(CoinInstanceID);
 }
 
 void UBattlePlayerHUDWidget::HandleReadyCoinHovered(int32 CoinInstanceID)
 {
 	DismissCoinSlotInfo();
+	DismissItemInfo();
 	if (CoinInstanceID != INDEX_NONE)
 	{
 		OnReadyCoinHovered.Broadcast(CoinInstanceID);
@@ -471,6 +497,7 @@ void UBattlePlayerHUDWidget::HandleReadyCoinUnhovered(int32 CoinInstanceID)
 void UBattlePlayerHUDWidget::HandlePhaseProgressRequested()
 {
 	DismissCoinSlotInfo();
+	DismissItemInfo();
 	OnPhaseProgressClicked.Broadcast();
 }
 
@@ -483,6 +510,8 @@ void UBattlePlayerHUDWidget::HandleItemSlotClicked(int32 ItemID)
 void UBattlePlayerHUDWidget::HandleItemSlotHovered(int32 ItemID)
 {
 	DismissCoinSlotInfo();
+	// 같은 슬롯 재호버 시 키워드 사전/스크롤 등 사용자가 보던 상태를 유지합니다.
+	if (IsItemInfoOpen() && DisplayedItemID == ItemID) return;
 	const FBattleItemSlotViewData* ItemSlotData = ItemSlotViewDataByID.Find(ItemID);
 	if (!ItemSlotData || !IsValid(PopupLayer) || !ItemInfoWidgetClass)
 	{
@@ -500,23 +529,27 @@ void UBattlePlayerHUDWidget::HandleItemSlotHovered(int32 ItemID)
 
 	if (IsValid(ItemInfoWidget))
 	{
+		ItemInfoWidget->OnCloseRequested.RemoveAll(this);
+		ItemInfoWidget->OnCloseRequested.AddUObject(this, &UBattlePlayerHUDWidget::DismissItemInfo);
+		DisplayedItemID = ItemID;
+		HideBattleCoinInfo();
+		if (IsValid(CardInfoWidget)) CardInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
 		ItemInfoWidget->UpdateItemInfo(ItemSlotData->ItemData);
-		ItemInfoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		ItemInfoWidget->SetVisibility(ESlateVisibility::Visible);
+		RefreshItemInfoSelection();
 		ApplyPopupAnchorLayout(ItemInfoWidget, ItemPopupAnchor);
 	}
 }
 
 void UBattlePlayerHUDWidget::HandleItemSlotUnhovered(int32 ItemID)
 {
-	if (IsValid(ItemInfoWidget))
-	{
-		ItemInfoWidget->SetVisibility(ESlateVisibility::Hidden);
-	}
+	// 표시 데이터와 수명은 명시적인 닫기/다른 UI 상호작용으로만 변경합니다.
 }
 
 void UBattlePlayerHUDWidget::HandleCardSlotHovered(int32 SlotNumber)
 {
 	DismissCoinSlotInfo();
+	DismissItemInfo();
 	const FBattleCardSlotViewData* CardSlotData = CardSlotViewDataByNumber.Find(SlotNumber);
 	if (!CardSlotData || !CardSlotData->bOccupied || !IsValid(PopupLayer) || !CardInfoWidgetClass)
 	{
