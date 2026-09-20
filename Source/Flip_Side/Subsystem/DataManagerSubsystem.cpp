@@ -1003,7 +1003,7 @@ bool UDataManagerSubsystem::GetCoinSlotLevelStats(const FCoinTypeStructure& Coin
 
 bool UDataManagerSubsystem::LoadKeywordDefinitions()
 {
-    const TCHAR* Sql = TEXT("SELECT keyword_id, keyword_code, display_name_ko, description_ko, ui_color_rgba, is_enabled, sort_order FROM keyword_definition;");
+    const TCHAR* Sql = TEXT("SELECT keyword_id, keyword_code, display_name_ko, description_ko, ui_color_rgba, is_enabled, sort_order, icon_path FROM keyword_definition;");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
@@ -1032,6 +1032,10 @@ bool UDataManagerSubsystem::LoadKeywordDefinitions()
 
         Data.bEnabled  = GetColInt(Stmt, 5) != 0;
         Data.SortOrder = GetColInt(Stmt, 6);
+
+        const FString IconPath = GetColText(Stmt, 7);
+        if (!IconPath.IsEmpty())
+            Data.Icon = LoadObject<UTexture2D>(nullptr, *IconPath);
 
         if (KeywordDefinitionByCode.Contains(Data.KeywordCode))
         {
