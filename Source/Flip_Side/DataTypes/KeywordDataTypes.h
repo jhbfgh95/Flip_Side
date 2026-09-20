@@ -26,6 +26,9 @@ struct FKeywordDefinitionData
     FLinearColor UIColor = FLinearColor::White;
 
     UPROPERTY(BlueprintReadOnly)
+    TObjectPtr<class UTexture2D> Icon = nullptr;
+
+    UPROPERTY(BlueprintReadOnly)
     bool bEnabled = false;
 
     UPROPERTY(BlueprintReadOnly)
