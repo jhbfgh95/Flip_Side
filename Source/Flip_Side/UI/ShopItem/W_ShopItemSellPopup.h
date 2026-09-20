@@ -10,6 +10,7 @@
 class UButton;
 class UImage;
 class UTextBlock;
+class UMaterialInstanceDynamic;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSellItemRequested, int32, InventoryIndex, int32, ItemID, int32, Count);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSellPopupCancelled);
@@ -24,6 +25,7 @@ protected:
 
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UImage> ItemImage;
+
 
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UTextBlock> ItemNameText;
@@ -49,6 +51,9 @@ protected:
 
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UButton> CancelButton;
+
+    UPROPERTY()
+    TObjectPtr<UMaterialInstanceDynamic> ItemIconMI;
 
     FItemData CurrentItemData;
     int32 CurrentInventoryIndex = INDEX_NONE;

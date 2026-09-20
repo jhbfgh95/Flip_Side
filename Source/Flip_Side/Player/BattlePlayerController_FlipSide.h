@@ -26,6 +26,7 @@ class ACoinAttackRangeIndicatorActor;
 class AAbilityRangeActor;
 class UComponent_Status;
 class UInputAction;
+class AWeaponRangePreviewActor;
 struct FInputActionValue;
 
 UCLASS(abstract)
@@ -87,6 +88,11 @@ private:
     void HandleBossHUDDataChanged(const FBossHUDData& InData);
     void MoveCameraForBossDead();
     void HandleBattleCoinSlotClicked(int32 SlotNumber);
+    // 우측 슬롯만 DB 기본 사거리 캡처를 갱신합니다. 필드/레디 호버와 분리합니다.
+    void HandleBattleCoinSlotHovered(int32 SlotNumber);
+    void HandleBattleCoinSlotUnhovered(int32 SlotNumber);
+    TWeakObjectPtr<AWeaponRangePreviewActor> SlotRangePreviewActor;
+    int32 HoveredPreviewSlot = INDEX_NONE;
     void HandleReadyCoinClicked(int32 CoinInstanceID);
     void HandleReadyCoinHovered(int32 CoinInstanceID);
     void HandleReadyCoinUnhovered(int32 CoinInstanceID);

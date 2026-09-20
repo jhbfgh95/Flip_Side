@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BattlePlayerController_FlipSide.h"
+#include "Actors/WeaponRangePreviewActor.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
@@ -27,6 +28,7 @@
 #include "Subsystem/CursorGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "UI/BattlePlayerHUDWidget.h"
+#include "UI/CoinDescriptionFormatter.h"
 #include "WeaponDataTypes.h"
 #include "ItemDataTypes.h"
 #include "Actors/Component_Status.h"
@@ -155,6 +157,9 @@ void ABattlePlayerController_FlipSide::BeginPlay()
             if (IsValid(BattleHUDWidget))
             {
                 BattleHUDWidget->OnCoinSlotClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleCoinSlotClicked);
+                BattleHUDWidget->OnCoinSlotHovered.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleCoinSlotHovered);
+                // 사거리 프리뷰는 슬롯 Unhover가 아니라 인포의 명시적 닫기까지 유지합니다.
+                BattleHUDWidget->OnCoinSlotInfoDismissed.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleCoinSlotUnhovered);
                 BattleHUDWidget->OnReadyCoinClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinClicked);
                 BattleHUDWidget->OnReadyCoinHovered.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinHovered);
                 BattleHUDWidget->OnReadyCoinUnhovered.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinUnhovered);
@@ -200,6 +205,13 @@ void ABattlePlayerController_FlipSide::BeginPlay()
 
 void ABattlePlayerController_FlipSide::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+    if (IsValid(BattleHUDWidget))
+    {
+        BattleHUDWidget->OnCoinSlotHovered.RemoveAll(this);
+        BattleHUDWidget->DismissCoinSlotInfo();
+        BattleHUDWidget->OnCoinSlotInfoDismissed.RemoveAll(this);
+    }
+    HandleBattleCoinSlotUnhovered(HoveredPreviewSlot);
     HideBattleCoinRangePreviews();
     StopObservingBattleInfoCoin();
     HoveredBattleCoin.Reset();
@@ -287,6 +299,7 @@ void ABattlePlayerController_FlipSide::ReturnToDefaultCamera() // 일단 당장�
 
 void ABattlePlayerController_FlipSide::OnLeftClick()
 {
+	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] InputLeftClick UIOnly=%d"), bIsUIOnly);
     if (bIsUIOnly)
     {
         return;
@@ -307,6 +320,8 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
     if (GetHitResultUnderCursor(ECC_Camera, true, Hit)) 
     {
         AActor* HitActor = Hit.GetActor();
+		UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] InputHit Actor=%s Component=%s"),
+			*GetNameSafe(HitActor), *GetNameSafe(Hit.GetComponent()));
         if (HitActor)
         {
             // 인터페이스 클릭 처리
@@ -318,6 +333,7 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
         }
     }
 
+	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] InputNoClickableCameraTarget"));
     if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
     {
         // CurrentHoveredArea는 CheckMouseHover에서 실시간으로 업데이트됨
@@ -637,6 +653,64 @@ void ABattlePlayerController_FlipSide::RefreshBattleCardHUD()
 	BattleHUDWidget->SetCardSlots(CardSlotViews);
 }
 
+void ABattlePlayerController_FlipSide::HandleBattleCoinSlotHovered(int32 SlotNumber)
+{
+    HoveredPreviewSlot = SlotNumber;
+    UWorld* World = GetWorld();
+    if (!IsValid(World)) return;
+    if (!SlotRangePreviewActor.IsValid())
+    {
+        // 레벨에 배치한 단일 PreviewActor를 사용하여 에디터의 월드 위치를 보존합니다.
+        for (TActorIterator<AWeaponRangePreviewActor> It(World); It; ++It)
+        {
+            if (!IsValid(*It)) continue;
+            if (SlotRangePreviewActor.IsValid())
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Slot preview: multiple WeaponRangePreviewActors; keep only one in this level."));
+                SlotRangePreviewActor.Reset();
+                return;
+            }
+            SlotRangePreviewActor = *It;
+        }
+    }
+    AWeaponRangePreviewActor* Preview = SlotRangePreviewActor.Get();
+    if (!IsValid(Preview))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Slot preview: place BP_WeaponRangePreviewActor in the level."));
+        return;
+    }
+    UCoinManagementWSubsystem* CoinManager = World->GetSubsystem<UCoinManagementWSubsystem>();
+    UDataManagerSubsystem* DataManager = IsValid(GetGameInstance()) ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>() : nullptr;
+    if (IsValid(CoinManager) && IsValid(DataManager))
+    {
+        for (const FBattleCoinSlotData& Slot : CoinManager->GetCoinSlots())
+        {
+            if (Slot.SlotNumber != SlotNumber) continue;
+            FFaceData Front;
+            FFaceData Back;
+            if (DataManager->TryGetWeapon(Slot.FrontWeaponID, Front) && DataManager->TryGetWeapon(Slot.BackWeaponID, Back))
+            {
+                // 슬롯의 버프/캐시 스탯 대신 DB 정의에서만 기본 사거리를 읽습니다.
+                Preview->ShowDefinitionPreview(Front.AttackAreaSpec, Front.AbilityAreaSpec, Front.bHasAbilityArea,
+                    Back.AttackAreaSpec, Back.AbilityAreaSpec, Back.bHasAbilityArea);
+                return;
+            }
+            break;
+        }
+    }
+    Preview->ClearPreview();
+    UE_LOG(LogTemp, Warning, TEXT("Slot preview: missing slot/weapon definition for slot %d."), SlotNumber);
+}
+
+void ABattlePlayerController_FlipSide::HandleBattleCoinSlotUnhovered(int32 SlotNumber)
+{
+    // HUD의 인포 닫기 이벤트에서만 호출합니다. 슬롯의 물리적인 Unhover와는 연결하지 않습니다.
+    if (HoveredPreviewSlot != SlotNumber) return;
+    HoveredPreviewSlot = INDEX_NONE;
+    if (AWeaponRangePreviewActor* Preview = SlotRangePreviewActor.Get(); IsValid(Preview))
+        Preview->ClearPreview();
+}
+
 void ABattlePlayerController_FlipSide::HandleBattleCoinSlotClicked(int32 SlotNumber)
 {
     if (!IsValid(GetWorld()))
@@ -703,6 +777,7 @@ void ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsStarted(
     const FInputActionValue& InputActionValue)
 {
     bShowAdditionalBuffsHeld = InputActionValue.Get<bool>();
+	if (IsValid(BattleHUDWidget)) BattleHUDWidget->SetCoinDescriptionDetailInputHeld(bShowAdditionalBuffsHeld);
     if (IsValid(BattleHUDWidget) &&
         (HoveredReadyCoinInstanceID != INDEX_NONE || HoveredBattleCoin.IsValid()))
     {
@@ -716,6 +791,7 @@ void ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsCompleted(
 {
     static_cast<void>(InputActionValue);
     bShowAdditionalBuffsHeld = false;
+	if (IsValid(BattleHUDWidget)) BattleHUDWidget->SetCoinDescriptionDetailInputHeld(false);
     if (IsValid(BattleHUDWidget))
     {
         BattleHUDWidget->SetAdditionalBattleCoinBuffsVisible(false);
@@ -1442,6 +1518,12 @@ FBattleCoinSlotViewData ABattlePlayerController_FlipSide::BuildCoinSlotViewData(
     {
         ViewData.FrontIcon = FrontWeaponData.WeaponIcon;
         ViewData.FrontWeaponName = FText::FromString(FrontWeaponData.WeaponName);
+		TArray<FKeywordDefinitionData> Keywords;
+		DataManager->GetAllEnabledKeywordDefinitions(Keywords);
+		// 슬롯 설명은 DB 기본값만 사용하며 CoinActor/StatusComponent를 조회하지 않습니다.
+		const FWeaponNumericStats BaseStats{FrontWeaponData.AttackPoint, FrontWeaponData.BehaviorPoint, FrontWeaponData.Count};
+		ViewData.FrontWeaponStats = {BaseStats.AttackPoint, BaseStats.WeaponPoint, BaseStats.WeaponCnt};
+		ViewData.FrontDescription = FCoinDescriptionFormatter::Parse(FrontWeaponData.KOR_DES, Keywords, BaseStats);
     }
 
     FFaceData BackWeaponData;
@@ -1449,6 +1531,11 @@ FBattleCoinSlotViewData ABattlePlayerController_FlipSide::BuildCoinSlotViewData(
     {
         ViewData.BackIcon = BackWeaponData.WeaponIcon;
         ViewData.BackWeaponName = FText::FromString(BackWeaponData.WeaponName);
+		TArray<FKeywordDefinitionData> Keywords;
+		DataManager->GetAllEnabledKeywordDefinitions(Keywords);
+		const FWeaponNumericStats BaseStats{BackWeaponData.AttackPoint, BackWeaponData.BehaviorPoint, BackWeaponData.Count};
+		ViewData.BackWeaponStats = {BaseStats.AttackPoint, BaseStats.WeaponPoint, BaseStats.WeaponCnt};
+		ViewData.BackDescription = FCoinDescriptionFormatter::Parse(BackWeaponData.KOR_DES, Keywords, BaseStats);
     }
 
     return ViewData;

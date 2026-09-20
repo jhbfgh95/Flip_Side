@@ -15,6 +15,7 @@ class UImage;
 class UTextBlock;
 class UBorder;
 class UProgressBar;
+class UMaterialInstanceDynamic;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedUnlockWeaponSlot, int32, WeaponID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoveredUnlockWeaponSlot, int32, WeaponID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoveredUnlockWeaponSlot);
@@ -39,6 +40,10 @@ protected:
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> WeaponImage;
+
+	// WeaponImage에 적용된 동적 머티리얼의 Weapon_Color 파라미터 값입니다.
+	UPROPERTY(EditAnywhere, Category = "Unlock Weapon")
+	FLinearColor UnlockWeaponIconColor = FLinearColor::White;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> WeaponName;
@@ -53,6 +58,10 @@ protected:
 
 protected:
 	FFaceData UnlockWeaponData;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> UnlockWeaponImageMI;
+
 	FTimerHandle HoldTimerHandle;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Unlock Weapon|Input")

@@ -22,15 +22,59 @@ void UBattleCoinSlotWidget::NativeConstruct()
 
 	if (IsValid(CoinSlotButton))
 	{
-		CoinSlotButton->OnClicked.AddDynamic(this, &UBattleCoinSlotWidget::HandleCoinButtonClicked);
-		CoinSlotButton->OnHovered.AddDynamic(this, &UBattleCoinSlotWidget::HandleCoinButtonHovered);
-		CoinSlotButton->OnUnhovered.AddDynamic(this, &UBattleCoinSlotWidget::HandleCoinButtonUnhovered);
+		CoinSlotButton->OnClicked.AddUniqueDynamic(this, &UBattleCoinSlotWidget::HandleCoinButtonClicked);
+		CoinSlotButton->OnHovered.AddUniqueDynamic(this, &UBattleCoinSlotWidget::HandleCoinButtonHovered);
+		CoinSlotButton->OnUnhovered.AddUniqueDynamic(this, &UBattleCoinSlotWidget::HandleCoinButtonUnhovered);
 	}
+	RefreshInfoSelectionStyle();
+	OnInfoSelectionChanged(bIsInfoSelected);
+}
+
+void UBattleCoinSlotWidget::NativeDestruct()
+{
+	if (IsValid(CoinSlotButton))
+	{
+		CoinSlotButton->OnClicked.RemoveDynamic(this, &UBattleCoinSlotWidget::HandleCoinButtonClicked);
+		CoinSlotButton->OnHovered.RemoveDynamic(this, &UBattleCoinSlotWidget::HandleCoinButtonHovered);
+		CoinSlotButton->OnUnhovered.RemoveDynamic(this, &UBattleCoinSlotWidget::HandleCoinButtonUnhovered);
+		if (bHasUnselectedButtonStyle) CoinSlotButton->SetStyle(UnselectedButtonStyle);
+	}
+	bHasUnselectedButtonStyle = false;
+	Super::NativeDestruct();
+}
+
+void UBattleCoinSlotWidget::SetInfoSelected(bool bSelected)
+{
+	bSelected = bSelected && SlotNumber != INDEX_NONE;
+	if (bIsInfoSelected == bSelected) return;
+	bIsInfoSelected = bSelected;
+	RefreshInfoSelectionStyle();
+	OnInfoSelectionChanged(bIsInfoSelected);
+}
+
+void UBattleCoinSlotWidget::RefreshInfoSelectionStyle()
+{
+	if (!IsValid(CoinSlotButton) || !bUseHoveredStyleForInfoSelection) return;
+	if (!bHasUnselectedButtonStyle)
+	{
+		UnselectedButtonStyle = CoinSlotButton->GetStyle();
+		bHasUnselectedButtonStyle = true;
+	}
+	FButtonStyle DisplayStyle = UnselectedButtonStyle;
+	if (bIsInfoSelected)
+	{
+		// 입력 호버를 강제하지 않고 Normal 외형만 Hovered와 같게 유지합니다.
+		DisplayStyle.Normal = UnselectedButtonStyle.Hovered;
+		DisplayStyle.NormalForeground = UnselectedButtonStyle.HoveredForeground;
+	}
+	CoinSlotButton->SetStyle(DisplayStyle);
 }
 
 void UBattleCoinSlotWidget::SetSlotData(const FBattleCoinSlotViewData& InData)
 {
+	if (SlotNumber != InData.SlotNumber) SetInfoSelected(false);
 	SlotNumber = InData.SlotNumber;
+	AvailableCoinCount = FMath::Max(0, InData.CoinCount);
 
 	if (IsValid(SlotNumberText))
 	{
@@ -70,14 +114,17 @@ void UBattleCoinSlotWidget::SetSlotData(const FBattleCoinSlotViewData& InData)
 	// TODO: 코인 아이콘 Dynamic Material과 타입 색상 처리는 머티리얼 준비 후 추가합니다.
 	if (IsValid(CoinSlotButton))
 	{
-		CoinSlotButton->SetIsEnabled(InData.CoinCount > 0);
+		// 수량이 0이어도 호버로 설명을 볼 수 있고, 클릭 처리에서 수량을 검사합니다.
+		CoinSlotButton->SetIsEnabled(true);
 	}
 	SetVisibility(ESlateVisibility::Visible);
 }
 
 void UBattleCoinSlotWidget::ClearSlotData()
 {
+	SetInfoSelected(false);
 	SlotNumber = INDEX_NONE;
+	AvailableCoinCount = 0;
 	if (IsValid(CoinSlotButton))
 	{
 		CoinSlotButton->SetIsEnabled(false);
@@ -87,7 +134,7 @@ void UBattleCoinSlotWidget::ClearSlotData()
 
 void UBattleCoinSlotWidget::HandleCoinButtonClicked()
 {
-	if (SlotNumber != INDEX_NONE)
+	if (SlotNumber != INDEX_NONE && AvailableCoinCount > 0)
 	{
 		OnBattleCoinSlotClicked.Broadcast(SlotNumber);
 	}

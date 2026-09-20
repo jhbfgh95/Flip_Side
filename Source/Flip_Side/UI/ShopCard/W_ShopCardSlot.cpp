@@ -6,12 +6,29 @@
 #include "Components/TextBlock.h"
 #include "Input/Reply.h"
 #include "InputCoreTypes.h"
+#include "Materials/MaterialInstanceDynamic.h"
+
+void UW_ShopCardSlot::NativeConstruct()
+{
+    Super::NativeConstruct();
+
+    CardImageMI = CardImage->GetDynamicMaterial();
+}
 
 void UW_ShopCardSlot::InitCardSlot(FCardData InitCard)
 {
     WidgetCardData = InitCard;
 
-    CardImage->SetBrushFromTexture(WidgetCardData.Icon);
+    if (!CardImageMI)
+    {
+        CardImageMI = CardImage->GetDynamicMaterial();
+    }
+
+    if (CardImageMI)
+    {
+        CardImageMI->SetTextureParameterValue(FName("Weapon_Icon"), WidgetCardData.Icon);
+        CardImageMI->SetVectorParameterValue(FName("Weapon_Color"), CardIconColor);
+    }
     CardNameTextBlock->SetText(FText::FromString(WidgetCardData.CardName));
     CardPriceTextBlock->SetText(FText::AsNumber(WidgetCardData.Price));
     

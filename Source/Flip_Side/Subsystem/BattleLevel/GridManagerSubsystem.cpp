@@ -34,7 +34,7 @@ void UGridManagerSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	if (!InWorld.IsGameWorld())
 		return;
 
-	InitGrid(9, 9);
+	InitGrid(9, 8);
 	InstanceGrid();
 }
 
@@ -109,8 +109,12 @@ void UGridManagerSubsystem::InstanceGrid()
 	{
 		if (BossCoinClass->IsChildOf(ABossCoinActor::StaticClass()))
 		{
-			const FVector BossCoinSpawnLoc(4420.f, -800.f, -100.f);
-			World->SpawnActor<ABossCoinActor>(BossCoinClass, BossCoinSpawnLoc, FRotator::ZeroRotator);
+			FVector BossCoinSpawnLoc;
+			if (GridXSize >= 3 && GridYSize >= 3 && TryGetGridWorldLocation(
+				FGridPoint{ GridXSize / 2, GridYSize - 2 }, BossCoinSpawnLoc))
+			{
+				World->SpawnActor<ABossCoinActor>(BossCoinClass, BossCoinSpawnLoc, FRotator::ZeroRotator);
+			}
 		}
 		else
 		{
@@ -753,8 +757,8 @@ void UGridManagerSubsystem::BuildBossAttackCells(const FAttackAreaSpec& Spec, TA
 {
     OutCells.Reset();
 
-	// Border는 그리드 전체(9x9) 테두리가 아니라 보스가 실제로 공격 가능한 6x9(보스 자기 영역 제외) 테두리를 둘러야 함.
-	// 그렇지 않으면 보스 영역과 맞닿은 안쪽 경계(Y=5 줄)에는 공격이 하나도 안 나가는 'ㄷ자 개방형' 모양이 됨.
+	// Border는 보스 자기 영역을 제외한 플레이 영역의 테두리를 사용합니다.
+	// 보스 영역과 맞닿은 안쪽 경계도 공격 범위에 포함합니다.
 	const int32 EffectiveGridYSize = (Spec.Pattern == EAttackAreaPattern::Border) ? GetBossAreaStartY() : GridYSize;
 	FGridAreaBuilder::BuildCells(Spec, GridXSize, EffectiveGridYSize, OutCells);
 

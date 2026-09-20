@@ -442,6 +442,8 @@ void ACoinActor::OnUnhover_Implementation()
 
 void ACoinActor::OnClicked_Implementation()
 {
+	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] ActorClick Actor=%s CoinID=%d Weapon=%d Ready=%d OnBattle=%d ItemFlag=%d BattleClickBound=%d"),
+		*GetName(), GetCoinID(), GetCoinFaceID(), GetCoinIsReady(), GetCoinOnBattle(), GetCoinItemFlag(), OnClickBattleCoin.IsBound());
 	if (GetCoinIsReady() && !GetCoinOnBattle())
 	{
 		OnClickReadyCoin.Broadcast(this);

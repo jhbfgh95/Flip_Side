@@ -66,7 +66,7 @@ void UW_ShopCardWidget::UnlockCard(int32 UnlockCardID)
 	
 void UW_ShopCardWidget::HideLockIamge()
 {
-    LockImage->SetVisibility(ESlateVisibility::Hidden);
+    //LockImage->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UW_ShopCardWidget::LeftClickCard()

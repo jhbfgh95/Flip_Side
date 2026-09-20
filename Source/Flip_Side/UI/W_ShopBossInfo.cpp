@@ -18,6 +18,8 @@ void UW_ShopBossInfo::NativeConstruct()
 
 	CachePatternButtons();
 
+	if(PassiveButton) PassiveButton->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPassive);
+
 	if(PatternButton_1) PatternButton_1->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern1);
 	if(PatternButton_2) PatternButton_2->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern2);
 	if(PatternButton_3) PatternButton_3->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern3);
@@ -97,7 +99,7 @@ void UW_ShopBossInfo::SetBossInfo(const FBossDisplayData& BossData, const TArray
 {
 	CurrentBossData = BossData;
 	CurrentPatternDataList = PatternDataList;
-	CurrentPatternIndex = 0;
+	CurrentPatternIndex = INDEX_NONE;
 
 	if (!IsValid(PatternPreviewActor))
 	{
@@ -112,10 +114,7 @@ void UW_ShopBossInfo::SetBossInfo(const FBossDisplayData& BossData, const TArray
 
 	if(IsValid(PatternPreviewActor))
 	{
-		if(CurrentPatternDataList.IsValidIndex(0))
-			PatternPreviewActor->ShowPatternPreview(CurrentPatternDataList[0].PatternSpec);
-		else
-			PatternPreviewActor->ClearPreview();
+		PatternPreviewActor->ClearPreview();
 	}
 
 	SetPatternButtonCount(FMath::Min(CurrentPatternDataList.Num(), PatternButtons.Num()));
@@ -147,6 +146,20 @@ void UW_ShopBossInfo::SelectPattern(int32 PatternIndex)
 	RefreshPatternButtonState();
 }
 
+void UW_ShopBossInfo::SelectPassive()
+{
+	if (CurrentBossData.BossAbilityDescription.IsEmpty())
+		return;
+
+	CurrentPatternIndex = INDEX_NONE;
+
+	//if (IsValid(PatternPreviewActor))
+	//	PatternPreviewActor->ClearPreview();
+
+	RefreshPatternTexts();
+	RefreshPatternButtonState();
+}
+
 void UW_ShopBossInfo::SetPatternButtonCount(int32 PatternCount)
 {
 	CachePatternButtons();
@@ -159,7 +172,11 @@ void UW_ShopBossInfo::SetPatternButtonCount(int32 PatternCount)
 		PatternButtons[i]->SetVisibility(bShouldShow ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 	}
 
-	if(PatternCount <= 0)
+	if(CurrentPatternIndex == INDEX_NONE)
+	{
+		// Keep the passive selection when only the pattern button count changes.
+	}
+	else if(PatternCount <= 0)
 	{
 		CurrentPatternIndex = 0;
 	}
@@ -288,6 +305,29 @@ void UW_ShopBossInfo::RefreshBossTexts()
 
 void UW_ShopBossInfo::RefreshPatternTexts()
 {
+	if (CurrentPatternIndex == INDEX_NONE)
+	{
+		ClearPatternInfo();
+		if (PatternRangeImage)
+			PatternRangeImage->SetVisibility(ESlateVisibility::Hidden);
+		if (PatternIconImage)
+		{
+			if (CurrentBossData.BossIcon)
+				PatternIconImage->SetBrushFromTexture(CurrentBossData.BossIcon);
+			PatternIconImage->SetVisibility(ESlateVisibility::Hidden);
+		}
+		if (PatternTitleText)
+			PatternTitleText->SetText(NSLOCTEXT("BossInfo", "PassiveTitle", "패시브"));
+		if (PatternNameText)
+		{
+			PatternNameText->SetText(NSLOCTEXT("BossInfo", "PassiveName",  "패시브"));
+			PatternNameText->SetColorAndOpacity(FSlateColor(FLinearColor(1.f, 0.85f, 0.3f)));
+		}
+		if (PatternDescriptionText)
+			PatternDescriptionText->SetText(CurrentBossData.BossAbilityDescription);
+		return;
+	}
+
 	if(PatternTitleText)
 	{
 		PatternTitleText->SetText(FText::FromString(TEXT("패턴")));
@@ -368,6 +408,12 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 
 void UW_ShopBossInfo::RefreshPatternButtonState()
 {
+	if (PassiveButton)
+	{
+		PassiveButton->SetIsEnabled(CurrentPatternIndex != INDEX_NONE
+			&& !CurrentBossData.BossAbilityDescription.IsEmpty());
+	}
+
 	for(int32 i = 0; i < PatternButtons.Num(); i++)
 	{
 		if(!PatternButtons[i]) continue;
@@ -407,6 +453,11 @@ void UW_ShopBossInfo::ClearBossInfo()
 
 void UW_ShopBossInfo::ClearPatternInfo()
 {
+	if(AttackIconImage)
+	{
+		AttackIconImage->SetVisibility(ESlateVisibility::Hidden);
+	}
+
 	if(PatternRangeImage)
 	{
 		PatternRangeImage->SetVisibility(ESlateVisibility::Hidden);

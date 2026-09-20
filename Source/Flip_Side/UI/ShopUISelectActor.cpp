@@ -66,12 +66,12 @@ void AShopUISelectActor::InteractRightClick_Implementation()
 
 void AShopUISelectActor::InteractHover_Implementation()
 {
-	UE_LOG(LogTemp, Log, TEXT("Shop UI Select Actor Hover"));
+	OnHoverShopPageChangeActor.Broadcast(ConnectedPage);
 	SelectWidget->SetVisibility(true);
 }
 
 void AShopUISelectActor::InteractUnHover_Implementation()
 {
-	UE_LOG(LogTemp, Log, TEXT("Shop UI Select Actor UnHover"));
+	OnUnhoverShopPageChangeActor.Broadcast();
 	SelectWidget->SetVisibility(false);
 }

@@ -76,11 +76,11 @@ void ABattlePlayerPawn_FlipSide::ApplyFixedCameraSettings()
 		return;
 	}
 
-	Camera->SetRelativeLocation(FVector(-3120.0f, 242.0f, 3412.0f));
-	Camera->SetRelativeRotation(FRotator(-19.0f, 0.0f, 0.0f));
+	Camera->SetRelativeLocation(FVector(-3715.0f, 242.0f, 3143.0f));
+	Camera->SetRelativeRotation(FRotator(-17.0f, 0.0f, 0.0f));
 	Camera->SetRelativeScale3D(FVector::OneVector);
 	Camera->ProjectionMode = ECameraProjectionMode::Perspective;
-	Camera->SetFieldOfView(45.0f);
+	Camera->SetFieldOfView(40.0f);
 }
 
 void ABattlePlayerPawn_FlipSide::MoveCameraToArea(FVector NewTargetLocation, FRotator NewTargetRotation, float NewTargetArmLength)

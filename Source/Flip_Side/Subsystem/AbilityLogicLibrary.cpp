@@ -193,7 +193,21 @@ bool UAbilityLogicLibrary::SniperOnHit(UWeapon_Action* WeaponContext)
 		return true;
 	}
 
-	const int32 Distance = FMath::Max(1, WeaponContext->GetSnapshot().AttackAreaSpec.ParamB);
+	// 사거리 수치가 아니라 실제 공격 셀 중 가장 가까운 보스 점유 셀까지의 거리를 사용합니다.
+	int32 Distance = TNumericLimits<int32>::Max();
+	for (const FGridPoint& Cell : WeaponContext->GetAttackCells())
+	{
+		if (GridManager->IsFixedBossFootprintCell(Cell))
+		{
+			const int32 CellDistance = FMath::Abs(Cell.GridX - Origin.GridX) +
+				FMath::Abs(Cell.GridY - Origin.GridY);
+			Distance = FMath::Min(Distance, CellDistance);
+		}
+	}
+	if (Distance == TNumericLimits<int32>::Max() || Distance <= 0)
+	{
+		return false;
+	}
 	const FWeaponAttackResult BonusResult = UAttackLogicLibrary::ApplyBossDamage(
 		WeaponContext, WeaponContext->GetFinalBehaviorPoint() * Distance);
 	AddAdditionalDamageToState(WeaponContext, BonusResult);

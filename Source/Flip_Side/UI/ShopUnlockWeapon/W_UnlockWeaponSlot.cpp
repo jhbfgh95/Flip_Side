@@ -8,6 +8,7 @@
 #include "Components/TextBlock.h"
 #include "Input/Reply.h"
 #include "InputCoreTypes.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "TimerManager.h"
 
 void UW_UnlockWeaponSlot::NativeConstruct()
@@ -22,6 +23,8 @@ void UW_UnlockWeaponSlot::NativeConstruct()
     {
         HoldProgressBar->SetPercent(0.0f);
     }
+
+    UnlockWeaponImageMI = WeaponImage->GetDynamicMaterial();
 }
 
 FReply UW_UnlockWeaponSlot::NativeOnMouseButtonDown(
@@ -109,7 +112,14 @@ void UW_UnlockWeaponSlot::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 void UW_UnlockWeaponSlot::InitWidget(const FFaceData& InitWeaponData)
 {
     UnlockWeaponData = InitWeaponData;
-    WeaponImage->SetBrushFromTexture(UnlockWeaponData.WeaponIcon);
+    if(!IsValid(UnlockWeaponImageMI))
+        UnlockWeaponImageMI = WeaponImage->GetDynamicMaterial();
+
+    if (UnlockWeaponImageMI)
+    {
+        UnlockWeaponImageMI->SetTextureParameterValue(FName("Weapon_Icon"), UnlockWeaponData.WeaponIcon);
+        UnlockWeaponImageMI->SetVectorParameterValue(FName("Weapon_Color"), UnlockWeaponIconColor);
+    }
     WeaponName->SetText(FText::FromString(UnlockWeaponData.WeaponName));
 }
 

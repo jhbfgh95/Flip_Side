@@ -24,9 +24,10 @@ void UShopCardPresenter::InitPresenter(UW_ShopCardMainWidget* InShopCardMainWidg
     UnlockSubsystem = InUnlockSubsystem;
 
     UnlockSubsystem->OnUnlockCard.AddDynamic(this, &UShopCardPresenter::AddCard);
-
     InitShopCardSlot();
     InitShopPlayerCardSlot();
+
+    ShopCardMainWidget->GetShopCardWidget()->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UShopCardPresenter::BuyCard(UW_ShopCardSlot* BuyCardSlot, int32 CardID)
