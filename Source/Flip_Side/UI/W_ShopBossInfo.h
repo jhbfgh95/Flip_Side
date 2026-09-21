@@ -68,65 +68,8 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UButton* PassiveButton;
 
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UButton* PatternButton_1;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UButton* PatternButton_2;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UButton* PatternButton_3;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UButton* PatternButton_4;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UButton* PatternButton_5;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UButton* PatternButton_6;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UButton* PatternButton_7;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UButton* PatternButton_8;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UButton* PatternButton_9;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UButton* PatternButton_10;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UTextBlock* PatternButtonText_1;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UTextBlock* PatternButtonText_2;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UTextBlock* PatternButtonText_3;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UTextBlock* PatternButtonText_4;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UTextBlock* PatternButtonText_5;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UTextBlock* PatternButtonText_6;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UTextBlock* PatternButtonText_7;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UTextBlock* PatternButtonText_8;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UTextBlock* PatternButtonText_9;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	class UTextBlock* PatternButtonText_10;
+	UPROPERTY(EditAnywhere, Category = "Boss|Pattern")
+	TSubclassOf<class UW_ShopBossPatternButton> PatternButtonWidgetClass;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Boss")
 	FBossDisplayData CurrentBossData;
@@ -162,37 +105,7 @@ protected:
 	UFUNCTION()
 	void SelectPassive();
 
-	UFUNCTION()
-	void SelectPattern1();
-
-	UFUNCTION()
-	void SelectPattern2();
-
-	UFUNCTION()
-	void SelectPattern3();
-
-	UFUNCTION()
-	void SelectPattern4();
-
-	UFUNCTION()
-	void SelectPattern5();
-
-	UFUNCTION()
-	void SelectPattern6();
-
-	UFUNCTION()
-	void SelectPattern7();
-
-	UFUNCTION()
-	void SelectPattern8();
-
-	UFUNCTION()
-	void SelectPattern9();
-
-	UFUNCTION()
-	void SelectPattern10();
-
-	void CachePatternButtons();
+	void RebuildPatternButtons(int32 PatternCount);
 	void RefreshBossTexts();
 	void RefreshPatternTexts();
 	void RefreshPatternButtonState();
@@ -200,7 +113,7 @@ protected:
 	void ClearPatternInfo();
 
 	UPROPERTY()
-	TArray<TObjectPtr<class UButton>> PatternButtons;
+	TArray<TObjectPtr<class UW_ShopBossPatternButton>> PatternButtons;
 
 public:
 	// 레벨에 배치된 BossPatternPreviewActor를 블루프린트에서 연결

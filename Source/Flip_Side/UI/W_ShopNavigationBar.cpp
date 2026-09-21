@@ -15,22 +15,51 @@ void UW_ShopNavigationBar::NativeOnInitialized()
 	UnlockWeaponButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowUnlockWeaponPage);
 	BossButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowBossPage);
 	StartGameButton->OnClicked.AddDynamic(this, &UW_ShopNavigationBar::ShowStartGamePage);
+
+	SelectedButton = MainButton;
 }
 
 void UW_ShopNavigationBar::ToggleNavigationBar()
 {
 	bNavigationBarOpen = !bNavigationBarOpen;
+	PlayAnimation(
+		SlideNavigationAnim,
+		0.f,
+		1,
+		bNavigationBarOpen
+		? EUMGSequencePlayMode::Forward
+		: EUMGSequencePlayMode::Reverse);
+}
+
+void UW_ShopNavigationBar::SetSelectedPageButton(EShopPage Page)
+{
+	FButtonStyle ButtonStyle = SelectedButton->GetStyle();
+	FLinearColor NormalTint = ButtonStyle.Normal.TintColor.GetSpecifiedColor();
+	NormalTint.A = 0;
+	ButtonStyle.Normal.TintColor = FSlateColor(NormalTint);
+	SelectedButton->SetStyle(ButtonStyle);
+	
 
 	if (SlideNavigationAnim)
+	switch (Page)
 	{
-		PlayAnimation(
-			SlideNavigationAnim,
-			0.f,
-			1,
-			bNavigationBarOpen
-				? EUMGSequencePlayMode::Forward
-				: EUMGSequencePlayMode::Reverse);
+
+	case EShopPage::Main:         SelectedButton = MainButton; break;
+	case EShopPage::Coin:         SelectedButton = CoinButton; break;
+	case EShopPage::Item:         SelectedButton = ItemButton; break;
+	case EShopPage::Card:         SelectedButton = CardButton; break;
+	case EShopPage::UnlockWeapon: SelectedButton = UnlockWeaponButton; break;
+	case EShopPage::Boss:         SelectedButton = BossButton; break;
+	case EShopPage::GameStart:    SelectedButton = StartGameButton; break;
+	default: return;
 	}
+
+	if (!IsValid(SelectedButton))
+		return;
+
+	NormalTint.A = 0.3f;
+	ButtonStyle.Normal.TintColor = FSlateColor(NormalTint);
+	SelectedButton->SetStyle(ButtonStyle);
 }
 
 void UW_ShopNavigationBar::ShowCoinPage()

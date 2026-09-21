@@ -2,8 +2,7 @@
 
 
 #include "UI/ShopItem/W_ShopItemDescription.h"
-#include "Components/TextBlock.h"
-
+#include "DataTypes/ItemDataTypes.h"
 
 void UW_ShopItemDescription::NativeConstruct()
 {
@@ -12,33 +11,14 @@ void UW_ShopItemDescription::NativeConstruct()
     ResetItemWidget();
 }
 
-void UW_ShopItemDescription::SetItemInfo(const FString& ItemName, const FString& Description)
+void UW_ShopItemDescription::SetItemInfo(const FItemData& ItemData)
 {
-    if (ItemDesText)
-    {
-        ItemDesText->SetText(FText::FromString(Description));
-    }
-
-    if (ItemNameText)
-    {
-        ItemNameText->SetText(FText::FromString(ItemName));
-    }
-
+    UpdateItemInfo(ItemData);
     SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }
 
-
 void UW_ShopItemDescription::ResetItemWidget()
 {
-    if (ItemDesText)
-    {
-        ItemDesText->SetText(FText::GetEmpty());
-    }
-
-    if (ItemNameText)
-    {
-        ItemNameText->SetText(FText::GetEmpty());
-    }
-
+    UpdateItemInfo(nullptr, FText::GetEmpty(), FText::GetEmpty(), FLinearColor::White);
     SetVisibility(ESlateVisibility::Collapsed);
 }

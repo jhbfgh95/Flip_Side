@@ -14,6 +14,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnESCMainMenuClicked);
 class UButton;
 class ULevelGISubsystem;
 class UOverlay;
+class UCanvasPanel;
 
 UCLASS()
 class FLIP_SIDE_API UW_ESCWidget : public UUserWidget
@@ -22,6 +23,14 @@ class FLIP_SIDE_API UW_ESCWidget : public UUserWidget
 	
 protected:
 	virtual void NativeOnInitialized() override;
+
+	// SettingToggleButton은 이 Canvas Panel 밖에 두어 메뉴가 닫혀도 계속 표시합니다.
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCanvasPanel> EscWidget;
+
+	// EscWidget Canvas Panel의 가장 뒤에 배치하는 전체 화면 투명 버튼입니다.
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> BackgroundCloseButton;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> QuitGameButton;
@@ -53,6 +62,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> QuitCancelButton;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> SettingToggleButton;
+
 private:
 	UPROPERTY(Transient)
 	TObjectPtr<UWidget> CurrentOpenWidget;
@@ -80,9 +92,18 @@ protected:
 public:
 	bool CloseESCWidget();
 
+	UFUNCTION(BlueprintCallable, Category = "ESC Menu")
+	void ToggleESCWidget();
+
+	UFUNCTION(BlueprintPure, Category = "ESC Menu")
+	bool IsESCWidgetOpen() const;
+
 private:
 	UFUNCTION()
 	void HandleQuitGameButtonClicked();
+
+	UFUNCTION()
+	void HandleBackgroundCloseButtonClicked();
 
 	UFUNCTION()
 	void HandleQuitConfirmButtonClicked();
@@ -92,6 +113,9 @@ private:
 
 	UFUNCTION()
 	void HandleContinueGameButtonClicked();
+
+	UFUNCTION()
+	void HandleSettingToggleButtonClicked();
 
 	UFUNCTION()
 	void HandleSettingButtonClicked();
@@ -109,6 +133,5 @@ private:
 	void CloseCurrentOpenWidget();
 
 	void OpenWidget(UWidget* WidgetToOpen);
-
 
 };

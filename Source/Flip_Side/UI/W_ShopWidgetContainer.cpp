@@ -102,3 +102,8 @@ UW_ShopCheckStartGame* UW_ShopWidgetContainer::GetShopCheckStartWidget()
 {
 	return ShopCheckStartGameWidget;
 }
+
+UW_ShopNavigationBar* UW_ShopWidgetContainer::GetShopNavigationBar() const
+{
+	return ShopNavigationBar;
+}

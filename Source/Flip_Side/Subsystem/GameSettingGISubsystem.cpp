@@ -3,7 +3,6 @@
 
 #include "Subsystem/GameSettingGISubsystem.h"
 
-
 void UGameSettingGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);

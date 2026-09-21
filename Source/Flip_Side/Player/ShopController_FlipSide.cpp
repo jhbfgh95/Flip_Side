@@ -80,10 +80,18 @@ void AShopController_FlipSide::BeginPlay()
     CardPresenter->InitPresenter(ShopWidgetContainer->GetShopCardWidget(), CardSubsystem, DataManager, UnlockSubsystem);
 
     CoinPresenter = NewObject<UShopCoinPresenter>(this);
-    CoinPresenter->InitPresenter(ShopWidgetContainer->GetShopCoinWidget(), CoinSubsystem, DataManager, UnlockSubsystem, ShopCoinUIActor);
+        CoinPresenter->InitPresenter(ShopWidgetContainer->GetShopCoinWidget(), 
+        CoinSubsystem, DataManager, UnlockSubsystem, ShopCoinUIActor,
+        ShopUISelectRegistry->GetRangePreviewActor());
 
     UnlockWeaponPresenter = NewObject<UUnlockWeaponPresenter>(this);
-    UnlockWeaponPresenter->InitPresenter(ShopWidgetContainer->GetShopUnlockWeaponWidget(),UnlockWeaponWSubsystem, DataManager, UnlockSubsystem, ShopUnlockWeaponUIActor);
+	UnlockWeaponPresenter->InitPresenter(
+		ShopWidgetContainer->GetShopUnlockWeaponWidget(),
+		UnlockWeaponWSubsystem,
+		DataManager,
+		UnlockSubsystem,
+		ShopUnlockWeaponUIActor,
+		IsValid(ShopUISelectRegistry) ? ShopUISelectRegistry->GetRangePreviewActor() : nullptr);
 
     TryInitPageChangePresenter();
     

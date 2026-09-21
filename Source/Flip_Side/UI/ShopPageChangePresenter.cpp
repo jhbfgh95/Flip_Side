@@ -51,6 +51,10 @@ void UShopPageChangePresenter::HandlePageRequested(EShopPage Page)
 	
 	PendingPage = Page;
 	bIsTransitioning = true;
+	if (UW_ShopNavigationBar* NavigationBar = WidgetContainer->GetShopNavigationBar())
+	{
+		NavigationBar->SetSelectedPageButton(Page);
+	}
 	SetShopUISelectActorsEnabled(false);
 	WidgetContainer->HideShopContent();
 	ShopPawn->MoveToShopPage(Page);
