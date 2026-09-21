@@ -304,7 +304,7 @@ void UShopItemPresenter::SetItemDescription(const FItemData& ItemData)
 
     if (UW_ShopItemDescription* DescriptionWidget = ShopItemWidget->GetShopItemDescription())
     {
-        DescriptionWidget->SetItemInfo(ItemData.ItemName, ItemData.Item_DES);
+        DescriptionWidget->SetItemInfo(ItemData);
     }
 }
 

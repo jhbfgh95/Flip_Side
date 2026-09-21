@@ -47,8 +47,13 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> StartGameButton;
 
+	TObjectPtr<UButton> SelectedButton;
+
 public:
 	FOnShopPageRequested OnShopPageRequested;
+
+	// 현재 페이지에 해당하는 버튼의 Normal 이미지 Tint 알파를 선택 상태로 만듭니다.
+	void SetSelectedPageButton(EShopPage Page);
 
 private:
 	bool bNavigationBarOpen = false;

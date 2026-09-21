@@ -9,18 +9,21 @@
 #include "UI/W_WeaponDescription.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/UnlockGISubsystem.h"
+#include "Actors/ShopWeaponRangePreviewActor.h"
 
 void UUnlockWeaponPresenter::InitPresenter(UW_UnlockWeaponWidget* InUnlockWeaponWidget,
 	UShopUnlockWeaponWSubsystem* InUnlockWeaponSubsystem,
 	UDataManagerSubsystem* InDataManager,
 	UUnlockGISubsystem* InUnlockSubsystem,
-	AShopUnlockWeaponUIActor* InShopUnlockWeaponUIActor)
+	AShopUnlockWeaponUIActor* InShopUnlockWeaponUIActor,
+	AShopWeaponRangePreviewActor* InRangePreviewActor)
 {
 	UnlockWeaponWidget = InUnlockWeaponWidget;
 	UnlockWeaponSubsystem = InUnlockWeaponSubsystem;
 	DataManager = InDataManager;
 	UnlockSubsystem = InUnlockSubsystem;
 	ShopUnlockWeaponUIActor = InShopUnlockWeaponUIActor;
+	RangePreviewActor = InRangePreviewActor;
 
 	if(!IsValid(UnlockWeaponWidget) || !IsValid(UnlockWeaponSubsystem) || !IsValid(ShopUnlockWeaponUIActor))
 		return;
@@ -55,7 +58,6 @@ void UUnlockWeaponPresenter::InitUnlockWeaponContainer()
 
 		//WeaponSlot->OnClickedUnlockWeaponSlot.AddDynamic(this, &UUnlockWeaponPresenter::SelectWeapon);
 		WeaponSlot->OnHoveredUnlockWeaponSlot.AddDynamic(this, &UUnlockWeaponPresenter::HoverWeapon);
-		WeaponSlot->OnUnhoveredUnlockWeaponSlot.AddDynamic(this, &UUnlockWeaponPresenter::UnhoverWeapon);
 		WeaponSlot->OnHoldStartedUnlockWeaponSlot.AddDynamic(this, &UUnlockWeaponPresenter::StartHoldWeapon);
 		WeaponSlot->OnHoldCancelledUnlockWeaponSlot.AddDynamic(this, &UUnlockWeaponPresenter::CancelHoldWeapon);
 		WeaponSlot->OnHoldCompletedUnlockWeaponSlot.AddDynamic(this, &UUnlockWeaponPresenter::CompleteHoldWeapon);
@@ -70,13 +72,6 @@ void UUnlockWeaponPresenter::HoverWeapon(int32 WeaponID)
 	UpdateWeaponUIActor(WeaponID);
 	UpdateWeaponDescription(WeaponID);
 	UpdateUnlockControls(WeaponID);
-}
-
-void UUnlockWeaponPresenter::UnhoverWeapon()
-{
-	CurrentSelectedWeaponID = -1;
-	HideWeaponDescription();
-	HideUnlockControls();
 }
 
 void UUnlockWeaponPresenter::UnlockSelectedWeapon()
@@ -182,11 +177,17 @@ void UUnlockWeaponPresenter::UpdateWeaponDescription(int32 WeaponID)
 
 	if(UW_WeaponDescription* DescriptionWidget = UnlockWeaponWidget->GetWeaponDescription())
 	{
-		DescriptionWidget->SetExplainText(
-			WeaponData.WeaponName,
-			WeaponData.KOR_DES,
-			WeaponData.BehaviorPoint,
-			WeaponData.AttackPoint);
+		TArray<FKeywordDefinitionData> Keywords;
+		if (!IsValid(DataManager) || !DataManager->GetAllEnabledKeywordDefinitions(Keywords))
+		{
+			DescriptionWidget->SetExplainTextEmpty();
+			return;
+		}
+		DescriptionWidget->SetWeaponDescription(WeaponData, Keywords);
+		if (IsValid(RangePreviewActor))
+		{
+			RangePreviewActor->ShowWeaponDefinition(WeaponData);
+		}
 	}
 }
 

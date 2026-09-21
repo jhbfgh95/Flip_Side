@@ -8,7 +8,7 @@
 
 class AShopUISelectActor;
 class ASpotLight;
-
+class AShopWeaponRangePreviewActor;
 UCLASS()
 class FLIP_SIDE_API AShopUISelectRegistry : public AActor
 {
@@ -49,6 +49,8 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category = "Shop UI Light Registry", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<ASpotLight> BossUILight;
 
+	UPROPERTY(EditInstanceOnly, Category = "Shop UI Range Registry", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<AShopWeaponRangePreviewActor> RangePreviewActor; 
 public:
 	AShopUISelectActor* GetCoinUISelectActor() const { return CoinUISelectActor.Get(); }
 	AShopUISelectActor* GetItemUISelectActor() const { return ItemUISelectActor.Get(); }
@@ -62,4 +64,6 @@ public:
 	ASpotLight* GetCardUILight() const { return CardUILight.Get(); }
 	ASpotLight* GetWeaponUILight() const { return WeaponUILight.Get(); }
 	ASpotLight* GetBossUILight() const { return BossUILight.Get(); }
+
+	AShopWeaponRangePreviewActor* GetRangePreviewActor() const { return RangePreviewActor.Get(); }
 };

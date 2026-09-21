@@ -16,6 +16,7 @@ class UW_ShopCoinWeaponSlot;
 class UW_ShopCoinWidget;
 class UUnlockGISubsystem;
 class AShopCoinUIActor;
+class AShopWeaponRangePreviewActor;
 UCLASS()
 class FLIP_SIDE_API UShopCoinPresenter : public UObject
 {
@@ -24,7 +25,8 @@ class FLIP_SIDE_API UShopCoinPresenter : public UObject
 public:
 	void InitPresenter(UW_ShopCoinWidget* InShopCoinWidget,
 		UShopCoinWSubsystem* InCoinSubsystem, UDataManagerSubsystem* InDataManager, 
-		UUnlockGISubsystem* InUnlockSubsystem, AShopCoinUIActor* InShopCoinUIActor);
+		UUnlockGISubsystem* InUnlockSubsystem, AShopCoinUIActor* InShopCoinUIActor
+		,AShopWeaponRangePreviewActor* InRangePreviewActor );
 
 
 protected:
@@ -41,6 +43,9 @@ private:
 	UPROPERTY()
 	TObjectPtr<AShopCoinUIActor> ShopCoinUIActor;
 	UPROPERTY()
+	TObjectPtr<AShopWeaponRangePreviewActor> RangePreviewActor;
+
+	UPROPERTY()
 	TArray<TObjectPtr<UW_ShopCoinSlot>> CoinSlotViews;
 	UPROPERTY()
 	TArray<TObjectPtr<UW_ShopCoinWeaponSlot>> WeaponSlotViews;
@@ -54,6 +59,8 @@ protected:
 
 protected:
 	int32 CurrentSelectedSlotIndex = -1;
+	bool bDescriptionHovered = false;
+	bool bRestoreSelectedWeaponDescriptionAfterHide = false;
 protected:
 	UFUNCTION()
 	void SelectSlot(int32 SlotIndex);
@@ -106,6 +113,9 @@ protected:
 	void RefreshCoinSlots();
 	void RefreshCoinSlotInfo();
 	void SetCoinSlotSelection(int32 SelectedSlotIndex);
+	void RestoreSelectedCoinSideWeaponDescription();
+	void HandleDescriptionHoverChanged(bool bHovered);
+	void HandleWeaponDescriptionHideFinished();
 	void UpdateWeaponDescription(const FFaceData& WeaponData);
 	void HideWeaponDescription();
 

@@ -5,23 +5,38 @@
 #include "Subsystem/LevelGISubsystem.h"
 #include "UI/W_SettingWidget.h"
 #include "Components/Button.h"
+#include "Components/CanvasPanel.h"
 #include "Components/Overlay.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 
 bool UW_ESCWidget::CloseESCWidget()
 {
-	if(CurrentOpenWidget)
+	CloseCurrentOpenWidget();
+	if (IsValid(EscWidget))
 	{
-		CloseCurrentOpenWidget();
-		return false;
+		EscWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
-	else
+	return true;
+}
+
+void UW_ESCWidget::ToggleESCWidget()
+{
+	if (IsESCWidgetOpen())
 	{
-		SetVisibility(ESlateVisibility::Collapsed);
-		return true;
+		CloseESCWidget();
+		return;
 	}
-	
+
+	if (IsValid(EscWidget))
+	{
+		EscWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+bool UW_ESCWidget::IsESCWidgetOpen() const
+{
+	return IsValid(EscWidget) && EscWidget->GetVisibility() == ESlateVisibility::Visible;
 }
 
 
@@ -37,6 +52,9 @@ void UW_ESCWidget::NativeOnInitialized()
 
 	if (IsValid(QuitGameButton))
 		QuitGameButton->OnClicked.AddUniqueDynamic(this, &ThisClass::HandleQuitGameButtonClicked);
+
+	if (IsValid(BackgroundCloseButton))
+		BackgroundCloseButton->OnClicked.AddUniqueDynamic(this, &ThisClass::HandleBackgroundCloseButtonClicked);
 
 	if (IsValid(QuitConfirmButton))
 	{
@@ -73,6 +91,11 @@ void UW_ESCWidget::NativeOnInitialized()
 		ContinueGameButton->OnClicked.AddUniqueDynamic(this, &ThisClass::HandleContinueGameButtonClicked);
 	}
 
+	if (IsValid(SettingToggleButton))
+	{
+		SettingToggleButton->OnClicked.AddUniqueDynamic(this, &ThisClass::HandleSettingToggleButtonClicked);
+	}
+
 	if (IsValid(SettingButton))
 	{
 		SettingButton->OnClicked.AddUniqueDynamic(this, &ThisClass::HandleSettingButtonClicked);
@@ -88,11 +111,20 @@ void UW_ESCWidget::NativeOnInitialized()
 		SettingWidget->OnCloseClicked.AddUniqueDynamic(this, &ThisClass::CloseCurrentOpenWidget);
 		SettingWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
+
+	if (IsValid(EscWidget)) EscWidget->SetVisibility(ESlateVisibility::Collapsed);
+	if (IsValid(MainMenuConfirmOverlay)) MainMenuConfirmOverlay->SetVisibility(ESlateVisibility::Collapsed);
+	if (IsValid(QuitConfirmOverlay)) QuitConfirmOverlay->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UW_ESCWidget::HandleQuitGameButtonClicked()
 {
 	OpenWidget(QuitConfirmOverlay);
+}
+
+void UW_ESCWidget::HandleBackgroundCloseButtonClicked()
+{
+	CloseESCWidget();
 }
 
 void UW_ESCWidget::HandleQuitConfirmButtonClicked()
@@ -108,7 +140,13 @@ void UW_ESCWidget::HandleQuitCancelButtonClicked()
 
 void UW_ESCWidget::HandleContinueGameButtonClicked()
 {
-	OnContinueGameClicked.Broadcast();
+	CloseESCWidget();
+	//OnContinueGameClicked.Broadcast();
+}
+
+void UW_ESCWidget::HandleSettingToggleButtonClicked()
+{
+	ToggleESCWidget();
 }
 
 void UW_ESCWidget::HandleSettingButtonClicked()

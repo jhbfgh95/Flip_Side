@@ -2,9 +2,11 @@
 
 
 #include "UI/W_ShopBossInfo.h"
+#include "UI/W_ShopBossPatternButton.h"
 #include "DataTypes/BossDataTypes.h"
 
 #include "Components/Button.h"
+#include "Components/HorizontalBox.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Engine/GameInstance.h"
@@ -16,32 +18,7 @@ void UW_ShopBossInfo::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	CachePatternButtons();
-
 	if(PassiveButton) PassiveButton->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPassive);
-
-	if(PatternButton_1) PatternButton_1->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern1);
-	if(PatternButton_2) PatternButton_2->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern2);
-	if(PatternButton_3) PatternButton_3->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern3);
-	if(PatternButton_4) PatternButton_4->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern4);
-	if(PatternButton_5) PatternButton_5->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern5);
-	if(PatternButton_6) PatternButton_6->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern6);
-	if(PatternButton_7) PatternButton_7->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern7);
-	if(PatternButton_8) PatternButton_8->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern8);
-	if(PatternButton_9) PatternButton_9->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern9);
-	if(PatternButton_10) PatternButton_10->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern10);
-
-	TArray<UTextBlock*> ButtonTexts = {
-		PatternButtonText_1, PatternButtonText_2, PatternButtonText_3,
-		PatternButtonText_4, PatternButtonText_5, PatternButtonText_6,
-		PatternButtonText_7, PatternButtonText_8, PatternButtonText_9,
-		PatternButtonText_10
-	};
-	for (int32 i = 0; i < ButtonTexts.Num(); i++)
-	{
-		if (ButtonTexts[i])
-			ButtonTexts[i]->SetText(FText::AsNumber(i + 1));
-	}
 
 	RefreshPreparedBossInfo();
 }
@@ -117,7 +94,7 @@ void UW_ShopBossInfo::SetBossInfo(const FBossDisplayData& BossData, const TArray
 		PatternPreviewActor->ClearPreview();
 	}
 
-	SetPatternButtonCount(FMath::Min(CurrentPatternDataList.Num(), PatternButtons.Num()));
+	SetPatternButtonCount(CurrentPatternDataList.Num());
 	RefreshBossTexts();
 	RefreshPatternTexts();
 	RefreshPatternButtonState();
@@ -162,15 +139,7 @@ void UW_ShopBossInfo::SelectPassive()
 
 void UW_ShopBossInfo::SetPatternButtonCount(int32 PatternCount)
 {
-	CachePatternButtons();
-
-	for(int32 i = 0; i < PatternButtons.Num(); i++)
-	{
-		if(!PatternButtons[i]) continue;
-
-		const bool bShouldShow = i < PatternCount;
-		PatternButtons[i]->SetVisibility(bShouldShow ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-	}
+	RebuildPatternButtons(PatternCount);
 
 	if(CurrentPatternIndex == INDEX_NONE)
 	{
@@ -188,69 +157,48 @@ void UW_ShopBossInfo::SetPatternButtonCount(int32 PatternCount)
 	RefreshPatternButtonState();
 }
 
-void UW_ShopBossInfo::SelectPattern1()
+void UW_ShopBossInfo::RebuildPatternButtons(int32 PatternCount)
 {
-	SelectPattern(0);
-}
-
-void UW_ShopBossInfo::SelectPattern2()
-{
-	SelectPattern(1);
-}
-
-void UW_ShopBossInfo::SelectPattern3()
-{
-	SelectPattern(2);
-}
-
-void UW_ShopBossInfo::SelectPattern4()
-{
-	SelectPattern(3);
-}
-
-void UW_ShopBossInfo::SelectPattern5()
-{
-	SelectPattern(4);
-}
-
-void UW_ShopBossInfo::SelectPattern6()
-{
-	SelectPattern(5);
-}
-
-void UW_ShopBossInfo::SelectPattern7()
-{
-	SelectPattern(6);
-}
-
-void UW_ShopBossInfo::SelectPattern8()
-{
-	SelectPattern(7);
-}
-
-void UW_ShopBossInfo::SelectPattern9()
-{
-	SelectPattern(8);
-}
-
-void UW_ShopBossInfo::SelectPattern10()
-{
-	SelectPattern(9);
-}
-
-void UW_ShopBossInfo::CachePatternButtons()
-{
+	// PassiveButton도 PatternButtonBox의 자식이므로 전체 ClearChildren은 사용하지 않습니다.
+	for (UW_ShopBossPatternButton* PatternButton : PatternButtons)
+	{
+		if (IsValid(PatternButton))
+		{
+			PatternButton->RemoveFromParent();
+		}
+	}
 	PatternButtons.Reset();
-	PatternButtons.Add(PatternButton_1);
-	PatternButtons.Add(PatternButton_2);
-	PatternButtons.Add(PatternButton_3);
-	PatternButtons.Add(PatternButton_4);
-	PatternButtons.Add(PatternButton_5);
-	PatternButtons.Add(PatternButton_6);
-	PatternButtons.Add(PatternButton_7);
-	PatternButtons.Add(PatternButton_8);
-	PatternButtons.Add(PatternButton_9);
-	PatternButtons.Add(PatternButton_10);
+
+	if (!PatternButtonBox || !PatternButtonWidgetClass)
+		return;
+
+	for (int32 Index = 0; Index < PatternCount; ++Index)
+	{
+		UW_ShopBossPatternButton* PatternButton = CreateWidget<UW_ShopBossPatternButton>(GetWorld(), PatternButtonWidgetClass);
+		if (!IsValid(PatternButton))
+			continue;
+
+		FText ButtonLabel;
+
+		if(CurrentPatternDataList[Index].bIsGimmick)
+		{
+			ButtonLabel = FText::Format(
+				NSLOCTEXT("BossInfo", "PatternButtonLabel", "P{0}"),
+				FText::AsNumber(Index + 1)
+			);
+		}
+		else
+		{
+			ButtonLabel = FText::Format(
+				NSLOCTEXT("BossInfo", "PatternButtonLabel", "G{0}"),
+				FText::AsNumber(Index + 1)
+			);
+		}
+		PatternButton->InitPatternButton(Index,ButtonLabel);
+		PatternButton->OnShopBossPatternButtonClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern);
+		PatternButtonBox->AddChildToHorizontalBox(PatternButton);
+		PatternButtons.Add(PatternButton);
+	}
 }
 
 void UW_ShopBossInfo::RefreshBossTexts()

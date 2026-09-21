@@ -12,7 +12,7 @@
 class UW_ShopWeaponSlotContainer;
 class UW_ShopCoinSlotContainer;
 class UW_BuyCoinSlotContainer;
-class UW_WeaponDescription;
+class UW_ShopSlotCoinDes;
 UCLASS()
 class FLIP_SIDE_API UW_ShopCoinWidget : public UUserWidget
 {
@@ -29,7 +29,7 @@ protected:
 	TObjectPtr<UW_BuyCoinSlotContainer> BuyCoinSlotContainer;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UW_WeaponDescription> WeaponDes;
+	TObjectPtr<UW_ShopSlotCoinDes> WeaponDes;
 	
 	
 public:
@@ -42,5 +42,5 @@ public:
 	UFUNCTION()
 	UW_BuyCoinSlotContainer* GetBuyCoinSlotContainer() const;
 
-	UW_WeaponDescription* GetWeaponDescription() const;
+	UW_ShopSlotCoinDes* GetWeaponDescription() const;
 };

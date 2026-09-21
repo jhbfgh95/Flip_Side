@@ -10,6 +10,7 @@ class AShopUnlockWeaponUIActor;
 class UShopUnlockWeaponWSubsystem;
 class UDataManagerSubsystem;
 class UUnlockGISubsystem;
+class AShopWeaponRangePreviewActor;
 
 UCLASS()
 class FLIP_SIDE_API UUnlockWeaponPresenter : public UObject
@@ -21,7 +22,8 @@ public:
 		UShopUnlockWeaponWSubsystem* InUnlockWeaponSubsystem,
 		UDataManagerSubsystem* InDataManager,
 		UUnlockGISubsystem* InUnlockSubsystem,
-		AShopUnlockWeaponUIActor* InShopUnlockWeaponUIActor);
+		AShopUnlockWeaponUIActor* InShopUnlockWeaponUIActor,
+		AShopWeaponRangePreviewActor* InRangePreviewActor);
 
 private:
 	UPROPERTY()
@@ -40,6 +42,9 @@ private:
 	TObjectPtr<AShopUnlockWeaponUIActor> ShopUnlockWeaponUIActor;
 
 	UPROPERTY()
+	TObjectPtr<AShopWeaponRangePreviewActor> RangePreviewActor;
+
+	UPROPERTY()
 	TArray<TObjectPtr<UW_UnlockWeaponSlot>> WeaponSlotViews;
 
 	int32 CurrentSelectedWeaponID = -1;
@@ -47,9 +52,6 @@ private:
 private:
 	UFUNCTION()
 	void HoverWeapon(int32 WeaponID);
-
-	UFUNCTION()
-	void UnhoverWeapon();
 
 	UFUNCTION()
 	void UnlockSelectedWeapon();

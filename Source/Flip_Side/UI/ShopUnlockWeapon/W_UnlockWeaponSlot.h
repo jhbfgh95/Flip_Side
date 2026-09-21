@@ -13,7 +13,6 @@
  */
 class UImage;
 class UTextBlock;
-class UBorder;
 class UProgressBar;
 class UMaterialInstanceDynamic;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedUnlockWeaponSlot, int32, WeaponID);
@@ -47,10 +46,6 @@ protected:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> WeaponName;
-
-	// UMG에서 슬롯 전체를 감싸는 Border의 이름을 HoverBorder로 지정합니다.
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBorder> HoverBorder;
 
 	// UMG에서 길게 누르기 진행 바의 이름을 HoldProgressBar로 지정합니다.
 	UPROPERTY(meta = (BindWidget))

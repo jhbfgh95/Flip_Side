@@ -2,7 +2,6 @@
 
 
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponSlot.h"
-#include "Components/Border.h"
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
@@ -14,14 +13,10 @@
 void UW_UnlockWeaponSlot::NativeConstruct()
 {
     Super::NativeConstruct();
-    if (HoverBorder)
-    {
-        HoverBorder->SetVisibility(ESlateVisibility::Hidden);
-    }
-
     if (HoldProgressBar)
     {
         HoldProgressBar->SetPercent(0.0f);
+        HoldProgressBar->SetVisibility(ESlateVisibility::Hidden);
     }
 
     UnlockWeaponImageMI = WeaponImage->GetDynamicMaterial();
@@ -79,6 +74,7 @@ void UW_UnlockWeaponSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 void UW_UnlockWeaponSlot::NativeDestruct()
 {
     CancelHold();
+    if (IsValid(HoldProgressBar)) HoldProgressBar->SetVisibility(ESlateVisibility::Hidden);
     Super::NativeDestruct();
 }
 
@@ -112,6 +108,12 @@ void UW_UnlockWeaponSlot::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 void UW_UnlockWeaponSlot::InitWidget(const FFaceData& InitWeaponData)
 {
     UnlockWeaponData = InitWeaponData;
+    if (IsValid(HoldProgressBar))
+    {
+        HoldProgressBar->SetPercent(0.0f);
+        HoldProgressBar->SetVisibility(ESlateVisibility::Hidden);
+    }
+
     if(!IsValid(UnlockWeaponImageMI))
         UnlockWeaponImageMI = WeaponImage->GetDynamicMaterial();
 
@@ -138,9 +140,9 @@ void UW_UnlockWeaponSlot::ClickSlot()
 
 void UW_UnlockWeaponSlot::HoverSlot()
 {
-    if (HoverBorder)
+    if (IsValid(HoldProgressBar))
     {
-        HoverBorder->SetVisibility(ESlateVisibility::HitTestInvisible);
+        HoldProgressBar->SetVisibility(ESlateVisibility::HitTestInvisible);
     }
 
     OnHoveredUnlockWeaponSlot.Broadcast(UnlockWeaponData.WeaponID);
@@ -150,9 +152,9 @@ void UW_UnlockWeaponSlot::UnhoverSlot()
 {
 	CancelHold();
 
-    if (HoverBorder)
+    if (IsValid(HoldProgressBar))
     {
-        HoverBorder->SetVisibility(ESlateVisibility::Hidden);
+        HoldProgressBar->SetVisibility(ESlateVisibility::Hidden);
     }
 
     OnUnhoveredUnlockWeaponSlot.Broadcast();

@@ -77,4 +77,6 @@ public:
 	UW_UnlockWeaponWidget* GetShopUnlockWeaponWidget();
 
 	UW_ShopCheckStartGame* GetShopCheckStartWidget();
+
+	UW_ShopNavigationBar* GetShopNavigationBar() const;
 };
