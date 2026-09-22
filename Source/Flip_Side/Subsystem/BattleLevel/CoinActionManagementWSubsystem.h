@@ -77,6 +77,8 @@ private:
 	UBattleLevelActingWSubsystem* GetActingManager() const;
 
 	void StartCoinActionSequence();
+	UFUNCTION()
+	void HandleActiveCoinCCChanged(ECCTypes Type);
 	void BeginRaisedAction();
 	void AdvancePipeline();
 	bool AdvanceAbilitiesForTiming(EAbilityTiming Timing);
@@ -115,6 +117,7 @@ private:
 	float AttackSpeedMultiplier = 1.0f;
 
 	FTimerHandle CommonVFXTimerHandle;
+	FTimerHandle CCInterruptTimerHandle;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UWeapon_Action> SelectedAction = nullptr;

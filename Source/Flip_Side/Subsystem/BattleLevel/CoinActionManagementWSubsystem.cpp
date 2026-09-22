@@ -3,6 +3,7 @@
 #include "Actors/Boss/BossActor.h"
 #include "Actors/CoinActor.h"
 #include "Actors/Component_Status.h"
+#include "Actors/DebuffComponent.h"
 #include "Actors/GridActor.h"
 #include "Actors/Others/Base_OtherActor.h"
 #include "Engine/World.h"
@@ -87,9 +88,13 @@ void UCoinActionManagementWSubsystem::CancelSelectWeapon()
 
 void UCoinActionManagementWSubsystem::ResetActionState(bool bResetSelectedAction)
 {
+	ACoinActor* PreviousCaster = IsValid(SelectedAction) ? SelectedAction->GetCasterCoin() : nullptr;
+	if (IsValid(PreviousCaster) && IsValid(PreviousCaster->DebuffComponent))
+		PreviousCaster->DebuffComponent->OnCCChanged.RemoveDynamic(this, &UCoinActionManagementWSubsystem::HandleActiveCoinCCChanged);
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+		World->GetTimerManager().ClearTimer(CCInterruptTimerHandle);
 	}
 
 	ClearBossOutline();
@@ -254,7 +259,8 @@ void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedC
 		return;
 	}
 
-	if (bActionSequenceActive || ClickedCoin->GetCoinIsActed())
+	if (bActionSequenceActive || ClickedCoin->GetCoinIsActed() || !IsValid(ClickedCoin->StatComponent) ||
+		ClickedCoin->StatComponent->IsDead() || ClickedCoin->StatComponent->IsStunned())
 	{
 		PlayFailedVFX();
 		return;
@@ -304,6 +310,8 @@ void UCoinActionManagementWSubsystem::StartCoinActionSequence()
 	CasterCoin->SetCoinIsActed(true);
 	CasterCoin->SetCoinIsActing(true);
 	bActionSequenceActive = true;
+	if (IsValid(CasterCoin->DebuffComponent))
+		CasterCoin->DebuffComponent->OnCCChanged.AddUniqueDynamic(this, &UCoinActionManagementWSubsystem::HandleActiveCoinCCChanged);
 	CurrentInputState = EActionInputState::ExecutingAction;
 	PipelineStage = ECoinWeaponPipelineStage::BeforeAttack;
 	CurrentAbilityIndex = 0;
@@ -333,6 +341,36 @@ void UCoinActionManagementWSubsystem::BeginRaisedAction()
 	{
 		AdvancePipeline();
 	}
+}
+
+void UCoinActionManagementWSubsystem::HandleActiveCoinCCChanged(ECCTypes Type)
+{
+	if (!bActionSequenceActive || !IsValid(GetWorld())) return;
+	// 적용 중 행동 컨텍스트를 파괴하지 않도록 현재 호출 스택이 끝난 뒤 중단합니다.
+	GetWorld()->GetTimerManager().ClearTimer(CCInterruptTimerHandle);
+	CCInterruptTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this, [this]()
+	{
+		ACoinActor* Caster = IsValid(SelectedAction) ? SelectedAction->GetCasterCoin() : nullptr;
+		if (!bActionSequenceActive || PipelineStage == ECoinWeaponPipelineStage::Finishing ||
+			!IsValid(Caster) || !IsValid(Caster->StatComponent)) return;
+		if (Caster->StatComponent->IsStunned() || Caster->StatComponent->IsDead())
+		{
+			GetWorld()->GetTimerManager().ClearTimer(CommonVFXTimerHandle);
+			if (UBattleLevelActingWSubsystem* Acting = GetActingManager()) Acting->StopCoinActionAct();
+			FinishCoinActionSequence();
+		}
+		else if (Caster->StatComponent->IsBlinded() && PipelineStage == ECoinWeaponPipelineStage::OnHit)
+		{
+			ClearValidAbilityTargets();
+			PendingAbilityIndex = INDEX_NONE;
+			PendingSelectionCount = 0;
+			CurrentAbilityIndex = 0;
+			CurrentInputState = EActionInputState::ExecutingAction;
+			if (IsValid(GridManager)) GridManager->SetGridClickFlag(EGridClickFlag::None);
+			PipelineStage = ECoinWeaponPipelineStage::AfterAttackAlways;
+			AdvancePipeline();
+		}
+	}));
 }
 
 void UCoinActionManagementWSubsystem::AdvancePipeline()
@@ -385,6 +423,9 @@ void UCoinActionManagementWSubsystem::AdvancePipeline()
 
 bool UCoinActionManagementWSubsystem::AdvanceAbilitiesForTiming(EAbilityTiming Timing)
 {
+	const ACoinActor* Caster = IsValid(SelectedAction) ? SelectedAction->GetCasterCoin() : nullptr;
+	if (!IsValid(Caster) || !IsValid(Caster->StatComponent) || Caster->StatComponent->IsStunned() ||
+		(Caster->StatComponent->IsBlinded() && Timing == EAbilityTiming::OnHit)) return false;
 	const FWeaponLogicSet* LogicSet = GetCurrentLogicSet();
 	if (!LogicSet)
 	{
@@ -447,7 +488,7 @@ void UCoinActionManagementWSubsystem::BeginAttackStep()
 
 	ACoinActor* CasterCoin = SelectedAction->GetCasterCoin();
 	if (!IsValid(CasterCoin) || !IsValid(CasterCoin->StatComponent) ||
-		CasterCoin->StatComponent->GetOnIsOnCC())
+		CasterCoin->StatComponent->IsStunned() || CasterCoin->StatComponent->IsDead())
 	{
 		bPendingFailedVFX = true;
 		FinishCoinActionSequence();
@@ -468,7 +509,7 @@ void UCoinActionManagementWSubsystem::BeginAttackStep()
 
 void UCoinActionManagementWSubsystem::ResolveAttackStep()
 {
-	if (!bActionSequenceActive || !IsValid(SelectedAction))
+	if (!bActionSequenceActive || !IsValid(SelectedAction) || PipelineStage == ECoinWeaponPipelineStage::Finishing)
 	{
 		return;
 	}

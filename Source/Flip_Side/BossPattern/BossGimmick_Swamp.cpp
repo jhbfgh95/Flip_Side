@@ -7,7 +7,7 @@
 
 namespace
 {
-	// 0/1번 패턴이 부여한 늪 디버프를 갖고 있는지 확인 (다른 출처 디버프는 무시)
+	// 오물 응징은 모든 디버프를 확인합니다. 독은 별도 기믹이므로 이 목록에 없습니다.
 	bool CoinHasSwampDebuff(ACoinActor* Coin)
 	{
 		if (!IsValid(Coin) || !IsValid(Coin->StatComponent))
@@ -17,8 +17,7 @@ namespace
 
 		for (const FStatusEffectInstance& Effect : Coin->StatComponent->GetStatusEffects())
 		{
-			if (Effect.BuffTypeID == BossBuffTypeID::SwampWeaponPowerDown ||
-				Effect.BuffTypeID == BossBuffTypeID::SwampAttackPowerDown)
+			if (Effect.Polarity == EStatusPolarity::Debuff)
 			{
 				return true;
 			}
@@ -41,8 +40,8 @@ namespace
 		Debuff.DurationType = EBuffDurationType::PersistentInBattle;
 		Debuff.StackPolicy = EStatusStackPolicy::NonStackable;
 		Debuff.RemainingTurns = DurationTurns;
-		Debuff.Modifier.WeaponPoint = WeaponPointDelta;
-		Debuff.Modifier.AttackPoint = AttackPointDelta;
+		Debuff.Modifier.WeaponPoint = WeaponPointDelta > 0 ? -WeaponPointDelta : WeaponPointDelta;
+		Debuff.Modifier.AttackPoint = AttackPointDelta > 0 ? -AttackPointDelta : AttackPointDelta;
 
 		Coin->StatComponent->AddStatusEffect(Debuff);
 	}
@@ -102,6 +101,8 @@ void UBossGimmick_Swamp::OnPatternExecute(
 		}
 		break;
 	case 2:
+		// 개별 피해도 패턴 피해입니다. 실명은 피해만 차단하고 다른 기믹 분기는 유지합니다.
+		if (!IsValid(Boss) || Boss->IsBlinded()) break;
 		for (ACoinActor* Coin : LockedTargets)
 		{
 			if (!IsValid(Coin) || !IsValid(Coin->StatComponent))

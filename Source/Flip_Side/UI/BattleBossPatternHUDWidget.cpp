@@ -90,7 +90,7 @@ void UBattleBossPatternHUDWidget::SetBossHUDData(const FBossHUDData& InData)
 
 void UBattleBossPatternHUDWidget::HandlePatternHovered()
 {
-	// TODO: UBossPatternPopupWidget의 표시 구성과 HUD 앵커가 확정되면 Player HUD에서 동적 팝업을 생성합니다.
+	// HUD가 고정 앵커 위치에 BossPatternPopupWidget을 생성하고 최신 표시 데이터를 전달합니다.
 	OnPatternHovered.Broadcast();
 }
 

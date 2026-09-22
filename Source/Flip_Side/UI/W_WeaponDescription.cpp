@@ -3,6 +3,11 @@
 
 #include "UI/W_WeaponDescription.h"
 #include "Components/TextBlock.h"
+#include "Subsystem/DataManagerSubsystem.h"
+#include "Engine/GameInstance.h"
+#include "Engine/Texture2D.h"
+#include "Components/Image.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Components/PanelWidget.h"
 #include "DataTypes/WeaponDataTypes.h"
 #include "DataTypes/KeywordDataTypes.h"
@@ -13,6 +18,30 @@
 void UW_WeaponDescription::NativeConstruct()
 {
     Super::NativeConstruct();
+	// 명시적으로 바인딩한 스탯 이미지만 DB에서 갱신합니다. 하위 위젯 탐색은 하지 않습니다.
+	UDataManagerSubsystem* IconDB = IsValid(GetGameInstance()) ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>() : nullptr;
+	if (IsValid(IconDB))
+	{
+		UImage* StatImages[] = { AttackPowerIcon, WeaponPowerIcon, CountIcon };
+		const FName StatCodes[] = { TEXT("STAT:AttackPower"), TEXT("STAT:WeaponPower"), TEXT("STAT:Count") };
+		for (int32 Index = 0; Index < UE_ARRAY_COUNT(StatImages); ++Index)
+		{
+			UImage* StatImage = StatImages[Index];
+			UTexture2D* Icon = nullptr;
+			if (!IsValid(StatImage) || !IconDB->TryGetUIIcon(StatCodes[Index], Icon)) continue;
+			if (Cast<UMaterialInterface>(StatImage->GetBrush().GetResourceObject()))
+			{
+				if (UMaterialInstanceDynamic* Material = StatImage->GetDynamicMaterial())
+					Material->SetTextureParameterValue(StatIconTextureParameter, Icon);
+			}
+			else
+			{
+				FSlateBrush Brush = StatImage->GetBrush();
+				Brush.SetResourceObject(Icon);
+				StatImage->SetBrush(Brush);
+			}
+		}
+	}
 
     SetExplainTextEmpty();
 }

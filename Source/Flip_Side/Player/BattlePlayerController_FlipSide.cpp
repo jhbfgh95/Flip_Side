@@ -37,6 +37,7 @@
 #include "Actors/Boss/BossCoinActor.h"
 #include "EngineUtils.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Framework/Application/SlateApplication.h"
 
 namespace
 {
@@ -163,6 +164,8 @@ void ABattlePlayerController_FlipSide::BeginPlay()
                 BattleHUDWidget->OnReadyCoinClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinClicked);
                 BattleHUDWidget->OnReadyCoinHovered.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinHovered);
                 BattleHUDWidget->OnReadyCoinUnhovered.AddUObject(this, &ABattlePlayerController_FlipSide::HandleReadyCoinUnhovered);
+                BattleHUDWidget->OnBattleInfoSelectionReset.AddUObject(this, &ABattlePlayerController_FlipSide::ResetBattleInfoSelection);
+                BattleHUDWidget->OnReadySlotHighlightClearRequested.AddUObject(this, &ABattlePlayerController_FlipSide::ClearReadySlotHighlight);
                 BattleHUDWidget->OnItemSlotClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattleItemSlotClicked);
                 BattleHUDWidget->OnPhaseProgressClicked.AddUObject(this, &ABattlePlayerController_FlipSide::HandleBattlePhaseProgressClicked);
                 BattleHUDWidget->AddToViewport();
@@ -205,11 +208,18 @@ void ABattlePlayerController_FlipSide::BeginPlay()
 
 void ABattlePlayerController_FlipSide::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+    ClearReadySlotHighlight();
+    ResetBattleInfoSelection();
     if (IsValid(BattleHUDWidget))
     {
         BattleHUDWidget->OnCoinSlotHovered.RemoveAll(this);
         BattleHUDWidget->DismissCoinSlotInfo();
         BattleHUDWidget->OnCoinSlotInfoDismissed.RemoveAll(this);
+        BattleHUDWidget->OnBattleInfoSelectionReset.RemoveAll(this);
+        BattleHUDWidget->OnReadySlotHighlightClearRequested.RemoveAll(this);
+        BattleHUDWidget->OnReadyCoinClicked.RemoveAll(this);
+        BattleHUDWidget->OnReadyCoinHovered.RemoveAll(this);
+        BattleHUDWidget->OnReadyCoinUnhovered.RemoveAll(this);
     }
     HandleBattleCoinSlotUnhovered(HoveredPreviewSlot);
     HideBattleCoinRangePreviews();
@@ -277,7 +287,7 @@ void ABattlePlayerController_FlipSide::RefreshBossHUD()
 {
 	if (IsValid(BattleHUDWidget) && IsValid(ObservedBoss))
 	{
-		BattleHUDWidget->SetBossHUDData(ObservedBoss->GetBossHUDData());
+		HandleBossHUDDataChanged(ObservedBoss->GetBossHUDData());
 	}
 }
 
@@ -285,7 +295,17 @@ void ABattlePlayerController_FlipSide::HandleBossHUDDataChanged(const FBossHUDDa
 {
 	if (IsValid(BattleHUDWidget))
 	{
-		BattleHUDWidget->SetBossHUDData(InData);
+		FBossHUDData DisplayData = InData;
+		FBossPatternBattleData PatternData;
+		// 표시용 조회만 수행합니다. BossPatternBase의 보호막 회복 분기와 같은 배율입니다.
+		if (InData.bHasPatternInfo && IsValid(ObservedBoss) &&
+			ObservedBoss->GetPatternData(InData.PatternDisplayIndex - 1, PatternData) &&
+			PatternData.bNoDamage && PatternData.GimmickType == EBossGimmickType::Shield && PatternData.ShieldHeal > 0)
+		{
+			DisplayData.bShowPatternShieldHeal = true;
+			DisplayData.PatternShieldHeal = FMath::RoundToInt(PatternData.ShieldHeal * ObservedBoss->GetStageMultiplierStat());
+		}
+		BattleHUDWidget->SetBossHUDData(DisplayData);
 	}
 }
 
@@ -362,11 +382,7 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
         }
 
         EndBattleCoinActorHover();
-        HoveredReadyCoinInstanceID = INDEX_NONE;
-        if (IsValid(BattleHUDWidget))
-        {
-            BattleHUDWidget->HideBattleCoinInfo();
-        }
+        ClearReadySlotHighlight();
 
         if (CurrentHoveredArea)
         {
@@ -378,7 +394,9 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
     }
 
     // ReadyCoinSlot 호버 중에는 UI 뒤의 월드 CoinActor를 중복 호버하지 않습니다.
-    if (HoveredReadyCoinInstanceID != INDEX_NONE)
+    const bool bPointerOverHUD = IsValid(BattleHUDWidget) && FSlateApplication::IsInitialized() &&
+        BattleHUDWidget->GetCoinPopupPointerRegion(FSlateApplication::Get().GetCursorPos()) != ECoinPopupPointerRegion::World;
+    if (HoveredReadyCoinInstanceID != INDEX_NONE || bPointerOverHUD)
     {
         if (IsValid(LastHoveredActor))
         {
@@ -523,6 +541,9 @@ void ABattlePlayerController_FlipSide::MoveCameraForBossDead()
 void ABattlePlayerController_FlipSide::OnPhaseChanged(EPhaseState NewPhase)
 {
 	RefreshBattlePhaseHUD();
+    ClearReadySlotHighlight();
+    // 페이즈 전환으로 정보 페이지나 선택을 초기화하지 않습니다.
+    RefreshHoveredBattleCoinInfo();
 
     if (!ControlledPawn) return;
 
@@ -608,8 +629,13 @@ void ABattlePlayerController_FlipSide::RefreshBattleCoinHUD()
 
     if (HoveredReadyCoinInstanceID != INDEX_NONE)
     {
-        RefreshHoveredBattleCoinInfo();
+        const int32 HoveredIndex = ReadyCoinData.IndexOfByPredicate([this](const FReadyCoinData& Data)
+        { return Data.CoinInstanceID == HoveredReadyCoinInstanceID; });
+        if (!ReadyCoinData.IsValidIndex(HoveredIndex) ||
+            CoinManager->GetRuntimeCoinAtReadySlot(HoveredIndex) != HighlightedReadySlotCoin.Get())
+            ClearReadySlotHighlight();
     }
+    RefreshHoveredBattleCoinInfo();
 }
 
 void ABattlePlayerController_FlipSide::RefreshBattleItemHUD()
@@ -754,8 +780,17 @@ void ABattlePlayerController_FlipSide::HandleReadyCoinHovered(int32 CoinInstance
     }
     EndBattleCoinActorHover();
 
+    ClearReadySlotHighlight();
     HoveredReadyCoinInstanceID = CoinInstanceID;
-    RefreshHoveredBattleCoinInfo();
+    UCoinManagementWSubsystem* CoinManager = IsValid(GetWorld())
+        ? GetWorld()->GetSubsystem<UCoinManagementWSubsystem>() : nullptr;
+    if (!IsValid(CoinManager)) return;
+    const int32 SlotIndex = CoinManager->GetReadyCoinData().IndexOfByPredicate([CoinInstanceID](const FReadyCoinData& Data)
+    { return Data.CoinInstanceID == CoinInstanceID; });
+    ACoinActor* Coin = CoinManager->GetRuntimeCoinAtReadySlot(SlotIndex);
+    if (!IsValid(Coin) || !IsValid(Coin->StatComponent) || Coin->StatComponent->GetHP() <= 0 || Coin->IsHidden()) return;
+    HighlightedReadySlotCoin = Coin;
+    Coin->SetReadySlotHighlighted(true);
 }
 
 void ABattlePlayerController_FlipSide::HandleReadyCoinUnhovered(int32 CoinInstanceID)
@@ -765,24 +800,31 @@ void ABattlePlayerController_FlipSide::HandleReadyCoinUnhovered(int32 CoinInstan
         return;
     }
 
+    ClearReadySlotHighlight();
+}
+
+void ABattlePlayerController_FlipSide::ClearReadySlotHighlight()
+{
+    if (ACoinActor* Coin = HighlightedReadySlotCoin.Get(); IsValid(Coin)) Coin->SetReadySlotHighlighted(false);
+    HighlightedReadySlotCoin.Reset();
     HoveredReadyCoinInstanceID = INDEX_NONE;
+}
+
+void ABattlePlayerController_FlipSide::ResetBattleInfoSelection()
+{
+    // 사망 시 이 ID를 해제하므로 이후 같은 1~10 ID가 재사용되어도 다른 코인을 표시하지 않습니다.
+    SelectedInfoCoinInstanceID = INDEX_NONE;
+    SelectedInfoReadySlot = INDEX_NONE;
+    SelectedInfoUpperFace = EFaceState::Front;
     StopObservingBattleInfoCoin();
-    if (IsValid(BattleHUDWidget))
-    {
-        BattleHUDWidget->HideBattleCoinInfo();
-    }
+    if (IsValid(BattleHUDWidget)) BattleHUDWidget->HideBattleCoinInfo();
 }
 
 void ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsStarted(
     const FInputActionValue& InputActionValue)
 {
-    bShowAdditionalBuffsHeld = InputActionValue.Get<bool>();
+	static_cast<void>(InputActionValue);
 	if (IsValid(BattleHUDWidget)) BattleHUDWidget->ToggleCoinDescriptionDetails();
-    if (IsValid(BattleHUDWidget) &&
-        (HoveredReadyCoinInstanceID != INDEX_NONE || HoveredBattleCoin.IsValid()))
-    {
-        BattleHUDWidget->SetAdditionalBattleCoinBuffsVisible(bShowAdditionalBuffsHeld);
-    }
 
 }
 
@@ -790,11 +832,7 @@ void ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsCompleted(
     const FInputActionValue& InputActionValue)
 {
     static_cast<void>(InputActionValue);
-    bShowAdditionalBuffsHeld = false;
-    if (IsValid(BattleHUDWidget))
-    {
-        BattleHUDWidget->SetAdditionalBattleCoinBuffsVisible(false);
-    }
+    // 기존 IA 연결은 유지하며 상태 목록은 Shift와 무관하게 모두 표시합니다.
 }
 
 void ABattlePlayerController_FlipSide::BeginBattleCoinActorHover(ACoinActor* CoinActor)
@@ -805,8 +843,22 @@ void ABattlePlayerController_FlipSide::BeginBattleCoinActorHover(ACoinActor* Coi
     }
 
     HoveredBattleCoin = CoinActor;
-    ObserveBattleInfoCoin(CoinActor);
-    RefreshHoveredBattleCoinInfo();
+    UBattleManagerWSubsystem* BattleManager = IsValid(GetWorld()) ? GetWorld()->GetSubsystem<UBattleManagerWSubsystem>() : nullptr;
+    UCoinManagementWSubsystem* CoinManager = IsValid(GetWorld()) ? GetWorld()->GetSubsystem<UCoinManagementWSubsystem>() : nullptr;
+    if (IsValid(BattleManager) && BattleManager->GetCurrentPhase() == EPhaseState::CoinBehaviorPhase &&
+        IsValid(CoinManager) && IsValid(CoinActor->StatComponent) && CoinActor->StatComponent->GetHP() > 0)
+    {
+        const int32 SlotIndex = CoinManager->GetReadyCoinData().IndexOfByPredicate([CoinActor](const FReadyCoinData& Data)
+        { return Data.CoinInstanceID == CoinActor->GetCoinID(); });
+        if (SlotIndex != INDEX_NONE && CoinManager->GetRuntimeCoinAtReadySlot(SlotIndex) == CoinActor)
+        {
+            SelectedInfoCoinInstanceID = CoinActor->GetCoinID();
+            SelectedInfoReadySlot = SlotIndex;
+            SelectedInfoUpperFace = CoinActor->GetCoinDecidedFace();
+            ObserveBattleInfoCoin(CoinActor);
+            RefreshHoveredBattleCoinInfo();
+        }
+    }
 	ShowBattleCoinRangePreviews(CoinActor);
 }
 
@@ -820,14 +872,7 @@ void ABattlePlayerController_FlipSide::EndBattleCoinActorHover(ACoinActor* Expec
 
 	HideBattleCoinRangePreviews(CurrentHoveredCoin);
     HoveredBattleCoin.Reset();
-    if (HoveredReadyCoinInstanceID == INDEX_NONE)
-    {
-        StopObservingBattleInfoCoin();
-        if (IsValid(BattleHUDWidget))
-        {
-            BattleHUDWidget->HideBattleCoinInfo();
-        }
-    }
+    // 범위 프리뷰만 끝냅니다. 정보 대상의 변경 이벤트 구독은 계속 유지합니다.
 }
 
 void ABattlePlayerController_FlipSide::SpawnBattleRangePreviewActors()
@@ -1175,67 +1220,56 @@ void ABattlePlayerController_FlipSide::StopObservingBattleInfoCoin()
 
 void ABattlePlayerController_FlipSide::RefreshHoveredBattleCoinInfo()
 {
-    if (!IsValid(BattleHUDWidget) || !IsValid(GetWorld()))
+    if (!IsValid(BattleHUDWidget) || !IsValid(GetWorld()) || SelectedInfoCoinInstanceID == INDEX_NONE)
     {
         return;
     }
 
+    UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>();
+    if (!IsValid(CoinManager))
+    {
+        ResetBattleInfoSelection();
+        return;
+    }
+    const TArray<FReadyCoinData>& ReadyCoins = CoinManager->GetReadyCoinData();
+    if (!ReadyCoins.IsValidIndex(SelectedInfoReadySlot) ||
+        ReadyCoins[SelectedInfoReadySlot].CoinInstanceID != SelectedInfoCoinInstanceID)
+    {
+        ResetBattleInfoSelection();
+        return;
+    }
     FBattleCoinInfoViewData ViewData;
-    if (HoveredReadyCoinInstanceID != INDEX_NONE)
+    ACoinActor* RuntimeCoin = CoinManager->GetRuntimeCoinAtReadySlot(SelectedInfoReadySlot);
+    if (IsValid(RuntimeCoin))
     {
-        UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>();
-        if (!IsValid(CoinManager))
+        if (RuntimeCoin->GetCoinID() != SelectedInfoCoinInstanceID || !IsValid(RuntimeCoin->StatComponent) ||
+            RuntimeCoin->StatComponent->GetHP() <= 0)
+        {
+            ResetBattleInfoSelection();
+            return;
+        }
+        ObserveBattleInfoCoin(RuntimeCoin);
+        if (!BuildBattleCoinInfoFromActor(RuntimeCoin, ViewData))
         {
             BattleHUDWidget->HideBattleCoinInfo();
             return;
         }
-
-        const TArray<FReadyCoinData>& ReadyCoins = CoinManager->GetReadyCoinData();
-        const int32 ReadyCoinIndex = ReadyCoins.IndexOfByPredicate([this](const FReadyCoinData& ReadyCoin)
+        if (RuntimeCoin->GetCoinDecidedFace() != EFaceState::None)
+            SelectedInfoUpperFace = RuntimeCoin->GetCoinDecidedFace();
+    }
+    else
+    {
+        // 생존 액터를 정리한 SettingPhase 이후에는 매니저가 저장한 상태로 계속 표시합니다.
+        StopObservingBattleInfoCoin();
+        if (ReadyCoins[SelectedInfoReadySlot].CurrentHP <= 0 ||
+            !BuildBattleCoinInfoFromReadyData(ReadyCoins[SelectedInfoReadySlot], ViewData))
         {
-            return ReadyCoin.CoinInstanceID == HoveredReadyCoinInstanceID;
-        });
-        if (!ReadyCoins.IsValidIndex(ReadyCoinIndex))
-        {
-            HoveredReadyCoinInstanceID = INDEX_NONE;
-            StopObservingBattleInfoCoin();
-            BattleHUDWidget->HideBattleCoinInfo();
+            ResetBattleInfoSelection();
             return;
         }
-
-        ACoinActor* RuntimeCoin = CoinManager->GetRuntimeCoinAtReadySlot(ReadyCoinIndex);
-        const bool bBuiltFromRuntimeCoin = IsValid(RuntimeCoin) &&
-            BuildBattleCoinInfoFromActor(RuntimeCoin, ViewData);
-        if (bBuiltFromRuntimeCoin)
-        {
-            ObserveBattleInfoCoin(RuntimeCoin);
-        }
-        else
-        {
-            StopObservingBattleInfoCoin();
-            if (!BuildBattleCoinInfoFromReadyData(ReadyCoins[ReadyCoinIndex], ViewData))
-            {
-                BattleHUDWidget->HideBattleCoinInfo();
-                return;
-            }
-        }
-
-        BattleHUDWidget->ShowBattleCoinInfo(ViewData, true);
-        BattleHUDWidget->SetAdditionalBattleCoinBuffsVisible(bShowAdditionalBuffsHeld);
-        return;
     }
-
-    ACoinActor* FieldCoin = HoveredBattleCoin.Get();
-    if (IsValid(FieldCoin) && BuildBattleCoinInfoFromActor(FieldCoin, ViewData))
-    {
-        ObserveBattleInfoCoin(FieldCoin);
-        BattleHUDWidget->ShowBattleCoinInfo(ViewData, false);
-        BattleHUDWidget->SetAdditionalBattleCoinBuffsVisible(bShowAdditionalBuffsHeld);
-        return;
-    }
-
-    StopObservingBattleInfoCoin();
-    BattleHUDWidget->HideBattleCoinInfo();
+    ViewData.UpperFace = SelectedInfoUpperFace;
+    BattleHUDWidget->ShowBattleCoinInfo(ViewData);
 }
 
 void ABattlePlayerController_FlipSide::HandleObservedWeaponStatsChanged(
@@ -1278,12 +1312,8 @@ void ABattlePlayerController_FlipSide::HandleObservedCoinDeath(ACoinActor* DeadC
     {
         HoveredBattleCoin.Reset();
     }
-    HoveredReadyCoinInstanceID = INDEX_NONE;
-    StopObservingBattleInfoCoin();
-    if (IsValid(BattleHUDWidget))
-    {
-        BattleHUDWidget->HideBattleCoinInfo();
-    }
+    if (HighlightedReadySlotCoin.Get() == DeadCoin) ClearReadySlotHighlight();
+    if (IsValid(DeadCoin) && DeadCoin->GetCoinID() == SelectedInfoCoinInstanceID) ResetBattleInfoSelection();
 }
 
 bool ABattlePlayerController_FlipSide::BuildBattleCoinInfoFromActor(
@@ -1298,6 +1328,7 @@ bool ABattlePlayerController_FlipSide::BuildBattleCoinInfoFromActor(
     UComponent_Status* StatusComponent = CoinActor->StatComponent;
     OutViewData = FBattleCoinInfoViewData();
     OutViewData.CoinInstanceID = CoinActor->GetCoinID();
+    OutViewData.UpperFace = CoinActor->GetCoinDecidedFace();
     OutViewData.CurrentHP = StatusComponent->GetHP();
     OutViewData.MaxHP = StatusComponent->GetMaxHP();
     OutViewData.Shield = StatusComponent->GetShield();
@@ -1380,7 +1411,7 @@ bool ABattlePlayerController_FlipSide::BuildWeaponFaceInfo(
     }
 
     FFaceData WeaponData;
-    if (!DataManager->TryGetWeapon(WeaponID, WeaponData) || !IsValid(WeaponData.WeaponIcon))
+    if (!DataManager->TryGetWeapon(WeaponID, WeaponData))
     {
         return false;
     }
@@ -1389,6 +1420,9 @@ bool ABattlePlayerController_FlipSide::BuildWeaponFaceInfo(
     OutFaceInfo.WeaponIcon = WeaponData.WeaponIcon;
     OutFaceInfo.WeaponName = FText::FromString(WeaponData.WeaponName);
     OutFaceInfo.WeaponDescription = FText::FromString(WeaponData.KOR_DES);
+    TArray<FKeywordDefinitionData> Keywords;
+    DataManager->GetAllEnabledKeywordDefinitions(Keywords);
+    OutFaceInfo.Description = FCoinDescriptionFormatter::Parse(WeaponData.KOR_DES, Keywords, ResolvedStats.FinalNumericStats);
     OutFaceInfo.BaseStats = ResolvedStats.BaseNumericStats;
     OutFaceInfo.FinalStats = ResolvedStats.FinalNumericStats;
     OutFaceInfo.WeaponColor = WeaponColor;
@@ -1403,11 +1437,6 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
     UDataManagerSubsystem* DataManager = GetGameInstance()
         ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>()
         : nullptr;
-    if (!IsValid(DataManager))
-    {
-        return;
-    }
-
     for (const FStatusEffectInstance& StatusEffect : StatusEffects)
     {
         FBattleStatusEffectViewData* ExistingView = OutStatusEffects.FindByPredicate(
@@ -1416,7 +1445,10 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
                 return ViewData.BuffTypeID == StatusEffect.BuffTypeID &&
                     ViewData.SourceType == StatusEffect.SourceType &&
                     ViewData.SourceDataID == StatusEffect.SourceDataID &&
-                    ViewData.Polarity == StatusEffect.Polarity;
+                    ViewData.Polarity == StatusEffect.Polarity &&
+                    ViewData.DurationType == StatusEffect.DurationType &&
+                    ViewData.RemainingTurns == StatusEffect.RemainingTurns &&
+                    ViewData.CCType == StatusEffect.CCType;
             });
         if (ExistingView)
         {
@@ -1425,12 +1457,15 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
         }
 
         UTexture2D* SourceIcon = nullptr;
+        FDebuffDefinitionData DebuffDefinition;
+        const bool bHasDebuffDefinition = StatusEffect.Polarity == EStatusPolarity::Debuff &&
+            IsValid(DataManager) && DataManager->TryGetDebuff(StatusEffect.BuffTypeID, DebuffDefinition);
         switch (StatusEffect.SourceType)
         {
         case EStatusEffectSourceType::Coin:
         {
             FFaceData WeaponData;
-            if (DataManager->TryGetWeapon(StatusEffect.SourceDataID, WeaponData))
+            if (IsValid(DataManager) && DataManager->TryGetWeapon(StatusEffect.SourceDataID, WeaponData))
             {
                 SourceIcon = WeaponData.WeaponIcon;
             }
@@ -1439,7 +1474,7 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
         case EStatusEffectSourceType::Item:
         {
             FItemData ItemData;
-            if (DataManager->TryGetItem(StatusEffect.SourceDataID, ItemData))
+            if (IsValid(DataManager) && DataManager->TryGetItem(StatusEffect.SourceDataID, ItemData))
             {
                 SourceIcon = ItemData.ItemIcon;
             }
@@ -1452,18 +1487,22 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
             break;
         }
 
-        if (!IsValid(SourceIcon))
-        {
-            continue;
-        }
-
         FBattleStatusEffectViewData& NewViewData = OutStatusEffects.AddDefaulted_GetRef();
         NewViewData.BuffTypeID = StatusEffect.BuffTypeID;
         NewViewData.SourceType = StatusEffect.SourceType;
         NewViewData.SourceDataID = StatusEffect.SourceDataID;
         NewViewData.Polarity = StatusEffect.Polarity;
-        NewViewData.Icon = SourceIcon;
+        // 디버프는 종류별 DB 아이콘, 버프는 기존 시전 무기/아이템 아이콘입니다.
+        NewViewData.Icon = StatusEffect.Polarity == EStatusPolarity::Debuff ? DebuffDefinition.Icon.Get() : SourceIcon;
+        if (bHasDebuffDefinition)
+        {
+            NewViewData.DisplayName = DebuffDefinition.DisplayName;
+            NewViewData.Description = DebuffDefinition.Description;
+        }
         NewViewData.StackCount = 1;
+        NewViewData.RemainingTurns = StatusEffect.RemainingTurns;
+        NewViewData.DurationType = StatusEffect.DurationType;
+        NewViewData.CCType = StatusEffect.CCType;
     }
 }
 
@@ -1585,6 +1624,8 @@ void ABattlePlayerController_FlipSide::CreateSampleCoin(
 	}
 
 	// 교체될 필드 코인을 관찰하던 델리게이트와 사거리 미리보기를 먼저 정리합니다.
+	ClearReadySlotHighlight();
+	ResetBattleInfoSelection();
 	HideBattleCoinRangePreviews();
 	HoveredBattleCoin.Reset();
 	StopObservingBattleInfoCoin();

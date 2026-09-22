@@ -126,7 +126,7 @@ void UBossPatternBase::ExecutePattern(
 	const TArray<ACoinActor*>& InLockedTargets,
 	const TArray<ABase_OtherActor*>& InLockedOthers)
 {
-	if (!Boss) return;
+	if (!IsValid(Boss) || Boss->IsStunned()) return;
 
 	const int32 PatternNum = Context.CurrentPatternIndex;
 	const bool bNoDamage = PatternData.IsValidIndex(PatternNum) && PatternData[PatternNum].bNoDamage;
@@ -136,7 +136,7 @@ void UBossPatternBase::ExecutePattern(
 		PatternNum, bNoDamage, InLockedTargets.Num(),
 		Gimmick ? *Gimmick->GetClass()->GetName() : TEXT("None"));
 
-	if (!bNoDamage && !Context.bSkipAttack)
+    if (!bNoDamage && !Context.bSkipAttack && !Boss->IsBlinded())
 	{
 		int32 FinalDamage = FMath::RoundToInt((Context.BaseDamage + Context.BonusDamage) * Context.DamageMultiplier);
 
@@ -158,6 +158,8 @@ void UBossPatternBase::ExecutePattern(
 
 void UBossPatternBase::ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, const TArray<ABase_OtherActor*>& LockedOthers, ABossActor* Boss, int32 Damage)
 {
+    // BP에서 피해 함수를 직접 호출하는 경로도 동일한 CC 규칙을 적용합니다.
+    if (!IsValid(Boss) || Boss->IsBlinded() || Boss->IsStunned()) return;
     for (ACoinActor* Coin : LockedTargets)
     {
         if (!IsValid(Coin)) continue;

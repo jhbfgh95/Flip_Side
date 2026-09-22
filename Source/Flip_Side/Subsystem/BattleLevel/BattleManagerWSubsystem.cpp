@@ -444,6 +444,14 @@ void UBattleManagerWSubsystem::DoSettingPhase()
 
     TurnCount++;
 
+    // 코인은 저장 직전, 보스는 여기서 동일한 완료 턴 번호로 디버프 수명을 진행합니다.
+    if (IsValid(BossManager))
+    {
+        ABossActor* Boss = BossManager->GetCurrentBoss();
+        if (IsValid(Boss) && IsValid(Boss->DebuffComponent))
+            Boss->DebuffComponent->AdvanceTurnEnd(TurnCount - 1);
+    }
+
     // 첫 SettingPhase는 아직 완료된 턴이 없으므로 설치물 수명을 차감하지 않습니다.
     if (TurnCount > 1 && IsValid(GetWorld()))
     {

@@ -80,6 +80,8 @@ bool UDataManagerSubsystem::ReloadCache()
     bOk &= LoadGameConfig();
     bOk &= LoadCoinSlotLevelTiers();
     bOk &= LoadKeywordDefinitions();
+    bOk &= LoadDebuffs();
+    bOk &= LoadUIIcons();
 
     bCacheReady = bOk;
 
@@ -191,6 +193,8 @@ void UDataManagerSubsystem::ClearCache()
     GameConfig = FGameConfigData();
     CoinSlotLevelTierByLevel.Reset();
     KeywordDefinitionByCode.Reset();
+    DebuffByID.Reset();
+    UIIconByCode.Reset();
 }
 
 bool UDataManagerSubsystem::OpenDbReadWrite()
@@ -999,6 +1003,104 @@ bool UDataManagerSubsystem::GetCoinSlotLevelStats(const FCoinTypeStructure& Coin
     OutCost = 0;
     OutHP   = 0;
     return false;
+}
+
+bool UDataManagerSubsystem::TryGetUIIcon(FName IconCode, UTexture2D*& OutIcon) const
+{
+    OutIcon = nullptr;
+    if (const TObjectPtr<UTexture2D>* Found = UIIconByCode.Find(IconCode)) OutIcon = Found->Get();
+    return IsValid(OutIcon);
+}
+
+bool UDataManagerSubsystem::LoadUIIcons()
+{
+    FSQLitePreparedStatement Stmt;
+    if (!PrepareStmt(Db, TEXT("SELECT icon_code, icon_path FROM ui_icon_definition;"), Stmt))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[DB] LoadUIIcons: PrepareStatement failed"));
+        return false;
+    }
+    bool bOk = true;
+    ESQLitePreparedStatementStepResult Step;
+    while ((Step = Stmt.Step()) == ESQLitePreparedStatementStepResult::Row)
+    {
+        const FName Code(*GetColText(Stmt, 0));
+        const FString Path = GetColText(Stmt, 1);
+        UTexture2D* Icon = Path.IsEmpty() ? nullptr : LoadObject<UTexture2D>(nullptr, *Path);
+        if (Code.IsNone() || !IsValid(Icon) || UIIconByCode.Contains(Code))
+        {
+            UE_LOG(LogTemp, Error, TEXT("[DB] Invalid UI icon %s: %s"), *Code.ToString(), *Path);
+            bOk = false;
+            continue;
+        }
+        UIIconByCode.Add(Code, Icon);
+    }
+    Stmt.Destroy();
+    if (Step != ESQLitePreparedStatementStepResult::Done) bOk = false;
+    if (!bOk) UIIconByCode.Reset();
+    return bOk;
+}
+
+bool UDataManagerSubsystem::LoadDebuffs()
+{
+    const TCHAR* Sql = TEXT("SELECT debuff_id, debuff_name, icon_path, debuff_description FROM debuff_definition ORDER BY debuff_id;");
+    FSQLitePreparedStatement Stmt;
+    if (!PrepareStmt(Db, Sql, Stmt))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[DB] LoadDebuffs: PrepareStatement failed"));
+        return false;
+    }
+    TMap<int32, FDebuffDefinitionData> Loaded;
+    ESQLitePreparedStatementStepResult Step;
+    while ((Step = Stmt.Step()) == ESQLitePreparedStatementStepResult::Row)
+    {
+        FDebuffDefinitionData Data;
+        Data.BuffTypeID = GetColInt(Stmt, 0);
+        Data.DisplayName = FText::FromString(GetColTextUTF8(Stmt, 1));
+        Data.Description = FText::FromString(GetColTextUTF8(Stmt, 3));
+        if (Data.BuffTypeID == INDEX_NONE || Data.DisplayName.IsEmpty() || Loaded.Contains(Data.BuffTypeID))
+        {
+            UE_LOG(LogTemp, Error, TEXT("[DB] LoadDebuffs: invalid or duplicate ID %d"), Data.BuffTypeID);
+            Stmt.Destroy();
+            return false;
+        }
+        const FString IconPath = GetColText(Stmt, 2);
+        if (!IconPath.IsEmpty())
+        {
+            Data.Icon = LoadObject<UTexture2D>(nullptr, *IconPath);
+            if (!IsValid(Data.Icon))
+                UE_LOG(LogTemp, Warning, TEXT("[DB] Debuff %d icon could not be loaded: %s"), Data.BuffTypeID, *IconPath);
+        }
+        Loaded.Add(Data.BuffTypeID, MoveTemp(Data));
+    }
+    Stmt.Destroy();
+    if (Step != ESQLitePreparedStatementStepResult::Done)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[DB] LoadDebuffs: reading rows failed"));
+        return false;
+    }
+    DebuffByID = MoveTemp(Loaded);
+    return true;
+}
+
+bool UDataManagerSubsystem::TryGetDebuff(int32 BuffTypeID, FDebuffDefinitionData& Out) const
+{
+    Out = FDebuffDefinitionData();
+    if (const FDebuffDefinitionData* Found = DebuffByID.Find(BuffTypeID))
+    {
+        Out = *Found;
+        return true;
+    }
+    return false;
+}
+
+bool UDataManagerSubsystem::TryGetAllDebuffs(TArray<FDebuffDefinitionData>& Out) const
+{
+    Out.Reset();
+    if (!bCacheReady) return false;
+    DebuffByID.GenerateValueArray(Out);
+    Out.Sort([](const FDebuffDefinitionData& A, const FDebuffDefinitionData& B) { return A.BuffTypeID < B.BuffTypeID; });
+    return true;
 }
 
 bool UDataManagerSubsystem::LoadKeywordDefinitions()

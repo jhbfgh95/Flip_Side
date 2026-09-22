@@ -8,7 +8,7 @@
 #include "FlipSideDevloperSettings.generated.h"
 
 class ACoinActor;
-class UW_BattleCoinInfo;
+class UBattleCoinInfoWidget;
 class UUserWidget;
 class UW_StageEnd;
 class UW_MoneyDisplay;
@@ -31,7 +31,7 @@ public:
 	TSoftClassPtr<ACoinActor> CoinActor;
 
 	UPROPERTY(EditAnywhere, config, Category = "Coin | UI")
-	TSoftClassPtr<UW_BattleCoinInfo> BattleCoinInfoWidget;
+	TSoftClassPtr<UBattleCoinInfoWidget> BattleCoinInfoWidget;
 
 	UPROPERTY(Config, EditAnywhere, Category = "UseableItem | Preview")
 	TSoftClassPtr<AUseableItemActor> UseableItemActor;

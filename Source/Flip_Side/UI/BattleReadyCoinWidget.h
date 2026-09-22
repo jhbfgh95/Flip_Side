@@ -21,6 +21,14 @@ class FLIP_SIDE_API UBattleReadyCoinWidget : public UUserWidget
 
 public:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
+	void ShowBattleCoinInfo(const FBattleCoinInfoViewData& InData);
+	void ClearBattleCoinInfo();
+	void ToggleDescriptionDetails();
+	bool IsInfoPageVisible() const { return bInfoPageVisible; }
+	// HUD → Controller: 수동 페이지 전환은 선택 대상/슬롯 윤곽선을 해제합니다.
+	FSimpleMulticastDelegate OnInfoSelectionReset;
+	FSimpleMulticastDelegate OnSlotHighlightClearRequested;
 
 	void SetReadyCoins(const TArray<FBattleReadyCoinViewData>& InReadyCoins);
 
@@ -29,6 +37,20 @@ public:
 	FOnBattleReadyCoinWidgetUnhovered OnReadyCoinUnhovered;
 
 protected:
+	// BP Switcher의 0번은 슬롯 영역, 1번은 BattleCoinInfoWidget을 포함한 정보 영역입니다.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UWidgetSwitcher> ReadyInfoSwitcher;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBattleCoinInfoWidget> BattleCoinInfoWidget;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> ToggleInfoButton;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> ReadyAreaTitleText;
+	// 전체 수량/구분자 등은 이 컨테이너 아래에 묶으면 정보 모드에서 함께 숨깁니다.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UWidget> CoinCountContainer;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> TotalCoinCountText;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> ReadyCoinCountText;
 
@@ -72,6 +94,10 @@ protected:
 	TObjectPtr<class UReadyCoinSlot> ReadyCoinSlot10;
 
 private:
+	UFUNCTION()
+	void HandleToggleInfoClicked();
+	void SetInfoPageVisible(bool bVisible);
+	bool bInfoPageVisible = false;
 	void UpdateReadyCoinCountText(int32 FilledSlotCount);
 	void CacheReadyCoinSlots();
 	void HandleReadyCoinSlotClicked(int32 CoinInstanceID);

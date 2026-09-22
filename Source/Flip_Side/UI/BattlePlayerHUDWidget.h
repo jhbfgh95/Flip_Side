@@ -55,9 +55,10 @@ public:
 	void SetCardSlots(const TArray<FBattleCardSlotViewData>& InCardSlots);
 	void SetPhaseDisplay(EPhaseState CurrentPhase, int32 TurnCount);
 	void PlayBossPhaseCompletionAnimation();
-	void ShowBattleCoinInfo(const FBattleCoinInfoViewData& InData, bool bUseReadyCoinAnchor);
+	void ShowBattleCoinInfo(const FBattleCoinInfoViewData& InData);
 	void HideBattleCoinInfo();
-	void SetAdditionalBattleCoinBuffsVisible(bool bVisible);
+	FSimpleMulticastDelegate OnBattleInfoSelectionReset;
+	FSimpleMulticastDelegate OnReadySlotHighlightClearRequested;
 
 	FOnBattleHUDCoinSlotClicked OnCoinSlotClicked;
 	FOnBattleHUDCoinSlotHovered OnCoinSlotHovered;
@@ -71,6 +72,10 @@ public:
 	FOnBattleHUDPhaseProgressClicked OnPhaseProgressClicked;
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Boss Pattern")
+	TSubclassOf<class UBossPatternPopupWidget> BossPatternPopupWidgetClass;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UWidget> BossPatternPopupAnchor;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UW_BossHP> BossHPWidget;
 
@@ -94,12 +99,6 @@ protected:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UWidget> CoinSlotPopupAnchor;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<class UWidget> ReadyCoinPopupAnchor;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<class UWidget> BattleCoinPopupAnchor;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UWidget> ItemPopupAnchor;
@@ -131,9 +130,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Coin")
 	TSubclassOf<class UW_CoinSlotInfo> CoinSlotInfoWidgetClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Coin")
-	TSubclassOf<class UW_BattleCoinInfo> BattleCoinInfoWidgetClass;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Item")
 	TSubclassOf<class UW_ItemInfo> ItemInfoWidgetClass;
 
@@ -141,6 +137,14 @@ protected:
 	TSubclassOf<class UW_CardWidget> CardInfoWidgetClass;
 
 private:
+	void HandleBossPatternHovered();
+	void HandleBossPatternUnhovered();
+	FBossHUDData CachedBossPatternHUDData;
+	bool bBossPatternHovered = false;
+	UPROPERTY(Transient)
+	TObjectPtr<class UBossPatternPopupWidget> BossPatternPopupWidget;
+	void HandleBattleInfoSelectionReset();
+	void HandleReadySlotHighlightClearRequested();
 	TArray<TWeakObjectPtr<UWidget>> CoinInfoDismissRegions;
 	TSharedPtr<class FCoinSlotPopupInputProcessor> CoinPopupInputProcessor;
 	int32 DisplayedCoinSlotNumber = INDEX_NONE;
@@ -178,9 +182,6 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<class UW_CoinSlotInfo> CoinSlotInfoWidget;
-
-	UPROPERTY()
-	TObjectPtr<class UW_BattleCoinInfo> BattleCoinInfoWidget;
 
 	UPROPERTY()
 	TObjectPtr<class UW_CardWidget> CardInfoWidget;

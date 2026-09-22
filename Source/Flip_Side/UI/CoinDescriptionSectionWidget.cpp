@@ -1,4 +1,6 @@
 #include "UI/CoinDescriptionSectionWidget.h"
+#include "Subsystem/DataManagerSubsystem.h"
+#include "Engine/GameInstance.h"
 #include "UI/CoinDescriptionFormatter.h"
 #include "UI/CoinDescriptionExpression.h"
 #include "UI/CoinDescriptionRichTextDecorator.h"
@@ -71,6 +73,16 @@ void UCoinDescriptionSectionWidget::RefreshText()
 	}
 }
 
+FLinearColor UCoinDescriptionSectionWidget::GetTokenColor(FName Key) const
+{
+	FString Type, Code;
+	if (!Key.ToString().Split(TEXT(":"), &Type, &Code)) return FLinearColor::White;
+	if (Type == TEXT("BUFF")) Code += TEXT("Buff");
+	UDataManagerSubsystem* DB = IsValid(GetGameInstance()) ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>() : nullptr;
+	FKeywordDefinitionData Definition;
+	return IsValid(DB) && DB->TryGetKeywordByCode(FName(*Code), Definition) ? Definition.UIColor : FLinearColor::White;
+}
+
 TSharedPtr<SWidget> UCoinDescriptionSectionWidget::CreateInlineDisplay(FName Key, const FTextBlockStyle& Style)
 {
 	FCoinDescriptionTokenData Data;
@@ -80,7 +92,8 @@ TSharedPtr<SWidget> UCoinDescriptionSectionWidget::CreateInlineDisplay(FName Key
 		!DisplayStyle || DisplayStyle->bShowValue);
 	FSlateFontInfo Font = Style.Font;
 	if (bDetailed) Font.TypefaceFontName = DetailedTypeface;
-	const FSlateColor Color(bDetailed && DisplayStyle ? DisplayStyle->DetailedTextColor : FLinearColor::White);
+	// 상세 수치/이름과 아이콘은 같은 DB 색상이며, 일반 수치의 흰색 표기는 유지합니다.
+	const FSlateColor Color(bDetailed ? GetTokenColor(Key) : FLinearColor::White);
 	TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox).Visibility(EVisibility::HitTestInvisible);
 	auto AddText = [&Row, &Font, &Color](const FString& Text, float LeftSpacing = 0.0f)
 	{
@@ -106,18 +119,20 @@ TSharedPtr<SWidget> UCoinDescriptionSectionWidget::CreateInlineDisplay(FName Key
 
 TSharedRef<SWidget> UCoinDescriptionSectionWidget::CreateInlineIcon(FName Key, const FTextBlockStyle& Style)
 {
-	const FCoinDescriptionInlineStyle* DisplayStyle = InlineStyles.Find(Key);
-	UTexture2D* Texture = DisplayStyle ? DisplayStyle->IconTexture.Get() : nullptr;
+	UTexture2D* Texture = nullptr;
+	UDataManagerSubsystem* DB = GetGameInstance() ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>() : nullptr;
+	// 아이콘 원본과 색상은 DB에서 가져오고 BP는 크기/표시 옵션만 지정합니다.
+	if (IsValid(DB)) DB->TryGetUIIcon(Key, Texture);
 	if (IsValid(Texture))
 	{
-		// Brush는 Slate 이미지가 소유하고 Texture는 WBP의 InlineStyles가 GC로부터 보호합니다.
+		// Brush는 Slate 이미지가, Texture는 DataManager 캐시가 보유합니다.
 		TSharedRef<FSlateBrush> Brush = MakeShared<FSlateBrush>();
 		Brush->SetResourceObject(Texture);
 		Brush->DrawAs = ESlateBrushDrawType::Image;
 		const FVector2D IconSize(FMath::Max(1.0, InlineIconSize.X), FMath::Max(1.0, InlineIconSize.Y));
 		Brush->ImageSize = IconSize;
 		return SNew(SBox).WidthOverride(IconSize.X).HeightOverride(IconSize.Y)
-			[SNew(SImage).Image_Lambda([Brush]() -> const FSlateBrush* { return &Brush.Get(); })];
+			[SNew(SImage).Image_Lambda([Brush]() -> const FSlateBrush* { return &Brush.Get(); }).ColorAndOpacity(GetTokenColor(Key))];
 	}
 	return SNew(STextBlock).Text(FText::FromString(TEXT("?"))).Font(Style.Font).ColorAndOpacity(FLinearColor::White);
 }

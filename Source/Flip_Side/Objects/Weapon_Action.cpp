@@ -120,6 +120,13 @@ void UWeapon_Action::MarkAbilityActorSelected(AActor* Actor)
 FWeaponAttackResult UWeapon_Action::ExecuteAttack()
 {
 	FWeaponAttackResult Result;
+	// 실명은 공격 키워드와 하위 효과를 호출하지 않습니다. 기동 능력은 별도 경로로 실행합니다.
+	if (!IsValid(CasterCoin) || !IsValid(CasterCoin->StatComponent) || CasterCoin->StatComponent->IsDead() ||
+		CasterCoin->StatComponent->IsStunned() || CasterCoin->StatComponent->IsBlinded())
+	{
+		ExecutionState.LastAttack = Result;
+		return Result;
+	}
 	UWorld* World = GetWorld();
 	UGameInstance* GameInstance = IsValid(World) ? World->GetGameInstance() : nullptr;
 	UActionLogicRegistryGISubsystem* Registry = IsValid(GameInstance)
@@ -141,6 +148,9 @@ FWeaponAttackResult UWeapon_Action::ExecuteAttack()
 
 bool UWeapon_Action::ExecuteAbility(const FRegisteredAbilityLogic& AbilityLogic)
 {
+	if (!IsValid(CasterCoin) || !IsValid(CasterCoin->StatComponent) || CasterCoin->StatComponent->IsDead() ||
+		CasterCoin->StatComponent->IsStunned() ||
+		(CasterCoin->StatComponent->IsBlinded() && AbilityLogic.Timing == EAbilityTiming::OnHit)) return false;
 	const bool bSucceeded = AbilityLogic.Logic ? AbilityLogic.Logic(this) : false;
 	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] AbilityResult Weapon=%d Caster=%s Name=%s Success=%d Coins=%d Others=%d Strike=%d"),
 		LogicID, *GetNameSafe(CasterCoin.Get()), *AbilityLogic.DebugName.ToString(), bSucceeded,

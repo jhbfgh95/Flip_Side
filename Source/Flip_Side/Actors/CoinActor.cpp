@@ -1,4 +1,5 @@
 #include "CoinActor.h"
+#include "Actors/DebuffComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/WidgetComponent.h"
@@ -43,6 +44,15 @@ ACoinActor::ACoinActor()
 	FracturedCoin->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	StatComponent = CreateDefaultSubobject<UComponent_Status>(TEXT("StatComponent"));
+	DebuffComponent = CreateDefaultSubobject<UDebuffComponent>(TEXT("DebuffComponent"));
+	CCEffectLocation = CreateDefaultSubobject<USceneComponent>(TEXT("CCEffectLocation"));
+	CCEffectLocation->SetupAttachment(RootComponent);
+	CCDisplayMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CCDisplayMesh"));
+	CCDisplayMesh->SetupAttachment(CCEffectLocation);
+	CCDisplayMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CCDisplayMesh->SetGenerateOverlapEvents(false);
+	CCDisplayMesh->SetCastShadow(false);
+	CCDisplayMesh->SetVisibility(false);
 
 	CoinHPUI = CreateDefaultSubobject<UWidgetComponent>(TEXT("Coin HP UI"));
 	CoinHPUI->SetupAttachment(RootComponent);
@@ -62,6 +72,11 @@ void ACoinActor::OnConstruction(const FTransform &Transform)
 void ACoinActor::BeginPlay()
 {
 	Super::BeginPlay();
+	if (IsValid(DebuffComponent))
+	{
+		DebuffComponent->OnCCChanged.AddUniqueDynamic(this, &ACoinActor::HandleCCVisualChanged);
+		HandleCCVisualChanged(DebuffComponent->GetCCType());
+	}
 
 	if (CoinHPUI)
 	{
@@ -90,6 +105,7 @@ void ACoinActor::BeginPlay()
 
 void ACoinActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	SetReadySlotHighlighted(false);
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(JumpTimerHandle);
@@ -108,6 +124,14 @@ void ACoinActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ACoinActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void ACoinActor::SetReadySlotHighlighted(bool bHighlighted)
+{
+	if (bReadySlotHighlighted == bHighlighted) return;
+	bReadySlotHighlighted = bHighlighted;
+	// 슬롯 호버와 액터 사망/정리 모두 같은 BP 윤곽선 해제 경로를 사용합니다.
+	OnReadySlotHighlightChanged(bHighlighted);
 }
 
 int32 ACoinActor::GetSameTypeIndex() const
@@ -479,6 +503,8 @@ void ACoinActor::CoinDead()
 	}
 
 	bDeathStarted = true;
+	SetReadySlotHighlighted(false);
+	if (IsValid(DebuffComponent)) DebuffComponent->DisableForDeath();
 	SetAttackRangeBracketVisible(false);
 	if (UWorld* World = GetWorld())
 	{
@@ -554,7 +580,7 @@ void ACoinActor::SetCover(FLinearColor CoverColor, bool bIsShow)
 
 void ACoinActor::RefreshCover()
 {
-	if(StatComponent && StatComponent->GetOnIsOnCC())
+	if(IsValid(StatComponent) && StatComponent->IsStunned())
 	{
 		if(CoverColors.IsValidIndex(1))
 		{
@@ -584,6 +610,19 @@ void ACoinActor::RefreshCover()
 
 void ACoinActor::OnCCApplied()
 {
+	RefreshCover();
+}
+
+void ACoinActor::HandleCCVisualChanged(ECCTypes CCType)
+{
+	if (IsValid(CCDisplayMesh))
+	{
+		UStaticMesh* Mesh = CCType == ECCTypes::Blind ? BlindDisplayMesh.Get() :
+			CCType == ECCTypes::Stun ? StunDisplayMesh.Get() : nullptr;
+		CCDisplayMesh->SetStaticMesh(Mesh);
+		CCDisplayMesh->SetVisibility(IsValid(Mesh));
+	}
+	OnCCVisualChanged(CCType);
 	RefreshCover();
 }
 

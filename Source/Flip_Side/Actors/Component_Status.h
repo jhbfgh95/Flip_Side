@@ -70,7 +70,10 @@ public:
 	bool IsDead() const { return bIsDead; }
 	int32 GetWeaponStatRevision() const { return WeaponStatRevision; }
 	EFaceState GetCurrentFace() const { return CurrentFace; }
-	const TArray<FStatusEffectInstance>& GetStatusEffects() const { return ActiveStatusEffects; }
+	TArray<FStatusEffectInstance> GetStatusEffects() const;
+	class UDebuffComponent* GetDebuffComponent() const;
+	bool IsStunned() const;
+	bool IsBlinded() const;
 
 	// CoinManager가 CoinActor를 만들 때 양면 무기 정의와 이전 턴 생존 상태를 한 번에 설정합니다.
 	bool InitializeCoinStats(const FCoinStatInitializeData& InitializeData);
@@ -89,7 +92,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Status|Weapon")
 	FWeaponActionSnapshot BuildActionSnapshot(EFaceState Face) const;
 
-	// 동일 BuffTypeID도 별도 인스턴스로 보존하며 NonStackable 디버프만 중복을 거부합니다.
+	// 버프는 별도 인스턴스로 쌓고, 디버프는 공통 DebuffComponent의 갱신 정책으로 전달합니다.
 	UFUNCTION(BlueprintCallable, Category = "Status|Effect")
 	bool AddStatusEffect(FStatusEffectInstance StatusEffect);
 
@@ -146,7 +149,7 @@ public:
 	void CheckAttackerPostBuff(AActor* Target, int32 DealtDmg);
 
 	void ApplyCC(FCCStructure CC);
-	bool GetOnIsOnCC() const { return bIsOnCC; }
+	bool GetOnIsOnCC() const;
 	void DecreaseCCDuration(int32 WantToDecreaseCCDuration);
 
 	FOnHPChanged OnHpChanged;
@@ -172,6 +175,10 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	void BindDebuffEvents();
+	void HandleDebuffChanged(const FStatusEffectInstance& Effect, bool bGameplayChanged);
+	UFUNCTION()
+	void HandleDebuffCCChanged(ECCTypes Type);
 	const FWeaponFaceStats* FindFaceStats(EFaceState Face) const;
 	void MarkWeaponStatsDirty(EWeaponStatChangeFlags ChangeFlags);
 	void BroadcastStatusEffectChanged(const FStatusEffectInstance& StatusEffect) const;
@@ -228,7 +235,4 @@ private:
 	TArray<int32> AP = {0, 0};
 
 	int32 CurrentFaceIndex = 0;
-	FCCStructure AppliedCC;
-	int32 CCDuration = 0;
-	bool bIsOnCC = false;
 };

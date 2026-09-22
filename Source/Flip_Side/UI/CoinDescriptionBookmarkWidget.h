@@ -23,6 +23,11 @@ protected:
 	TObjectPtr<class UButton> BookmarkButton;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UImage> MainKeywordImage;
+	// 분류 배경은 키워드 고유 색상과 별도로 DB의 Main/Additional을 사용합니다.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBorder> MainKeyWordBorder;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBorder> AdditonalKeywordBorder;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> MainKeywordText;
 	// WBP에 고정 배치한 부가 키워드 네 쌍입니다. 사용하지 않는 쌍은 함께 숨깁니다.
@@ -60,11 +65,6 @@ protected:
 	TObjectPtr<class USpacer> AdditionalKeywordSpacer2;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class USpacer> AdditionalKeywordSpacer3;
-	// 키는 KW:Attack 등 설명과 동일합니다. 각 Image Brush의 기존 머테리얼을 사용합니다.
-	UPROPERTY(EditDefaultsOnly, Category = "Coin Description|Style", meta = (GetKeyOptions = "GetKeywordIconKeys"))
-	TMap<FName, TObjectPtr<class UTexture2D>> KeywordIcons;
-	UFUNCTION()
-	TArray<FString> GetKeywordIconKeys() const;
 	UPROPERTY(BlueprintReadOnly, Category = "Coin Description")
 	bool bIsActive = false;
 	UFUNCTION(BlueprintImplementableEvent, Category = "Coin Description")

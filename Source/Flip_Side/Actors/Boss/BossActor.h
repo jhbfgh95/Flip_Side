@@ -6,6 +6,7 @@
 #include "CoinDataTypes.h"
 #include "BossPatternBase.h"
 #include "BossGimmickBase.h"
+#include "Actors/DebuffComponent.h"
 #include "BossActor.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBossAttackEndedDelegate);
@@ -90,6 +91,23 @@ public:
 	virtual void RemoveCC();
 
 	virtual bool ConsumeCCForBossPhase();
+	// ApplyCC API와 직접 DebuffComponent 적용 모두 이 기믹 훅을 거칩니다.
+	virtual bool TryConsumeIncomingCC(const FStatusEffectInstance& Effect);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Boss|Debuff")
+	TObjectPtr<UDebuffComponent> DebuffComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Boss|Debuff")
+	TObjectPtr<class USceneComponent> CCEffectLocation;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Boss|Debuff")
+	TObjectPtr<class UStaticMeshComponent> CCDisplayMesh;
+	UPROPERTY(EditDefaultsOnly, Category="Boss|Debuff")
+	TObjectPtr<class UStaticMesh> BlindDisplayMesh;
+	UPROPERTY(EditDefaultsOnly, Category="Boss|Debuff")
+	TObjectPtr<class UAnimMontage> StunMontage;
+	UFUNCTION(BlueprintImplementableEvent, Category="Boss|Debuff")
+	void OnCCVisualChanged(ECCTypes CCType);
+	UFUNCTION()
+	void HandleCCVisualChanged(ECCTypes CCType);
+	void HandleDebuffChanged(const FStatusEffectInstance& Effect, bool bGameplayChanged);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
@@ -159,7 +177,7 @@ public:
 
 /* Status Functions*/
 	UFUNCTION(BlueprintCallable, Category = "Boss")
-	int32 GetAttackPoint() const { return AttackPoint; }
+	int32 GetAttackPoint() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	float GetStageMultiplierStat() const { return StageMultiplierStat; }
@@ -204,13 +222,15 @@ public:
 
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|CC")
-	bool GetOnIsOnCC() const { return bIsOnCC; }
+	bool GetOnIsOnCC() const { return GetAppliedCCType() != ECCTypes::None; }
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|CC")
-	ECCTypes GetAppliedCCType() const { return AppliedCC.CCType; }
+	ECCTypes GetAppliedCCType() const { return IsValid(DebuffComponent) ? DebuffComponent->GetCCType() : ECCTypes::None; }
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|CC")
-	bool IsStunned() const { return bIsOnCC && AppliedCC.CCType == ECCTypes::Stun; }
+	bool IsStunned() const { return GetAppliedCCType() == ECCTypes::Stun; }
+	UFUNCTION(BlueprintPure, Category="Boss|CC")
+	bool IsBlinded() const { return GetAppliedCCType() == ECCTypes::Blind; }
 
 /* Getters */
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")

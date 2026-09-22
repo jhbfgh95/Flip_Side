@@ -225,10 +225,9 @@ bool UAbilityLogicLibrary::RapidFreezerOnHit(UWeapon_Action* WeaponContext)
 	const int32 ChancePercent = FMath::Clamp(WeaponContext->GetFinalBehaviorPoint() * 10, 0, 100);
 	if (FMath::RandRange(1, 100) <= ChancePercent)
 	{
-		FCCStructure Stun;
-		Stun.CCType = ECCTypes::Stun;
-		Stun.CCDuration = 1;
-		Boss->ApplyCC(Stun);
+		// 직접 컴포넌트로 전달해도 보스의 그로기 전환 훅을 거치며 시전 무기 ID를 보존합니다.
+		if (IsValid(Boss->DebuffComponent))
+			Boss->DebuffComponent->ApplyCC(ECCTypes::Stun, 1, EStatusEffectSourceType::Coin, WeaponContext->GetSnapshot().WeaponID);
 	}
 	return true;
 }

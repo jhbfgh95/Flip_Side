@@ -96,6 +96,8 @@ private:
     void HandleReadyCoinClicked(int32 CoinInstanceID);
     void HandleReadyCoinHovered(int32 CoinInstanceID);
     void HandleReadyCoinUnhovered(int32 CoinInstanceID);
+    void ClearReadySlotHighlight();
+    void ResetBattleInfoSelection();
 	void HandleBattleItemSlotClicked(int32 ItemID);
 	void HandleBattlePhaseProgressClicked();
     void HandleShowAdditionalBuffsStarted(const FInputActionValue& InputActionValue);
@@ -197,7 +199,11 @@ protected:
     TWeakObjectPtr<ACoinActor> ObservedBattleInfoCoin;
     TWeakObjectPtr<UComponent_Status> ObservedBattleInfoStatus;
     int32 HoveredReadyCoinInstanceID = INDEX_NONE;
-    bool bShowAdditionalBuffsHeld = false;
+    TWeakObjectPtr<ACoinActor> HighlightedReadySlotCoin;
+    // 호버 수명과 독립적입니다. SettingPhase의 Actor 정리는 ReadyData 표시로 이어집니다.
+    int32 SelectedInfoCoinInstanceID = INDEX_NONE;
+    int32 SelectedInfoReadySlot = INDEX_NONE;
+    EFaceState SelectedInfoUpperFace = EFaceState::Front;
 
 	bool bIsUIOnly = false;
 

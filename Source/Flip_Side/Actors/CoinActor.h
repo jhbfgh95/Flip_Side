@@ -114,6 +114,25 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Coin | Component")
 	class UComponent_Status* StatComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Coin|Debuff")
+	TObjectPtr<class UDebuffComponent> DebuffComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Coin|Debuff")
+	TObjectPtr<class USceneComponent> CCEffectLocation;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Coin|Debuff")
+	TObjectPtr<class UStaticMeshComponent> CCDisplayMesh;
+	UPROPERTY(EditDefaultsOnly, Category="Coin|Debuff")
+	TObjectPtr<class UStaticMesh> BlindDisplayMesh;
+	UPROPERTY(EditDefaultsOnly, Category="Coin|Debuff")
+	TObjectPtr<class UStaticMesh> StunDisplayMesh;
+
+	// BP가 공용 위치에 실명/기절 메쉬 또는 VFX를 표시하고 None에서 제거합니다.
+	UFUNCTION(BlueprintImplementableEvent, Category="Coin|Debuff")
+	void OnCCVisualChanged(ECCTypes CCType);
+
+	UFUNCTION()
+	void HandleCCVisualChanged(ECCTypes CCType);
+
 	//이거 퍼블릭으로 빼면 오히려 커스텀 스킨을 적용할 수 있다고 생각한다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly,Category = "Coin | Component")
 	class UStaticMeshComponent* CoinMesh;
@@ -210,6 +229,11 @@ public:
 
 	FOnCoinDeathStarted OnCoinDeathStarted;
 
+	// Controller가 레디 슬롯과 이 액터를 연결합니다. 윤곽선 표현은 CoinActor BP에서 구현합니다.
+	UFUNCTION(BlueprintImplementableEvent, Category = "Coin|Highlight")
+	void OnReadySlotHighlightChanged(bool bHighlighted);
+	void SetReadySlotHighlighted(bool bHighlighted);
+
 	virtual void OnHover_Implementation() override;
 
 	virtual void OnUnhover_Implementation() override;
@@ -260,6 +284,7 @@ protected:
 	FSimpleDelegate PendingLandingDelegate;
 	bool bLandingCallbackPending = false;
 	bool bDeathStarted = false;
+	bool bReadySlotHighlighted = false;
 
 	UPROPERTY(EditAnywhere, Category = "Jump", meta = (AllowPrivateAccess = "true"))
     float JumpDuration = 0.5f; // 점프 지속 시간

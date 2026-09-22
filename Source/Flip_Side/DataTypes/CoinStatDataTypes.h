@@ -61,7 +61,8 @@ enum class EWeaponStatChangeFlags : uint8
 	AttackAreaSpec = 1 << 1,
 	AbilityAreaSpec = 1 << 2,
 	CurrentFace = 1 << 3,
-	All = NumericStats | AttackAreaSpec | AbilityAreaSpec | CurrentFace
+	ControlState = 1 << 4,
+	All = NumericStats | AttackAreaSpec | AbilityAreaSpec | CurrentFace | ControlState
 };
 ENUM_CLASS_FLAGS(EWeaponStatChangeFlags);
 
@@ -184,6 +185,13 @@ struct FStatusEffectInstance
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 RemainingTurns = 0;
+
+	// 공통 DebuffComponent가 CC와 다음 턴부터의 수명 차감을 저장·복원합니다.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	ECCTypes CCType = ECCTypes::None;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 LastDurationTurn = INDEX_NONE;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FWeaponStatModifier Modifier;

@@ -242,6 +242,10 @@ struct FBossHUDData
 
     int32 ConditionalPatternDamage = 0;
 
+    // Controller가 기존 패턴 조회 API로 채우는 팝업용 실제 보호막 회복량입니다.
+    bool bShowPatternShieldHeal = false;
+    int32 PatternShieldHeal = 0;
+
     bool bHasPatternInfo = false;
     bool bIsGimmick = false;
     int32 PatternDisplayIndex = INDEX_NONE;

@@ -69,19 +69,19 @@ int32 ABossActor_Groggy::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* Dama
     return Super::ApplyDamageAndReturnHPDamage(Damage, DamageCauser);
 }
 
-void ABossActor_Groggy::ApplyCC(const FCCStructure& CC)
+bool ABossActor_Groggy::TryConsumeIncomingCC(const FStatusEffectInstance& Effect)
 {
-    if (CC.CCType == ECCTypes::None || CC.CCDuration <= 0) return;
+    if (Effect.CCType == ECCTypes::None || Effect.RemainingTurns <= 0) return false;
 
     for (UBossGimmickBase* G : GimmickList)
     {
         if (UBossGimmick_Groggy* GroggyGimmick = Cast<UBossGimmick_Groggy>(G))
         {
-            GroggyGimmick->AddGroggyValue(CC.CCDuration, this);
+            GroggyGimmick->AddGroggyValue(Effect.RemainingTurns, this);
             UE_LOG(LogTemp, Warning, TEXT("[BossActor_Groggy] CC absorbed → GroggyValue added"));
-            return;
+            return true;
         }
     }
 
-    Super::ApplyCC(CC);
+    return Super::TryConsumeIncomingCC(Effect);
 }

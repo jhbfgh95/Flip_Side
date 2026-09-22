@@ -32,13 +32,33 @@ void UBattleBuffIconWidget::NativeConstruct()
 
 void UBattleBuffIconWidget::SetBuffData(const FBattleStatusEffectViewData& InData)
 {
-	if (InData.BuffTypeID == INDEX_NONE || !IsValid(InData.Icon) || !IsValid(BuffIconImage))
+	if (InData.BuffTypeID == INDEX_NONE)
 	{
 		ClearBuffData();
 		return;
 	}
 
-	if (!IsValid(BuffIconMaterial))
+	UTexture2D* Icon = InData.Icon;
+	if (InData.Polarity == EStatusPolarity::Debuff && !IsValid(Icon))
+	{
+		const TObjectPtr<UTexture2D>* Found = DebuffIcons.Find(InData.BuffTypeID);
+		if (Found && IsValid(Found->Get())) Icon = Found->Get();
+	}
+	if (IsValid(RemainingTurnsText))
+	{
+		RemainingTurnsText->SetText(FText::AsNumber(InData.RemainingTurns));
+		RemainingTurnsText->SetVisibility(InData.RemainingTurns > 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	}
+	if (IsValid(StatusNameText))
+	{
+		StatusNameText->SetText(!InData.DisplayName.IsEmpty() ? InData.DisplayName : InData.Polarity == EStatusPolarity::Buff ? NSLOCTEXT("Buff", "Unknown", "버프") :
+			InData.CCType == ECCTypes::Blind ? NSLOCTEXT("Debuff", "Blind", "실명") :
+			InData.CCType == ECCTypes::Stun ? NSLOCTEXT("Debuff", "Stun", "기절") : NSLOCTEXT("Debuff", "Stat", "스탯 약화"));
+		StatusNameText->SetVisibility(!IsValid(Icon) ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	}
+	if (IsValid(BuffIconImage)) BuffIconImage->SetVisibility(IsValid(Icon) ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	OnStatusDataChanged(InData);
+	if (!IsValid(BuffIconMaterial) && IsValid(BuffIconImage))
 	{
 		BuffIconMaterial = BuffIconImage->GetDynamicMaterial();
 	}
@@ -46,25 +66,28 @@ void UBattleBuffIconWidget::SetBuffData(const FBattleStatusEffectViewData& InDat
 	UTexture2D* BorderTexture = nullptr;
 	FLinearColor SourceColor = FLinearColor::White;
 	const bool bHasSourceStyle = ResolveSourceStyle(InData.SourceType, BorderTexture, SourceColor);
-	if (IsValid(BuffIconMaterial))
+	if (IsValid(BuffIconMaterial) && IsValid(Icon))
 	{
-		BuffIconMaterial->SetTextureParameterValue(BuffIconParameterName, InData.Icon);
+		// 재사용 슬롯에 이전 효과의 테두리/색이 남지 않도록 BP 기본 머테리얼로 초기화합니다.
+		BuffIconMaterial->ClearParameterValues();
+		BuffIconMaterial->SetTextureParameterValue(BuffIconParameterName, Icon);
 		if (bHasSourceStyle && IsValid(BorderTexture))
 		{
 			BuffIconMaterial->SetTextureParameterValue(BuffSourceBorderParameterName, BorderTexture);
 		}
 		BuffIconMaterial->SetVectorParameterValue(BuffSourceColorParameterName, SourceColor);
 	}
-	else
+	else if (IsValid(BuffIconImage) && IsValid(Icon))
 	{
 		// 머테리얼이 빠져도 아이콘 자체는 확인할 수 있도록 안전한 폴백을 둡니다.
-		BuffIconImage->SetBrushFromTexture(InData.Icon);
+		BuffIconImage->SetBrushFromTexture(Icon, false);
 	}
 
 	const int32 StackCount = FMath::Max(1, InData.StackCount);
 	if (IsValid(StackCountText))
 	{
 		StackCountText->SetText(FText::AsNumber(StackCount));
+		StackCountText->SetVisibility(StackCount > 1 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 	if (IsValid(StackCountContainer))
 	{

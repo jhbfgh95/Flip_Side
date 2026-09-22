@@ -11,6 +11,17 @@ ABossActor::ABossActor()
 
 	BossRoot = CreateDefaultSubobject<USceneComponent>(TEXT("BossRootComp"));
 	RootComponent = BossRoot;
+	DebuffComponent = CreateDefaultSubobject<UDebuffComponent>(TEXT("DebuffComponent"));
+	DebuffComponent->bAttackOnly = true;
+	DebuffComponent->ConsumeIncomingCC.BindUObject(this, &ABossActor::TryConsumeIncomingCC);
+	CCEffectLocation = CreateDefaultSubobject<USceneComponent>(TEXT("CCEffectLocation"));
+	CCEffectLocation->SetupAttachment(RootComponent);
+	CCDisplayMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CCDisplayMesh"));
+	CCDisplayMesh->SetupAttachment(CCEffectLocation);
+	CCDisplayMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CCDisplayMesh->SetGenerateOverlapEvents(false);
+	CCDisplayMesh->SetCastShadow(false);
+	CCDisplayMesh->SetVisibility(false);
 
 	BossFloorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BossFloorMesh"));
 	BossFloorMesh->SetupAttachment(BossRoot);
@@ -36,8 +47,14 @@ ABossActor::ABossActor()
 void ABossActor::BeginPlay()
 {
 	Super::BeginPlay();
+	if (IsValid(DebuffComponent))
+	{
+		DebuffComponent->OnCCChanged.AddUniqueDynamic(this, &ABossActor::HandleCCVisualChanged);
+		DebuffComponent->OnDebuffChanged.AddUObject(this, &ABossActor::HandleDebuffChanged);
+		HandleCCVisualChanged(DebuffComponent->GetCCType());
+	}
 
-	AnimInstance = BossMesh->GetAnimInstance();
+	AnimInstance = IsValid(BossMesh) ? BossMesh->GetAnimInstance() : nullptr;
 	UpdateShieldEffect();
 	BroadcastBossHUDDataChanged();
 
@@ -105,6 +122,7 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 
 	if(CurrentHP <= 0 && !bIsDying)
 	{
+		if (IsValid(DebuffComponent)) DebuffComponent->DisableForDeath();
 		if(AnimInstance && BossClearAnim)
 		{
 			bIsDying = true;
@@ -172,13 +190,42 @@ void ABossActor::ApplyShieldHeal(int32 Heal, AActor* HealCauser)
 
 void ABossActor::ApplyCC(const FCCStructure& CC)
 {
-	if(CC.CCType == ECCTypes::None || CC.CCDuration <= 0) return;
+	if (!bIsDying && IsValid(DebuffComponent)) DebuffComponent->ApplyCC(CC.CCType, CC.CCDuration);
+}
 
-	AppliedCC = CC;
-	bIsOnCC = true;
+bool ABossActor::TryConsumeIncomingCC(const FStatusEffectInstance& Effect) { return false; }
+
+int32 ABossActor::GetAttackPoint() const
+{
+	return static_cast<int32>(FMath::Clamp<int64>(static_cast<int64>(AttackPoint) +
+		(IsValid(DebuffComponent) ? DebuffComponent->GetAttackModifier() : 0), 0, MAX_int32));
+}
+
+void ABossActor::HandleDebuffChanged(const FStatusEffectInstance& Effect, bool bGameplayChanged)
+{
+	// 레거시 BP 읽기 전용 필드는 저장소가 아니라 공통 컴포넌트 상태의 표시용 미러입니다.
+	AppliedCC = FCCStructure();
+	if (IsValid(DebuffComponent))
+		for (const FStatusEffectInstance& E : DebuffComponent->GetDebuffs())
+			if (E.CCType != ECCTypes::None) { AppliedCC.CCType = E.CCType; AppliedCC.CCDuration = E.RemainingTurns; }
+	bIsOnCC = AppliedCC.CCType != ECCTypes::None;
 	CCDuration = AppliedCC.CCDuration;
+}
 
-	UE_LOG(LogTemp, Warning, TEXT("[BossActor] CC Applied Type=%d Duration=%d"), static_cast<int32>(AppliedCC.CCType), CCDuration);
+void ABossActor::HandleCCVisualChanged(ECCTypes CCType)
+{
+	if (IsValid(CCDisplayMesh))
+	{
+		CCDisplayMesh->SetStaticMesh(BlindDisplayMesh);
+		CCDisplayMesh->SetVisibility(CCType == ECCTypes::Blind && IsValid(BlindDisplayMesh));
+	}
+	UAnimInstance* BossAnim = IsValid(BossMesh) ? BossMesh->GetAnimInstance() : nullptr;
+	if (IsValid(BossAnim) && IsValid(StunMontage))
+	{
+		if (CCType == ECCTypes::Stun) BossAnim->Montage_Play(StunMontage);
+		else if (BossAnim->Montage_IsPlaying(StunMontage)) BossAnim->Montage_Stop(0.1f, StunMontage);
+	}
+	OnCCVisualChanged(CCType); // 보스 BP: Blind 메쉬 / Stun 애니메이션 / None 해제.
 }
 
 void ABossActor::SetMaxHP(int32 NewMaxHP)
@@ -191,41 +238,13 @@ void ABossActor::SetMaxHP(int32 NewMaxHP)
 
 void ABossActor::RemoveCC()
 {
-	AppliedCC = FCCStructure();
-	bIsOnCC = false;
-	CCDuration = 0;
-
-	UE_LOG(LogTemp, Warning, TEXT("[BossActor] CC Removed"));
+	if (IsValid(DebuffComponent)) DebuffComponent->ClearCC();
 }
 
 bool ABossActor::ConsumeCCForBossPhase()
 {
-	if(!bIsOnCC)
-	{
-		return true;
-	}
-
-	if(AppliedCC.CCType == ECCTypes::Stun)
-	{
-		CCDuration--;
-
-		UE_LOG(LogTemp, Warning, TEXT("[BossActor] Stunned. Skip boss attack. Remain=%d"), CCDuration);
-
-		if(CCDuration <= 0)
-		{
-			RemoveCC();
-		}
-
-		return false;
-	}
-
-	CCDuration--;
-	if(CCDuration <= 0)
-	{
-		RemoveCC();
-	}
-
-	return true;
+	// 수명은 SettingPhase에서만 차감합니다. BossManager의 기존 완료 통지는 유지합니다.
+	return !IsStunned();
 }
 
 int32 ABossActor::GetPatternCount() const

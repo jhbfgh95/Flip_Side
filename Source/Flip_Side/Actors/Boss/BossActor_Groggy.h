@@ -20,6 +20,6 @@ protected:
     virtual void PlayHitAnimation() override;
 
 public:
-    virtual void ApplyCC(const FCCStructure& CC) override;
+    virtual bool TryConsumeIncomingCC(const FStatusEffectInstance& Effect) override;
     virtual int32 ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCauser) override;
 };

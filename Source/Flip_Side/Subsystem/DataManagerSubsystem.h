@@ -12,6 +12,7 @@
 #include "CardTypes.h"
 #include "GameConfigTypes.h"
 #include "KeywordDataTypes.h"
+#include "DebuffDataTypes.h"
 
 #include "SQLiteDatabase.h"
 #include "SQLitePreparedStatement.h"
@@ -70,6 +71,20 @@ public:
     // 무기 설명 토큰([KW:Code])이 참조하는 키워드 정의. KeywordCode 기준 캐시.
     UPROPERTY(BlueprintReadOnly)
     TMap<FName, FKeywordDefinitionData> KeywordDefinitionByCode;
+
+    // 공통 디버프 표시 데이터 캐시. 런타임 규칙은 포함하지 않습니다.
+    UPROPERTY(BlueprintReadOnly)
+    TMap<int32, FDebuffDefinitionData> DebuffByID;
+    UFUNCTION(BlueprintCallable)
+    bool TryGetDebuff(int32 BuffTypeID, FDebuffDefinitionData& Out) const;
+    UFUNCTION(BlueprintCallable)
+    bool TryGetAllDebuffs(TArray<FDebuffDefinitionData>& Out) const;
+
+    // 공식 키워드가 아닌 스탯/보조효과도 공용 아이콘 코드로 조회합니다.
+    UPROPERTY(BlueprintReadOnly)
+    TMap<FName, TObjectPtr<class UTexture2D>> UIIconByCode;
+    UFUNCTION(BlueprintCallable)
+    bool TryGetUIIcon(FName IconCode, UTexture2D*& OutIcon) const;
 
     // ===== Subsystem =====
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -146,6 +161,8 @@ private:
     bool LoadGameConfig();
     bool LoadCoinSlotLevelTiers();
     bool LoadKeywordDefinitions();
+    bool LoadDebuffs();
+    bool LoadUIIcons();
 
     static EAttackAreaPattern AttackAreaPatternFromInt(int32 Val);
     static EAreaAnchor AreaAnchorFromInt(int32 Val);

@@ -14,6 +14,16 @@ UCLASS()
 class FLIP_SIDE_API UW_WeaponDescription : public UUserWidget
 {
 	GENERATED_BODY()
+protected:
+	// 같은 이름의 BP Image를 DB 아이콘에 직접 연결합니다. Brush 크기와 색상은 유지합니다.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> AttackPowerIcon;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> WeaponPowerIcon;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> CountIcon;
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Stat Icons")
+	FName StatIconTextureParameter = TEXT("Icon");
 
 	protected:
 	virtual void NativeConstruct() override;

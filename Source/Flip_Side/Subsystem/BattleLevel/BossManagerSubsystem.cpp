@@ -392,6 +392,15 @@ void UBossManagerSubsystem::ApplyCurrentPattern()
 {
     if (!PhaseContext.bPrepared) return;
 
+    // 지연 피해 판정 사이에 기절해도 패턴/기믹 실행을 멈추고 완료를 통지합니다.
+    if (!IsValid(CurrentBoss)) { ClearCurrentPhase(); return; }
+    if (CurrentBoss->IsStunned())
+    {
+        ClearCurrentPhase();
+        CurrentBoss->FinishBossAttack();
+        return;
+    }
+
     TArray<ACoinActor*> ValidLockedTargets;
     TArray<ABase_OtherActor*> ValidLockedOthers;
     for (const FLockedBossTarget& LockedTarget : PhaseContext.LockedTargets)

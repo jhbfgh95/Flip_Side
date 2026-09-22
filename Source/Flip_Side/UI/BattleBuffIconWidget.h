@@ -20,6 +20,15 @@ public:
 	void ClearBuffData();
 
 protected:
+	// 보스 아이콘 DB가 없으므로 BP에서 BuffTypeID별 표시 에셋을 지정할 수 있습니다.
+	UPROPERTY(EditDefaultsOnly, Category="Battle Buff Icon|Debuff")
+	TMap<int32, TObjectPtr<class UTexture2D>> DebuffIcons;
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<class UTextBlock> RemainingTurnsText;
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<class UTextBlock> StatusNameText;
+	UFUNCTION(BlueprintImplementableEvent, Category="Battle Buff Icon")
+	void OnStatusDataChanged(const FBattleStatusEffectViewData& Data);
 	// Brush에는 Buff_Icon/Buff_SourceBorder/Buff_SourceColor 파라미터가 있는 UI 머테리얼을 지정합니다.
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UImage> BuffIconImage;

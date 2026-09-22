@@ -10,11 +10,11 @@
 #include "UI/BattleItemSlotWidget.h"
 #include "UI/BattleReadyCoinWidget.h"
 #include "UI/W_CoinSlotInfo.h"
-#include "UI/W_BattleCoinInfo.h"
 #include "UI/W_ItemInfo.h"
 #include "UI/W_CardWidget.h"
 #include "UI/W_BossHP.h"
 #include "UI/BattleBossPatternHUDWidget.h"
+#include "UI/BossPatternPopupWidget.h"
 #include "UI/W_BattlePhaseAndTurnDisplayUI.h"
 #include "UI/W_Battle_Lever.h"
 #include "UI/CoinSlotPopupInputProcessor.h"
@@ -26,6 +26,13 @@
 void UBattlePlayerHUDWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+	if (IsValid(BossPatternWidget))
+	{
+		BossPatternWidget->OnPatternHovered.RemoveAll(this);
+		BossPatternWidget->OnPatternUnhovered.RemoveAll(this);
+		BossPatternWidget->OnPatternHovered.AddUObject(this, &UBattlePlayerHUDWidget::HandleBossPatternHovered);
+		BossPatternWidget->OnPatternUnhovered.AddUObject(this, &UBattlePlayerHUDWidget::HandleBossPatternUnhovered);
+	}
 
 	if (IsValid(BattleReadyCoinWidget))
 	{
@@ -35,6 +42,10 @@ void UBattlePlayerHUDWidget::NativeConstruct()
 		BattleReadyCoinWidget->OnReadyCoinClicked.AddUObject(this, &UBattlePlayerHUDWidget::HandleReadyCoinClicked);
 		BattleReadyCoinWidget->OnReadyCoinHovered.AddUObject(this, &UBattlePlayerHUDWidget::HandleReadyCoinHovered);
 		BattleReadyCoinWidget->OnReadyCoinUnhovered.AddUObject(this, &UBattlePlayerHUDWidget::HandleReadyCoinUnhovered);
+		BattleReadyCoinWidget->OnInfoSelectionReset.RemoveAll(this);
+		BattleReadyCoinWidget->OnSlotHighlightClearRequested.RemoveAll(this);
+		BattleReadyCoinWidget->OnInfoSelectionReset.AddUObject(this, &UBattlePlayerHUDWidget::HandleBattleInfoSelectionReset);
+		BattleReadyCoinWidget->OnSlotHighlightClearRequested.AddUObject(this, &UBattlePlayerHUDWidget::HandleReadySlotHighlightClearRequested);
 	}
 
 	if (IsValid(LeverWidget))
@@ -54,6 +65,22 @@ void UBattlePlayerHUDWidget::NativeConstruct()
 
 void UBattlePlayerHUDWidget::NativeDestruct()
 {
+	HandleBossPatternUnhovered();
+	if (IsValid(BossPatternWidget))
+	{
+		BossPatternWidget->OnPatternHovered.RemoveAll(this);
+		BossPatternWidget->OnPatternUnhovered.RemoveAll(this);
+	}
+	HandleBattleInfoSelectionReset();
+	HandleReadySlotHighlightClearRequested();
+	if (IsValid(BattleReadyCoinWidget))
+	{
+		BattleReadyCoinWidget->OnInfoSelectionReset.RemoveAll(this);
+		BattleReadyCoinWidget->OnSlotHighlightClearRequested.RemoveAll(this);
+		BattleReadyCoinWidget->OnReadyCoinClicked.RemoveAll(this);
+		BattleReadyCoinWidget->OnReadyCoinHovered.RemoveAll(this);
+		BattleReadyCoinWidget->OnReadyCoinUnhovered.RemoveAll(this);
+	}
 	DismissCoinSlotInfo();
 	DismissItemInfo();
 	if (IsValid(ItemInfoWidget)) ItemInfoWidget->OnCloseRequested.RemoveAll(this);
@@ -118,6 +145,7 @@ void UBattlePlayerHUDWidget::UnregisterCoinInfoDismissRegion(UWidget* Widget)
 void UBattlePlayerHUDWidget::ToggleCoinDescriptionDetails()
 {
 	if (IsCoinSlotInfoOpen()) CoinSlotInfoWidget->ToggleDetailedDescriptions();
+	else if (IsValid(BattleReadyCoinWidget)) BattleReadyCoinWidget->ToggleDescriptionDetails();
 }
 
 ECoinPopupPointerRegion UBattlePlayerHUDWidget::GetCoinPopupPointerRegion(const FVector2D& ScreenPosition) const
@@ -141,7 +169,7 @@ ECoinPopupPointerRegion UBattlePlayerHUDWidget::GetCoinPopupPointerRegion(const 
 
 	// 알려진 다른 UI와 명시적으로 등록한 영역만 닫기 대상으로 취급합니다.
 	// ReadyCoin 전체 레이아웃은 제외합니다. 개별 슬롯 버튼/호버 이벤트에서 닫습니다.
-	if (InPath(CardInfoWidget) || InPath(BattleCoinInfoWidget))
+	if (InPath(CardInfoWidget) || (IsValid(BattleReadyCoinWidget) && BattleReadyCoinWidget->IsInfoPageVisible() && InPath(BattleReadyCoinWidget)))
 		return ECoinPopupPointerRegion::OtherUI;
 	for (const UBattleCardSlotWidget* Card : CardSlotWidgets)
 		if (InPath(Card)) return ECoinPopupPointerRegion::OtherUI;
@@ -222,6 +250,9 @@ void UBattlePlayerHUDWidget::SetReadyCoins(const TArray<FBattleReadyCoinViewData
 
 void UBattlePlayerHUDWidget::SetBossHUDData(const FBossHUDData& InData)
 {
+	CachedBossPatternHUDData = InData;
+	if (!InData.bHasPatternInfo) HandleBossPatternUnhovered();
+	else if (bBossPatternHovered && IsValid(BossPatternPopupWidget)) BossPatternPopupWidget->SetPatternInfo(InData);
 	if (IsValid(BossHPWidget))
 	{
 		BossHPWidget->SetBossHUDData(InData);
@@ -307,59 +338,25 @@ void UBattlePlayerHUDWidget::PlayBossPhaseCompletionAnimation()
 }
 
 void UBattlePlayerHUDWidget::ShowBattleCoinInfo(
-	const FBattleCoinInfoViewData& InData,
-	bool bUseReadyCoinAnchor)
+	const FBattleCoinInfoViewData& InData)
 {
-	// 필드의 단순 호버로 고정된 슬롯 설명을 덮지 않습니다. 레디 UI 조작은 교체합니다.
-	if (bUseReadyCoinAnchor)
-	{
-		DismissCoinSlotInfo();
-		DismissItemInfo();
-	}
-	else if (IsCoinSlotInfoOpen() || IsItemInfoOpen()) return;
-	if (!IsValid(PopupLayer) || !BattleCoinInfoWidgetClass)
-	{
-		return;
-	}
-
-	if (!IsValid(BattleCoinInfoWidget))
-	{
-		BattleCoinInfoWidget = CreateWidget<UW_BattleCoinInfo>(this, BattleCoinInfoWidgetClass);
-		if (IsValid(BattleCoinInfoWidget))
-		{
-			PopupLayer->AddChild(BattleCoinInfoWidget);
-		}
-	}
-
-	if (!IsValid(BattleCoinInfoWidget))
-	{
-		return;
-	}
-
-	BattleCoinInfoWidget->SetBattleCoinInfo(InData);
-	UWidget* PopupAnchor = bUseReadyCoinAnchor ? ReadyCoinPopupAnchor.Get() : BattleCoinPopupAnchor.Get();
-	if (!IsValid(PopupAnchor))
-	{
-		PopupAnchor = ReadyCoinPopupAnchor.Get();
-	}
-	ApplyPopupAnchorLayout(BattleCoinInfoWidget, PopupAnchor);
-	BattleCoinInfoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+	// 배틀 인포는 팝업과 수명이 독립적인 레디 영역 하위 페이지입니다.
+	if (IsValid(BattleReadyCoinWidget)) BattleReadyCoinWidget->ShowBattleCoinInfo(InData);
 }
 
 void UBattlePlayerHUDWidget::HideBattleCoinInfo()
 {
-	if (IsValid(BattleCoinInfoWidget))
-	{
-		BattleCoinInfoWidget->ClearBattleCoinInfo();
-	}
+	if (IsValid(BattleReadyCoinWidget)) BattleReadyCoinWidget->ClearBattleCoinInfo();
 }
 
-void UBattlePlayerHUDWidget::SetAdditionalBattleCoinBuffsVisible(bool bVisible)
+void UBattlePlayerHUDWidget::HandleBattleInfoSelectionReset()
 {
-	if (IsValid(BattleCoinInfoWidget))
-	{
-		BattleCoinInfoWidget->SetAdditionalBuffsVisible(bVisible);
-	}
+	OnBattleInfoSelectionReset.Broadcast();
+}
+
+void UBattlePlayerHUDWidget::HandleReadySlotHighlightClearRequested()
+{
+	OnReadySlotHighlightClearRequested.Broadcast();
 }
 
 void UBattlePlayerHUDWidget::EnsureCoinSlotWidgets(int32 RequiredCount)
@@ -450,7 +447,6 @@ void UBattlePlayerHUDWidget::HandleCoinSlotHovered(int32 SlotNumber)
 			CoinSlotInfoWidget->OnCloseRequested.RemoveAll(this);
 			CoinSlotInfoWidget->OnCloseRequested.AddUObject(this, &UBattlePlayerHUDWidget::DismissCoinSlotInfo);
 			DisplayedCoinSlotNumber = SlotNumber;
-			HideBattleCoinInfo();
 			DismissItemInfo();
 			if (IsValid(CardInfoWidget)) CardInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
 			CoinSlotInfoWidget->SetCoinSlotInfo(*CoinSlotData);
@@ -532,7 +528,6 @@ void UBattlePlayerHUDWidget::HandleItemSlotHovered(int32 ItemID)
 		ItemInfoWidget->OnCloseRequested.RemoveAll(this);
 		ItemInfoWidget->OnCloseRequested.AddUObject(this, &UBattlePlayerHUDWidget::DismissItemInfo);
 		DisplayedItemID = ItemID;
-		HideBattleCoinInfo();
 		if (IsValid(CardInfoWidget)) CardInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
 		ItemInfoWidget->UpdateItemInfo(ItemSlotData->ItemData);
 		ItemInfoWidget->SetVisibility(ESlateVisibility::Visible);
@@ -579,6 +574,30 @@ void UBattlePlayerHUDWidget::HandleCardSlotUnhovered(int32 SlotNumber)
 	{
 		CardInfoWidget->SetVisibility(ESlateVisibility::Hidden);
 	}
+}
+
+void UBattlePlayerHUDWidget::HandleBossPatternHovered()
+{
+	if (!CachedBossPatternHUDData.bHasPatternInfo || !IsValid(PopupLayer) || !IsValid(BossPatternPopupAnchor) ||
+		!BossPatternPopupWidgetClass || BossPatternPopupWidgetClass->HasAnyClassFlags(CLASS_Abstract)) return;
+	DismissCoinSlotInfo();
+	DismissItemInfo();
+	if (IsValid(CardInfoWidget)) CardInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
+	if (!IsValid(BossPatternPopupWidget))
+	{
+		BossPatternPopupWidget = CreateWidget<UBossPatternPopupWidget>(this, BossPatternPopupWidgetClass);
+		if (IsValid(BossPatternPopupWidget)) PopupLayer->AddChild(BossPatternPopupWidget);
+	}
+	if (!IsValid(BossPatternPopupWidget)) return;
+	bBossPatternHovered = true;
+	BossPatternPopupWidget->SetPatternInfo(CachedBossPatternHUDData);
+	ApplyPopupAnchorLayout(BossPatternPopupWidget, BossPatternPopupAnchor);
+}
+
+void UBattlePlayerHUDWidget::HandleBossPatternUnhovered()
+{
+	bBossPatternHovered = false;
+	if (IsValid(BossPatternPopupWidget)) BossPatternPopupWidget->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UBattlePlayerHUDWidget::ApplyPopupAnchorLayout(UUserWidget* PopupWidget, UWidget* PopupAnchor)

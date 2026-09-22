@@ -11,11 +11,6 @@ struct FCoinDescriptionInlineStyle
 {
 	GENERATED_BODY()
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Coin Description")
-	TObjectPtr<class UTexture2D> IconTexture = nullptr;
-	// TODO(CoinDescription-DB-Style): DB 색상 API가 준비되면 이 값을 읽는 경로만 교체합니다.
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Coin Description")
-	FLinearColor DetailedTextColor = FLinearColor::White;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Coin Description")
 	bool bShowValue = true;
 };
 
@@ -56,6 +51,7 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Coin Description")
 	void OnSectionDataChanged(const FCoinDescriptionSectionData& InData);
 private:
+	FLinearColor GetTokenColor(FName Key) const;
 	TSharedRef<SWidget> CreateInlineIcon(FName Key, const FTextBlockStyle& Style);
 	void RefreshText();
 	bool bDetailed = false;

@@ -1,4 +1,5 @@
 #include "Actors/Component_Status.h"
+#include "Actors/DebuffComponent.h"
 #include "DataTypes/WeaponDataTypes.h"
 
 namespace
@@ -36,7 +37,58 @@ UComponent_Status::UComponent_Status()
 void UComponent_Status::BeginPlay()
 {
 	Super::BeginPlay();
+	BindDebuffEvents();
 }
+
+UDebuffComponent* UComponent_Status::GetDebuffComponent() const
+{
+	return IsValid(GetOwner()) ? GetOwner()->FindComponentByClass<UDebuffComponent>() : nullptr;
+}
+
+TArray<FStatusEffectInstance> UComponent_Status::GetStatusEffects() const
+{
+	TArray<FStatusEffectInstance> Result = ActiveStatusEffects;
+	if (const UDebuffComponent* Debuffs = GetDebuffComponent(); IsValid(Debuffs)) Result.Append(Debuffs->GetDebuffs());
+	return Result;
+}
+
+void UComponent_Status::BindDebuffEvents()
+{
+	if (UDebuffComponent* Debuffs = GetDebuffComponent(); IsValid(Debuffs))
+	{
+		Debuffs->OnDebuffChanged.RemoveAll(this);
+		Debuffs->OnDebuffChanged.AddUObject(this, &UComponent_Status::HandleDebuffChanged);
+		Debuffs->OnCCChanged.AddUniqueDynamic(this, &UComponent_Status::HandleDebuffCCChanged);
+	}
+}
+
+void UComponent_Status::HandleDebuffChanged(const FStatusEffectInstance& Effect, bool bGameplayChanged)
+{
+	// 수명 갱신은 UI만, 수치/CC 변경은 호버 캐시와 클릭 스냅숏까지 무효화합니다.
+	if (bGameplayChanged)
+		MarkWeaponStatsDirty(Effect.CCType != ECCTypes::None ? EWeaponStatChangeFlags::ControlState : GetModifierChangeFlags(Effect.Modifier));
+	BroadcastStatusEffectChanged(Effect);
+}
+
+void UComponent_Status::HandleDebuffCCChanged(ECCTypes Type)
+{
+	if (Type == ECCTypes::None) OnCCRemove.Broadcast();
+	else OnCCActived.Broadcast();
+}
+
+bool UComponent_Status::IsStunned() const
+{
+	const UDebuffComponent* D = GetDebuffComponent();
+	return IsValid(D) && D->GetCCType() == ECCTypes::Stun;
+}
+
+bool UComponent_Status::IsBlinded() const
+{
+	const UDebuffComponent* D = GetDebuffComponent();
+	return IsValid(D) && D->GetCCType() == ECCTypes::Blind;
+}
+
+bool UComponent_Status::GetOnIsOnCC() const { return IsStunned() || IsBlinded(); }
 
 bool UComponent_Status::InitializeCoinStats(const FCoinStatInitializeData& InitializeData)
 {
@@ -65,6 +117,8 @@ bool UComponent_Status::InitializeCoinStats(const FCoinStatInitializeData& Initi
 	WeaponStatRevision = 0;
 	NextBuffInstanceSerial = 1;
 	ActiveStatusEffects.Reset();
+	BindDebuffEvents();
+	if (UDebuffComponent* D = GetDebuffComponent(); IsValid(D)) D->Restore(InitializeData.RuntimeState.PersistentStatusEffects);
 
 	SetFaceWeaponStats(
 		FrontWeaponStats.BaseNumericStats.WeaponPoint,
@@ -75,6 +129,7 @@ bool UComponent_Status::InitializeCoinStats(const FCoinStatInitializeData& Initi
 
 	for (FStatusEffectInstance StatusEffect : InitializeData.RuntimeState.PersistentStatusEffects)
 	{
+		if (StatusEffect.Polarity == EStatusPolarity::Debuff) continue;
 		if (StatusEffect.BuffTypeID == INDEX_NONE ||
 			StatusEffect.DurationType != EBuffDurationType::PersistentInBattle)
 		{
@@ -116,7 +171,7 @@ FResolvedWeaponFaceStats UComponent_Status::ResolveFaceStats(EFaceState Face) co
 	{
 		return FResolvedWeaponFaceStats();
 	}
-	return ResolveFaceStatsFromData(*FaceStats, ActiveStatusEffects);
+	return ResolveFaceStatsFromData(*FaceStats, GetStatusEffects());
 }
 
 FResolvedWeaponFaceStats UComponent_Status::ResolveFaceStatsFromData(
@@ -178,6 +233,13 @@ FWeaponActionSnapshot UComponent_Status::BuildActionSnapshot(EFaceState Face) co
 
 bool UComponent_Status::AddStatusEffect(FStatusEffectInstance StatusEffect)
 {
+	if (bIsDead) return false;
+	if (StatusEffect.Polarity == EStatusPolarity::Debuff)
+	{
+		BindDebuffEvents();
+		UDebuffComponent* D = GetDebuffComponent();
+		return IsValid(D) && D->ApplyDebuff(StatusEffect);
+	}
 	if (StatusEffect.BuffTypeID == INDEX_NONE)
 	{
 		return false;
@@ -232,6 +294,7 @@ bool UComponent_Status::AddStatusEffect(FStatusEffectInstance StatusEffect)
 
 bool UComponent_Status::RemoveStatusEffectByInstanceSerial(int32 BuffInstanceSerial)
 {
+	if (UDebuffComponent* D = GetDebuffComponent(); IsValid(D) && D->RemoveBySerial(BuffInstanceSerial)) return true;
 	const int32 EffectIndex = ActiveStatusEffects.IndexOfByPredicate([BuffInstanceSerial](const FStatusEffectInstance& StatusEffect)
 	{
 		return StatusEffect.BuffInstanceSerial == BuffInstanceSerial;
@@ -264,7 +327,8 @@ int32 UComponent_Status::RemoveStatusEffectsByTypeAndSource(
 	EStatusEffectSourceType SourceType,
 	int32 SourceDataID)
 {
-	int32 RemovedCount = 0;
+	UDebuffComponent* D = GetDebuffComponent();
+	int32 RemovedCount = IsValid(D) ? D->RemoveByTypeAndSource(BuffTypeID, SourceType, SourceDataID) : 0;
 	for (int32 EffectIndex = ActiveStatusEffects.Num() - 1; EffectIndex >= 0; --EffectIndex)
 	{
 		const FStatusEffectInstance& Effect = ActiveStatusEffects[EffectIndex];
@@ -283,7 +347,7 @@ int32 UComponent_Status::GetStatusEffectStackCount(
 	int32 SourceDataID) const
 {
 	int32 StackCount = 0;
-	for (const FStatusEffectInstance& Effect : ActiveStatusEffects)
+	for (const FStatusEffectInstance& Effect : GetStatusEffects())
 	{
 		if (Effect.BuffTypeID == BuffTypeID && Effect.SourceType == SourceType &&
 			Effect.SourceDataID == SourceDataID)
@@ -296,6 +360,8 @@ int32 UComponent_Status::GetStatusEffectStackCount(
 
 int32 UComponent_Status::AdvancePersistentStatusEffectsAtTurnEnd()
 {
+	// SettingPhase는 TurnCount가 이미 증가한 뒤 호출됩니다. 방금 끝난 턴 번호를 전달합니다.
+	if (UDebuffComponent* D = GetDebuffComponent(); IsValid(D)) D->AdvanceTurnEnd(D->GetBattleTurn() - 1);
 	int32 RemovedCount = 0;
 	for (int32 EffectIndex = ActiveStatusEffects.Num() - 1; EffectIndex >= 0; --EffectIndex)
 	{
@@ -321,7 +387,7 @@ FCoinRuntimeStateSnapshot UComponent_Status::ExportRuntimeState() const
 	RuntimeState.CurrentHP = HP;
 	RuntimeState.Shield = Shield;
 	RuntimeState.PersistentStatusEffects.Reserve(ActiveStatusEffects.Num());
-	for (const FStatusEffectInstance& StatusEffect : ActiveStatusEffects)
+	for (const FStatusEffectInstance& StatusEffect : GetStatusEffects())
 	{
 		if (StatusEffect.DurationType == EBuffDurationType::PersistentInBattle)
 		{
@@ -345,8 +411,11 @@ bool UComponent_Status::ImportRuntimeState(const FCoinRuntimeStateSnapshot& Runt
 	NextBuffInstanceSerial = 1;
 
 	EWeaponStatChangeFlags ChangeFlags = EWeaponStatChangeFlags::None;
+	BindDebuffEvents();
+	if (UDebuffComponent* D = GetDebuffComponent(); IsValid(D)) D->Restore(RuntimeState.PersistentStatusEffects);
 	for (FStatusEffectInstance StatusEffect : RuntimeState.PersistentStatusEffects)
 	{
+		if (StatusEffect.Polarity == EStatusPolarity::Debuff) continue;
 		if (StatusEffect.BuffTypeID == INDEX_NONE ||
 			StatusEffect.DurationType != EBuffDurationType::PersistentInBattle)
 		{
@@ -375,7 +444,7 @@ bool UComponent_Status::ImportRuntimeState(const FCoinRuntimeStateSnapshot& Runt
 void UComponent_Status::RefreshStatusEffectEvents() const
 {
 	TArray<FStatusEffectInstance> BroadcastedEffects;
-	for (const FStatusEffectInstance& StatusEffect : ActiveStatusEffects)
+	for (const FStatusEffectInstance& StatusEffect : GetStatusEffects())
 	{
 		const bool bAlreadyBroadcast = BroadcastedEffects.ContainsByPredicate([&StatusEffect](const FStatusEffectInstance& Effect)
 		{
@@ -409,7 +478,7 @@ void UComponent_Status::MarkWeaponStatsDirty(EWeaponStatChangeFlags ChangeFlags)
 int32 UComponent_Status::CountStatusEffectStacks(const FStatusEffectInstance& StatusEffect) const
 {
 	int32 TotalStackCount = 0;
-	for (const FStatusEffectInstance& ActiveEffect : ActiveStatusEffects)
+	for (const FStatusEffectInstance& ActiveEffect : GetStatusEffects())
 	{
 		if (ActiveEffect.BuffTypeID == StatusEffect.BuffTypeID &&
 			ActiveEffect.SourceType == StatusEffect.SourceType &&
@@ -715,6 +784,7 @@ void UComponent_Status::HandleDeathIfNeeded()
 
 	bIsDead = true;
 	HP = 0;
+	if (UDebuffComponent* D = GetDebuffComponent(); IsValid(D)) D->DisableForDeath();
 	OnDead.Broadcast();
 }
 
@@ -803,6 +873,7 @@ void UComponent_Status::RemoveLegacyBuffAt(int32 Index)
 
 void UComponent_Status::ClearDebuffs()
 {
+	if (UDebuffComponent* D = GetDebuffComponent(); IsValid(D)) D->ClearDebuffs();
 	for (int32 EffectIndex = ActiveStatusEffects.Num() - 1; EffectIndex >= 0; --EffectIndex)
 	{
 		if (ActiveStatusEffects[EffectIndex].Polarity != EStatusPolarity::Debuff)
@@ -864,30 +935,16 @@ void UComponent_Status::ApplyCC(FCCStructure CC)
 	{
 		return;
 	}
-	AppliedCC = CC;
-	bIsOnCC = true;
-	CCDuration = FMath::Clamp(AppliedCC.CCDuration, 0, MAX_CCDURATION);
-	OnCCActived.Broadcast();
+	BindDebuffEvents();
+	if (UDebuffComponent* D = GetDebuffComponent(); IsValid(D)) D->ApplyCC(CC.CCType, CC.CCDuration);
 }
 
 void UComponent_Status::RemoveCC()
 {
-	AppliedCC = FCCStructure();
-	CCDuration = 0;
-	bIsOnCC = false;
-	OnCCRemove.Broadcast();
+	if (UDebuffComponent* D = GetDebuffComponent(); IsValid(D)) D->ClearCC();
 }
 
 void UComponent_Status::DecreaseCCDuration(int32 WantToDecreaseCCDuration)
 {
-	if (!bIsOnCC || WantToDecreaseCCDuration <= 0)
-	{
-		return;
-	}
-
-	CCDuration = FMath::Clamp(CCDuration - WantToDecreaseCCDuration, 0, MAX_CCDURATION);
-	if (CCDuration <= 0)
-	{
-		RemoveCC();
-	}
+	if (UDebuffComponent* D = GetDebuffComponent(); IsValid(D)) D->DecreaseCCDuration(WantToDecreaseCCDuration);
 }

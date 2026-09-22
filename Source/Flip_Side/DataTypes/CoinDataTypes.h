@@ -196,7 +196,7 @@ struct FBattleReadyCoinViewData
     UTexture2D* BackIcon = nullptr;
 };
 
-/** W_BattleCoinInfo에서 앞면 또는 뒷면 하나를 표시하기 위한 데이터입니다. */
+/** BattleCoinInfoWidget의 선택한 면에 전달할 표시 데이터입니다. */
 USTRUCT(BlueprintType)
 struct FBattleWeaponFaceInfoViewData
 {
@@ -214,6 +214,10 @@ struct FBattleWeaponFaceInfoViewData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FText WeaponDescription;
 
+    // 슬롯과 같은 설명 파서를 사용하되 Controller가 현재 최종 스탯을 전달합니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FCoinWeaponDescriptionData Description;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FWeaponNumericStats BaseStats;
 
@@ -229,6 +233,22 @@ USTRUCT(BlueprintType)
 struct FBattleStatusEffectViewData
 {
     GENERATED_BODY()
+
+    // DataManager가 반환한 표시 정의. 수치/남은 턴과 분리합니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FText DisplayName;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FText Description;
+
+    // 컴포넌트는 상태만 제공하고, 실제 아이콘/문구 조합은 Controller와 Widget이 담당합니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 RemainingTurns = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EBuffDurationType DurationType = EBuffDurationType::TurnOnly;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    ECCTypes CCType = ECCTypes::None;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 BuffTypeID = INDEX_NONE;
@@ -249,11 +269,15 @@ struct FBattleStatusEffectViewData
     int32 StackCount = 1;
 };
 
-/** ReadyCoinSlot과 필드 CoinActor가 공통으로 W_BattleCoinInfo에 전달하는 양면 정보입니다. */
+/** Controller가 레디 영역의 BattleCoinInfoWidget으로 전달하는 양면 정보입니다. */
 USTRUCT(BlueprintType)
 struct FBattleCoinInfoViewData
 {
     GENERATED_BODY()
+
+    // 최초 표시 면은 실제 윗면입니다. 반대면 버튼은 게임 코인을 뒤집지 않습니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EFaceState UpperFace = EFaceState::Front;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 CoinInstanceID = INDEX_NONE;
