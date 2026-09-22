@@ -27,8 +27,6 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UBorder> MainKeyWordBorder;
 	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<class UBorder> AdditonalKeywordBorder;
-	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> MainKeywordText;
 	// WBP에 고정 배치한 부가 키워드 네 쌍입니다. 사용하지 않는 쌍은 함께 숨깁니다.
 	UPROPERTY(meta = (BindWidget))
@@ -51,14 +49,14 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UHorizontalBox> AdditionalKeywordRow;
 	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UBorder> AdditionalKeywordBorder0;
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UBorder> AdditionalKeywordBorder1;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UBorder> AdditionalKeywordBorder2;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UBorder> AdditionalKeywordBorder3;
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<class UBorder> AdditionalKeywordBorder4;
-	// SpacerN은 BorderN 바로 뒤에 배치합니다. 마지막으로 표시되는 칸 뒤에는 간격을 남기지 않습니다.
+	// Border0~3은 Image/Text1~4에 대응합니다. Spacer1~3은 Border0~2 바로 뒤에 배치합니다.
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class USpacer> AdditionalKeywordSpacer1;
 	UPROPERTY(meta = (BindWidgetOptional))

@@ -66,11 +66,10 @@ void UCoinDescriptionBookmarkWidget::RefreshKeywords()
 	const bool bHasMainStyle = IsValid(DB) && DB->TryGetKeywordByCode(TEXT("Main"), MainStyle, true);
 	const bool bHasAdditionalStyle = IsValid(DB) && DB->TryGetKeywordByCode(TEXT("Additional"), AdditionalStyle, true);
 	if (IsValid(MainKeyWordBorder) && bHasMainStyle) MainKeyWordBorder->SetBrushColor(MainStyle.UIColor);
-	if (IsValid(AdditonalKeywordBorder) && bHasAdditionalStyle) AdditonalKeywordBorder->SetBrushColor(AdditionalStyle.UIColor);
 	SetKeyword(MainKeywordImage, MainKeywordText, BookmarkData.MainKeywordCode);
 	UImage* Images[] = { AdditionalKeywordImage1, AdditionalKeywordImage2, AdditionalKeywordImage3, AdditionalKeywordImage4 };
 	UTextBlock* Texts[] = { AdditionalKeywordText1, AdditionalKeywordText2, AdditionalKeywordText3, AdditionalKeywordText4 };
-	UBorder* Borders[] = { AdditionalKeywordBorder1, AdditionalKeywordBorder2, AdditionalKeywordBorder3, AdditionalKeywordBorder4 };
+	UBorder* Borders[] = { AdditionalKeywordBorder0, AdditionalKeywordBorder1, AdditionalKeywordBorder2, AdditionalKeywordBorder3 };
 	USpacer* Spacers[] = { AdditionalKeywordSpacer1, AdditionalKeywordSpacer2, AdditionalKeywordSpacer3 };
 	bool HasKeyword[UE_ARRAY_COUNT(Images)] = {};
 	for (int32 Index = 0; Index < UE_ARRAY_COUNT(Images); ++Index)
@@ -96,8 +95,6 @@ void UCoinDescriptionBookmarkWidget::RefreshKeywords()
 	}
 	if (IsValid(AdditionalKeywordRow))
 		AdditionalKeywordRow->SetVisibility(bHasLaterKeyword ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
-	if (IsValid(AdditonalKeywordBorder))
-		AdditonalKeywordBorder->SetVisibility(bHasLaterKeyword ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	if (BookmarkData.AdditionalKeywordCodes.Num() > UE_ARRAY_COUNT(Images))
 		UE_LOG(LogTemp, Warning, TEXT("Coin bookmark supports four additional keywords; received %d."), BookmarkData.AdditionalKeywordCodes.Num());
 }

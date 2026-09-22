@@ -30,6 +30,11 @@ void UBattleCoinInfoWidget::NativeConstruct()
 			UImage* StatImage = StatImages[Index];
 			UTexture2D* Icon = nullptr;
 			if (!IsValid(StatImage) || !IconDB->TryGetUIIcon(StatCodes[Index], Icon)) continue;
+			// 고정 스탯 아이콘도 설명 토큰과 같은 DB 색상을 사용합니다. 수치 텍스트는 변경하지 않습니다.
+			FKeywordDefinitionData StatDefinition;
+			const FName KeywordCode(*StatCodes[Index].ToString().RightChop(5)); // STAT: 접두사 제외
+			if (IconDB->TryGetKeywordByCode(KeywordCode, StatDefinition))
+				StatImage->SetColorAndOpacity(StatDefinition.UIColor);
 			if (Cast<UMaterialInterface>(StatImage->GetBrush().GetResourceObject()))
 			{
 				if (UMaterialInstanceDynamic* Material = StatImage->GetDynamicMaterial())
