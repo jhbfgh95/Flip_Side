@@ -22,7 +22,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Coin Description")
 	void SetSectionData(const FCoinDescriptionSectionData& InData);
 	void SetDetailed(bool bInDetailed);
-	TSharedPtr<SWidget> CreateInlineDisplay(FName Key, const FTextBlockStyle& Style);
+	TSharedPtr<SWidget> CreateInlineDisplay(FName Key, const FTextBlockStyle& Style, bool bHeader = false);
 	TSharedPtr<SWidget> CreateExpressionDisplay(const FString& Expression, const FTextBlockStyle& Style);
 protected:
 	virtual void NativeConstruct() override;

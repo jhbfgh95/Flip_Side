@@ -28,6 +28,14 @@ protected:
 	TObjectPtr<class UImage> BackWeaponPowerIcon;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UImage> BackCountIcon;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> FrontAttackRangeIcon;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> FrontAbilityRangeIcon;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> BackAttackRangeIcon;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> BackAbilityRangeIcon;
 	UPROPERTY(EditDefaultsOnly, Category = "UI|Stat Icons")
 	FName StatIconTextureParameter = TEXT("Icon");
 

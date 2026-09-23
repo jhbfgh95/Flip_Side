@@ -1,6 +1,8 @@
 #include "UI/KeywordDescriptionWidget.h"
 
 #include "Components/Image.h"
+#include "Engine/Texture2D.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Components/RichTextBlock.h"
 
 #include "Engine/DataTable.h"
@@ -88,9 +90,24 @@ void UKeywordDescriptionWidget::HandleSelectionChanged(FString SelectedItem, ESe
 
 void UKeywordDescriptionWidget::RefreshDescription()
 {
-	// TODO(KeywordIcon): 아이콘 확정 후 SelectedKeyword.KeywordCode의 독립적인 에셋 연결을 추가합니다.
-	// 다른 위젯의 아이콘 설정을 참조하지 않습니다.
-	if (IsValid(KeywordIcon)) KeywordIcon->SetVisibility(ESlateVisibility::Collapsed);
+	// 선택한 키워드의 DB 아이콘/색상을 직접 적용합니다. BP Brush 크기는 보존합니다.
+	if (IsValid(KeywordIcon))
+	{
+		const bool bHasIcon = IsValid(SelectedKeyword.Icon);
+		if (bHasIcon)
+		{
+			if (UMaterialInstanceDynamic* Material = KeywordIcon->GetDynamicMaterial())
+				Material->SetTextureParameterValue(TEXT("Icon"), SelectedKeyword.Icon);
+			else
+			{
+				FSlateBrush Brush = KeywordIcon->GetBrush();
+				Brush.SetResourceObject(SelectedKeyword.Icon);
+				KeywordIcon->SetBrush(Brush);
+			}
+			KeywordIcon->SetColorAndOpacity(SelectedKeyword.UIColor);
+		}
+		KeywordIcon->SetVisibility(bHasIcon ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	}
 	// SetKeywordGroup은 컨테이너에 추가되기 전에도 호출됩니다. Slate 스타일 생성 이후에 갱신합니다.
 	if (!IsValid(KeywordDescriptionText) || !KeywordDescriptionText->GetCachedWidget().IsValid()) return;
 	TextStyles = NewObject<UDataTable>(this);

@@ -25,7 +25,7 @@ namespace CoinDescriptionRichTextPrivate
 				return FBase64::Decode(*Encoded, Expression) ? Section->CreateExpressionDisplay(Expression, Style) : nullptr;
 			}
 			const FString* Key = Run.MetaData.Find(TEXT("key"));
-			return Key ? Section->CreateInlineDisplay(FName(**Key), Style) : nullptr;
+			return Key ? Section->CreateInlineDisplay(FName(**Key), Style, Run.MetaData.Contains(TEXT("header"))) : nullptr;
 		}
 	private:
 		TWeakObjectPtr<UCoinDescriptionSectionWidget> Section;

@@ -21,3 +21,7 @@ Saved
 /NOTES.md
 /AGENTS.md
 subsystem-actor-links.md
+
+# Local Python work scripts (DB maintenance, one-off migrations)
+/Scripts/**/*.py
+/Scripts/**/__pycache__/

@@ -20,8 +20,10 @@ void UW_CoinSlotInfo::NativeConstruct()
 	UDataManagerSubsystem* IconDB = IsValid(GetGameInstance()) ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>() : nullptr;
 	if (IsValid(IconDB))
 	{
-		UImage* StatImages[] = { FrontAttackPowerIcon, FrontWeaponPowerIcon, FrontCountIcon, BackAttackPowerIcon, BackWeaponPowerIcon, BackCountIcon };
-		const FName StatCodes[] = { TEXT("STAT:AttackPower"), TEXT("STAT:WeaponPower"), TEXT("STAT:Count"), TEXT("STAT:AttackPower"), TEXT("STAT:WeaponPower"), TEXT("STAT:Count") };
+		UImage* StatImages[] = { FrontAttackPowerIcon, FrontWeaponPowerIcon, FrontCountIcon, BackAttackPowerIcon, BackWeaponPowerIcon, BackCountIcon,
+			FrontAttackRangeIcon, FrontAbilityRangeIcon, BackAttackRangeIcon, BackAbilityRangeIcon };
+		const FName StatCodes[] = { TEXT("STAT:AttackPower"), TEXT("STAT:WeaponPower"), TEXT("STAT:Count"), TEXT("STAT:AttackPower"), TEXT("STAT:WeaponPower"), TEXT("STAT:Count"),
+			TEXT("STAT:AttackRange"), TEXT("STAT:AbilityRange"), TEXT("STAT:AttackRange"), TEXT("STAT:AbilityRange") };
 		for (int32 Index = 0; Index < UE_ARRAY_COUNT(StatImages); ++Index)
 		{
 			UImage* StatImage = StatImages[Index];

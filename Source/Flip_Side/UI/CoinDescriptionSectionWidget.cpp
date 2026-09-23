@@ -51,6 +51,15 @@ void UCoinDescriptionSectionWidget::RefreshText()
 	if (IsValid(HeaderRichText))
 	{
 		FString Header;
+		FString Suffix = SectionData.HeaderSuffix.TrimStartAndEnd();
+		Suffix.RemoveFromStart(TEXT(":"));
+		Suffix.TrimStartAndEndInline();
+		Suffix.RemoveFromEnd(TEXT("."));
+		Suffix.TrimEndInline();
+		if (Suffix.StartsWith(TEXT("<Stat>")) && Suffix.EndsWith(TEXT("</Stat>")))
+			Suffix = Suffix.Mid(6, Suffix.Len() - 13).TrimStartAndEnd();
+		const bool bContinuousStat = SectionData.AdditionalKeywordCodes.Contains(FName(TEXT("Continuous")))
+			&& (Suffix == TEXT("[STAT:Count]") || Suffix == TEXT("[STAT:WeaponPower]"));
 		auto AppendKeyword = [&Header](FName Code)
 		{
 			if (Code.IsNone()) return;
@@ -59,11 +68,11 @@ void UCoinDescriptionSectionWidget::RefreshText()
 		};
 		AppendKeyword(SectionData.MainKeywordCode);
 		for (FName Code : SectionData.AdditionalKeywordCodes) AppendKeyword(Code);
-		FString Suffix = SectionData.HeaderSuffix.TrimStartAndEnd();
-		Suffix.RemoveFromStart(TEXT(":"));
-		Suffix.TrimStartInline();
-		if (!Suffix.IsEmpty()) Header += (Header.IsEmpty() ? TEXT("") : TEXT(" ")) + Suffix;
-		HeaderRichText->SetText(FText::FromString(FCoinDescriptionFormatter::ToRichText(Header)));
+		if (!bContinuousStat && !Suffix.IsEmpty()) Header += (Header.IsEmpty() ? TEXT("") : TEXT(" ")) + Suffix;
+		FString RichHeader = FCoinDescriptionFormatter::ToRichText(Header);
+		// 헤더의 모든 토큰은 Shift와 무관하게 이름과 수치를 포함한 상세 형식입니다.
+		RichHeader = RichHeader.Replace(TEXT("<coin key="), TEXT("<coin header=\"1\" key="));
+		HeaderRichText->SetText(FText::FromString(RichHeader));
 		HeaderRichText->RefreshTextLayout();
 	}
 	if (IsValid(DescriptionRichText))
@@ -83,17 +92,18 @@ FLinearColor UCoinDescriptionSectionWidget::GetTokenColor(FName Key) const
 	return IsValid(DB) && DB->TryGetKeywordByCode(FName(*Code), Definition) ? Definition.UIColor : FLinearColor::White;
 }
 
-TSharedPtr<SWidget> UCoinDescriptionSectionWidget::CreateInlineDisplay(FName Key, const FTextBlockStyle& Style)
+TSharedPtr<SWidget> UCoinDescriptionSectionWidget::CreateInlineDisplay(FName Key, const FTextBlockStyle& Style, bool bHeader)
 {
 	FCoinDescriptionTokenData Data;
 	if (!FCoinDescriptionFormatter::ResolveToken(Key, SectionData, Data)) return nullptr;
 	const FCoinDescriptionInlineStyle* DisplayStyle = InlineStyles.Find(Key);
-	const FCoinDescriptionInlineParts Parts = FCoinDescriptionFormatter::BuildInlineParts(Data, bDetailed,
-		!DisplayStyle || DisplayStyle->bShowValue);
+	const bool bShowDetailed = bHeader || bDetailed;
+	const bool bShowValue = bHeader || !DisplayStyle || DisplayStyle->bShowValue;
+	const FCoinDescriptionInlineParts Parts = FCoinDescriptionFormatter::BuildInlineParts(Data, bShowDetailed, bShowValue);
 	FSlateFontInfo Font = Style.Font;
-	if (bDetailed) Font.TypefaceFontName = DetailedTypeface;
+	if (bShowDetailed) Font.TypefaceFontName = DetailedTypeface;
 	// 상세 수치/이름과 아이콘은 같은 DB 색상이며, 일반 수치의 흰색 표기는 유지합니다.
-	const FSlateColor Color(bDetailed ? GetTokenColor(Key) : FLinearColor::White);
+	const FSlateColor Color(bShowDetailed ? GetTokenColor(Key) : FLinearColor::White);
 	TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox).Visibility(EVisibility::HitTestInvisible);
 	auto AddText = [&Row, &Font, &Color](const FString& Text, float LeftSpacing = 0.0f)
 	{
@@ -101,17 +111,38 @@ TSharedPtr<SWidget> UCoinDescriptionSectionWidget::CreateInlineDisplay(FName Key
 		Row->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(LeftSpacing, 0.0f, 0.0f, 0.0f)
 			[SNew(STextBlock).Text(FText::FromString(Text)).Font(Font).ColorAndOpacity(Color)];
 	};
-	const bool bHasVisibleValue = Data.bHasValue && (!DisplayStyle || DisplayStyle->bShowValue);
+	const bool bHasVisibleValue = Data.bHasValue && bShowValue;
+	// 연속 헤더는 영향 스탯의 상세 표시까지 같은 바깥 대괄호 안에 넣습니다.
+	if (bHeader && Key == TEXT("KW:Continuous"))
+	{
+		FString Suffix = SectionData.HeaderSuffix.TrimStartAndEnd();
+		Suffix.RemoveFromStart(TEXT(":"));
+		Suffix.TrimStartAndEndInline();
+		Suffix.RemoveFromEnd(TEXT("."));
+		Suffix.TrimEndInline();
+		if (Suffix.StartsWith(TEXT("<Stat>")) && Suffix.EndsWith(TEXT("</Stat>")))
+			Suffix = Suffix.Mid(6, Suffix.Len() - 13).TrimStartAndEnd();
+		if (Suffix == TEXT("[STAT:Count]") || Suffix == TEXT("[STAT:WeaponPower]"))
+		{
+			AddText(TEXT("["));
+			Row->AddSlot().AutoWidth().VAlign(VAlign_Center)[CreateInlineIcon(Key, Style)];
+			AddText(Data.Label.ToString() + TEXT(" : "), FMath::Max(0.0f, IconNameSpacing));
+			const TSharedPtr<SWidget> StatDisplay = CreateInlineDisplay(FName(*Suffix.Mid(1, Suffix.Len() - 2)), Style, true);
+			if (StatDisplay.IsValid()) Row->AddSlot().AutoWidth().VAlign(VAlign_Center)[StatDisplay.ToSharedRef()];
+			AddText(TEXT("]"));
+			return Row;
+		}
+	}
 	const float ValueSpacing = FMath::Max(0.0f, IconValueSpacing);
 	// 수치와 아이콘의 간격만 WBP 값으로 제어하며 대괄호/이름 서식은 유지합니다.
-	if (bDetailed && bHasVisibleValue)
+	if (bShowDetailed && bHasVisibleValue)
 	{
 		AddText(FString::FromInt(Data.Value));
 		AddText(TEXT("["), ValueSpacing);
 	}
 	else AddText(Parts.BeforeIcon);
 	Row->AddSlot().AutoWidth().VAlign(VAlign_Center)[CreateInlineIcon(Key, Style)];
-	if (bDetailed) AddText(Data.Label.ToString() + TEXT("]"), FMath::Max(0.0f, IconNameSpacing));
+	if (bShowDetailed) AddText(Data.Label.ToString() + TEXT("]"), FMath::Max(0.0f, IconNameSpacing));
 	else if (bHasVisibleValue) AddText(FString::FromInt(Data.Value), ValueSpacing);
 	else AddText(Parts.AfterIcon);
 	return Row;
