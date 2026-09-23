@@ -2,12 +2,10 @@
 
 
 #include "UI/W_ESCWidget.h"
-#include "Subsystem/LevelGISubsystem.h"
 #include "UI/W_SettingWidget.h"
 #include "Components/Button.h"
 #include "Components/CanvasPanel.h"
 #include "Components/Overlay.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 
 bool UW_ESCWidget::CloseESCWidget()
@@ -44,11 +42,6 @@ bool UW_ESCWidget::IsESCWidgetOpen() const
 void UW_ESCWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
-
-	if (UGameInstance* GameInstance = GetGameInstance())
-	{
-		LevelGISubsystem = GameInstance->GetSubsystem<ULevelGISubsystem>();
-	}
 
 	if (IsValid(QuitGameButton))
 		QuitGameButton->OnClicked.AddUniqueDynamic(this, &ThisClass::HandleQuitGameButtonClicked);
@@ -130,7 +123,6 @@ void UW_ESCWidget::HandleBackgroundCloseButtonClicked()
 void UW_ESCWidget::HandleQuitConfirmButtonClicked()
 {
 	OnQuitGameClicked.Broadcast();
-	UKismetSystemLibrary::QuitGame(this, GetOwningPlayer(), EQuitPreference::Quit, false);
 }
 
 void UW_ESCWidget::HandleQuitCancelButtonClicked()
@@ -162,11 +154,6 @@ void UW_ESCWidget::HandleMainMenuButtonClicked()
 
 void UW_ESCWidget::HandleMainMenuConfirmButtonClicked()
 {
-	if (IsValid(LevelGISubsystem))
-	{
-		LevelGISubsystem->MoveStartLevel();
-	}
-
 	OnMainMenuClicked.Broadcast();
 }
 

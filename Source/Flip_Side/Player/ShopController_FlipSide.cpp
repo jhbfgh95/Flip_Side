@@ -7,7 +7,9 @@
 #include "ShopPlayerPawn_FlipSide.h"
 
 #include "Subsystem/MoneyGISubsystem.h"
+#include "Subsystem/BossSetupGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Subsystem/LevelGISubsystem.h"
 #include "Subsystem/UnlockGISubsystem.h"
 
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
@@ -24,7 +26,7 @@
 #include "UI/ShopUnlockWeapon/UnlockWeaponPresenter.h"
 #include "UI/ShopPageChangePresenter.h"
 #include "UI/ShopUISelectRegistry.h"
-#include "UI/W_ESCWidget.h"
+#include "UI/W_ShopBossClearProgress.h"
 
 #include "Interface/ShopMouseInterface.h"
 #include "UI/W_ShopWidgetContainer.h"
@@ -100,25 +102,39 @@ void AShopController_FlipSide::BeginPlay()
     if(MoneySubsystem)
         MoneySubsystem->UpdateMoneyDisplayWidget();
 
-	if (IsValid(ESCWidgetClass))
-    {
-        ESCWidget = Cast<UW_ESCWidget>(CreateWidget<UUserWidget>(this, ESCWidgetClass));
-	    ESCWidget->AddToViewport();
-	    ESCWidget->SetVisibility(ESlateVisibility::Collapsed);
-	    ESCWidget->OnContinueGameClicked.AddDynamic(this, &AShopController_FlipSide::ToggleESCMenu);
-    }
+	if (IsValid(BossClearProgressWidgetClass))
+	{
+		BossClearProgressWidget = CreateWidget<UW_ShopBossClearProgress>(this, BossClearProgressWidgetClass);
+		if (IsValid(BossClearProgressWidget))
+		{
+			TArray<FBossDisplayData> BossDataList;
+			if (IsValid(DataManager))
+			{
+				if (UBossSetupGISubsystem* BossSetupSubsystem = GetGameInstance()->GetSubsystem<UBossSetupGISubsystem>())
+				{
+					const TMap<int32, int32> StageBossAssignments = BossSetupSubsystem->GetStageBossAssignments();
+					TArray<int32> StageIndices;
+					StageBossAssignments.GenerateKeyArray(StageIndices);
+					StageIndices.Sort();
 
-    
-    //InitWidget(BlockWidgetClass,BlockWidget,20);
-    //InitWidget(ShopMainWidgetClass,ShopMainWidget,0);
-    //InitWidget(ShopModeWidgetClass,ShopModeWidget,0);
-    
-    //AddOpenWidgetList(ShopWidgetContainer);
+					for (const int32 StageIndex : StageIndices)
+					{
+						const int32* BossID = StageBossAssignments.Find(StageIndex);
+						const FBossDisplayData* BossData = BossID ? DataManager->BossByID.Find(*BossID) : nullptr;
+						if (BossData)
+						{
+							BossDataList.Add(*BossData);
+						}
+					}
+				}
+			}
 
-    //ViewWidgetList();
-
-    //SetLockMouse(false);
-
+			ULevelGISubsystem* LevelSubsystem = GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+			const int32 CurrentStage = IsValid(LevelSubsystem) ? LevelSubsystem->GetBattleLevelIndex() : 0;
+			BossClearProgressWidget->SetBossProgress(BossDataList, CurrentStage);
+			BossClearProgressWidget->AddToViewport(70);
+		}
+	}
 }
 
 
@@ -146,27 +162,7 @@ void AShopController_FlipSide::SetupInputComponent()
     }
 
     InputComponent->BindKey(EKeys::LeftMouseButton, IE_Pressed, this, &AShopController_FlipSide::OnLeftClick);
-	InputComponent->BindKey(EKeys::Escape, IE_Pressed, this, &AShopController_FlipSide::ToggleESCMenu);
-	InputComponent->BindKey(EKeys::CapsLock, IE_Pressed, this, &AShopController_FlipSide::ToggleESCMenu);
     //InputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnRightClick);
-}
-
-void AShopController_FlipSide::ToggleESCMenu()
-{
-	if (!IsValid(ESCWidget)){return;}
-
-    if (ESCWidget->GetVisibility() == ESlateVisibility::Visible)
-    {
-        if(ESCWidget->CloseESCWidget())
-        {
-            SetLockMouse(false);
-        }
-    }
-    else
-    {
-        SetLockMouse(true);
-        ESCWidget->SetVisibility(ESlateVisibility::Visible);
-    }
 }
 
 //폰하고 연결

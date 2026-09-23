@@ -125,6 +125,46 @@ bool UBossSetupGISubsystem::GetPreparedBossInfo(FBossDisplayData& OutBossData) c
     return GetPreparedBossData(OutBossData);
 }
 
+TMap<int32, int32> UBossSetupGISubsystem::GetStageBossAssignments() const
+{
+    return StageBossAssignment;
+}
+
+bool UBossSetupGISubsystem::SetStageBossAssignments(const TMap<int32, int32>& InAssignments)
+{
+    if (InAssignments.IsEmpty())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[BossSetupGI] Restore stage assignment failed: saved assignment is empty"));
+        return false;
+    }
+
+    StageBossAssignment = InAssignments;
+    ClearPreparedBoss();
+    return true;
+}
+
+bool UBossSetupGISubsystem::PrepareBossForSavedData(int32 StageIndex, int32 BossID)
+{
+    ClearPreparedBoss();
+
+    const FBossDisplayData* Found = AllBossData.FindByPredicate([BossID](const FBossDisplayData& Data)
+    {
+        return Data.BossID == BossID;
+    });
+    if (!Found)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[BossSetupGI] Prepare saved boss failed: BossID %d not found"), BossID);
+        return false;
+    }
+
+    PreparedBossData = *Found;
+    PreparedContext.StageIndex = StageIndex;
+    PreparedContext.PickedBossID = Found->BossID;
+    PreparedContext.PickedBossName = Found->BossName;
+    PreparedContext.bPrepared = true;
+    return true;
+}
+
 void UBossSetupGISubsystem::ClearPreparedBoss()
 {
     PreparedBossData = FBossDisplayData{};

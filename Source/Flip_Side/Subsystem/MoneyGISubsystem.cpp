@@ -124,6 +124,12 @@ int32 UMoneyGISubsystem::GetCurrentMoney() const
     return CurrentMoney;
 }
 
+void UMoneyGISubsystem::SetCurrentMoney(int32 InMoney)
+{
+    CurrentMoney = FMath::Clamp(InMoney, 0, 99999999);
+    UpdateMoneyDisplayWidget();
+}
+
 void UMoneyGISubsystem::EnsureMoneyDisplayWidget()
 {
     if (MoneyDisplayWidgetInstance && MoneyDisplayWidgetInstance->IsInViewport())

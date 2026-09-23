@@ -21,6 +21,14 @@ public:
 private:
 	void CreateAndShowESCWidget(UWorld& World);
 
+	void SaveCurrentGame() const;
+
+	UFUNCTION()
+	void HandleQuitGameRequested();
+
+	UFUNCTION()
+	void HandleMainMenuRequested();
+
 	UPROPERTY()
-	TObjectPtr<class UUserWidget> ESCWidgetInstance;
+	TObjectPtr<class UW_ESCWidget> ESCWidgetInstance;
 };

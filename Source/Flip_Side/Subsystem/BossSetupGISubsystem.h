@@ -75,6 +75,15 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Boss")
     const FPreparedBossContext& GetPreparedBossContext() const { return PreparedContext; }
 
+    // 저장 시스템에 현재 게임에서 결정된 보스 등장 순서를 복사본으로 제공합니다.
+    TMap<int32, int32> GetStageBossAssignments() const;
+
+    // 저장된 보스 등장 순서를 복원합니다.
+    bool SetStageBossAssignments(const TMap<int32, int32>& InAssignments);
+
+    // 저장 시점의 스테이지와 보스 ID로 준비 상태를 정확히 복원합니다.
+    bool PrepareBossForSavedData(int32 StageIndex, int32 BossID);
+
     UFUNCTION(BlueprintCallable, Category = "Boss")
     void ClearPreparedBoss();
 

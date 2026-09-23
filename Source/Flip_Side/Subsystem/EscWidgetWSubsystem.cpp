@@ -3,9 +3,13 @@
 
 #include "Subsystem/EscWidgetWSubsystem.h"
 
-#include "Blueprint/UserWidget.h"
+#include "Engine/GameInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Subsystem/FlipSideDevloperSettings.h"
+#include "Subsystem/LevelGISubsystem.h"
+#include "Subsystem/SaveGISubsystem.h"
+#include "UI/W_ESCWidget.h"
 
 void UEscWidgetWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
@@ -29,6 +33,8 @@ void UEscWidgetWSubsystem::Deinitialize()
 {
 	if (IsValid(ESCWidgetInstance))
 	{
+		ESCWidgetInstance->OnQuitGameClicked.RemoveAll(this);
+		ESCWidgetInstance->OnMainMenuClicked.RemoveAll(this);
 		ESCWidgetInstance->RemoveFromParent();
 		ESCWidgetInstance = nullptr;
 	}
@@ -51,11 +57,50 @@ void UEscWidgetWSubsystem::CreateAndShowESCWidget(UWorld& World)
 		return;
 	}
 
-	ESCWidgetInstance = CreateWidget<UUserWidget>(&World, ESCWidgetClass);
+	ESCWidgetInstance = CreateWidget<UW_ESCWidget>(&World, ESCWidgetClass);
 	if (IsValid(ESCWidgetInstance))
 	{
+		ESCWidgetInstance->OnQuitGameClicked.AddUniqueDynamic(this, &ThisClass::HandleQuitGameRequested);
+		ESCWidgetInstance->OnMainMenuClicked.AddUniqueDynamic(this, &ThisClass::HandleMainMenuRequested);
 		ESCWidgetInstance->AddToViewport(50);
 		// 루트의 빈 영역은 아래 UI 입력을 통과시키고, 자식 버튼만 입력을 받습니다.
 		ESCWidgetInstance->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
+}
+
+void UEscWidgetWSubsystem::SaveCurrentGame() const
+{
+	UWorld* World = GetWorld();
+	if (UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr)
+	{
+		if (USaveGISubsystem* SaveSubsystem = GameInstance->GetSubsystem<USaveGISubsystem>())
+		{
+			SaveSubsystem->SaveCurrentGame();
+		}
+	}
+}
+
+void UEscWidgetWSubsystem::HandleQuitGameRequested()
+{
+	SaveCurrentGame();
+	UKismetSystemLibrary::QuitGame(this, UGameplayStatics::GetPlayerController(GetWorld(), 0), EQuitPreference::Quit, false);
+}
+
+void UEscWidgetWSubsystem::HandleMainMenuRequested()
+{
+	SaveCurrentGame();
+
+	UWorld* World = GetWorld();
+	if (UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr)
+	{
+		if (USaveGISubsystem* SaveSubsystem = GameInstance->GetSubsystem<USaveGISubsystem>())
+		{
+			SaveSubsystem->SetReturnedToStartMenu(true);
+		}
+
+		if (ULevelGISubsystem* LevelSubsystem = GameInstance->GetSubsystem<ULevelGISubsystem>())
+		{
+			LevelSubsystem->MoveStartLevel();
+		}
 	}
 }

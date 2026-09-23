@@ -32,6 +32,11 @@ void ULevelGISubsystem::MoveShopLevel()
     UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_ShopLevel")));
 }
 
+void ULevelGISubsystem::MoveLoadedShopLevel()
+{
+    UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_ShopLevel")));
+}
+
 void ULevelGISubsystem::MovingTutorialLevel(int32 tutorialflag)
 {
     //상점으로 넘어가기 때문에 prepare해둔다.
@@ -80,6 +85,11 @@ void ULevelGISubsystem::MovingTutorialLevel(int32 tutorialflag)
 int32 ULevelGISubsystem::GetBattleLevelIndex()
 {
     return BattleLevelIndex;
+}
+
+void ULevelGISubsystem::SetBattleLevelIndex(int32 InBattleLevelIndex)
+{
+    BattleLevelIndex = FMath::Max(0, InBattleLevelIndex);
 }
 
 void ULevelGISubsystem::MoveStartLevel()

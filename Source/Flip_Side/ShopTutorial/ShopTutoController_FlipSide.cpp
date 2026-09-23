@@ -6,8 +6,6 @@
 
 void AShopTutoController_FlipSide::SetNonTutorialWidget()
 {
-    ShopMainWidgetClass = NonTutoShopMainWidgetClass;
-    ShopModeWidgetClass = NonTutoShopModeWidgetClass;
 
     HideWidgetList();
     SetShopMainModeWidget();
