@@ -51,6 +51,12 @@ public:
 
 	void ResetUnlockData();
 
+	// SaveGame에서 읽은 해금 무기 ID 목록을 현재 게임 상태에 적용합니다.
+	void ApplyUnlockedWeaponIDs(const TArray<int32>& InUnlockedWeaponIDs);
+
+	// SaveGame에서 읽은 해금 카드 ID 목록을 현재 게임 상태에 적용합니다.
+	void ApplyUnlockedCardIDs(const TArray<int32>& InUnlockedCardIDs);
+
 	const TArray<int32>& GetUnlockWeaponArray();
 	const TArray<int32>& GetUnlockCardArray();
 };

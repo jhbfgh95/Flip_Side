@@ -18,6 +18,7 @@ public class Flip_Side : ModuleRules
 			"SQLiteSupport", 
 			"Niagara",
 			"UMG",
+			"MediaAssets",
 			"GeometryCollectionEngine"
 			 });
 

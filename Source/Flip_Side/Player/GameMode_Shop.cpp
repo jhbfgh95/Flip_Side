@@ -8,16 +8,18 @@
 #include "DataTypes/CoinDataTypes.h"
 #include "Subsystem/CrossingLevelGISubsystem.h"
 #include "Subsystem/LevelGISubsystem.h"
-#include "Subsystem/MoneyGISubsystem.h"
+#include "Subsystem/SaveGISubsystem.h"
 
 
 
 void AGameMode_Shop::BeginPlay()
 {
     Super::BeginPlay();
-    UMoneyGISubsystem* subsystem = Cast<UMoneyGISubsystem>(GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>());
-    if(subsystem)
-        subsystem->InitMoney();
+
+    if (USaveGISubsystem* SaveSubsystem = GetGameInstance()->GetSubsystem<USaveGISubsystem>())
+    {
+        SaveSubsystem->SaveCurrentGame();
+    }
 }
 
 void AGameMode_Shop::ChangeBattleLevel()

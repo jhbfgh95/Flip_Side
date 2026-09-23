@@ -12,7 +12,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnESCSettingClicked);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnESCMainMenuClicked);
 
 class UButton;
-class ULevelGISubsystem;
 class UOverlay;
 class UCanvasPanel;
 
@@ -85,9 +84,6 @@ public:
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UW_SettingWidget> SettingWidget;
-
-	UPROPERTY()
-	TObjectPtr<ULevelGISubsystem> LevelGISubsystem;
 
 public:
 	bool CloseESCWidget();

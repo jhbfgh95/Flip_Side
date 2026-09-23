@@ -11,6 +11,7 @@ class UUserWidget;
 class AShopItemUIActor;
 class AShopCoinUIActor;
 class AShopUnlockWeaponUIActor;
+class UW_ShopBossClearProgress;
 UCLASS(abstract)
 class AShopController_FlipSide : public APlayerController
 {
@@ -31,29 +32,18 @@ public:
 	virtual void PlayerTick(float DeltaTime) override; // 매 프레임 마우스 호버 감지용
 /* UI */
 protected:
-	//상점 메인 UI
-	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> ShopMainWidgetClass;
-
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> BlockWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> ShopModeWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> ShopWidgetContainerClass;
 
-/*ESC UI*/
-protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> ESCWidgetClass;
+	TSubclassOf<UW_ShopBossClearProgress> BossClearProgressWidgetClass;
 
 	UPROPERTY()
-	TObjectPtr<class UW_ESCWidget> ESCWidget;
+	TObjectPtr<UW_ShopBossClearProgress> BossClearProgressWidget;
 
-	UFUNCTION()
-	void ToggleESCMenu();
 protected:
 /*UI에 쓰이는 액터들 */
 

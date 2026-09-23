@@ -169,6 +169,10 @@ public:
 	UFUNCTION()
 	int32 GetCurrentMoney() const;
 
+	// 저장 데이터를 불러올 때처럼 현재 보유 금액을 직접 복원할 때 사용합니다.
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentMoney(int32 InMoney);
+
 	void UpdateMoneyDisplayWidget();
 private:
 	void EnsureMoneyDisplayWidget();

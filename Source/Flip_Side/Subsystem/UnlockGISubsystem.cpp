@@ -33,12 +33,21 @@ void UUnlockGISubsystem::OnLevelLoad(UWorld* LoadedWorld)
 
 void UUnlockGISubsystem::ResetUnlockData()
 {
+	UnlockWeaponArray.Reset();
 	CardUnlockArray.Reset();
-    
-    if(UnlockWeaponArray.Num()<=0)
-    {
-        UnlockWeaponArray.Add(1);
-    }
+
+	// 새 게임의 기본 해금 무기입니다.
+	UnlockWeaponArray.Add(1);
+}
+
+void UUnlockGISubsystem::ApplyUnlockedWeaponIDs(const TArray<int32>& InUnlockedWeaponIDs)
+{
+	UnlockWeaponArray = InUnlockedWeaponIDs;
+}
+
+void UUnlockGISubsystem::ApplyUnlockedCardIDs(const TArray<int32>& InUnlockedCardIDs)
+{
+	CardUnlockArray = InUnlockedCardIDs;
 }
 
 void UUnlockGISubsystem::UnlockWeapon(int32 ID)
