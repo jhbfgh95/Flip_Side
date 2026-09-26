@@ -9,7 +9,7 @@
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Engine/Texture2D.h"
-#include "Components/UniformGridPanel.h"
+#include "Components/WrapBox.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "UI/BattleBuffIconWidget.h"
 #include "UI/CoinDescriptionBookmarkWidget.h"
@@ -49,8 +49,21 @@ void UBattleCoinInfoWidget::NativeConstruct()
 		}
 	}
 	if (IsValid(WeaponIcon)) WeaponMaterial = WeaponIcon->GetDynamicMaterial();
+	// 기존 Brush의 UI 머테리얼을 사용하며, 텍스처/색상/장식은 BP가 결정합니다.
+	if (IsValid(HPFillImage))
+	{
+		HPFillMaterial = HPFillImage->GetDynamicMaterial();
+		if (!IsValid(HPFillMaterial)) UE_LOG(LogTemp, Warning, TEXT("[BattleCoinInfo] HPFillImage Brush에 FillAmount 파라미터를 가진 UI 머테리얼이 필요합니다."));
+	}
+	if (IsValid(ShieldFillImage))
+	{
+		ShieldFillMaterial = ShieldFillImage->GetDynamicMaterial();
+		if (!IsValid(ShieldFillMaterial)) UE_LOG(LogTemp, Warning, TEXT("[BattleCoinInfo] ShieldFillImage Brush에 FillAmount 파라미터를 가진 UI 머테리얼이 필요합니다."));
+	}
 	if (IsValid(OppositeFaceButton))
 		OppositeFaceButton->OnClicked.AddUniqueDynamic(this, &UBattleCoinInfoWidget::HandleOppositeFaceClicked);
+	if (IsValid(BackToReadyButton))
+		BackToReadyButton->OnClicked.AddUniqueDynamic(this, &UBattleCoinInfoWidget::HandleBackToReadyClicked);
 	if (IsValid(DetailedDescriptionToggleButton))
 		DetailedDescriptionToggleButton->OnClicked.AddUniqueDynamic(this, &UBattleCoinInfoWidget::ToggleDetailedDescriptions);
 	// 키워드 사전은 슬롯 팝업과 동일하게 BP에서 배치한 위젯을 재사용합니다.
@@ -65,12 +78,19 @@ void UBattleCoinInfoWidget::NativeConstruct()
 
 void UBattleCoinInfoWidget::NativeDestruct()
 {
+	if (IsValid(BackToReadyButton))
+		BackToReadyButton->OnClicked.RemoveDynamic(this, &UBattleCoinInfoWidget::HandleBackToReadyClicked);
 	if (IsValid(OppositeFaceButton))
 		OppositeFaceButton->OnClicked.RemoveDynamic(this, &UBattleCoinInfoWidget::HandleOppositeFaceClicked);
 	if (IsValid(DetailedDescriptionToggleButton))
 		DetailedDescriptionToggleButton->OnClicked.RemoveDynamic(this, &UBattleCoinInfoWidget::ToggleDetailedDescriptions);
 	ClearBattleCoinInfo();
 	Super::NativeDestruct();
+}
+
+void UBattleCoinInfoWidget::HandleBackToReadyClicked()
+{
+	OnBackToReadyRequested.Broadcast();
 }
 
 void UBattleCoinInfoWidget::SetBattleCoinInfo(const FBattleCoinInfoViewData& InData)
@@ -87,16 +107,24 @@ void UBattleCoinInfoWidget::SetBattleCoinInfo(const FBattleCoinInfoViewData& InD
 		bShowingOppositeFace = false;
 		bDetailed = false;
 	}
-	if (IsValid(CoinInfoContent)) CoinInfoContent->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	if (IsValid(EmptyInfoText)) EmptyInfoText->SetVisibility(ESlateVisibility::Collapsed);
-	if (IsValid(CoinCurrentHPText)) CoinCurrentHPText->SetText(FText::AsNumber(FMath::Max(0, InData.CurrentHP)));
+	if (IsValid(CoinCurrentHPText))
+	{
+		CoinCurrentHPText->SetText(FText::AsNumber(FMath::Max(0, InData.CurrentHP)));
+		const float HPRatio = InData.MaxHP > 0
+			? FMath::Clamp(static_cast<float>(InData.CurrentHP) / InData.MaxHP, 0.0f, 1.0f) : 0.0f;
+		const FLinearColor& TextColor = HPRatio <= 0.4f ? CurrentHPLowColor
+			: (HPRatio <= 0.7f ? CurrentHPMediumColor : CurrentHPHighColor);
+		CoinCurrentHPText->SetColorAndOpacity(FSlateColor(TextColor));
+	}
 	if (IsValid(CoinMaxHPText)) CoinMaxHPText->SetText(FText::AsNumber(FMath::Max(0, InData.MaxHP)));
-	if (IsValid(ShieldText))
+	if (IsValid(ShieldText) && IsValid(ShieldIcon))
 	{
 		ShieldText->SetText(FText::AsNumber(FMath::Max(0, InData.Shield)));
-		ShieldText->SetVisibility(InData.Shield > 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		ShieldText->SetVisibility(InData.Shield > 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
+		ShieldIcon->SetVisibility(InData.Shield > 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
 	}
 	RefreshFace(bTargetChanged);
+	RefreshVitalGauges();
 	RefreshStatusEffects(InData.StatusEffects);
 	// 자식 버튼과 ScrollBox의 hit-test를 막지 않습니다.
 	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
@@ -105,15 +133,10 @@ void UBattleCoinInfoWidget::SetBattleCoinInfo(const FBattleCoinInfoViewData& InD
 void UBattleCoinInfoWidget::ClearBattleCoinInfo()
 {
 	CurrentData = FBattleCoinInfoViewData();
+	RefreshVitalGauges();
 	bShowingOppositeFace = false;
 	bDetailed = false;
 	DisplayedWeaponID = INDEX_NONE;
-	if (IsValid(CoinInfoContent)) CoinInfoContent->SetVisibility(ESlateVisibility::Collapsed);
-	if (IsValid(EmptyInfoText))
-	{
-		EmptyInfoText->SetText(NSLOCTEXT("BattleCoinInfo", "Empty", "코인에 마우스를 올려 정보를 확인하세요."));
-		EmptyInfoText->SetVisibility(ESlateVisibility::HitTestInvisible);
-	}
 	for (UTextBlock* Text : {WeaponNameText.Get(), CoinCurrentHPText.Get(), CoinMaxHPText.Get(), ShieldText.Get(), DisplayedFaceText.Get()})
 		if (IsValid(Text)) Text->SetText(FText::GetEmpty());
 	for (URichTextBlock* Text : {AttackPointText.Get(), WeaponPointText.Get(), WeaponCountText.Get()})
@@ -123,6 +146,24 @@ void UBattleCoinInfoWidget::ClearBattleCoinInfo()
 	RefreshDescriptions({}, true);
 	RefreshStatusEffects({});
 	RefreshDetailedDescriptions();
+}
+
+void UBattleCoinInfoWidget::RefreshVitalGauges()
+{
+	const bool bHasCoin = CurrentData.CoinInstanceID != INDEX_NONE;
+	const float HPFill = CurrentData.MaxHP > 0
+		? FMath::Clamp(static_cast<float>(CurrentData.CurrentHP) / CurrentData.MaxHP, 0.0f, 1.0f) : 0.0f;
+	// 기준량 없는 이전 데이터도 0 나눗셈 없이 표시합니다. 정상 데이터는 획득 시 기준량을 사용합니다.
+	const int32 ShieldCapacity = FMath::Max(CurrentData.ShieldGaugeCapacity, CurrentData.Shield);
+	const float ShieldFill = ShieldCapacity > 0
+		? FMath::Clamp(static_cast<float>(CurrentData.Shield) / ShieldCapacity, 0.0f, 1.0f) : 0.0f;
+	if (IsValid(HPFillMaterial)) HPFillMaterial->SetScalarParameterValue(TEXT("FillAmount"), bHasCoin ? HPFill : 0.0f);
+	if (IsValid(ShieldFillMaterial)) ShieldFillMaterial->SetScalarParameterValue(TEXT("FillAmount"), bHasCoin ? ShieldFill : 0.0f);
+	if (IsValid(HPFillImage)) HPFillImage->SetVisibility(bHasCoin && IsValid(HPFillMaterial)
+		? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
+	// Hidden은 Overlay 크기를 유지합니다. 감소한 쉴드의 투명 영역으로 뒤의 HP가 드러납니다.
+	if (IsValid(ShieldFillImage)) ShieldFillImage->SetVisibility(bHasCoin && CurrentData.Shield > 0 && IsValid(ShieldFillMaterial)
+		? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
 }
 
 void UBattleCoinInfoWidget::HandleOppositeFaceClicked()
@@ -150,11 +191,9 @@ void UBattleCoinInfoWidget::RefreshFace(bool bResetSelection)
 		WeaponIcon->SetVisibility(IsValid(Face.WeaponIcon) ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
 	}
 	if (IsValid(WeaponNameText)) WeaponNameText->SetText(Face.WeaponName);
-	if (IsValid(AttackPointText)) AttackPointText->SetText(FormatStatText(TEXT("공격력"), Face.BaseStats.AttackPoint, Face.FinalStats.AttackPoint));
-	if (IsValid(WeaponPointText)) WeaponPointText->SetText(FormatStatText(TEXT("무기력"), Face.BaseStats.WeaponPoint, Face.FinalStats.WeaponPoint));
-	if (IsValid(WeaponCountText)) WeaponCountText->SetText(FormatStatText(TEXT("횟수"), Face.BaseStats.WeaponCnt, Face.FinalStats.WeaponCnt));
-	if (IsValid(DisplayedFaceText)) DisplayedFaceText->SetText(bShowingOppositeFace
-		? NSLOCTEXT("BattleCoinInfo", "Opposite", "뒷면") : NSLOCTEXT("BattleCoinInfo", "Upper", "앞면"));
+	// 전투 윗면이 아니라 DB에 저장된 Front/Back을 표시합니다.
+	if (IsValid(DisplayedFaceText)) DisplayedFaceText->SetText(bDisplayBack
+		? NSLOCTEXT("BattleCoinInfo", "StoredBack", "뒷면") : NSLOCTEXT("BattleCoinInfo", "StoredFront", "앞면"));
 	if (IsValid(OppositeFaceButton)) OppositeFaceButton->SetIsEnabled(true);
 	RefreshDescriptions(Face.Description.Sections, bResetSelection || DisplayedWeaponID != Face.WeaponID);
 	DisplayedWeaponID = Face.WeaponID;
@@ -186,14 +225,16 @@ void UBattleCoinInfoWidget::RefreshDescriptions(const TArray<FCoinDescriptionSec
 		}
 		return;
 	}
-	if (!IsValid(DescriptionContainer)) return;
-	if (!IsValid(DescriptionWidget) && DescriptionSectionWidgetClass && !DescriptionSectionWidgetClass->HasAnyClassFlags(CLASS_Abstract))
-		DescriptionWidget = CreateWidget<UCoinDescriptionSectionWidget>(this, DescriptionSectionWidgetClass);
-	if (!IsValid(DescriptionWidget)) return;
-	if (DescriptionWidget->GetParent() != DescriptionContainer)
+	// 설명 본문을 배치하지 않은 화면에서도 책갈피는 독립적으로 생성합니다.
+	if (IsValid(DescriptionContainer))
 	{
-		DescriptionWidget->RemoveFromParent();
-		DescriptionContainer->SetContent(DescriptionWidget);
+		if (!IsValid(DescriptionWidget) && DescriptionSectionWidgetClass && !DescriptionSectionWidgetClass->HasAnyClassFlags(CLASS_Abstract))
+			DescriptionWidget = CreateWidget<UCoinDescriptionSectionWidget>(this, DescriptionSectionWidgetClass);
+		if (IsValid(DescriptionWidget) && DescriptionWidget->GetParent() != DescriptionContainer)
+		{
+			DescriptionWidget->RemoveFromParent();
+			DescriptionContainer->SetContent(DescriptionWidget);
+		}
 	}
 	if (bRebuild)
 	{
@@ -226,11 +267,14 @@ void UBattleCoinInfoWidget::HandleBookmarkClicked(bool bFrontFace, int32 Index)
 
 void UBattleCoinInfoWidget::SelectDescription(int32 Index)
 {
-	if (!DescriptionData.IsValidIndex(Index) || !IsValid(DescriptionWidget)) return;
+	if (!DescriptionData.IsValidIndex(Index)) return;
 	SelectedSection = Index;
-	DescriptionWidget->SetSectionData(DescriptionData[Index]);
-	DescriptionWidget->SetDetailed(bDetailed);
-	DescriptionWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	if (IsValid(DescriptionWidget))
+	{
+		DescriptionWidget->SetSectionData(DescriptionData[Index]);
+		DescriptionWidget->SetDetailed(bDetailed);
+		DescriptionWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
 	for (int32 BookmarkIndex = 0; BookmarkIndex < Bookmarks.Num(); ++BookmarkIndex)
 		if (IsValid(Bookmarks[BookmarkIndex])) Bookmarks[BookmarkIndex]->SetBookmarkActive(BookmarkIndex == Index);
 }
@@ -243,6 +287,15 @@ void UBattleCoinInfoWidget::ToggleDetailedDescriptions()
 
 void UBattleCoinInfoWidget::RefreshDetailedDescriptions()
 {
+	// 상세 버튼, 면 전환, 실시간 스탯 갱신 모두 같은 표시 상태를 사용합니다.
+	if (CurrentData.CoinInstanceID != INDEX_NONE)
+	{
+		const bool bDisplayBack = (CurrentData.UpperFace == EFaceState::Back) != bShowingOppositeFace;
+		const FBattleWeaponFaceInfoViewData& Face = bDisplayBack ? CurrentData.BackFace : CurrentData.FrontFace;
+		if (IsValid(AttackPointText)) AttackPointText->SetText(FormatStatText(Face.BaseStats.AttackPoint, Face.FinalStats.AttackPoint, bDetailed));
+		if (IsValid(WeaponPointText)) WeaponPointText->SetText(FormatStatText(Face.BaseStats.WeaponPoint, Face.FinalStats.WeaponPoint, bDetailed));
+		if (IsValid(WeaponCountText)) WeaponCountText->SetText(FormatStatText(Face.BaseStats.WeaponCnt, Face.FinalStats.WeaponCnt, bDetailed));
+	}
 	if (IsValid(DescriptionWidget)) DescriptionWidget->SetDetailed(bDetailed);
 	if (IsValid(DetailedDescriptionToggleText)) DetailedDescriptionToggleText->SetText(bDetailed
 		? NSLOCTEXT("CoinDescription", "DetailOn", "상세 표시: 켜짐")
@@ -251,31 +304,47 @@ void UBattleCoinInfoWidget::RefreshDetailedDescriptions()
 
 void UBattleCoinInfoWidget::RefreshStatusEffects(const TArray<FBattleStatusEffectViewData>& Effects)
 {
-	if (!IsValid(StatusEffectGrid)) return;
-	// 기존 자식을 재사용해 스탯 이벤트마다 ScrollBox와 레이아웃이 초기화되지 않게 합니다.
-	while (StatusIcons.Num() > Effects.Num())
+	// 원래 순서를 유지하면서 표시 목록만 분리합니다. 상태 적용 로직에는 관여하지 않습니다.
+	TArray<FBattleStatusEffectViewData> Buffs;
+	TArray<FBattleStatusEffectViewData> Debuffs;
+	for (const FBattleStatusEffectViewData& Effect : Effects)
 	{
-		UBattleBuffIconWidget* Icon = StatusIcons.Pop();
-		if (IsValid(Icon)) { Icon->ClearBuffData(); Icon->RemoveFromParent(); }
+		(Effect.Polarity == EStatusPolarity::Debuff ? Debuffs : Buffs).Add(Effect);
 	}
-	while (StatusIcons.Num() < Effects.Num())
+	auto RefreshContainer = [this](UWrapBox* Container,
+		TArray<TObjectPtr<UBattleBuffIconWidget>>& Icons, const TArray<FBattleStatusEffectViewData>& Entries)
 	{
-		if (!BattleBuffIconWidgetClass || BattleBuffIconWidgetClass->HasAnyClassFlags(CLASS_Abstract)) break;
-		UBattleBuffIconWidget* Icon = CreateWidget<UBattleBuffIconWidget>(this, BattleBuffIconWidgetClass);
-		if (!IsValid(Icon)) break;
-		const int32 Index = StatusIcons.Num();
-		StatusEffectGrid->AddChildToUniformGrid(Icon, Index / 5, Index % 5);
-		StatusIcons.Add(Icon);
-	}
-	for (int32 Index = 0; Index < StatusIcons.Num(); ++Index)
-		if (IsValid(StatusIcons[Index])) StatusIcons[Index]->SetBuffData(Effects[Index]);
-	StatusEffectGrid->SetVisibility(Effects.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::SelfHitTestInvisible);
+		if (!IsValid(Container)) return;
+		// 목록별 자식을 재사용해 수치 갱신 시 스크롤/레이아웃 초기화를 줄입니다.
+		while (Icons.Num() > Entries.Num())
+		{
+			UBattleBuffIconWidget* Icon = Icons.Pop();
+			if (IsValid(Icon)) { Icon->ClearBuffData(); Icon->RemoveFromParent(); }
+		}
+		while (Icons.Num() < Entries.Num())
+		{
+			if (!BattleBuffIconWidgetClass || BattleBuffIconWidgetClass->HasAnyClassFlags(CLASS_Abstract)) break;
+			UBattleBuffIconWidget* Icon = CreateWidget<UBattleBuffIconWidget>(this, BattleBuffIconWidgetClass);
+			if (!IsValid(Icon)) break;
+			// 행/열을 고정하지 않습니다. WrapBox의 너비와 자식의 Desired Size로 배치합니다.
+			Container->AddChildToWrapBox(Icon);
+			Icons.Add(Icon);
+		}
+		for (int32 Index = 0; Index < Icons.Num(); ++Index)
+			if (IsValid(Icons[Index])) Icons[Index]->SetBuffData(Entries[Index]);
+		Container->SetVisibility(Entries.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::SelfHitTestInvisible);
+	};
+	RefreshContainer(BuffContainer, BuffIcons, Buffs);
+	RefreshContainer(DebuffContainer, DebuffIcons, Debuffs);
 }
 
-FText UBattleCoinInfoWidget::FormatStatText(const TCHAR* Label, int32 BaseValue, int32 FinalValue)
+FText UBattleCoinInfoWidget::FormatStatText(int32 BaseValue, int32 FinalValue, bool bShowDetails)
 {
 	const int32 Difference = FinalValue - BaseValue;
-	if (Difference == 0) return FText::FromString(FString::Printf(TEXT("%s %d"), Label, FinalValue));
-	return FText::FromString(FString::Printf(TEXT("%s %d <%s>(%+d)</>"),
-		Label, FinalValue, Difference > 0 ? TEXT("Green") : TEXT("Red"), Difference));
+	if (Difference == 0) return FText::AsNumber(FinalValue);
+	const TCHAR* Style = Difference > 0 ? TEXT("Green") : TEXT("Red");
+	// 기본은 최종값 전체를, 상세는 순변화량만 기존 RichText 스타일로 강조합니다.
+	if (!bShowDetails)
+		return FText::FromString(FString::Printf(TEXT("<%s>%d</>"), Style, FinalValue));
+	return FText::FromString(FString::Printf(TEXT("%d <%s>(%+d)</>"), FinalValue, Style, Difference));
 }

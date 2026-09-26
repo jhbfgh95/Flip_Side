@@ -3,7 +3,7 @@
 #include "Engine/GameInstance.h"
 #include "Components/Button.h"
 #include "Components/Border.h"
-#include "Components/HorizontalBox.h"
+#include "Components/PanelWidget.h"
 #include "Components/Spacer.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"

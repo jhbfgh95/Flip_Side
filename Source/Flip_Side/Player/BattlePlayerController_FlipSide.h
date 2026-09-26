@@ -204,6 +204,7 @@ protected:
     int32 SelectedInfoCoinInstanceID = INDEX_NONE;
     int32 SelectedInfoReadySlot = INDEX_NONE;
     EFaceState SelectedInfoUpperFace = EFaceState::Front;
+    bool bInfoUsesStoredFront = false;
 
 	bool bIsUIOnly = false;
 

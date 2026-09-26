@@ -215,6 +215,7 @@ bool UCoinManagementWSubsystem::TryAddReadyCoinFromSlot(int32 SlotNumber)
 	ReadyCoin.CurrentHP = CoinSlot->HP;
 	ReadyCoin.BaseMaxHP = CoinSlot->HP;
 	ReadyCoin.Shield = 0;
+	ReadyCoin.ShieldGaugeCapacity = 0;
 	ReadyCoin.PersistentStatusEffects.Reset();
 	ReadyCoin.bCanCancel = true;
 
@@ -320,6 +321,7 @@ bool UCoinManagementWSubsystem::ReplaceReadyCoinWithSample(
 	ReplacementCoin.CurrentHP = PreviousReadyCoin.BaseMaxHP;
 	ReplacementCoin.BaseMaxHP = PreviousReadyCoin.BaseMaxHP;
 	ReplacementCoin.Shield = 0;
+	ReplacementCoin.ShieldGaugeCapacity = 0;
 	ReplacementCoin.PersistentStatusEffects.Reset();
 	ReplacementCoin.bCanCancel = false;
 
@@ -493,6 +495,7 @@ void UCoinManagementWSubsystem::CheckBattleReadyCoinAlive()
 				ReadyCoins[ReadySlotIndex].CurrentHP = RuntimeState.CurrentHP;
 				ReadyCoins[ReadySlotIndex].BaseMaxHP = RuntimeState.BaseMaxHP;
 				ReadyCoins[ReadySlotIndex].Shield = RuntimeState.Shield;
+				ReadyCoins[ReadySlotIndex].ShieldGaugeCapacity = RuntimeState.ShieldGaugeCapacity;
 				ReadyCoins[ReadySlotIndex].PersistentStatusEffects = RuntimeState.PersistentStatusEffects;
 				ReadyCoins[ReadySlotIndex].bCanCancel = false;
 			}
@@ -751,6 +754,7 @@ ACoinActor* UCoinManagementWSubsystem::SpawnRuntimeCoinActor(
 		: ReadyCoin.CurrentHP;
 	StatInitializeData.RuntimeState.CurrentHP = ReadyCoin.CurrentHP;
 	StatInitializeData.RuntimeState.Shield = ReadyCoin.Shield;
+	StatInitializeData.RuntimeState.ShieldGaugeCapacity = ReadyCoin.ShieldGaugeCapacity;
 	StatInitializeData.RuntimeState.PersistentStatusEffects = ReadyCoin.PersistentStatusEffects;
 
 	const bool bInitialized = SpawnedCoin->SetCoinValues(

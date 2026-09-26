@@ -47,7 +47,7 @@ protected:
 	TObjectPtr<class UTextBlock> AdditionalKeywordText4;
 	// 키워드 이미지/텍스트뿐 아니라 배경과 간격까지 접어서 빈 칸의 크기를 없앱니다.
 	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<class UHorizontalBox> AdditionalKeywordRow;
+	TObjectPtr<class UPanelWidget> AdditionalKeywordRow;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UBorder> AdditionalKeywordBorder0;
 	UPROPERTY(meta = (BindWidgetOptional))

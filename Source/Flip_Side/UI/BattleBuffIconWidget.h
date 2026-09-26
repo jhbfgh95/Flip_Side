@@ -20,18 +20,23 @@ public:
 	void ClearBuffData();
 
 protected:
-	// 보스 아이콘 DB가 없으므로 BP에서 BuffTypeID별 표시 에셋을 지정할 수 있습니다.
-	UPROPERTY(EditDefaultsOnly, Category="Battle Buff Icon|Debuff")
-	TMap<int32, TObjectPtr<class UTexture2D>> DebuffIcons;
+	// 출처와 무관하게 버프/디버프 구분만으로 아이콘 색을 선택합니다.
+	UPROPERTY(EditDefaultsOnly, Category = "Battle Buff Icon|Color")
+	FLinearColor BuffIconColor = FLinearColor::White;
+	UPROPERTY(EditDefaultsOnly, Category = "Battle Buff Icon|Color")
+	FLinearColor DebuffIconColor = FLinearColor::White;
 	UPROPERTY(meta=(BindWidgetOptional))
 	TObjectPtr<class UTextBlock> RemainingTurnsText;
 	UPROPERTY(meta=(BindWidgetOptional))
 	TObjectPtr<class UTextBlock> StatusNameText;
 	UFUNCTION(BlueprintImplementableEvent, Category="Battle Buff Icon")
 	void OnStatusDataChanged(const FBattleStatusEffectViewData& Data);
-	// Brush에는 Buff_Icon/Buff_SourceBorder/Buff_SourceColor 파라미터가 있는 UI 머테리얼을 지정합니다.
+	// SourceImage와 같은 머테리얼 에셋을 사용하며 SourceIconText/SourceIconColor를 각각 갱신합니다.
 	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<class UImage> BuffIconImage;
+	TObjectPtr<class UImage> IconImage;
+	// BP Brush의 공통 UI 머테리얼에 SourceIconText/SourceIconColor를 연결합니다.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> SourceImage;
 
 	// BP에서 정적인 x Text와 StackCountText를 함께 넣고 배치할 컨테이너입니다.
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -68,4 +73,6 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<class UMaterialInstanceDynamic> BuffIconMaterial;
+	UPROPERTY(Transient)
+	TObjectPtr<class UMaterialInstanceDynamic> SourceIconMaterial;
 };

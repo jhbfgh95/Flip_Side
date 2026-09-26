@@ -110,6 +110,8 @@ bool UComponent_Status::InitializeCoinStats(const FCoinStatInitializeData& Initi
 	BaseMaxHP = InitializeData.RuntimeState.BaseMaxHP;
 	MaxHP = BaseMaxHP;
 	Shield = FMath::Clamp(InitializeData.RuntimeState.Shield, 0, MAX_SHIELD);
+	ShieldGaugeCapacity = Shield > 0
+		? FMath::Clamp(InitializeData.RuntimeState.ShieldGaugeCapacity, Shield, MAX_SHIELD) : 0;
 	bIsDead = false;
 	bHasRuntimeInitialized = true;
 	CurrentFace = EFaceState::None;
@@ -271,6 +273,8 @@ bool UComponent_Status::AddStatusEffect(FStatusEffectInstance StatusEffect)
 		{
 			return false;
 		}
+		// 일시 보호막도 추가 획득 시 합산 잔량을 100% 기준으로 삼습니다.
+		ShieldGaugeCapacity = Shield;
 		OnShieldChanged.Broadcast(StatusEffect.RuntimeValue);
 	}
 
@@ -386,6 +390,7 @@ FCoinRuntimeStateSnapshot UComponent_Status::ExportRuntimeState() const
 	RuntimeState.BaseMaxHP = BaseMaxHP;
 	RuntimeState.CurrentHP = HP;
 	RuntimeState.Shield = Shield;
+	RuntimeState.ShieldGaugeCapacity = ShieldGaugeCapacity;
 	RuntimeState.PersistentStatusEffects.Reserve(ActiveStatusEffects.Num());
 	for (const FStatusEffectInstance& StatusEffect : GetStatusEffects())
 	{
@@ -407,6 +412,7 @@ bool UComponent_Status::ImportRuntimeState(const FCoinRuntimeStateSnapshot& Runt
 	BaseMaxHP = RuntimeState.BaseMaxHP;
 	MaxHP = BaseMaxHP;
 	Shield = FMath::Clamp(RuntimeState.Shield, 0, MAX_SHIELD);
+	ShieldGaugeCapacity = Shield > 0 ? FMath::Clamp(RuntimeState.ShieldGaugeCapacity, Shield, MAX_SHIELD) : 0;
 	ActiveStatusEffects.Reset();
 	NextBuffInstanceSerial = 1;
 
@@ -552,6 +558,7 @@ bool UComponent_Status::RemoveStatusEffectAtIndex(int32 EffectIndex)
 	{
 		const int32 RemovedShield = FMath::Min(Shield, RemovedEffect.RuntimeValue);
 		Shield -= RemovedShield;
+		if (Shield == 0) ShieldGaugeCapacity = 0;
 		OnShieldChanged.Broadcast(-RemovedShield);
 	}
 
@@ -705,6 +712,7 @@ void UComponent_Status::ApplyDamage(int32 Damage, AActor* DamageCauser)
 	{
 		AbsorbedDamage = FMath::Min(Shield, FinalDamage);
 		Shield -= AbsorbedDamage;
+		if (Shield == 0) ShieldGaugeCapacity = 0;
 		FinalDamage -= AbsorbedDamage;
 		ConsumeTemporaryShieldContribution(AbsorbedDamage);
 		OnShieldChanged.Broadcast(-AbsorbedDamage);
@@ -814,6 +822,9 @@ void UComponent_Status::ApplyShield(int32 AddShield, AActor* ShieldCauser)
 	const int32 PreviousShield = Shield;
 	Shield = FMath::Clamp(Shield + AddShield, 0, MAX_SHIELD);
 	const int32 DeltaShield = Shield - PreviousShield;
+	// 감소 시에는 기준량을 유지하고, 새 획득/완전 소진 때만 변경합니다.
+	if (DeltaShield > 0) ShieldGaugeCapacity = Shield;
+	else if (Shield == 0) ShieldGaugeCapacity = 0;
 	if (DeltaShield != 0)
 	{
 		OnShieldChanged.Broadcast(DeltaShield);

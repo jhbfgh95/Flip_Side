@@ -137,9 +137,9 @@ void UKeywordDescriptionWidget::RefreshDescription()
 			FRichTextStyleRow Row = DefaultRow;
 			FString Type, Code;
 			Key.Split(TEXT(":"), &Type, &Code);
-			if (Type == TEXT("KW") || Type == TEXT("BUFF"))
-				if (const FKeywordDefinitionData* Data = Definitions.Find(FName(*Code))) Row.TextStyle.SetColorAndOpacity(Data->UIColor);
-			if (const FLinearColor* Color = TokenColorOverrides.Find(FName(*Key))) Row.TextStyle.SetColorAndOpacity(*Color);
+			if (Type == TEXT("BUFF")) Code += TEXT("Buff");
+			const FKeywordDefinitionData* Definition = Definitions.Find(FName(*Code));
+			Row.TextStyle.SetColorAndOpacity(Definition ? Definition->UIColor : FLinearColor::White);
 			const FString StyleName = Key.Replace(TEXT(":"), TEXT("_"));
 			TextStyles->AddRow(FName(*StyleName), Row);
 			// TODO(KeywordInlineIcon): KW/STAT/BUFF 아이콘 확정 후 이 위치에 전용 decorator를 연결합니다.

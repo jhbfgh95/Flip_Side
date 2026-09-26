@@ -112,6 +112,9 @@ struct FReadyCoinData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 Shield = 0;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 ShieldGaugeCapacity = 0;
+
     // 턴 종료 시 TurnOnly를 제외하고 전투 안에서만 유지할 상태효과입니다.
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TArray<FStatusEffectInstance> PersistentStatusEffects;
@@ -259,6 +262,10 @@ struct FBattleStatusEffectViewData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 SourceDataID = INDEX_NONE;
 
+    // 서로 다른 보스 패턴의 버프를 같은 아이콘의 중첩으로 합치지 않습니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 SourcePatternIndex = INDEX_NONE;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EStatusPolarity Polarity = EStatusPolarity::Buff;
 
@@ -296,6 +303,10 @@ struct FBattleCoinInfoViewData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 Shield = 0;
+
+    // UI는 이 기준량으로 나누기만 하며 창을 열 때 새 기준을 만들지 않습니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 ShieldGaugeCapacity = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TArray<FBattleStatusEffectViewData> StatusEffects;

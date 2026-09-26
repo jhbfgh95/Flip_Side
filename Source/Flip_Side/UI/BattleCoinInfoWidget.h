@@ -25,6 +25,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI|Stat Icons")
 	FName StatIconTextureParameter = TEXT("Icon");
 public:
+	// 버튼은 정보 위젯이 소유하고, 페이지 전환은 부모 레디 위젯에 요청합니다.
+	FSimpleMulticastDelegate OnBackToReadyRequested;
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 	void SetBattleCoinInfo(const FBattleCoinInfoViewData& InData);
@@ -33,11 +35,6 @@ public:
 	void ToggleDetailedDescriptions();
 
 protected:
-	// 빈 정보 페이지에서도 바깥의 레디/정보 전환 버튼은 계속 사용할 수 있습니다.
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<class UWidget> CoinInfoContent;
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<class UTextBlock> EmptyInfoText;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UImage> WeaponIcon;
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -50,12 +47,26 @@ protected:
 	TObjectPtr<class URichTextBlock> WeaponCountText;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> CoinCurrentHPText;
+	// 현재 HP 텍스트 전용 색상입니다. 최대 HP 텍스트와 원형 게이지에는 적용하지 않습니다.
+	UPROPERTY(EditDefaultsOnly, Category = "Battle Coin Info|HP Text", meta = (DisplayName = "HP Color (0-40%)"))
+	FLinearColor CurrentHPLowColor = FLinearColor::Red;
+	UPROPERTY(EditDefaultsOnly, Category = "Battle Coin Info|HP Text", meta = (DisplayName = "HP Color (40-70%)"))
+	FLinearColor CurrentHPMediumColor = FLinearColor::Yellow;
+	UPROPERTY(EditDefaultsOnly, Category = "Battle Coin Info|HP Text", meta = (DisplayName = "HP Color (70-100%)"))
+	FLinearColor CurrentHPHighColor = FLinearColor::White;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> CoinMaxHPText;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> ShieldText;
+	// BP Overlay에서 HP를 먼저, Shield를 그 위에 배치합니다. 두 Brush에 UI 머테리얼을 지정합니다.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> HPFillImage;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> ShieldFillImage;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UButton> OppositeFaceButton;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> BackToReadyButton;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> DisplayedFaceText;
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -74,9 +85,11 @@ protected:
 	TSubclassOf<class UCoinDescriptionSectionWidget> DescriptionSectionWidgetClass;
 	UPROPERTY(EditDefaultsOnly, Category = "Coin Description")
 	TSubclassOf<class UCoinDescriptionBookmarkWidget> DescriptionBookmarkWidgetClass;
-	// BP에서 ScrollBox 아래에 배치합니다. C++은 모든 상태를 5열로 채웁니다.
+	// BP의 영역 너비/간격과 각 버프 위젯 SizeBox의 Min/Max 크기에 따라 자동 줄바꿈합니다.
 	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<class UUniformGridPanel> StatusEffectGrid;
+	TObjectPtr<class UWrapBox> BuffContainer;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UWrapBox> DebuffContainer;
 	UPROPERTY(EditDefaultsOnly, Category = "Battle Coin Info|Buff")
 	TSubclassOf<class UBattleBuffIconWidget> BattleBuffIconWidgetClass;
 	UPROPERTY(BlueprintReadOnly, Transient, Category = "Battle Coin Info")
@@ -86,6 +99,13 @@ protected:
 
 private:
 	UFUNCTION()
+	void HandleBackToReadyClicked();
+	void RefreshVitalGauges();
+	UPROPERTY(Transient)
+	TObjectPtr<class UMaterialInstanceDynamic> HPFillMaterial;
+	UPROPERTY(Transient)
+	TObjectPtr<class UMaterialInstanceDynamic> ShieldFillMaterial;
+	UFUNCTION()
 	void HandleOppositeFaceClicked();
 	void RefreshFace(bool bResetSelection);
 	void RefreshDescriptions(const TArray<FCoinDescriptionSectionData>& Sections, bool bResetSelection);
@@ -93,7 +113,7 @@ private:
 	void HandleBookmarkClicked(bool bFrontFace, int32 Index);
 	void RefreshDetailedDescriptions();
 	void RefreshStatusEffects(const TArray<FBattleStatusEffectViewData>& Effects);
-	static FText FormatStatText(const TCHAR* Label, int32 BaseValue, int32 FinalValue);
+	static FText FormatStatText(int32 BaseValue, int32 FinalValue, bool bShowDetails);
 	UPROPERTY(Transient)
 	TObjectPtr<class UMaterialInstanceDynamic> WeaponMaterial;
 	UPROPERTY(Transient)
@@ -103,7 +123,9 @@ private:
 	UPROPERTY(Transient)
 	TArray<FCoinDescriptionSectionData> DescriptionData;
 	UPROPERTY(Transient)
-	TArray<TObjectPtr<class UBattleBuffIconWidget>> StatusIcons;
+	TArray<TObjectPtr<class UBattleBuffIconWidget>> BuffIcons;
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<class UBattleBuffIconWidget>> DebuffIcons;
 	int32 SelectedSection = INDEX_NONE;
 	int32 DisplayedWeaponID = INDEX_NONE;
 	bool bDetailed = false;

@@ -35,9 +35,6 @@ protected:
 	TObjectPtr<class URichTextBlock> KeywordDescriptionText;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UImage> KeywordIcon;
-	// 버프 전용 DB 색상이 없는 동안에만 사용합니다. 미지정 시 같은 코드의 키워드 DB 색상입니다.
-	UPROPERTY(EditDefaultsOnly, Category = "Keyword Description|Style")
-	TMap<FName, FLinearColor> TokenColorOverrides;
 	UPROPERTY(BlueprintReadOnly, Category = "Keyword Description")
 	FKeywordDefinitionData SelectedKeyword;
 private:

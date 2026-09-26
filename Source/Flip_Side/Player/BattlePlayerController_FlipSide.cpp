@@ -752,15 +752,28 @@ void ABattlePlayerController_FlipSide::HandleBattleCoinSlotClicked(int32 SlotNum
 
 void ABattlePlayerController_FlipSide::HandleReadyCoinClicked(int32 CoinInstanceID)
 {
-    if (!IsValid(GetWorld()))
-    {
-        return;
-    }
-
-    if (UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>())
+    if (!IsValid(GetWorld()) || CoinInstanceID == INDEX_NONE) return;
+    UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>();
+    UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
+    if (!IsValid(CoinManager) || !IsValid(BattleManager)) return;
+    const EPhaseState Phase = BattleManager->GetCurrentPhase();
+    if (Phase != EPhaseState::CoinReadyPhase && Phase != EPhaseState::CoinBehaviorPhase && Phase != EPhaseState::BossPhase) return;
+    const TArray<FReadyCoinData>& Coins = CoinManager->GetReadyCoinData();
+    const int32 Index = Coins.IndexOfByPredicate([CoinInstanceID](const FReadyCoinData& Data)
+    { return Data.CoinInstanceID == CoinInstanceID; });
+    if (!Coins.IsValidIndex(Index)) return;
+    if (Phase == EPhaseState::CoinReadyPhase && Coins[Index].bCanCancel)
     {
         CoinManager->TryCancelReadyCoin(CoinInstanceID);
+        return;
     }
+    ClearReadySlotHighlight();
+    ResetBattleInfoSelection();
+    SelectedInfoCoinInstanceID = CoinInstanceID;
+    SelectedInfoReadySlot = Index;
+    // Ready에서 여는 정보는 전투에서 결정된 윗면과 무관하게 저장된 Front부터 시작합니다.
+    bInfoUsesStoredFront = Phase == EPhaseState::CoinReadyPhase;
+    RefreshHoveredBattleCoinInfo();
 }
 
 void ABattlePlayerController_FlipSide::HandleReadyCoinHovered(int32 CoinInstanceID)
@@ -787,9 +800,21 @@ void ABattlePlayerController_FlipSide::HandleReadyCoinHovered(int32 CoinInstance
     if (!IsValid(CoinManager)) return;
     const int32 SlotIndex = CoinManager->GetReadyCoinData().IndexOfByPredicate([CoinInstanceID](const FReadyCoinData& Data)
     { return Data.CoinInstanceID == CoinInstanceID; });
+    if (!CoinManager->GetReadyCoinData().IsValidIndex(SlotIndex)) return;
+    UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
+    if (!IsValid(BattleManager)) return;
+    const EPhaseState Phase = BattleManager->GetCurrentPhase();
+    if (Phase == EPhaseState::CoinReadyPhase || Phase == EPhaseState::BossPhase)
+    {
+        const FReadyCoinData& Data = CoinManager->GetReadyCoinData()[SlotIndex];
+        if (Data.bCanCancel && IsValid(BattleHUDWidget)) BattleHUDWidget->ShowReadyCoinSlotInfo(Data.SourceSlotNumber);
+        return;
+    }
+    if (Phase != EPhaseState::CoinBehaviorPhase) return;
     ACoinActor* Coin = CoinManager->GetRuntimeCoinAtReadySlot(SlotIndex);
     if (!IsValid(Coin) || !IsValid(Coin->StatComponent) || Coin->StatComponent->GetHP() <= 0 || Coin->IsHidden()) return;
     HighlightedReadySlotCoin = Coin;
+    // TODO: PostProcess의 슬롯 강조용 Stencil 분기에 색/두께를 연결합니다. 현재 BP 이벤트는 유지합니다.
     Coin->SetReadySlotHighlighted(true);
 }
 
@@ -800,11 +825,15 @@ void ABattlePlayerController_FlipSide::HandleReadyCoinUnhovered(int32 CoinInstan
         return;
     }
 
-    ClearReadySlotHighlight();
+    // 우측 슬롯과 동일하게 팝업은 공통 입력 처리기가 닫습니다. 팝업으로 이동해도 유지합니다.
+    if (ACoinActor* Coin = HighlightedReadySlotCoin.Get(); IsValid(Coin)) Coin->SetReadySlotHighlighted(false);
+    HighlightedReadySlotCoin.Reset();
+    HoveredReadyCoinInstanceID = INDEX_NONE;
 }
 
 void ABattlePlayerController_FlipSide::ClearReadySlotHighlight()
 {
+    if (IsValid(BattleHUDWidget)) BattleHUDWidget->HideReadyCoinSlotInfo();
     if (ACoinActor* Coin = HighlightedReadySlotCoin.Get(); IsValid(Coin)) Coin->SetReadySlotHighlighted(false);
     HighlightedReadySlotCoin.Reset();
     HoveredReadyCoinInstanceID = INDEX_NONE;
@@ -816,6 +845,7 @@ void ABattlePlayerController_FlipSide::ResetBattleInfoSelection()
     SelectedInfoCoinInstanceID = INDEX_NONE;
     SelectedInfoReadySlot = INDEX_NONE;
     SelectedInfoUpperFace = EFaceState::Front;
+    bInfoUsesStoredFront = false;
     StopObservingBattleInfoCoin();
     if (IsValid(BattleHUDWidget)) BattleHUDWidget->HideBattleCoinInfo();
 }
@@ -853,6 +883,7 @@ void ABattlePlayerController_FlipSide::BeginBattleCoinActorHover(ACoinActor* Coi
         if (SlotIndex != INDEX_NONE && CoinManager->GetRuntimeCoinAtReadySlot(SlotIndex) == CoinActor)
         {
             SelectedInfoCoinInstanceID = CoinActor->GetCoinID();
+            bInfoUsesStoredFront = false;
             SelectedInfoReadySlot = SlotIndex;
             SelectedInfoUpperFace = CoinActor->GetCoinDecidedFace();
             ObserveBattleInfoCoin(CoinActor);
@@ -1254,7 +1285,7 @@ void ABattlePlayerController_FlipSide::RefreshHoveredBattleCoinInfo()
             BattleHUDWidget->HideBattleCoinInfo();
             return;
         }
-        if (RuntimeCoin->GetCoinDecidedFace() != EFaceState::None)
+        if (!bInfoUsesStoredFront && RuntimeCoin->GetCoinDecidedFace() != EFaceState::None)
             SelectedInfoUpperFace = RuntimeCoin->GetCoinDecidedFace();
     }
     else
@@ -1332,6 +1363,7 @@ bool ABattlePlayerController_FlipSide::BuildBattleCoinInfoFromActor(
     OutViewData.CurrentHP = StatusComponent->GetHP();
     OutViewData.MaxHP = StatusComponent->GetMaxHP();
     OutViewData.Shield = StatusComponent->GetShield();
+    OutViewData.ShieldGaugeCapacity = StatusComponent->GetShieldGaugeCapacity();
 
     const bool bFrontValid = BuildWeaponFaceInfo(
         CoinActor->GetCoinFrontID(),
@@ -1379,6 +1411,7 @@ bool ABattlePlayerController_FlipSide::BuildBattleCoinInfoFromReadyData(
     OutViewData.CurrentHP = ReadyCoinData.CurrentHP;
     OutViewData.MaxHP = CalculateReadyCoinMaxHP(ReadyCoinData);
     OutViewData.Shield = ReadyCoinData.Shield;
+    OutViewData.ShieldGaugeCapacity = ReadyCoinData.ShieldGaugeCapacity;
 
     const bool bFrontValid = BuildWeaponFaceInfo(
         ReadyCoinData.FrontWeaponID,
@@ -1445,6 +1478,7 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
                 return ViewData.BuffTypeID == StatusEffect.BuffTypeID &&
                     ViewData.SourceType == StatusEffect.SourceType &&
                     ViewData.SourceDataID == StatusEffect.SourceDataID &&
+                    ViewData.SourcePatternIndex == StatusEffect.SourcePatternIndex &&
                     ViewData.Polarity == StatusEffect.Polarity &&
                     ViewData.DurationType == StatusEffect.DurationType &&
                     ViewData.RemainingTurns == StatusEffect.RemainingTurns &&
@@ -1481,7 +1515,8 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
             break;
         }
         case EStatusEffectSourceType::Boss:
-            // TODO: 보스 주체 버프와 아이콘 데이터가 생기면 기존 DataManager 조회 API를 이 분기에 연결합니다.
+            // 현재 보스 패턴을 재조회하지 않습니다. 부여 당시 아이콘을 유지합니다.
+            SourceIcon = StatusEffect.SourcePatternIcon.Get();
             break;
         default:
             break;
@@ -1491,6 +1526,7 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
         NewViewData.BuffTypeID = StatusEffect.BuffTypeID;
         NewViewData.SourceType = StatusEffect.SourceType;
         NewViewData.SourceDataID = StatusEffect.SourceDataID;
+        NewViewData.SourcePatternIndex = StatusEffect.SourcePatternIndex;
         NewViewData.Polarity = StatusEffect.Polarity;
         // 디버프는 종류별 DB 아이콘, 버프는 기존 시전 무기/아이템 아이콘입니다.
         NewViewData.Icon = StatusEffect.Polarity == EStatusPolarity::Debuff ? DebuffDefinition.Icon.Get() : SourceIcon;

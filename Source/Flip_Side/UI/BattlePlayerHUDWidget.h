@@ -47,6 +47,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Battle HUD|Coin")
 	void UnregisterCoinInfoDismissRegion(UWidget* Widget);
 	void ToggleCoinDescriptionDetails();
+	void ShowReadyCoinSlotInfo(int32 SourceSlotNumber);
+	void HideReadyCoinSlotInfo();
 
 	void SetCoinSlots(const TArray<FBattleCoinSlotViewData>& InCoinSlots);
 	void SetReadyCoins(const TArray<FBattleReadyCoinViewData>& InReadyCoins);
@@ -137,6 +139,7 @@ protected:
 	TSubclassOf<class UW_CardWidget> CardInfoWidgetClass;
 
 private:
+	bool bShowingReadySlotInfo = false;
 	void HandleBossPatternHovered();
 	void HandleBossPatternUnhovered();
 	FBossHUDData CachedBossPatternHUDData;

@@ -6,7 +6,6 @@
 #include "Components/TextBlock.h"
 #include "UI/ReadyCoinSlot.h"
 #include "UI/BattleCoinInfoWidget.h"
-#include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 
 void UBattleReadyCoinWidget::NativeConstruct()
@@ -15,8 +14,11 @@ void UBattleReadyCoinWidget::NativeConstruct()
 
 	CacheReadyCoinSlots();
 	UpdateReadyCoinCountText(0);
-	if (IsValid(ToggleInfoButton))
-		ToggleInfoButton->OnClicked.AddUniqueDynamic(this, &UBattleReadyCoinWidget::HandleToggleInfoClicked);
+	if (IsValid(BattleCoinInfoWidget))
+	{
+		BattleCoinInfoWidget->OnBackToReadyRequested.RemoveAll(this);
+		BattleCoinInfoWidget->OnBackToReadyRequested.AddUObject(this, &UBattleReadyCoinWidget::HandleBackToReadyClicked);
+	}
 	SetInfoPageVisible(false);
 }
 
@@ -24,8 +26,7 @@ void UBattleReadyCoinWidget::NativeDestruct()
 {
 	OnInfoSelectionReset.Broadcast();
 	OnSlotHighlightClearRequested.Broadcast();
-	if (IsValid(ToggleInfoButton))
-		ToggleInfoButton->OnClicked.RemoveDynamic(this, &UBattleReadyCoinWidget::HandleToggleInfoClicked);
+	if (IsValid(BattleCoinInfoWidget)) BattleCoinInfoWidget->OnBackToReadyRequested.RemoveAll(this);
 	for (UReadyCoinSlot* SlotWidget : ReadyCoinSlots)
 	{
 		if (!IsValid(SlotWidget)) continue;
@@ -45,7 +46,8 @@ void UBattleReadyCoinWidget::ShowBattleCoinInfo(const FBattleCoinInfoViewData& I
 
 void UBattleReadyCoinWidget::ClearBattleCoinInfo()
 {
-	// 사망/수동 초기화는 내용만 비우고 사용자가 선택한 페이지는 유지합니다.
+	// 사망 등으로 선택 대상이 사라지면 빈 정보창 대신 레디 슬롯으로 복귀합니다.
+	SetInfoPageVisible(false);
 	if (IsValid(BattleCoinInfoWidget)) BattleCoinInfoWidget->ClearBattleCoinInfo();
 }
 
@@ -54,11 +56,12 @@ void UBattleReadyCoinWidget::ToggleDescriptionDetails()
 	if (bInfoPageVisible && IsValid(BattleCoinInfoWidget)) BattleCoinInfoWidget->ToggleDetailedDescriptions();
 }
 
-void UBattleReadyCoinWidget::HandleToggleInfoClicked()
+void UBattleReadyCoinWidget::HandleBackToReadyClicked()
 {
+	if (!bInfoPageVisible) return;
 	OnInfoSelectionReset.Broadcast();
 	ClearBattleCoinInfo();
-	SetInfoPageVisible(!bInfoPageVisible);
+	SetInfoPageVisible(false);
 }
 
 void UBattleReadyCoinWidget::SetInfoPageVisible(bool bVisible)

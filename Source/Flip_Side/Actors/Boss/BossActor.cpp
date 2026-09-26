@@ -1,4 +1,5 @@
 #include "BossActor.h"
+#include "Actors/Component_Status.h"
 #include "BossGimmick_Swamp.h"
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -429,6 +430,21 @@ void ABossActor::SetPatternAnim(UAnimMontage * TargetMontage)
 	{
 		SelectedPatternAnim = TargetMontage;
 	}
+}
+
+bool ABossActor::ApplyCurrentPatternBuff(UComponent_Status* TargetStatus, FStatusEffectInstance Buff)
+{
+	if (!IsValid(TargetStatus) || !bHasCachedPatternInfo || CachedPatternIndex == INDEX_NONE ||
+		Buff.BuffTypeID == INDEX_NONE || Buff.Polarity != EStatusPolarity::Buff)
+	{
+		return false;
+	}
+	// 디버프 경로는 변경하지 않으며, 버프만 현재 패턴 정보를 값으로 보관합니다.
+	Buff.SourceType = EStatusEffectSourceType::Boss;
+	Buff.SourceDataID = GetBossID();
+	Buff.SourcePatternIndex = CachedPatternIndex;
+	Buff.SourcePatternIcon = CachedPatternData.PatternIcon;
+	return TargetStatus->AddStatusEffect(Buff);
 }
 
 void ABossActor::SetCurrentPatternInfo(int32 PatternIndex, const FBossPatternBattleData& PatternData)

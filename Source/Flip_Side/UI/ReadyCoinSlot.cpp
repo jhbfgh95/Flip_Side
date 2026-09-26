@@ -95,7 +95,7 @@ void UReadyCoinSlot::SetReadyCoinData(const FBattleReadyCoinViewData& InData)
 	UpdateCancelStateVisual();
 
 	// TODO: 코인 배경 Dynamic Material과 타입 색상 처리는 머티리얼 준비 후 추가합니다.
-	// TODO: ReadyCoinSlot 호버 정보 팝업은 위젯과 표시 데이터가 준비된 뒤 추가합니다.
+	// 페이즈별 호버 설명/클릭 동작은 Controller에서 결정합니다.
 	SetVisibility(ESlateVisibility::Visible);
 }
 
@@ -141,7 +141,7 @@ void UReadyCoinSlot::ClearReadyCoinData()
 
 void UReadyCoinSlot::HandleReadyCoinClicked()
 {
-	if (CoinInstanceID != INDEX_NONE && bCanCancel)
+	if (CoinInstanceID != INDEX_NONE)
 	{
 		OnReadyCoinSlotClicked.Broadcast(CoinInstanceID);
 	}

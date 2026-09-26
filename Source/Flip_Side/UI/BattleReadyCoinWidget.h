@@ -26,6 +26,8 @@ public:
 	void ClearBattleCoinInfo();
 	void ToggleDescriptionDetails();
 	bool IsInfoPageVisible() const { return bInfoPageVisible; }
+	// HUD의 공통 팝업 영역 판정은 레디 영역 전체가 아닌 실제 슬롯만 사용합니다.
+	const TArray<TObjectPtr<class UReadyCoinSlot>>& GetReadyCoinSlots() const { return ReadyCoinSlots; }
 	// HUD → Controller: 수동 페이지 전환은 선택 대상/슬롯 윤곽선을 해제합니다.
 	FSimpleMulticastDelegate OnInfoSelectionReset;
 	FSimpleMulticastDelegate OnSlotHighlightClearRequested;
@@ -42,8 +44,6 @@ protected:
 	TObjectPtr<class UWidgetSwitcher> ReadyInfoSwitcher;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UBattleCoinInfoWidget> BattleCoinInfoWidget;
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<class UButton> ToggleInfoButton;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> ReadyAreaTitleText;
 	// 전체 수량/구분자 등은 이 컨테이너 아래에 묶으면 정보 모드에서 함께 숨깁니다.
@@ -94,8 +94,7 @@ protected:
 	TObjectPtr<class UReadyCoinSlot> ReadyCoinSlot10;
 
 private:
-	UFUNCTION()
-	void HandleToggleInfoClicked();
+	void HandleBackToReadyClicked();
 	void SetInfoPageVisible(bool bVisible);
 	bool bInfoPageVisible = false;
 	void UpdateReadyCoinCountText(int32 FilledSlotCount);

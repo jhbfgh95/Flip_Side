@@ -9,6 +9,7 @@
 #include "UI/BattleCardSlotWidget.h"
 #include "UI/BattleItemSlotWidget.h"
 #include "UI/BattleReadyCoinWidget.h"
+#include "UI/ReadyCoinSlot.h"
 #include "UI/W_CoinSlotInfo.h"
 #include "UI/W_ItemInfo.h"
 #include "UI/W_CardWidget.h"
@@ -118,6 +119,7 @@ void UBattlePlayerHUDWidget::RefreshItemInfoSelection()
 
 void UBattlePlayerHUDWidget::DismissCoinSlotInfo()
 {
+	bShowingReadySlotInfo = false;
 	const int32 PreviousSlot = DisplayedCoinSlotNumber;
 	DisplayedCoinSlotNumber = INDEX_NONE;
 	RefreshCoinSlotInfoSelection();
@@ -163,6 +165,10 @@ ECoinPopupPointerRegion UBattlePlayerHUDWidget::GetCoinPopupPointerRegion(const 
 	if (InPath(CoinSlotInfoWidget)) return ECoinPopupPointerRegion::CoinUI;
 	for (const UBattleCoinSlotWidget* CoinSlot : CoinSlotWidgets)
 		if (InPath(CoinSlot)) return ECoinPopupPointerRegion::CoinUI;
+	// 레디 슬롯 버튼도 일반 SButton(OtherUI) 판정보다 먼저 공통 CoinUI로 분류합니다.
+	if (IsValid(BattleReadyCoinWidget) && !BattleReadyCoinWidget->IsInfoPageVisible())
+		for (const UReadyCoinSlot* ReadySlot : BattleReadyCoinWidget->GetReadyCoinSlots())
+			if (InPath(ReadySlot)) return ECoinPopupPointerRegion::CoinUI;
 	if (InPath(ItemInfoWidget)) return ECoinPopupPointerRegion::ItemUI;
 	for (const UBattleItemSlotWidget* Item : ItemSlotWidgets)
 		if (InPath(Item)) return ECoinPopupPointerRegion::ItemUI;
@@ -426,6 +432,7 @@ void UBattlePlayerHUDWidget::HandleCoinSlotClicked(int32 SlotNumber)
 
 void UBattlePlayerHUDWidget::HandleCoinSlotHovered(int32 SlotNumber)
 {
+	bShowingReadySlotInfo = false;
 	DismissItemInfo();
 	// 같은 슬롯 내부의 재호버는 데이터/스크롤/사거리 프리뷰를 다시 초기화하지 않습니다.
 	if (IsCoinSlotInfoOpen() && DisplayedCoinSlotNumber == SlotNumber) return;
@@ -464,6 +471,18 @@ void UBattlePlayerHUDWidget::HandleCoinSlotUnhovered(int32 SlotNumber)
 {
 	// 물리적인 Unhover 알림은 유지하되 표시 대상과 프리뷰 수명에는 영향을 주지 않습니다.
 	OnCoinSlotUnhovered.Broadcast(SlotNumber);
+}
+
+void UBattlePlayerHUDWidget::ShowReadyCoinSlotInfo(int32 SourceSlotNumber)
+{
+	// 같은 정의를 쓰는 기존 팝업/앵커/기본 사거리 프리뷰 경로를 재사용합니다.
+	HandleCoinSlotHovered(SourceSlotNumber);
+	bShowingReadySlotInfo = IsCoinSlotInfoOpen();
+}
+
+void UBattlePlayerHUDWidget::HideReadyCoinSlotInfo()
+{
+	if (bShowingReadySlotInfo) DismissCoinSlotInfo();
 }
 void UBattlePlayerHUDWidget::HandleReadyCoinClicked(int32 CoinInstanceID)
 {

@@ -254,6 +254,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	void SetCurrentPatternInfo(int32 PatternIndex, const FBossPatternBattleData& PatternData);
 
+	// 보스 버프 로직에서 호출하면 부여 당시 패턴 아이콘을 코인 상태에 함께 저장합니다.
+	UFUNCTION(BlueprintCallable, Category = "Boss|Buff")
+	bool ApplyCurrentPatternBuff(class UComponent_Status* TargetStatus, FStatusEffectInstance Buff);
+
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	void PlayTelegraph();
 

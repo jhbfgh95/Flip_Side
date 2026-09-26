@@ -67,6 +67,8 @@ public:
 	int32 GetMaxHP() const { return MaxHP; }
 	int32 GetBaseMaxHP() const { return BaseMaxHP; }
 	int32 GetShield() const { return Shield; }
+	// UI를 열 때가 아니라 실제 쉴드를 획득했을 때 기록한 게이지 기준량입니다.
+	int32 GetShieldGaugeCapacity() const { return ShieldGaugeCapacity; }
 	bool IsDead() const { return bIsDead; }
 	int32 GetWeaponStatRevision() const { return WeaponStatRevision; }
 	EFaceState GetCurrentFace() const { return CurrentFace; }
@@ -202,6 +204,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon|Status")
 	int32 Shield = 0;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapon|Status")
+	int32 ShieldGaugeCapacity = 0;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon|Status")
 	bool bIsDead = false;

@@ -174,6 +174,12 @@ struct FStatusEffectInstance
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 SourceDataID = INDEX_NONE;
 
+	// 보스 버프 부여 시 기록합니다. 이후 패턴 전환에도 기존 버프의 출처는 유지됩니다.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 SourcePatternIndex = INDEX_NONE;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UTexture2D> SourcePatternIcon = nullptr;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EStatusPolarity Polarity = EStatusPolarity::Buff;
 
@@ -282,6 +288,10 @@ struct FCoinRuntimeStateSnapshot
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Shield = 0;
+
+	// CoinManager가 턴 사이에 쉴드 게이지의 획득 시 기준량도 보존합니다.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ShieldGaugeCapacity = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FStatusEffectInstance> PersistentStatusEffects;
