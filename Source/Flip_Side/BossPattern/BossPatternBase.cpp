@@ -132,9 +132,6 @@ void UBossPatternBase::ExecutePattern(
 	const bool bNoDamage = PatternData.IsValidIndex(PatternNum) && PatternData[PatternNum].bNoDamage;
 
 	UBossGimmickBase* Gimmick = Boss->GetActiveGimmick();
-	UE_LOG(LogTemp, Warning, TEXT("[ExecutePattern] PatternNum=%d, bNoDamage=%d, Targets=%d, ActiveGimmick=%s"),
-		PatternNum, bNoDamage, InLockedTargets.Num(),
-		Gimmick ? *Gimmick->GetClass()->GetName() : TEXT("None"));
 
     if (!bNoDamage && !Context.bSkipAttack && !Boss->IsBlinded())
 	{
@@ -149,7 +146,6 @@ void UBossPatternBase::ExecutePattern(
 	{
 		const int32 HealAmount = FMath::RoundToInt(PatternData[PatternNum].ShieldHeal * Boss->GetStageMultiplierStat());
 		Boss->ApplyShieldHeal(HealAmount, Boss);
-		UE_LOG(LogTemp, Warning, TEXT("[BossPattern] shield heal %d (base %d)"), HealAmount, PatternData[PatternNum].ShieldHeal);
 	}
 
 	if (Gimmick)
@@ -171,11 +167,8 @@ void UBossPatternBase::ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, c
             continue;
         }
 
-        const int32 PrevHP = StatusComp->GetHP();
         StatusComp->ApplyDamage(Damage, Boss);
 
-        UE_LOG(LogTemp, Log, TEXT("[BossPattern] Damage Applied - CoinID=%d HP %d -> %d"),
-            Coin->GetCoinID(), PrevHP, FMath::Max(0, PrevHP - Damage));
     }
 
     for (ABase_OtherActor* Other : LockedOthers)

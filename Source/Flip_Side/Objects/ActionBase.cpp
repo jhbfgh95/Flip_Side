@@ -54,9 +54,9 @@ void UActionBase::SetInRangeOthers(ABase_OtherActor* TargetOthers)
 
 void UActionBase::InitInRangeBoss()
 {
-	if(InRangeBoss)
+	if(IsValid(InRangeBoss))
 	{
-		InRangeBoss->UnDisPlayOutline();
+		InRangeBoss->SetTargetOutlineEnabled(false);
 	}
 	InRangeBoss = nullptr;
 
@@ -89,5 +89,4 @@ void UActionBase::SetLogicID(const int32 ID)
 
 void UActionBase::ExecuteAction()
 {
-    UE_LOG(LogTemp, Warning, TEXT("Execute"));
 }

@@ -24,6 +24,8 @@ public:
 	void SetKeywordGroup(EKeywordDescriptionGroup InGroup);
 	UFUNCTION(BlueprintCallable, Category = "Keyword Description")
 	void RefreshFromDatabase();
+	// 코인 슬롯 책갈피에서만 표시 후보를 제한합니다. 기존 사전 사용처에는 적용하지 않습니다.
+	void SetContextKeywords(const TArray<FName>& KeywordCodes);
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
@@ -38,6 +40,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Keyword Description")
 	FKeywordDefinitionData SelectedKeyword;
 private:
+	bool bUseContextKeywords = false;
+	TArray<FName> ContextKeywordCodes;
 	UFUNCTION()
 	void HandleSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 	void RefreshDescription();

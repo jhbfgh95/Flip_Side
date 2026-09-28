@@ -38,7 +38,19 @@ void UKeywordDescriptionWidget::NativeDestruct()
 void UKeywordDescriptionWidget::SetKeywordGroup(EKeywordDescriptionGroup InGroup)
 {
 	KeywordGroup = InGroup;
+	bUseContextKeywords = false;
+	ContextKeywordCodes.Reset();
 	RefreshFromDatabase();
+}
+
+void UKeywordDescriptionWidget::SetContextKeywords(const TArray<FName>& KeywordCodes)
+{
+	bUseContextKeywords = true;
+	ContextKeywordCodes = KeywordCodes;
+	// 새 책갈피에서는 기존 드롭다운 선택 대신 정해진 순서의 첫 키워드부터 표시합니다.
+	SelectedKeyword = FKeywordDefinitionData();
+	RefreshFromDatabase();
+	SetVisibility(Options.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::SelfHitTestInvisible);
 }
 
 void UKeywordDescriptionWidget::RefreshFromDatabase()
@@ -63,6 +75,7 @@ void UKeywordDescriptionWidget::RefreshFromDatabase()
 	int32 SelectedIndex = 0;
 	for (FName Code : Codes)
 	{
+		if (bUseContextKeywords && !ContextKeywordCodes.Contains(Code)) continue;
 		const FKeywordDefinitionData* Data = Definitions.Find(Code);
 		if (!Data) continue;
 		if (Code == PreviousCode) SelectedIndex = Options.Num();

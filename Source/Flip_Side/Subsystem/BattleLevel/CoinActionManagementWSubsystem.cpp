@@ -48,8 +48,6 @@ bool UCoinActionManagementWSubsystem::ShouldCreateSubsystem(UObject* Outer) cons
 
 void UCoinActionManagementWSubsystem::SetPhase(bool bIsPhase)
 {
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] Phase Enabled=%d Active=%d Stage=%d"),
-		bIsPhase, bActionSequenceActive, static_cast<int32>(PipelineStage));
 	bIsCorrectPhase = bIsPhase;
 	if (!bIsPhase)
 	{
@@ -59,8 +57,6 @@ void UCoinActionManagementWSubsystem::SetPhase(bool bIsPhase)
 
 void UCoinActionManagementWSubsystem::StopActionSequenceForStageEnd()
 {
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] StopSequence Active=%d Stage=%d Input=%d"),
-		bActionSequenceActive, static_cast<int32>(PipelineStage), static_cast<int32>(CurrentInputState));
 	bIsCorrectPhase = false;
 	if (UWorld* World = GetWorld())
 	{
@@ -134,14 +130,6 @@ bool UCoinActionManagementWSubsystem::RebuildSelectedAction(ACoinActor* CasterCo
 
 	const FWeaponActionSnapshot Snapshot = CasterCoin->StatComponent->BuildActionSnapshot(
 		CasterCoin->GetCoinDecidedFace());
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] Snapshot Caster=%s CoinID=%d Weapon=%d Face=%d DefinitionHasArea=%d SnapshotHasArea=%d Count=%d AP=%d WP=%d Pattern=%d Anchor=(%d,%d) Mode=%d Params=(%d,%d) Origin=(%d,%d)"),
-		*GetNameSafe(CasterCoin), CasterCoin->GetCoinID(), Snapshot.WeaponID, static_cast<int32>(Snapshot.Face),
-		WeaponDefinition->bHasAbilityArea, Snapshot.bHasAbilityArea, Snapshot.FinalNumericStats.WeaponCnt,
-		Snapshot.FinalNumericStats.AttackPoint, Snapshot.FinalNumericStats.WeaponPoint,
-		static_cast<int32>(Snapshot.AbilityAreaSpec.Pattern), Snapshot.AbilityAreaSpec.AnchorCell.GridX,
-		Snapshot.AbilityAreaSpec.AnchorCell.GridY, static_cast<int32>(Snapshot.AbilityAreaSpec.AnchorMode),
-		Snapshot.AbilityAreaSpec.ParamA, Snapshot.AbilityAreaSpec.ParamB,
-		CasterCoin->GetDecidedGrid().GridX, CasterCoin->GetDecidedGrid().GridY);
 	if (!SelectedAction->InitializeAction(CasterCoin, Snapshot, *WeaponDefinition))
 	{
 		return false;
@@ -228,15 +216,12 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
 	HoveredCoin->SetAttackRangeBracketVisible(true);
 	if (ABossActor* Boss = SelectedAction->GetAttackBoss(); IsValid(Boss))
 	{
-		Boss->DisPlayOutline();
+		Boss->SetTargetOutlineEnabled(true);
 	}
 }
 
 void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedCoin)
 {
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] ManagerClick Coin=%s Phase=%d Active=%d Input=%d Candidate=%d Acted=%d"),
-		*GetNameSafe(ClickedCoin), bIsCorrectPhase, bActionSequenceActive, static_cast<int32>(CurrentInputState),
-		ValidTargetCoins.Contains(ClickedCoin), IsValid(ClickedCoin) ? ClickedCoin->GetCoinIsActed() : false);
 	if (!bIsCorrectPhase || !IsValid(ClickedCoin))
 	{
 		return;
@@ -246,8 +231,6 @@ void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedC
 	{
 		if (!ValidTargetCoins.Contains(ClickedCoin) || !IsValid(SelectedAction))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[CoinAbilityTrace] SelectionRejected Coin=%s ActionValid=%d Candidate=%d"),
-				*GetNameSafe(ClickedCoin), IsValid(SelectedAction), ValidTargetCoins.Contains(ClickedCoin));
 			PlayFailedVFX();
 			return;
 		}
@@ -375,9 +358,6 @@ void UCoinActionManagementWSubsystem::HandleActiveCoinCCChanged(ECCTypes Type)
 
 void UCoinActionManagementWSubsystem::AdvancePipeline()
 {
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] Pipeline Active=%d ActionValid=%d Weapon=%d Stage=%d AbilityIndex=%d"),
-		bActionSequenceActive, IsValid(SelectedAction), IsValid(SelectedAction) ? SelectedAction->GetSnapshot().WeaponID : INDEX_NONE,
-		static_cast<int32>(PipelineStage), CurrentAbilityIndex);
 	if (!bActionSequenceActive || !IsValid(SelectedAction))
 	{
 		return;
@@ -413,6 +393,9 @@ void UCoinActionManagementWSubsystem::AdvancePipeline()
 		{
 			return;
 		}
+		// 공격/기동 등 모든 메인 키워드가 끝난 정상 종료만 완료 윤곽선에 연결합니다.
+		if (ACoinActor* Caster = SelectedAction->GetCasterCoin(); IsValid(Caster))
+			Caster->MarkAllMainKeywordsConsumed();
 		FinishCoinActionSequence();
 		break;
 
@@ -435,10 +418,6 @@ bool UCoinActionManagementWSubsystem::AdvanceAbilitiesForTiming(EAbilityTiming T
 	while (LogicSet->AbilityLogics.IsValidIndex(CurrentAbilityIndex))
 	{
 		const FRegisteredAbilityLogic& AbilityLogic = LogicSet->AbilityLogics[CurrentAbilityIndex];
-		UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] AbilityVisit Weapon=%d Name=%s Index=%d Timing=%d RequestedTiming=%d Selection=%d Flags=%d"),
-			SelectedAction->GetSnapshot().WeaponID, *AbilityLogic.DebugName.ToString(), CurrentAbilityIndex,
-			static_cast<int32>(AbilityLogic.Timing), static_cast<int32>(Timing),
-			static_cast<int32>(AbilityLogic.TargetRule.SelectionMode), AbilityLogic.TargetRule.TargetFlags);
 		if (AbilityLogic.Timing != Timing)
 		{
 			++CurrentAbilityIndex;
@@ -516,10 +495,6 @@ void UCoinActionManagementWSubsystem::ResolveAttackStep()
 
 	SelectedAction->GetExecutionState().CurrentRepeatIndex++;
 	const FWeaponAttackResult AttackResult = SelectedAction->ExecuteAttack();
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] AttackResult Weapon=%d Boss=%s Attempted=%d InRange=%d Requested=%d HPDamage=%d ShieldDamage=%d Total=%d"),
-		SelectedAction->GetSnapshot().WeaponID, *GetNameSafe(AttackResult.Boss.Get()), AttackResult.bAttackAttempted,
-		AttackResult.bEnemyInRange, AttackResult.RequestedDamage, AttackResult.HPDamage, AttackResult.ShieldDamage,
-		SelectedAction->GetExecutionState().TotalDamageDealt);
 	PlayCoinSpecificVFX();
 	--RemainingAttackCount;
 
@@ -574,8 +549,6 @@ void UCoinActionManagementWSubsystem::ExecuteAbilityImmediately(
 	}
 
 	SelectedAction->SetCurrentAbilityTargets(Coins, Others, nullptr);
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] AutoAbility Name=%s Coins=%d Others=%d"),
-		*AbilityLogic.DebugName.ToString(), Coins.Num(), Others.Num());
 	SelectedAction->ExecuteAbility(AbilityLogic);
 	ClearValidAbilityTargets();
 }
@@ -586,18 +559,14 @@ bool UCoinActionManagementWSubsystem::BeginManualAbilitySelection(
 	PendingSelectionCount = AbilityLogic.TargetRule.SelectionMode == EAbilitySelectionMode::Single
 		? 1
 		: ResolveRepeatCount(AbilityLogic.TargetRule.RepeatCountSource);
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] BeginSelection Name=%s Count=%d RepeatSource=%d"),
-		*AbilityLogic.DebugName.ToString(), PendingSelectionCount, static_cast<int32>(AbilityLogic.TargetRule.RepeatCountSource));
 	if (PendingSelectionCount <= 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[CoinAbilityTrace] SelectionSkipped Name=%s Reason=ZeroRepeatCount"), *AbilityLogic.DebugName.ToString());
 		return false;
 	}
 
 	BuildValidAbilityTargets(AbilityLogic.TargetRule);
 	if (ValidTargetCoins.IsEmpty() && ValidTargetGrids.IsEmpty() && ValidTargetOthers.IsEmpty())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[CoinAbilityTrace] SelectionSkipped Name=%s Reason=NoValidTargets"), *AbilityLogic.DebugName.ToString());
 		ClearValidAbilityTargets();
 		return false;
 	}
@@ -620,8 +589,6 @@ void UCoinActionManagementWSubsystem::CompleteManualAbilitySelection()
 	}
 
 	const FRegisteredAbilityLogic& AbilityLogic = LogicSet->AbilityLogics[PendingAbilityIndex];
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] SelectionComplete Name=%s Remaining=%d Coins=%d"),
-		*AbilityLogic.DebugName.ToString(), PendingSelectionCount, SelectedAction->GetInRangeCoins().Num());
 	SelectedAction->GetExecutionState().CurrentRepeatIndex++;
 	SelectedAction->ExecuteAbility(AbilityLogic);
 	--PendingSelectionCount;
@@ -674,10 +641,6 @@ void UCoinActionManagementWSubsystem::BuildValidAbilityTargets(const FAbilityTar
 		for (AActor* Actor : Objects.Coins)
 		{
 			ACoinActor* Coin = Cast<ACoinActor>(Actor);
-			UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] CoinCandidate Actor=%s Accepted=%d StatusValid=%d Dead=%d IsCaster=%d ExcludeCaster=%d AlreadySelected=%d"),
-				*GetNameSafe(Actor), IsValidCoinTarget(Coin, Rule), IsValid(Coin) && IsValid(Coin->StatComponent),
-				IsValid(Coin) && IsValid(Coin->StatComponent) ? Coin->StatComponent->IsDead() : false,
-				Coin == SelectedAction->GetCasterCoin(), Rule.bExcludeCaster, SelectedAction->WasAbilityActorSelected(Actor));
 			if (IsValidCoinTarget(Coin, Rule))
 			{
 				ValidTargetCoins.AddUnique(Coin);
@@ -709,17 +672,6 @@ void UCoinActionManagementWSubsystem::BuildValidAbilityTargets(const FAbilityTar
 				ValidTargetGrids.AddUnique(Grid);
 			}
 		}
-	}
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] Targets Weapon=%d HasArea=%d Cells=%d RawCoins=%d RawOthers=%d ValidCoins=%d ValidGrids=%d ValidOthers=%d Flags=%d"),
-		SelectedAction->GetSnapshot().WeaponID, SelectedAction->GetSnapshot().bHasAbilityArea, AbilityCells.Num(),
-		Objects.Coins.Num(), Objects.Others.Num(), ValidTargetCoins.Num(), ValidTargetGrids.Num(), ValidTargetOthers.Num(), Rule.TargetFlags);
-	for (const FGridPoint& Cell : AbilityCells)
-	{
-		AGridActor* Grid = GridManager->GetGridActor(Cell);
-		UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] TargetCell Cell=(%d,%d) Grid=%s Occupied=%d Type=%d Occupant=%s"),
-			Cell.GridX, Cell.GridY, *GetNameSafe(Grid), IsValid(Grid) ? Grid->GetIsOccupied() : false,
-			IsValid(Grid) ? static_cast<int32>(Grid->GetCurrentOccupyingThing()) : INDEX_NONE,
-			*GetNameSafe(IsValid(Grid) ? Grid->GetCurrentOccupied() : nullptr));
 	}
 }
 
@@ -803,8 +755,6 @@ void UCoinActionManagementWSubsystem::ConfigureInputForRule(const FAbilityTarget
 		CurrentInputState = EActionInputState::WaitingForOtherClick;
 		GridManager->SetGridClickFlag(EGridClickFlag::None);
 	}
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] SelectionWaiting Input=%d Coins=%d Grids=%d Others=%d Remaining=%d"),
-		static_cast<int32>(CurrentInputState), ValidTargetCoins.Num(), ValidTargetGrids.Num(), ValidTargetOthers.Num(), PendingSelectionCount);
 }
 
 bool UCoinActionManagementWSubsystem::TryExecuteOtherAction(ABase_OtherActor* TargetOther)
@@ -880,9 +830,6 @@ void UCoinActionManagementWSubsystem::CancelSingleCellAction(ACoinActor* Clicked
 
 void UCoinActionManagementWSubsystem::FinishCoinActionSequence()
 {
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] FinishRequested Weapon=%d Active=%d Stage=%d Input=%d AbilityIndex=%d PendingIndex=%d RemainingSelections=%d"),
-		IsValid(SelectedAction) ? SelectedAction->GetSnapshot().WeaponID : INDEX_NONE, bActionSequenceActive,
-		static_cast<int32>(PipelineStage), static_cast<int32>(CurrentInputState), CurrentAbilityIndex, PendingAbilityIndex, PendingSelectionCount);
 	if (!bActionSequenceActive || PipelineStage == ECoinWeaponPipelineStage::Finishing)
 	{
 		return;
@@ -1050,7 +997,7 @@ void UCoinActionManagementWSubsystem::ClearBossOutline()
 	{
 		if (ABossActor* Boss = SelectedAction->GetAttackBoss(); IsValid(Boss))
 		{
-			Boss->UnDisPlayOutline();
+			Boss->SetTargetOutlineEnabled(false);
 		}
 		if (ACoinActor* Caster = SelectedAction->GetCasterCoin(); IsValid(Caster))
 		{

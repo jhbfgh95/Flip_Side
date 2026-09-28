@@ -59,5 +59,4 @@ void UBossGimmick_RoleTarget::OnDamageCalculate(ABossActor* Boss, int32& InOutDa
     }
 
     InOutDamage = FMath::RoundToInt(InOutDamage * Multiplier);
-    UE_LOG(LogTemp, Warning, TEXT("[RoleTarget] Role=%d, Multiplier=%.2f, Damage=%d"), (int32)RoleTargetBoss->GetLockedRoleClass(), Multiplier, InOutDamage);
 }

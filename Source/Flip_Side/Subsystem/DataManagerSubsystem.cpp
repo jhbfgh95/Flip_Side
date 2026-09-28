@@ -1043,7 +1043,7 @@ bool UDataManagerSubsystem::LoadUIIcons()
 
 bool UDataManagerSubsystem::LoadDebuffs()
 {
-    const TCHAR* Sql = TEXT("SELECT debuff_id, debuff_name, icon_path, debuff_description FROM debuff_definition ORDER BY debuff_id;");
+    const TCHAR* Sql = TEXT("SELECT debuff_id, debuff_name, icon_path, debuff_description, color_rgba FROM debuff_definition ORDER BY debuff_id;");
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
     {
@@ -1058,6 +1058,12 @@ bool UDataManagerSubsystem::LoadDebuffs()
         Data.BuffTypeID = GetColInt(Stmt, 0);
         Data.DisplayName = FText::FromString(GetColTextUTF8(Stmt, 1));
         Data.Description = FText::FromString(GetColTextUTF8(Stmt, 3));
+        const FString ColorHex = GetColText(Stmt, 4);
+        if (!TryParseHexColor_RRGGBBAA(ColorHex, Data.Color))
+        {
+            Data.Color = FLinearColor::White;
+            UE_LOG(LogTemp, Warning, TEXT("[DB] Debuff %d invalid color_rgba: %s"), Data.BuffTypeID, *ColorHex);
+        }
         if (Data.BuffTypeID == INDEX_NONE || Data.DisplayName.IsEmpty() || Loaded.Contains(Data.BuffTypeID))
         {
             UE_LOG(LogTemp, Error, TEXT("[DB] LoadDebuffs: invalid or duplicate ID %d"), Data.BuffTypeID);

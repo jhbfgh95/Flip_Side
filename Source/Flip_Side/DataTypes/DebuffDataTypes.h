@@ -15,4 +15,7 @@ struct FDebuffDefinitionData
     TObjectPtr<class UTexture2D> Icon = nullptr;
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FText Description;
+    // DB color_rgba를 선형 색상으로 변환하여 CC 머테리얼에 전달합니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FLinearColor Color = FLinearColor::White;
 };

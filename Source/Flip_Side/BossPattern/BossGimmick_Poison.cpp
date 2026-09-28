@@ -42,7 +42,6 @@ void UBossGimmick_Poison::OnPatternExecute(
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("[Poison] OnPatternExecute - LockedTargets=%d, AllHitCoins=%d"), LockedTargets.Num(), AllHitCoins.Num());
 
 	// boss_gimmick(id=2, "독") param_int_a = 독 지속 턴수
 	const int32 Duration = GimmickData.ParamIntA > 0 ? GimmickData.ParamIntA : 2;
@@ -52,7 +51,6 @@ void UBossGimmick_Poison::OnPatternExecute(
 		if (!IsValid(Coin)) continue;
 		// 이미 독이 걸려있어도 갱신(기존 잔여 턴수를 지우고 새로 적용)
 		PoisonedCoins.Add(Coin, Duration);
-		UE_LOG(LogTemp, Warning, TEXT("[Poison] CoinID=%d 독 등록 (%d턴)"), Coin->GetCoinID(), Duration);
 	}
 }
 
@@ -64,7 +62,6 @@ void UBossGimmick_Poison::OnPlayerPhaseStart(ABossActor* Boss)
 	if (!World) return;
 
 	const int32 PoisonDamage = GimmickData.ParamFloatA > 0.f ? static_cast<int32>(GimmickData.ParamFloatA) : 1;
-	UE_LOG(LogTemp, Warning, TEXT("[Poison] 독 타이머 시작 - 대상=%d명, 데미지=%d / 5초"), PoisonedCoins.Num(), PoisonDamage);
 
 	World->GetTimerManager().SetTimer(PoisonTimerHandle, [this, Boss, PoisonDamage]()
 	{
@@ -76,10 +73,7 @@ void UBossGimmick_Poison::OnPlayerPhaseStart(ABossActor* Boss)
 			UComponent_Status* StatusComp = Coin->FindComponentByClass<UComponent_Status>();
 			if (StatusComp)
 			{
-				const int32 PrevHP = StatusComp->GetHP();
 				StatusComp->ApplyDamage(PoisonDamage, Boss);
-				UE_LOG(LogTemp, Warning, TEXT("[Poison] CoinID=%d 독 데미지 %d — HP %d -> %d"),
-					Coin->GetCoinID(), PoisonDamage, PrevHP, StatusComp->GetHP());
 			}
 		}
 	},
@@ -106,7 +100,6 @@ void UBossGimmick_Poison::OnPlayerPhaseEnd(ABossActor* Boss)
 
 		if (--It->Value <= 0)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[Poison] CoinID=%d 독 해제"), It->Key->GetCoinID());
 			It.RemoveCurrent();
 		}
 	}

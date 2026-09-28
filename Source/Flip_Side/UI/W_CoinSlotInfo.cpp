@@ -59,6 +59,8 @@ void UW_CoinSlotInfo::NativeConstruct()
 	};
 	ConfigureKeywordWidget(MainKeywordDescriptionContainer, MainKeywordDescriptionWidget, EKeywordDescriptionGroup::Main);
 	ConfigureKeywordWidget(AdditionalKeywordDescriptionContainer, AdditionalKeywordDescriptionWidget, EKeywordDescriptionGroup::Additional);
+	RefreshKeywordDescriptions(FrontDescriptionData.IsValidIndex(SelectedFrontSection)
+		? &FrontDescriptionData[SelectedFrontSection] : nullptr);
 	RefreshDetailedDescriptions();
 
 	if (IsValid(HoveredFrontWeaponIcon))
@@ -100,6 +102,7 @@ void UW_CoinSlotInfo::SetCoinSlotInfo(const FBattleCoinSlotViewData& InData)
 		const FCoinWeaponDescriptionData* BackData = WeaponDescriptions.Find(InData.BackWeaponID);
 		SetFaceDescriptions(true, bUsePreviewDescriptions && FrontData ? FrontData->Sections : InData.FrontDescription.Sections);
 		SetFaceDescriptions(false, bUsePreviewDescriptions && BackData ? BackData->Sections : InData.BackDescription.Sections);
+		ResetDescriptionSelection();
 		OnDescriptionWeaponsChanged(InData.FrontWeaponID, InData.BackWeaponID);
 	}
 	if (IsValid(CoinSlotNumberText))
@@ -187,8 +190,11 @@ void UW_CoinSlotInfo::SetFaceDescriptions(bool bFrontFace, const TArray<FCoinDes
 
 void UW_CoinSlotInfo::ResetDescriptionSelection()
 {
-	SelectDescription(true, 0);
 	SelectDescription(false, 0);
+	SelectDescription(true, 0);
+	// 초기 공통 설명은 앞면 기준이며, 빈 데이터에는 이전 슬롯의 설명을 남기지 않습니다.
+	RefreshKeywordDescriptions(FrontDescriptionData.IsValidIndex(0) ? &FrontDescriptionData[0]
+		: BackDescriptionData.IsValidIndex(0) ? &BackDescriptionData[0] : nullptr);
 }
 
 void UW_CoinSlotInfo::HandleBookmarkClicked(bool bFrontFace, int32 SectionIndex)
@@ -202,6 +208,8 @@ void UW_CoinSlotInfo::SelectDescription(bool bFrontFace, int32 SectionIndex)
 	UCoinDescriptionSectionWidget* DisplayWidget = bFrontFace ? FrontDescriptionWidget : BackDescriptionWidget;
 	int32& SelectedIndex = bFrontFace ? SelectedFrontSection : SelectedBackSection;
 	if (!Descriptions.IsValidIndex(SectionIndex) || !IsValid(DisplayWidget)) return;
+	// 이미 선택된 책갈피를 다시 눌러도 마지막으로 클릭한 면의 공통 설명으로 갱신합니다.
+	RefreshKeywordDescriptions(&Descriptions[SectionIndex]);
 	if (SelectedIndex == SectionIndex) return;
 	SelectedIndex = SectionIndex;
 	DisplayWidget->SetSectionData(Descriptions[SectionIndex]);
@@ -210,6 +218,17 @@ void UW_CoinSlotInfo::SelectDescription(bool bFrontFace, int32 SectionIndex)
 	const auto& Bookmarks = bFrontFace ? FrontBookmarks : BackBookmarks;
 	for (int32 Index = 0; Index < Bookmarks.Num(); ++Index)
 		if (IsValid(Bookmarks[Index])) Bookmarks[Index]->SetBookmarkActive(Index == SelectedIndex);
+}
+
+void UW_CoinSlotInfo::RefreshKeywordDescriptions(const FCoinDescriptionSectionData* Section)
+{
+	// 기존 KeywordBP 바인딩을 유지하고 공유 설명의 후보만 책갈피 데이터로 제한합니다.
+	if (IsValid(MainKeywordDescriptionWidget))
+		MainKeywordDescriptionWidget->SetContextKeywords(Section
+			? TArray<FName>{Section->MainKeywordCode} : TArray<FName>{});
+	if (IsValid(AdditionalKeywordDescriptionWidget))
+		AdditionalKeywordDescriptionWidget->SetContextKeywords(Section
+			? Section->AdditionalKeywordCodes : TArray<FName>{});
 }
 
 void UW_CoinSlotInfo::ToggleDetailedDescriptions()

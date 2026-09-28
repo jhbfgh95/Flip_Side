@@ -1,4 +1,6 @@
 #include "CoinActor.h"
+#include "Engine/GameInstance.h"
+#include "Subsystem/DataManagerSubsystem.h"
 #include "Actors/DebuffComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
@@ -10,10 +12,15 @@
 #include "DataTypes/GridTypes.h"
 #include "FlipSide_Enum.h"
 #include "DataTypes/WeaponDataTypes.h"
+#include "Materials/MaterialParameterCollection.h"
+#include "Materials/MaterialParameterCollectionInstance.h"
+#include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
 
 ACoinActor::ACoinActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	CCOutlineColors.Add(ECCTypes::Blind, FLinearColor(0.6f, 0.2f, 1.0f));
+	CCOutlineColors.Add(ECCTypes::Stun, FLinearColor(1.0f, 0.5f, 0.0f));
 
 	CoinRootComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root Scene Component"));
 	RootComponent = CoinRootComp;
@@ -78,15 +85,17 @@ void ACoinActor::BeginPlay()
 		HandleCCVisualChanged(DebuffComponent->GetCCType());
 	}
 
-	if (CoinHPUI)
+	if (IsValid(CoinHPUI))
 	{
+		CoinHPUI->InitWidget(); // BP의 Heart/Bar 위젯 생성 후 공통 HP 이벤트에 연결합니다.
 		HPWidget = Cast<UW_CoinHPWidget>(CoinHPUI->GetUserWidgetObject());
 
-		if (HPWidget && StatComponent)
+		if (IsValid(HPWidget) && IsValid(StatComponent))
 		{
 			StatComponent->OnHpChanged.AddUObject(HPWidget, &UW_CoinHPWidget::ChangeCurrentHp);
 			StatComponent->OnMaxHPChanged.AddUObject(HPWidget, &UW_CoinHPWidget::ChangeMaxHp);
-			HPWidget->InitHpWidget(StatComponent->GetMaxHP(), StatComponent->GetHP());
+			StatComponent->OnShieldChanged.AddUObject(HPWidget, &UW_CoinHPWidget::ChangeShield);
+			HPWidget->InitializeWithStatus(StatComponent);
 		}
 
 		CoinHPUI->SetVisibility(false);
@@ -99,15 +108,29 @@ void ACoinActor::BeginPlay()
 		StatComponent->OnCCActived.AddDynamic(this, &ACoinActor::OnCCApplied);
 		StatComponent->OnCCRemove.AddDynamic(this, &ACoinActor::OnCCRemoved);
 		StatComponent->OnStatusEffectsChanged.AddUObject(this, &ACoinActor::HandleStatusEffectsChanged);
+		StatComponent->OnWeaponStatsChanged.AddUObject(this, &ACoinActor::HandleOutlineStatsChanged);
 		StatComponent->RefreshStatusEffectEvents();
+	}
+	// World에 속한 전투 페이즈만 관찰하며 매니저 로직/수명은 변경하지 않습니다.
+	if (UWorld* World = GetWorld())
+	{
+		if (UBattleManagerWSubsystem* Battle = World->GetSubsystem<UBattleManagerWSubsystem>())
+		{
+			Battle->OnPhaseChanged.AddUniqueDynamic(this, &ACoinActor::HandleOutlinePhaseChanged);
+			HandleOutlinePhaseChanged(Battle->GetCurrentPhase());
+		}
 	}
 }
 
 void ACoinActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	bOutlinePhaseActive = false;
+	RefreshOutline();
 	SetReadySlotHighlighted(false);
 	if (UWorld* World = GetWorld())
 	{
+		if (UBattleManagerWSubsystem* Battle = World->GetSubsystem<UBattleManagerWSubsystem>())
+			Battle->OnPhaseChanged.RemoveDynamic(this, &ACoinActor::HandleOutlinePhaseChanged);
 		World->GetTimerManager().ClearTimer(JumpTimerHandle);
 		World->GetTimerManager().ClearTimer(FlashTimerHandle);
 	}
@@ -117,6 +140,7 @@ void ACoinActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (IsValid(StatComponent))
 	{
 		StatComponent->OnStatusEffectsChanged.RemoveAll(this);
+		StatComponent->OnWeaponStatsChanged.RemoveAll(this);
 	}
 	Super::EndPlay(EndPlayReason);
 }
@@ -124,6 +148,97 @@ void ACoinActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ACoinActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	// Spawn/연출 코드의 Hidden 전환만 가볍게 확인합니다. 스탯 계산은 변경 이벤트에서 합니다.
+	if (IsOutlineEligible() != bOutlineWasEligible) RefreshOutline();
+}
+
+bool ACoinActor::IsOutlineEligible() const
+{
+	return bOutlinePhaseActive && bIsOnBattle && !bDeathStarted && !IsHidden() &&
+		!bIsActing && !bOutlineJumpActive && !bOutlineHitActive &&
+		IsValid(StatComponent) && !StatComponent->IsDead() && CoinID >= 1 && CoinID <= 10;
+}
+
+void ACoinActor::HandleOutlinePhaseChanged(EPhaseState Phase)
+{
+	bOutlinePhaseActive = Phase == EPhaseState::CoinBehaviorPhase;
+	if (!bOutlinePhaseActive)
+	{
+		bFieldOutlineHovered = false;
+		bReadySlotHighlighted = false;
+	}
+	RefreshOutline();
+}
+
+void ACoinActor::HandleOutlineStatsChanged(const FWeaponStatsChangedEvent& ChangedEvent)
+{
+	RefreshOutline();
+}
+
+void ACoinActor::RefreshOutline()
+{
+	bOutlineWasEligible = IsOutlineEligible();
+	bOutlineHovered = bOutlineWasEligible && (bFieldOutlineHovered || bReadySlotHighlighted);
+	OutlineState = ECoinOutlineState::Hidden;
+	FLinearColor Color = NeutralOutlineColor;
+	float Thickness = 0.0f;
+	if (bOutlineWasEligible)
+	{
+		const ECCTypes CC = IsValid(DebuffComponent) ? DebuffComponent->GetCCType() : ECCTypes::None;
+		if (CC != ECCTypes::None)
+		{
+			// DebuffComponent가 마지막 CC만 보관하므로 별도 우선순위/중복 저장을 만들지 않습니다.
+			OutlineState = ECoinOutlineState::SpecialCC;
+			const FLinearColor* CCColor = CCOutlineColors.Find(CC);
+			Color = CCColor ? *CCColor : DebuffOutlineColor;
+			Thickness = DebuffOutlineThickness;
+		}
+		else if (bAllMainKeywordsConsumed)
+		{
+			// 공격만 끝난 시점이나 CC 중단을 전체 메인 키워드 소모와 혼동하지 않습니다.
+			OutlineState = ECoinOutlineState::Completed;
+			Color = CompletedOutlineColor;
+			Thickness = DebuffOutlineThickness;
+		}
+		else
+		{
+			const FResolvedWeaponFaceStats Stats = StatComponent->ResolveFaceStats(CurrentFace);
+			// RichText와 같은 최종값-기본값을 수치 스탯 3종에 대해 합산합니다. HP/사거리는 제외합니다.
+			const int64 Net = int64(Stats.FinalNumericStats.AttackPoint) - Stats.BaseNumericStats.AttackPoint +
+				int64(Stats.FinalNumericStats.WeaponPoint) - Stats.BaseNumericStats.WeaponPoint +
+				int64(Stats.FinalNumericStats.WeaponCnt) - Stats.BaseNumericStats.WeaponCnt;
+			OutlineState = Net > 0 ? ECoinOutlineState::Buff : Net < 0 ? ECoinOutlineState::Debuff : ECoinOutlineState::Neutral;
+			Color = Net > 0 ? BuffOutlineColor : Net < 0 ? DebuffOutlineColor : NeutralOutlineColor;
+			Thickness = Net < 0 ? DebuffOutlineThickness : BuffOutlineThickness;
+		}
+		// 호버는 색만 덮습니다. 음수/완료/CC는 호버 중에도 Debuff 두께를 유지합니다.
+		if (bOutlineHovered) Color = HoverOutlineColor;
+	}
+	Thickness = FMath::IsFinite(Thickness) ? FMath::Max(0.0f, Thickness) : 0.0f;
+	UWorld* World = GetWorld();
+	UMaterialParameterCollectionInstance* Parameters = IsValid(World) && IsValid(OutlineParameterCollection)
+		? World->GetParameterCollectionInstance(OutlineParameterCollection) : nullptr;
+	bool bParameterWritten = false;
+	if (bOutlineWasEligible && IsValid(Parameters))
+	{
+		// MPC는 공유되므로 코인별 칸을 사용합니다. 다른 코인의 색/두께를 덮어쓰지 않습니다.
+		const FName ParameterName(*FString::Printf(TEXT("CoinOutline%d"), CoinID));
+		bParameterWritten = Parameters->SetVectorParameterValue(ParameterName, FLinearColor(Color.R, Color.G, Color.B, Thickness));
+		if (!bParameterWritten && !bOutlineParameterWarningLogged)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[CoinOutline] %s에 Vector Parameter %s가 없습니다."),
+				*GetNameSafe(OutlineParameterCollection), *ParameterName.ToString());
+			bOutlineParameterWarningLogged = true;
+		}
+	}
+	if (IsValid(CoinMesh))
+	{
+		// 201~210은 이 코인 프리뷰가 아닌 실제 전투 코인의 전용 Stencil 범위입니다.
+		const bool bEnabled = bOutlineWasEligible && bParameterWritten && Thickness > 0.0f;
+		CoinMesh->SetCustomDepthStencilValue(bEnabled ? 200 + CoinID : 0);
+		CoinMesh->SetRenderCustomDepth(bEnabled);
+	}
+
 }
 
 void ACoinActor::SetReadySlotHighlighted(bool bHighlighted)
@@ -132,6 +247,7 @@ void ACoinActor::SetReadySlotHighlighted(bool bHighlighted)
 	bReadySlotHighlighted = bHighlighted;
 	// 슬롯 호버와 액터 사망/정리 모두 같은 BP 윤곽선 해제 경로를 사용합니다.
 	OnReadySlotHighlightChanged(bHighlighted);
+	RefreshOutline();
 }
 
 int32 ACoinActor::GetSameTypeIndex() const
@@ -170,12 +286,21 @@ void ACoinActor::SetCoinIsReady(bool IsReady)
 void ACoinActor::SetCoinIsActed(const bool IsActed)
 { 
 	bIsActed = IsActed; 
+	if (!IsActed) bAllMainKeywordsConsumed = false;
 	RefreshCover();
+	RefreshOutline();
+}
+
+void ACoinActor::MarkAllMainKeywordsConsumed()
+{
+	bAllMainKeywordsConsumed = true;
+	RefreshOutline();
 }
 
 void ACoinActor::SetCoinIsActing(const bool IsActing)
 {
 	bIsActing = IsActing;
+	RefreshOutline();
 }
 
 bool ACoinActor::GetCoinIsActed() const
@@ -228,6 +353,7 @@ void ACoinActor::SetCoinFace(EFaceState DecidedFace)
 	{
 		StatComponent->ApplyFaceWeaponStat(CurrentFace);
 	}
+	RefreshOutline();
 }
 
 // BattleManager에서 SetGridPoint 부를 때 X, Y 최대값을 GridManager에서 받아서 그거 넘어가면 Return하고 랜덤값 다시 만드는 코드 있어야함!!
@@ -289,6 +415,7 @@ const FFaceData* ACoinActor::GetCurrentWeaponDefinition() const
 void ACoinActor::SetCoinOnBattle(const bool IsOnBattle)
 {
 	bIsOnBattle = IsOnBattle;
+	RefreshOutline();
 }
 
 void ACoinActor::SetUIVisibility(const bool bUIVisibile)
@@ -375,6 +502,8 @@ bool ACoinActor::DoCoinActAtBattleStart(float XLocation, float YLocation, FSimpl
 	}
 
 	// 텔포
+	bOutlineJumpActive = true;
+	RefreshOutline(); // 등장 및 앞뒤 회전 시작 전에 CustomDepth를 끕니다.
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(false);
 	TeleportTo(DecidedGridLocation, FRotator::ZeroRotator);
@@ -432,6 +561,8 @@ void ACoinActor::UpdateJump()
 
 void ACoinActor::CompleteLandingCallback()
 {
+	bOutlineJumpActive = false;
+	RefreshOutline(); // 콜백이 없는 뒤집기 연출도 착지 시 현재 상태로 복구합니다.
 	if (!bLandingCallbackPending)
 	{
 		return;
@@ -449,7 +580,8 @@ void ACoinActor::OnHover_Implementation()
 	if (GetCoinOnBattle())
 	{
 		OnHoverBattleCoin.Broadcast(this);
-		CoinHoverOutline();
+		bFieldOutlineHovered = true;
+		RefreshOutline(); // 레거시 BP의 단순 On/Off 윤곽선 대신 현재 상태 스타일을 적용합니다.
 	}
 	else
 	{
@@ -461,13 +593,12 @@ void ACoinActor::OnUnhover_Implementation()
 {
 	SetAttackRangeBracketVisible(false);
 	OnUnhoverCoin.Broadcast();
-	CoinUnHoverOutline();
+	bFieldOutlineHovered = false;
+	RefreshOutline();
 }
 
 void ACoinActor::OnClicked_Implementation()
 {
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] ActorClick Actor=%s CoinID=%d Weapon=%d Ready=%d OnBattle=%d ItemFlag=%d BattleClickBound=%d"),
-		*GetName(), GetCoinID(), GetCoinFaceID(), GetCoinIsReady(), GetCoinOnBattle(), GetCoinItemFlag(), OnClickBattleCoin.IsBound());
 	if (GetCoinIsReady() && !GetCoinOnBattle())
 	{
 		OnClickReadyCoin.Broadcast(this);
@@ -503,6 +634,7 @@ void ACoinActor::CoinDead()
 	}
 
 	bDeathStarted = true;
+	RefreshOutline();
 	SetReadySlotHighlighted(false);
 	if (IsValid(DebuffComponent)) DebuffComponent->DisableForDeath();
 	SetAttackRangeBracketVisible(false);
@@ -539,13 +671,14 @@ void ACoinActor::CoinDead()
 
 void ACoinActor::OnCoinHpChanged(int32 DeltaHP)
 {
-    if (DeltaHP < 0 && CoinMesh)
+    if (DeltaHP < 0 && IsValid(CoinMesh) && IsValid(GetWorld()) && !bDeathStarted)
     {
+		bOutlineHitActive = true;
+		RefreshOutline(); // 연속 피격은 기존 타이머를 연장하며 다른 연출의 숨김 상태는 유지합니다.
         UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(CoinMesh->GetMaterial(0));
         if (MID)
         {
             MID->SetScalarParameterValue(FName("Flash_Intensity"), 2.5f);
-            UE_LOG(LogTemp, Warning, TEXT("SDF"));
         }
 
         // 0.15초 뒤에 ResetFlash 함수를 호출하여 원래 상태로 복구
@@ -555,6 +688,8 @@ void ACoinActor::OnCoinHpChanged(int32 DeltaHP)
 
 void ACoinActor::ResetFlash()
 {
+	bOutlineHitActive = false;
+	RefreshOutline();
     if (CoinMesh)
     {
         UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(CoinMesh->GetMaterial(0));
@@ -617,13 +752,28 @@ void ACoinActor::HandleCCVisualChanged(ECCTypes CCType)
 {
 	if (IsValid(CCDisplayMesh))
 	{
-		UStaticMesh* Mesh = CCType == ECCTypes::Blind ? BlindDisplayMesh.Get() :
-			CCType == ECCTypes::Stun ? StunDisplayMesh.Get() : nullptr;
-		CCDisplayMesh->SetStaticMesh(Mesh);
-		CCDisplayMesh->SetVisibility(IsValid(Mesh));
+		// 표시 메쉬는 BP 지정 그대로 유지하고, 상태별 텍스처와 색상만 교체합니다.
+		CCDisplayMesh->SetVisibility(false);
+		const int32 CCBuffTypeID = CCType == ECCTypes::Blind ? DebuffTypeID::Blind :
+			CCType == ECCTypes::Stun ? DebuffTypeID::Stun : INDEX_NONE;
+		UGameInstance* GI = GetGameInstance();
+		UDataManagerSubsystem* Data = IsValid(GI) ? GI->GetSubsystem<UDataManagerSubsystem>() : nullptr;
+		FDebuffDefinitionData Definition;
+		if (CCBuffTypeID != INDEX_NONE && IsValid(Data) && Data->TryGetDebuff(CCBuffTypeID, Definition) &&
+			IsValid(Definition.Icon) && IsValid(CCDisplayMesh->GetStaticMesh()))
+		{
+			if (!IsValid(CCDisplayMaterial)) CCDisplayMaterial = CCDisplayMesh->CreateDynamicMaterialInstance(0);
+			if (IsValid(CCDisplayMaterial))
+			{
+				CCDisplayMaterial->SetTextureParameterValue(TEXT("CC_Icon"), Definition.Icon);
+				CCDisplayMaterial->SetVectorParameterValue(TEXT("CC_Color"), Definition.Color);
+				CCDisplayMesh->SetVisibility(true);
+			}
+		}
 	}
 	OnCCVisualChanged(CCType);
 	RefreshCover();
+	RefreshOutline();
 }
 
 void ACoinActor::OnCCRemoved()
@@ -633,6 +783,7 @@ void ACoinActor::OnCCRemoved()
 
 void ACoinActor::HandleStatusEffectsChanged(const FStatusEffectsChangedEvent& ChangedEvent)
 {
+	RefreshOutline();
 	OnStatusVisualChanged(
 		ChangedEvent.BuffTypeID,
 		ChangedEvent.SourceType,

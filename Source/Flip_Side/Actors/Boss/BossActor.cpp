@@ -1,4 +1,7 @@
 #include "BossActor.h"
+#include "Engine/GameInstance.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Subsystem/DataManagerSubsystem.h"
 #include "Actors/Component_Status.h"
 #include "BossGimmick_Swamp.h"
 #include "Components/SceneComponent.h"
@@ -48,6 +51,7 @@ ABossActor::ABossActor()
 void ABossActor::BeginPlay()
 {
 	Super::BeginPlay();
+	SetTargetOutlineEnabled(false);
 	if (IsValid(DebuffComponent))
 	{
 		DebuffComponent->OnCCChanged.AddUniqueDynamic(this, &ABossActor::HandleCCVisualChanged);
@@ -63,6 +67,13 @@ void ABossActor::BeginPlay()
     {
         AnimInstance->OnMontageEnded.AddUniqueDynamic(this, &ABossActor::BossMontageEnded);
     }
+}
+
+void ABossActor::SetTargetOutlineEnabled(bool bEnabled)
+{
+	if (!IsValid(BossMesh)) return;
+	BossMesh->SetCustomDepthStencilValue(211);
+	BossMesh->SetRenderCustomDepth(bEnabled && CurrentHP > 0 && !bBossDeathFinished && !IsHidden());
 }
 
 void ABossActor::InitializeFromBossData(const FBossBattleData& InData)
@@ -124,6 +135,7 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 	if(CurrentHP <= 0 && !bIsDying)
 	{
 		if (IsValid(DebuffComponent)) DebuffComponent->DisableForDeath();
+		SetTargetOutlineEnabled(false);
 		if(AnimInstance && BossClearAnim)
 		{
 			bIsDying = true;
@@ -217,8 +229,22 @@ void ABossActor::HandleCCVisualChanged(ECCTypes CCType)
 {
 	if (IsValid(CCDisplayMesh))
 	{
-		CCDisplayMesh->SetStaticMesh(BlindDisplayMesh);
-		CCDisplayMesh->SetVisibility(CCType == ECCTypes::Blind && IsValid(BlindDisplayMesh));
+		CCDisplayMesh->SetVisibility(false);
+		UGameInstance* GI = GetGameInstance();
+		UDataManagerSubsystem* Data = IsValid(GI) ? GI->GetSubsystem<UDataManagerSubsystem>() : nullptr;
+		FDebuffDefinitionData Definition;
+		// 보스는 기존 기획대로 실명만 아이콘, 기절은 아래 몽타주로 표시합니다.
+		if (CCType == ECCTypes::Blind && IsValid(Data) && Data->TryGetDebuff(DebuffTypeID::Blind, Definition) &&
+			IsValid(Definition.Icon) && IsValid(CCDisplayMesh->GetStaticMesh()))
+		{
+			if (!IsValid(CCDisplayMaterial)) CCDisplayMaterial = CCDisplayMesh->CreateDynamicMaterialInstance(0);
+			if (IsValid(CCDisplayMaterial))
+			{
+				CCDisplayMaterial->SetTextureParameterValue(TEXT("CC_Icon"), Definition.Icon);
+				CCDisplayMaterial->SetVectorParameterValue(TEXT("CC_Color"), Definition.Color);
+				CCDisplayMesh->SetVisibility(true);
+			}
+		}
 	}
 	UAnimInstance* BossAnim = IsValid(BossMesh) ? BossMesh->GetAnimInstance() : nullptr;
 	if (IsValid(BossAnim) && IsValid(StunMontage))
@@ -306,14 +332,10 @@ FVector ABossActor::GetSelfEffectLocation() const
 
 void ABossActor::PlayTelegraph()
 {
-	UE_LOG(LogTemp, Log, TEXT("[BossActor] Telegraph: BossID=%d Name=%s"),
-		BossID, *BossName);
 }
 
 void ABossActor::PlayAttack()
 {
-	UE_LOG(LogTemp, Log, TEXT("[BossActor] Attack: BossID=%d Name=%s"),
-		BossID, *BossName);
 
     if (!AnimInstance)
 	{
@@ -350,10 +372,6 @@ void ABossActor::PlayHitAnimation()
 
 void ABossActor::BossMontageEnded(UAnimMontage * TargetMontage, bool bInterrupted)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[Boss] MontageEnded Target=%s Clear=%s Interrupted=%d"),
-    *GetNameSafe(TargetMontage),
-    *GetNameSafe(BossClearAnim),
-    bInterrupted);
 	if (TargetMontage == SelectedPatternAnim)
     {
         if(OnBossAttackEnded.IsBound()) OnBossAttackEnded.Broadcast();
@@ -362,7 +380,6 @@ void ABossActor::BossMontageEnded(UAnimMontage * TargetMontage, bool bInterrupte
 	else if(TargetMontage == BossClearAnim)
 	{
 
-		UE_LOG(LogTemp, Warning, TEXT("[Boss] BossClearAnim ended. Interrupted=%d"), bInterrupted);
 		if(bInterrupted) return;
 
 		FinishBossClearAnimation();

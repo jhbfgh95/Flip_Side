@@ -45,7 +45,6 @@ void UW_BossHpElement::SetShieldMaterial(int32 ShieldLevel)
     if(ShieldLevelColor.Num()<=0)
         return;
     
-    UE_LOG(LogTemp, Warning, TEXT("개수 %d / 보호막 값 %d"), ShieldLevelColor.Num(),ShieldLevel);
     if(ShieldMID)
     {
         if(ShieldLevelColor.Num()<=ShieldLevel)

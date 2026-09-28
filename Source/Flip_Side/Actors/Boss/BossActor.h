@@ -99,8 +99,8 @@ public:
 	TObjectPtr<class USceneComponent> CCEffectLocation;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Boss|Debuff")
 	TObjectPtr<class UStaticMeshComponent> CCDisplayMesh;
-	UPROPERTY(EditDefaultsOnly, Category="Boss|Debuff")
-	TObjectPtr<class UStaticMesh> BlindDisplayMesh;
+	UPROPERTY(Transient)
+	TObjectPtr<class UMaterialInstanceDynamic> CCDisplayMaterial;
 	UPROPERTY(EditDefaultsOnly, Category="Boss|Debuff")
 	TObjectPtr<class UAnimMontage> StunMontage;
 	UFUNCTION(BlueprintImplementableEvent, Category="Boss|Debuff")
@@ -274,6 +274,10 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Boss")
 	void UnDisPlayOutline();
+
+	// 공격 대상 지정 전용: PP 머테리얼의 Stencil 211 분기를 빨강/두께 2로 연결합니다.
+	UFUNCTION(BlueprintCallable, Category = "Boss|Outline")
+	void SetTargetOutlineEnabled(bool bEnabled);
 
 public:
 	ABossActor();

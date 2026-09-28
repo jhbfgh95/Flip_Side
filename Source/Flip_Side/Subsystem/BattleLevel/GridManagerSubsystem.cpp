@@ -100,7 +100,6 @@ void UGridManagerSubsystem::InstanceGrid()
 		}
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("GridManager: Spawned grids %dx%d"), GridXSize, GridYSize);
 
 	SpawnBossWall();
 
@@ -794,8 +793,6 @@ void UGridManagerSubsystem::BuildCoinTargetCells(
 
 void UGridManagerSubsystem::PreviewHoveredCoinRange(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, const FGridPoint& finalRange)
 {
-	UE_LOG(LogTemp, Log, TEXT("PreviewHoveredCoinRange 호출됨 - CoinXY(%d,%d), PreviewActor유효:%s"),
-		CoinXY.GridX, CoinXY.GridY, IsValid(PreviewActor) ? TEXT("YES") : TEXT("NO"));
 
 	ResetBattleCoinPreview();
 

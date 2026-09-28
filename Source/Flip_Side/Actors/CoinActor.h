@@ -22,6 +22,17 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCoinRightClicked, ACoinActor*, Cl
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemExcuteCoinDelegate, ACoinActor*, ClickedCoin);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUnhoverCoinDelegate);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCoinDeathStarted, ACoinActor*);
+
+UENUM(BlueprintType)
+enum class ECoinOutlineState : uint8
+{
+	Hidden,
+	Neutral,
+	Buff,
+	Debuff,
+	Completed,
+	SpecialCC
+};
 UCLASS()
 class ACoinActor : public AActor, public IBattleHoverInterface, public IBattleClickInterface, public IBattleRightClickInterface
 {
@@ -111,6 +122,33 @@ protected:
 public:	
 	ACoinActor();
 
+	// BP의 스타일을 월드 MPC로 전달합니다. CoinOutline1~10의 RGB=색, A=두께입니다.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Coin|Outline")
+	TObjectPtr<class UMaterialParameterCollection> OutlineParameterCollection;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Coin|Outline")
+	FLinearColor NeutralOutlineColor = FLinearColor::White;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Coin|Outline")
+	FLinearColor BuffOutlineColor = FLinearColor::Green;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Coin|Outline")
+	FLinearColor DebuffOutlineColor = FLinearColor::Red;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Coin|Outline")
+	FLinearColor CompletedOutlineColor = FLinearColor(0.3f, 0.3f, 0.3f);
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Coin|Outline")
+	FLinearColor HoverOutlineColor = FLinearColor::Yellow;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Coin|Outline")
+	TMap<ECCTypes, FLinearColor> CCOutlineColors;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Coin|Outline", meta=(ClampMin="0.0"))
+	float BuffOutlineThickness = 2.0f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Coin|Outline", meta=(ClampMin="0.0"))
+	float DebuffOutlineThickness = 4.0f;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category="Coin|Outline")
+	ECoinOutlineState OutlineState = ECoinOutlineState::Hidden;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category="Coin|Outline")
+	bool bOutlineHovered = false;
+	// 런타임 BP에서 색/두께를 수정했다면 이 함수를 호출해 MPC에 반영합니다.
+	UFUNCTION(BlueprintCallable, Category="Coin|Outline")
+	void RefreshOutline();
+
 	UPROPERTY(EditAnywhere, Category = "Coin | Component")
 	class UComponent_Status* StatComponent;
 
@@ -121,10 +159,9 @@ public:
 	TObjectPtr<class USceneComponent> CCEffectLocation;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Coin|Debuff")
 	TObjectPtr<class UStaticMeshComponent> CCDisplayMesh;
-	UPROPERTY(EditDefaultsOnly, Category="Coin|Debuff")
-	TObjectPtr<class UStaticMesh> BlindDisplayMesh;
-	UPROPERTY(EditDefaultsOnly, Category="Coin|Debuff")
-	TObjectPtr<class UStaticMesh> StunDisplayMesh;
+	// CCDisplayMesh의 0번 머테리얼로부터 코인별 MID를 생성합니다.
+	UPROPERTY(Transient)
+	TObjectPtr<class UMaterialInstanceDynamic> CCDisplayMaterial;
 
 	// BP가 공용 위치에 실명/기절 메쉬 또는 VFX를 표시하고 None에서 제거합니다.
 	UFUNCTION(BlueprintImplementableEvent, Category="Coin|Debuff")
@@ -169,6 +206,10 @@ public:
 
 	void SetCoinIsActed(const bool IsActed);
 	bool GetCoinIsActed() const;
+	// 입력 잠금 bIsActed와 분리합니다. 모든 메인 키워드 처리 완료 시 ActionManager가 알립니다.
+	void MarkAllMainKeywordsConsumed();
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category="Coin|Outline")
+	bool bAllMainKeywordsConsumed = false;
 
 	void SetCoinOnBattle(const bool IsOnBattle);
 	bool GetCoinOnBattle() const { return bIsOnBattle; }
@@ -229,7 +270,7 @@ public:
 
 	FOnCoinDeathStarted OnCoinDeathStarted;
 
-	// Controller가 레디 슬롯과 이 액터를 연결합니다. 윤곽선 표현은 CoinActor BP에서 구현합니다.
+	// Controller의 슬롯 호버 알림입니다. 윤곽선은 RefreshOutline에서 자동 적용합니다.
 	UFUNCTION(BlueprintImplementableEvent, Category = "Coin|Highlight")
 	void OnReadySlotHighlightChanged(bool bHighlighted);
 	void SetReadySlotHighlighted(bool bHighlighted);
@@ -284,7 +325,18 @@ protected:
 	FSimpleDelegate PendingLandingDelegate;
 	bool bLandingCallbackPending = false;
 	bool bDeathStarted = false;
+	// 등장/뒤집기와 피격은 행동 상태와 독립적으로 유지하여 겹친 연출이 모두 끝나야 복구합니다.
+	bool bOutlineJumpActive = false;
+	bool bOutlineHitActive = false;
 	bool bReadySlotHighlighted = false;
+	bool bFieldOutlineHovered = false;
+	bool bOutlinePhaseActive = false;
+	bool bOutlineWasEligible = false;
+	bool bOutlineParameterWarningLogged = false;
+	UFUNCTION()
+	void HandleOutlinePhaseChanged(EPhaseState Phase);
+	void HandleOutlineStatsChanged(const FWeaponStatsChangedEvent& ChangedEvent);
+	bool IsOutlineEligible() const;
 
 	UPROPERTY(EditAnywhere, Category = "Jump", meta = (AllowPrivateAccess = "true"))
     float JumpDuration = 0.5f; // 점프 지속 시간

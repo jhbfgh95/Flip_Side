@@ -270,7 +270,6 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
         CandidateIndices.Add(FMath::RandRange(0, PatternCount - 1));
     }
     const int32 PatternIndex = CandidateIndices[FMath::RandRange(0, CandidateIndices.Num() - 1)];
-    UE_LOG(LogTemp, Warning, TEXT("[BossManager] PatternCount=%d, SelectedIndex=%d"), PatternCount, PatternIndex);
     UBossPatternBase* PickedPattern = CurrentBoss->GetPattern();
     if (!PickedPattern)
     {
@@ -308,9 +307,6 @@ bool UBossManagerSubsystem::PrepareCurrentPattern()
         Proxy->GimmickData = MatchedGimmick ? MatchedGimmick->GimmickData : FBossGimmickData{};
         CurrentBoss->SetActiveGimmick(Proxy);
 
-        UE_LOG(LogTemp, Warning, TEXT("[BossManager] Pattern=%d, GimmickType=%d, ActiveGimmick=%s"),
-            PatternIndex, (int32)CurrentPatternData.GimmickType,
-            MatchedGimmick ? *MatchedGimmick->GetClass()->GetName() : TEXT("None"));
 
         CurrentBoss->SetCurrentPatternInfo(PhaseContext.CurrentPatternIndex, CurrentPatternData);
     }

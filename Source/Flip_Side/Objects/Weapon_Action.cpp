@@ -152,9 +152,6 @@ bool UWeapon_Action::ExecuteAbility(const FRegisteredAbilityLogic& AbilityLogic)
 		CasterCoin->StatComponent->IsStunned() ||
 		(CasterCoin->StatComponent->IsBlinded() && AbilityLogic.Timing == EAbilityTiming::OnHit)) return false;
 	const bool bSucceeded = AbilityLogic.Logic ? AbilityLogic.Logic(this) : false;
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] AbilityResult Weapon=%d Caster=%s Name=%s Success=%d Coins=%d Others=%d Strike=%d"),
-		LogicID, *GetNameSafe(CasterCoin.Get()), *AbilityLogic.DebugName.ToString(), bSucceeded,
-		InRangeCoins.Num(), InRangeOthers.Num(), ExecutionState.StrikeAmount);
 	return bSucceeded;
 }
 

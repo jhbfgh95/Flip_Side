@@ -32,7 +32,6 @@ void ABossActor_RoleTarget::BeginPlay()
     if (IndicatorDynMat)
     {
         IndicatorDynMat->SetVectorParameterValue(TEXT("Color"), FLinearColor::Black);
-        UE_LOG(LogTemp, Warning, TEXT("[RoleTarget] DynMat created OK"));
     }
     else
     {
@@ -70,7 +69,6 @@ void ABossActor_RoleTarget::StartRoleRoulette()
     BlinkElapsed = 0.f;
     if (IndicatorDynMat)
         IndicatorDynMat->SetVectorParameterValue(TEXT("Color"), FLinearColor::Black);
-    UE_LOG(LogTemp, Warning, TEXT("[RoleTarget] Roulette started"));
 }
 
 void ABossActor_RoleTarget::StopRoleRouletteAndLock()
@@ -98,7 +96,6 @@ void ABossActor_RoleTarget::StopRoleRouletteAndLock()
             default:                 LockedColor = FLinearColor::White;            break;
         }
         IndicatorDynMat->SetVectorParameterValue(TEXT("Color"), LockedColor);
-        UE_LOG(LogTemp, Warning, TEXT("[RoleTarget] Color set: R=%.1f G=%.1f B=%.1f"), LockedColor.R, LockedColor.G, LockedColor.B);
     }
     else
     {
@@ -106,7 +103,6 @@ void ABossActor_RoleTarget::StopRoleRouletteAndLock()
     }
 
 
-    UE_LOG(LogTemp, Warning, TEXT("[RoleTarget] Roulette locked: %d"), (int32)LockedRoleClass);
 }
 
 void ABossActor_RoleTarget::SetIndicatorColor(FLinearColor Color)

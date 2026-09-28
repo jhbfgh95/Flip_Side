@@ -336,7 +336,6 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
 
     if (FieldCoins.Num() == 0)
     {
-        UE_LOG(LogTemp, Log, TEXT("[StageCard] ExecuteCardsEffect: No coins on field."));
         return;
     }
 
@@ -381,8 +380,6 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
     for (int32 Slot = 0; Slot < HandCount; ++Slot)
     {
         const bool bHas = bHasCard.IsValidIndex(Slot) && bHasCard[Slot];
-        UE_LOG(LogTemp, Warning, TEXT("[StageCard] Slot=%d, bHasCard=%d, CardID=%d"),
-            Slot, bHas ? 1 : 0, bHas ? HandCards[Slot].CardID : -1);
 
         if (!bHas) continue;
 
@@ -449,7 +446,6 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
 
     CoinMods = LocalMods;
 
-    UE_LOG(LogTemp, Log, TEXT("[StageCard] ExecuteCardsEffect done. BuffAppliedCoins=%d"), LocalMods.Num());
 }
 
 

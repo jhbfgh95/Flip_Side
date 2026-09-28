@@ -110,12 +110,10 @@ void UW_StageHandCardWidget::SetActiveCardEffect(int32 index, bool IsActive)
     
 void UW_StageHandCardWidget::HoverCard()
 {
-    UE_LOG(LogTemp, Warning, TEXT("카드 호버링"));
     OnHoverHandCard.Broadcast(CurrentCardData);
 }
     
 void UW_StageHandCardWidget::UnhoverCard()
 {
-    UE_LOG(LogTemp, Warning, TEXT("카드 언호버링"));
     OnUnHoverHandCard.Broadcast();
 }

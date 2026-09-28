@@ -78,7 +78,6 @@ bool ABossActor_Groggy::TryConsumeIncomingCC(const FStatusEffectInstance& Effect
         if (UBossGimmick_Groggy* GroggyGimmick = Cast<UBossGimmick_Groggy>(G))
         {
             GroggyGimmick->AddGroggyValue(Effect.RemainingTurns, this);
-            UE_LOG(LogTemp, Warning, TEXT("[BossActor_Groggy] CC absorbed → GroggyValue added"));
             return true;
         }
     }

@@ -399,7 +399,6 @@ void UBattleManagerWSubsystem::HandleCoinBehaviorEntryFinished()
 
     if (ABossActor* Boss = BossManager ? BossManager->GetCurrentBoss() : nullptr)
     {
-        UE_LOG(LogTemp, Warning, TEXT("[Battle] DoCoinBehaviorPhase OnPlayerPhaseStart broadcast, GimmickCount=%d"), Boss->GetGimmickList().Num());
         for (UBossGimmickBase* G : Boss->GetGimmickList())
         {
             if (IsValid(G)) G->OnPlayerPhaseStart(Boss);

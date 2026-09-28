@@ -319,7 +319,6 @@ void ABattlePlayerController_FlipSide::ReturnToDefaultCamera() // 일단 당장�
 
 void ABattlePlayerController_FlipSide::OnLeftClick()
 {
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] InputLeftClick UIOnly=%d"), bIsUIOnly);
     if (bIsUIOnly)
     {
         return;
@@ -340,8 +339,6 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
     if (GetHitResultUnderCursor(ECC_Camera, true, Hit)) 
     {
         AActor* HitActor = Hit.GetActor();
-		UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] InputHit Actor=%s Component=%s"),
-			*GetNameSafe(HitActor), *GetNameSafe(Hit.GetComponent()));
         if (HitActor)
         {
             // 인터페이스 클릭 처리
@@ -353,7 +350,6 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
         }
     }
 
-	UE_LOG(LogTemp, Log, TEXT("[CoinAbilityTrace] InputNoClickableCameraTarget"));
     if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
     {
         // CurrentHoveredArea는 CheckMouseHover에서 실시간으로 업데이트됨
@@ -814,7 +810,7 @@ void ABattlePlayerController_FlipSide::HandleReadyCoinHovered(int32 CoinInstance
     ACoinActor* Coin = CoinManager->GetRuntimeCoinAtReadySlot(SlotIndex);
     if (!IsValid(Coin) || !IsValid(Coin->StatComponent) || Coin->StatComponent->GetHP() <= 0 || Coin->IsHidden()) return;
     HighlightedReadySlotCoin = Coin;
-    // TODO: PostProcess의 슬롯 강조용 Stencil 분기에 색/두께를 연결합니다. 현재 BP 이벤트는 유지합니다.
+    // CoinActor가 슬롯 호버 색과 기존 Buff/Debuff 두께를 MPC/Stencil로 전달합니다.
     Coin->SetReadySlotHighlighted(true);
 }
 

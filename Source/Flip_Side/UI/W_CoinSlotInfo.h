@@ -144,6 +144,7 @@ private:
 	TObjectPtr<class UKeywordDescriptionWidget> AdditionalKeywordDescriptionWidget;
 	void HandleBookmarkClicked(bool bFrontFace, int32 SectionIndex);
 	void SelectDescription(bool bFrontFace, int32 SectionIndex);
+	void RefreshKeywordDescriptions(const FCoinDescriptionSectionData* Section);
 	// 면별 설명 위젯은 한 개만 유지하며 책갈피 클릭 시 내용만 교체합니다.
 	UPROPERTY(Transient)
 	TObjectPtr<UCoinDescriptionSectionWidget> FrontDescriptionWidget;
