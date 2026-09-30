@@ -47,6 +47,7 @@ void UBattleManagerWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     ItemManager = Collection.InitializeDependency<UUseableItemWSubsystem>();
     ActingManager = Collection.InitializeDependency<UBattleLevelActingWSubsystem>();
     CoinActionManager = Collection.InitializeDependency<UCoinActionManagementWSubsystem>();
+    StageCardManager = Collection.InitializeDependency<UStageCardWSubsystem>();
     Collection.InitializeDependency<UOthersWSubsystem>();
     BossManager = Collection.InitializeDependency<UBossManagerSubsystem>();
     SoundManager = Collection.InitializeDependency<USoundManagerWSubsystem>();
@@ -348,11 +349,10 @@ void UBattleManagerWSubsystem::DoCoinBehaviorPhase()
     CoinManager->InstantiateReadyCoinActors();
     MatchCoinsToRandomState();
     
-    // TODO: 카드 조건 검사가 Tick 기반으로 이관되면 호출 경로를 복구합니다.
-    // if (StageCardManager)
-    // {
-    //     StageCardManager->ExecuteCardsEffect();
-    // }
+    if (IsValid(StageCardManager))
+    {
+        StageCardManager->BeginCardTurn();
+    }
 
     if (IsValid(CoinActionManager))
     {
@@ -426,11 +426,6 @@ void UBattleManagerWSubsystem::DoBossPhase()
         ItemManager->SetPhase(false);
     }
 
-    if (IsValid(ActingManager))
-    {
-        ActingManager->PlayBossPatternAct();
-    }
-
     if (IsValid(BossManager))
     {
         BossManager->ExecuteCurrentPattern();
@@ -493,12 +488,10 @@ void UBattleManagerWSubsystem::DoSettingPhase()
     BossManager->StartBossSetting();
     TSoftClassPtr<ABase_PatternVisualActor> VisualClass = BossManager->GetCurrentPatternVisualClass();
 
-    if (!VisualClass.IsNull())
+    if (IsValid(ActingManager))
     {
-        if (IsValid(ActingManager))
-        {
-            ActingManager->PrepareBossVisualActor(VisualClass);
-        }
+        // 연출이 없는 패턴도 이전 연출 액터를 정리합니다.
+        ActingManager->PrepareBossVisualActor(VisualClass);
     }
 
     PhaseProgressing();
@@ -563,6 +556,7 @@ bool UBattleManagerWSubsystem::TryEndStage(int32 StageEndFlag)
     }
 
     bIsStageEnded = true;
+    if (IsValid(StageCardManager)) StageCardManager->StopCardEvaluation();
 
     if (StageEndFlag == StageClearFlag)
     {

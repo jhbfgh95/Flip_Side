@@ -1,6 +1,7 @@
 #include "BossManagerSubsystem.h"
 
 #include "BossActor.h"
+#include "BattleLevelActingWSubsystem.h"
 #include "W_BossHP.h"
 #include "BossPatternBase.h"
 #include "BossGimmickBase.h"
@@ -160,6 +161,11 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossBattleData& InBossData
 
     CurrentBoss = SpawnedBoss;
     CurrentBoss->InitializeFromBossData(InBossData);
+
+    if (UGridManagerSubsystem* GridManager = World->GetSubsystem<UGridManagerSubsystem>(); IsValid(GridManager))
+    {
+        GridManager->SetBossIcon(CurrentBoss, InBossData.BossIcon.Get());
+    }
 
     if (InBossData.StageMultiplierStat != 1.0f)
     {
@@ -337,6 +343,7 @@ TSoftClassPtr<ABase_PatternVisualActor> UBossManagerSubsystem::GetCurrentPattern
 
 void UBossManagerSubsystem::ExecuteCurrentPattern()
 {
+    if (bAttackExecuting) return;
     if (!PhaseContext.bPrepared)
     {
         UE_LOG(LogTemp, Warning, TEXT("[BossManager] ExecuteCurrentPattern skipped: not prepared"));
@@ -361,32 +368,15 @@ void UBossManagerSubsystem::ExecuteCurrentPattern()
 
     BuildLockedTargetsFromCells(PhaseContext.LockedCells, PhaseContext.LockedTargets);
 
+    bAttackExecuting = true;
+    bPatternApplied = false;
+    bVisualActStarted = false;
     CurrentBoss->PlayAttack();
-
-    UWorld* World = GetWorld();
-    if (!World)
-    {
-        return;
-    }
-
-    float ApplyDelay = 1.0f;
-    if (PhaseContext.CurrentPattern && PhaseContext.CurrentPattern->PatternData.IsValidIndex(PhaseContext.CurrentPatternIndex))
-    {
-        ApplyDelay = PhaseContext.CurrentPattern->PatternData[PhaseContext.CurrentPatternIndex].ApplyDelay;
-    }
-
-    World->GetTimerManager().SetTimer(
-        ApplyPatternTimerHandle,
-        this,
-        &UBossManagerSubsystem::ApplyCurrentPattern,
-        ApplyDelay,
-        false
-    );
 }
 
 void UBossManagerSubsystem::ApplyCurrentPattern()
 {
-    if (!PhaseContext.bPrepared) return;
+    if (!bAttackExecuting || bPatternApplied || !PhaseContext.bPrepared) return;
 
     // 지연 피해 판정 사이에 기절해도 패턴/기믹 실행을 멈추고 완료를 통지합니다.
     if (!IsValid(CurrentBoss)) { ClearCurrentPhase(); return; }
@@ -397,6 +387,7 @@ void UBossManagerSubsystem::ApplyCurrentPattern()
         return;
     }
 
+    bPatternApplied = true;
     TArray<ACoinActor*> ValidLockedTargets;
     TArray<ABase_OtherActor*> ValidLockedOthers;
     for (const FLockedBossTarget& LockedTarget : PhaseContext.LockedTargets)
@@ -437,16 +428,38 @@ void UBossManagerSubsystem::ApplyCurrentPattern()
         );
     }
 
+    // VFX 노티파이를 위해 공격 몽타주 종료까지 패턴과 대상 칸을 유지합니다.
+}
+
+void UBossManagerSubsystem::PlayCurrentVisualAct()
+{
+    if (!bAttackExecuting || bVisualActStarted || !IsValid(CurrentBoss) || CurrentBoss->IsStunned()) return;
+    UWorld* World = GetWorld();
+    UBattleLevelActingWSubsystem* Acting = IsValid(World) ? World->GetSubsystem<UBattleLevelActingWSubsystem>() : nullptr;
+    if (!IsValid(Acting)) return;
+    bVisualActStarted = true;
+    Acting->PlayBossPatternAct();
+}
+
+void UBossManagerSubsystem::FinishCurrentAttack(bool bInterrupted)
+{
+    if (!bAttackExecuting) return;
+    if (!bInterrupted && !bPatternApplied)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[BossNotify] Attack ended without BossApplyPattern. Boss=%s PatternIndex=%d"),
+            *GetNameSafe(CurrentBoss), PhaseContext.CurrentPatternIndex);
+    }
     ClearCurrentPhase();
 }
 
-
 void UBossManagerSubsystem::ClearCurrentPhase()
 {
+    bAttackExecuting = false;
+    bPatternApplied = false;
+    bVisualActStarted = false;
     if (UWorld* World = GetWorld())
     {
         World->GetTimerManager().ClearTimer(TelegraphTimerHandle);
-        World->GetTimerManager().ClearTimer(ApplyPatternTimerHandle);
     }
 
     if (PhaseContext.LockedCells.Num() > 0)

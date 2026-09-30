@@ -657,6 +657,18 @@ void ABattlePlayerController_FlipSide::RefreshBattleItemHUD()
 	BattleHUDWidget->SetItemSlots(ItemSlotViews);
 }
 
+void ABattlePlayerController_FlipSide::TargetCardChange(int32 CardID, int32 CardSlot)
+{
+	UWorld* World = GetWorld();
+	UStageCardWSubsystem* Cards = IsValid(World) ? World->GetSubsystem<UStageCardWSubsystem>() : nullptr;
+	if (!IsValid(Cards))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[TargetCardChange] Battle card subsystem is unavailable."));
+		return;
+	}
+	Cards->ChangeHandCard(CardID, CardSlot);
+}
+
 void ABattlePlayerController_FlipSide::RefreshBattleCardHUD()
 {
 	if (!IsValid(BattleHUDWidget) || !IsValid(GetWorld()))

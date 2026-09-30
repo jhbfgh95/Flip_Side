@@ -14,6 +14,7 @@ class FLIP_SIDE_API UBattleCardSlotWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	virtual void NativeOnInitialized() override;
 	virtual void NativeConstruct() override;
 
 	void SetCardData(const FBattleCardSlotViewData& InData);
@@ -31,6 +32,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> CardNameText;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UImage> ActiveCardEffect;
 
 private:
 	UFUNCTION()

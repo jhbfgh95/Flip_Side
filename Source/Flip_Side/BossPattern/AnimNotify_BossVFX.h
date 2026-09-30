@@ -15,7 +15,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Boss VFX")
 	TSoftObjectPtr<class UNiagaraSystem> OverrideEffect;
 
-	// 미설정 시 패턴 데이터의 PatternEffectTarget 사용
+	UPROPERTY(EditAnywhere, Category = "Boss VFX")
+	bool bOverrideEffectTarget = false;
+
+	// 기본값은 패턴 DB의 타겟을 사용하며, 체크 시 아래 설정을 사용합니다.
 	UPROPERTY(EditAnywhere, Category = "Boss VFX")
 	EBossPatternTarget EffectTarget = EBossPatternTarget::TargetCells;
 

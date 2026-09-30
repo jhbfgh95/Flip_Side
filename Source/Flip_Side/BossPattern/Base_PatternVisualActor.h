@@ -39,11 +39,11 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timeline")
     FVector EndLocation;
 
-    // 애니메이션 대기 시간
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern")
+    // 기존 BP 호환용. 실행 시점은 BossVisualAct 노티파이가 결정합니다.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern", meta = (DeprecatedProperty, DeprecationMessage = "Use BossVisualAct notify timing instead."))
     float TimeBeforeAct = 1.0f;
 
-	// 목표 위치 도달후 파괴 시간
+    // 목표 위치 도달후 파괴 시간
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern | Visual")
     float DestroyDelayTime = 0.3f;
 
@@ -51,8 +51,6 @@ public:
     void PlayBossPatternAct();
 
 private:
-    FTimerHandle WaitTimerHandle;
-
     UFUNCTION()
     void StartMovement();
 

@@ -14,7 +14,26 @@ struct FCoinCardModifiers
     UPROPERTY(BlueprintReadOnly) int32 AttackAdd = 0;
     UPROPERTY(BlueprintReadOnly) int32 RangeAdd = 0;
     UPROPERTY(BlueprintReadOnly) int32 BehaviorAdd = 0;
+    UPROPERTY(BlueprintReadOnly) int32 CountAdd = 0;
+    UPROPERTY(BlueprintReadOnly) int32 AbilityRangeAdd = 0;
     UPROPERTY(BlueprintReadOnly) bool bLifeSteal = false;
+
+    bool operator==(const FCoinCardModifiers& Other) const
+    {
+        return ExtraActions == Other.ExtraActions && AttackAdd == Other.AttackAdd &&
+            BehaviorAdd == Other.BehaviorAdd && CountAdd == Other.CountAdd &&
+            RangeAdd == Other.RangeAdd && AbilityRangeAdd == Other.AbilityRangeAdd &&
+            bLifeSteal == Other.bLifeSteal;
+    }
+};
+
+USTRUCT(BlueprintType)
+struct FCardGoldTierData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadOnly) int32 MinimumGold = 0;
+    UPROPERTY(BlueprintReadOnly) FCoinCardModifiers Modifiers;
 };
 
 USTRUCT(BlueprintType)
@@ -47,6 +66,22 @@ struct FCardData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 RangeAdd = 0;
 
+    // RangeAdd는 공격 사거리입니다. 능력 사거리와 횟수는 독립적으로 적용합니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 AbilityRangeAdd = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 CountAdd = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 TriggerRange = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 RequiredWeaponID = INDEX_NONE;
+
+    UPROPERTY(BlueprintReadOnly)
+    TArray<FCardGoldTierData> GoldTiers;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 ExtraActions = 0;
 
@@ -72,7 +107,7 @@ struct FBattleCardSlotViewData
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     bool bOccupied = false;
 
-    // TODO: 카드 조건 검사가 Tick 기반으로 이관되면 활성 연출 상태를 전달합니다.
+    // 위젯 구현과 별개로 카드 관리자가 실제 조건 충족 상태를 제공합니다.
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     bool bIsActive = false;
 };

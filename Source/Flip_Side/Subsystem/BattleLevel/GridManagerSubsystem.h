@@ -79,8 +79,23 @@ private:
 	TObjectPtr<class ABossWallActor> BossWallActor;
 	void SpawnBossWall();
 
+	UPROPERTY(Transient)
+	TObjectPtr<class UTexture2D> CurrentBossIcon;
+
+	TWeakObjectPtr<ABossActor> IconBoss;
+
+	UFUNCTION()
+	void ClearBossIcon();
+
+	UFUNCTION()
+	void HandleIconBossDestroyed(AActor* DestroyedActor);
+
+	void RefreshBossIcons();
+
 public:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
+
+	void SetBossIcon(ABossActor* Boss, UTexture2D* Icon);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")
 	FVector GridOrigin = FVector(1340.f, -2560.f, -100.f);

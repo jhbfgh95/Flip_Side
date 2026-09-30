@@ -1,4 +1,5 @@
 #include "BossActor.h"
+#include "BossManagerSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Subsystem/DataManagerSubsystem.h"
@@ -233,8 +234,10 @@ void ABossActor::HandleCCVisualChanged(ECCTypes CCType)
 		UGameInstance* GI = GetGameInstance();
 		UDataManagerSubsystem* Data = IsValid(GI) ? GI->GetSubsystem<UDataManagerSubsystem>() : nullptr;
 		FDebuffDefinitionData Definition;
-		// 보스는 기존 기획대로 실명만 아이콘, 기절은 아래 몽타주로 표시합니다.
-		if (CCType == ECCTypes::Blind && IsValid(Data) && Data->TryGetDebuff(DebuffTypeID::Blind, Definition) &&
+		// 지원하는 CC 모두 DB 아이콘을 표시하며 기절 몽타주는 별도로 유지합니다.
+		const int32 CCBuffTypeID = CCType == ECCTypes::Blind ? DebuffTypeID::Blind :
+			CCType == ECCTypes::Stun ? DebuffTypeID::Stun : INDEX_NONE;
+		if (CCBuffTypeID != INDEX_NONE && IsValid(Data) && Data->TryGetDebuff(CCBuffTypeID, Definition) &&
 			IsValid(Definition.Icon) && IsValid(CCDisplayMesh->GetStaticMesh()))
 		{
 			if (!IsValid(CCDisplayMaterial)) CCDisplayMaterial = CCDisplayMesh->CreateDynamicMaterialInstance(0);
@@ -252,7 +255,7 @@ void ABossActor::HandleCCVisualChanged(ECCTypes CCType)
 		if (CCType == ECCTypes::Stun) BossAnim->Montage_Play(StunMontage);
 		else if (BossAnim->Montage_IsPlaying(StunMontage)) BossAnim->Montage_Stop(0.1f, StunMontage);
 	}
-	OnCCVisualChanged(CCType); // 보스 BP: Blind 메쉬 / Stun 애니메이션 / None 해제.
+	OnCCVisualChanged(CCType); // 보스 BP: CC 아이콘 / 추가 연출 / None 해제.
 }
 
 void ABossActor::SetMaxHP(int32 NewMaxHP)
@@ -351,11 +354,22 @@ void ABossActor::PlayAttack()
 		return;
 	}
 
-   	AnimInstance->Montage_Play(SelectedPatternAnim);
+    if (AnimInstance->Montage_Play(SelectedPatternAnim) <= 0.f)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[BossNotify] Attack montage failed: %s"), *GetNameSafe(SelectedPatternAnim.Get()));
+        FinishBossAttack();
+    }
 }
 
 void ABossActor::FinishBossAttack()
 {
+	if (UWorld* World = GetWorld())
+	{
+		if (UBossManagerSubsystem* Manager = World->GetSubsystem<UBossManagerSubsystem>(); IsValid(Manager) && Manager->GetCurrentBoss() == this)
+		{
+			Manager->FinishCurrentAttack(true);
+		}
+	}
 	if(OnBossAttackEnded.IsBound())
 	{
 		OnBossAttackEnded.Broadcast();
@@ -374,8 +388,11 @@ void ABossActor::BossMontageEnded(UAnimMontage * TargetMontage, bool bInterrupte
 {
 	if (TargetMontage == SelectedPatternAnim)
     {
-        if(OnBossAttackEnded.IsBound()) OnBossAttackEnded.Broadcast();
-
+        UWorld* World = GetWorld();
+        UBossManagerSubsystem* Manager = IsValid(World) ? World->GetSubsystem<UBossManagerSubsystem>() : nullptr;
+        if (!IsValid(Manager) || Manager->GetCurrentBoss() != this || !Manager->IsAttackExecuting()) return;
+        Manager->FinishCurrentAttack(bInterrupted);
+        FinishBossAttack();
     }
 	else if(TargetMontage == BossClearAnim)
 	{

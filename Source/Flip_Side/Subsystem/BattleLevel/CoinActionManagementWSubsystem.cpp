@@ -1,4 +1,5 @@
 #include "Subsystem/BattleLevel/CoinActionManagementWSubsystem.h"
+#include "Subsystem/StageCardWSubsystem.h"
 
 #include "Actors/Boss/BossActor.h"
 #include "Actors/CoinActor.h"
@@ -201,6 +202,8 @@ UBattleLevelActingWSubsystem* UCoinActionManagementWSubsystem::GetActingManager(
 
 void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
 {
+    if (IsValid(GetWorld()))
+        if (UStageCardWSubsystem* Cards = GetWorld()->GetSubsystem<UStageCardWSubsystem>()) Cards->ExecuteCardsEffect();
 	if (!bIsCorrectPhase || bActionSequenceActive || !IsValid(HoveredCoin) ||
 		HoveredCoin->GetCoinIsActed() || !IsValid(HoveredCoin->StatComponent))
 	{
@@ -222,6 +225,9 @@ void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
 
 void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedCoin)
 {
+    // 아이템 사용 직후 같은 프레임에 클릭해도 최신 카드 조건을 스냅숏에 반영합니다.
+    if (IsValid(GetWorld()))
+        if (UStageCardWSubsystem* Cards = GetWorld()->GetSubsystem<UStageCardWSubsystem>()) Cards->ExecuteCardsEffect();
 	if (!bIsCorrectPhase || !IsValid(ClickedCoin))
 	{
 		return;
@@ -859,7 +865,9 @@ void UCoinActionManagementWSubsystem::HandleCoinActionLowerFinished()
 {
 	if (IsValid(SelectedAction) && IsValid(SelectedAction->GetCasterCoin()))
 	{
-		SelectedAction->GetCasterCoin()->SetCoinIsActing(false);
+		ACoinActor* Coin = SelectedAction->GetCasterCoin();
+		Coin->SetCoinIsActing(false);
+		if (bIsCorrectPhase) Coin->ConsumeAdditionalAction();
 	}
 	if (bPendingFailedVFX)
 	{

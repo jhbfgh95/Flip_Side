@@ -11,11 +11,11 @@ namespace
 		{
 			Flags |= EWeaponStatChangeFlags::NumericStats;
 		}
-		if (!Modifier.AttackAreaSpec.IsZero())
+		if (!Modifier.AttackAreaSpec.IsZero() || Modifier.AttackRange != 0)
 		{
 			Flags |= EWeaponStatChangeFlags::AttackAreaSpec;
 		}
-		if (!Modifier.AbilityAreaSpec.IsZero())
+		if (!Modifier.AbilityAreaSpec.IsZero() || Modifier.AbilityRange != 0)
 		{
 			Flags |= EWeaponStatChangeFlags::AbilityAreaSpec;
 		}
@@ -193,6 +193,14 @@ FResolvedWeaponFaceStats UComponent_Status::ResolveFaceStatsFromData(
 		AddScaledValue(ResolvedStats.AppliedModifier.AttackPoint, StatusEffect.Modifier.AttackPoint, 1);
 		AddScaledValue(ResolvedStats.AppliedModifier.WeaponPoint, StatusEffect.Modifier.WeaponPoint, 1);
 		AddScaledValue(ResolvedStats.AppliedModifier.WeaponCnt, StatusEffect.Modifier.WeaponCnt, 1);
+		const FAttackAreaSpecModifier AttackRange = MakeWeaponRangeModifier(FaceStats.AttackAreaSpec, StatusEffect.Modifier.AttackRange);
+		const FAttackAreaSpecModifier AbilityRange = FaceStats.bHasAbilityArea
+			? MakeWeaponRangeModifier(FaceStats.AbilityAreaSpec, StatusEffect.Modifier.AbilityRange)
+			: FAttackAreaSpecModifier();
+		AddScaledValue(ResolvedStats.AppliedModifier.AttackAreaSpec.ParamA, AttackRange.ParamA, 1);
+		AddScaledValue(ResolvedStats.AppliedModifier.AttackAreaSpec.ParamB, AttackRange.ParamB, 1);
+		AddScaledValue(ResolvedStats.AppliedModifier.AbilityAreaSpec.ParamA, AbilityRange.ParamA, 1);
+		AddScaledValue(ResolvedStats.AppliedModifier.AbilityAreaSpec.ParamB, AbilityRange.ParamB, 1);
 		AddScaledValue(ResolvedStats.AppliedModifier.AttackAreaSpec.ParamA, StatusEffect.Modifier.AttackAreaSpec.ParamA, 1);
 		AddScaledValue(ResolvedStats.AppliedModifier.AttackAreaSpec.ParamB, StatusEffect.Modifier.AttackAreaSpec.ParamB, 1);
 		AddScaledValue(ResolvedStats.AppliedModifier.AbilityAreaSpec.ParamA, StatusEffect.Modifier.AbilityAreaSpec.ParamA, 1);
@@ -294,6 +302,26 @@ bool UComponent_Status::AddStatusEffect(FStatusEffectInstance StatusEffect)
 	}
 	BroadcastStatusEffectChanged(StatusEffect);
 	return true;
+}
+
+bool UComponent_Status::SetCardStatusEffect(const FStatusEffectInstance& StatusEffect)
+{
+	if (bIsDead || StatusEffect.SourceType != EStatusEffectSourceType::Card ||
+		StatusEffect.Polarity != EStatusPolarity::Buff) return false;
+	for (FStatusEffectInstance& Existing : ActiveStatusEffects)
+	{
+		if (Existing.SourceType != EStatusEffectSourceType::Card ||
+			Existing.BuffTypeID != StatusEffect.BuffTypeID || Existing.SourceDataID != StatusEffect.SourceDataID) continue;
+		const EWeaponStatChangeFlags Flags = GetModifierChangeFlags(Existing.Modifier) | GetModifierChangeFlags(StatusEffect.Modifier);
+		const int32 Serial = Existing.BuffInstanceSerial;
+		Existing = StatusEffect;
+		Existing.BuffInstanceSerial = Serial;
+		RecalculateMaxHPFromEffects(false);
+		MarkWeaponStatsDirty(Flags);
+		BroadcastStatusEffectChanged(Existing);
+		return true;
+	}
+	return AddStatusEffect(StatusEffect);
 }
 
 bool UComponent_Status::RemoveStatusEffectByInstanceSerial(int32 BuffInstanceSerial)
@@ -934,6 +962,17 @@ void UComponent_Status::CheckAttackerPreBuff(AActor* Target, int32 InDmg, int32&
 
 void UComponent_Status::CheckAttackerPostBuff(AActor* Target, int32 DealtDmg)
 {
+	if (DealtDmg > 0 && !bIsDead)
+	{
+		for (const FStatusEffectInstance& Effect : ActiveStatusEffects)
+		{
+			if (Effect.ReactiveBehavior == EStatusReactiveBehavior::LifeSteal)
+			{
+				ApplyHeal(DealtDmg, GetOwner());
+				break;
+			}
+		}
+	}
 	if (OnPostGiveDamage.IsBound())
 	{
 		OnPostGiveDamage.Broadcast(Target, DealtDmg);

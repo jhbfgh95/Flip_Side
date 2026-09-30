@@ -140,7 +140,11 @@ FWeaponAttackResult UWeapon_Action::ExecuteAttack()
 		return Result;
 	}
 
+	// 보스 사망 콜백이 행동 컨텍스트를 초기화해도 마지막 타격의 흡혈은 처리합니다.
+	TWeakObjectPtr<ACoinActor> Attacker = CasterCoin;
 	Result = LogicSet->AttackLogic(this);
+	if (ACoinActor* Coin = Attacker.Get(); IsValid(Coin) && IsValid(Coin->StatComponent))
+		Coin->StatComponent->CheckAttackerPostBuff(Result.Boss.Get(), Result.HPDamage);
 	ExecutionState.LastAttack = Result;
 	ExecutionState.TotalDamageDealt += Result.GetTotalDamage();
 	return Result;

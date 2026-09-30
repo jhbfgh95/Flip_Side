@@ -9,6 +9,9 @@
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
 #include "Subsystem/BattleLevel/BattleLevelActingWSubsystem.h"
 #include "Subsystem/CardLogicLibrary.h"
+#include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
+#include "Subsystem/BattleLevel/CoinManagementWSubsystem.h"
+#include "Subsystem/MoneyGISubsystem.h"
 #include "Component_Status.h"
 #include "CoinActor.h"
 #include "GridActor.h"
@@ -42,16 +45,18 @@ void UStageCardWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         HandCards[i] = FCardData();
     }
 
-    FCardLogicLibrary::BuildLogicTable(CardLogicTable);
+    GridSubsys = Collection.InitializeDependency<UGridManagerSubsystem>();
+    ActingManager = Collection.InitializeDependency<UBattleLevelActingWSubsystem>();
+    Collection.InitializeDependency<UCoinManagementWSubsystem>();
 }
 
 void UStageCardWSubsystem::Deinitialize()
 {
+    SettingDoSettingPhase();
     GridSubsys = nullptr;
     ActingManager = nullptr;
     CrossingGI = nullptr;
     DM = nullptr;
-    CoinMods.Empty();
 
     Super::Deinitialize();
 }
@@ -70,6 +75,9 @@ void UStageCardWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
     {
         CrossingGI = GI->GetSubsystem<UCrossingLevelGISubsystem>();
         DM = GI->GetSubsystem<UDataManagerSubsystem>();
+        const UMoneyGISubsystem* Money = GI->GetSubsystem<UMoneyGISubsystem>();
+        const int32 CurrentGold = IsValid(Money) ? Money->GetCurrentMoney() : 0;
+        BattleEntryGold = IsValid(CrossingGI) ? CrossingGI->ConsumeBattleEntryGold(CurrentGold) : CurrentGold;
     }
 
     // ===== ���� ���� ����ȭ =====
@@ -94,6 +102,7 @@ void UStageCardWSubsystem::RefreshHandFromGI()
         return;
     }
     CrossingGI = LocalCrossingGI;
+    ClearAllModifiers();
     CardPrice = 0;
 
     const TArray<int32> IDs = CrossingGI->GetBattleCardIDs();
@@ -207,6 +216,74 @@ bool UStageCardWSubsystem::TryLoadCardData(int32 CardID, FCardData& Out) const
     return LocalDM->TryGetCard(CardID, Out);
 }
 
+bool UStageCardWSubsystem::ChangeHandCard(int32 CardID, int32 CardSlot)
+{
+    if (!HandCards.IsValidIndex(CardSlot) || !bHasCard.IsValidIndex(CardSlot))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[TargetCardChange] CardSlot must be 0-2. Slot=%d"), CardSlot);
+        return false;
+    }
+    FCardData Card;
+    if (!TryLoadCardData(CardID, Card))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[TargetCardChange] Unknown CardID=%d"), CardID);
+        return false;
+    }
+    if (!IsValid(CrossingGI))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[TargetCardChange] CrossingLevel subsystem is unavailable."));
+        return false;
+    }
+
+    for (const auto& Pair : Runtime[CardSlot].EntryModifiers)
+        if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin) && Pair.Value.ExtraActions > 0)
+            Coin->ClearAdditionalActions();
+    ClearSlot(CardSlot, false);
+    HandCards[CardSlot] = Card;
+    bHasCard[CardSlot] = true;
+    Runtime[CardSlot].CardID = CardID;
+    CrossingGI->SetBattleCardID(CardID, CardSlot);
+    CardPrice = 0;
+    bool bHasPromotion = false;
+    for (int32 Slot = 0; Slot < HandCount; ++Slot)
+    {
+        if (!bHasCard[Slot]) continue;
+        CardPrice += HandCards[Slot].Price;
+        bHasPromotion |= HandCards[Slot].CardID == 3;
+    }
+    if (!bHasPromotion) ClearPromotionHighlight();
+
+    if (bTurnInitialized)
+    {
+        if (CardID == 1 || CardID == 4)
+        {
+            TArray<FCoinOnGridInfo> FieldCoins;
+            CollectCoinsOnField(FieldCoins);
+            TMap<int32, int32> SourceSlots;
+            BuildSourceSlots(SourceSlots);
+            const bool bActive = FCardLogicLibrary::Evaluate(Card, FieldCoins, SourceSlots,
+                BattleEntryGold, PromotionHighlightedGrid, DM, Runtime[CardSlot].EntryModifiers);
+            SetCardActive(CardSlot, bActive);
+            if (CardID == 1)
+                for (const auto& Pair : Runtime[CardSlot].EntryModifiers)
+                    if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin)) Coin->GrantAdditionalActions(Pair.Value.ExtraActions);
+        }
+        if (CardID == 3 && PromotionHighlightedGrid.GridX < 0 && IsValid(GridSubsys) &&
+            GridSubsys->GridXSize > 0 && GridSubsys->GridYSize > 0)
+        {
+            PromotionHighlightedGrid = FGridPoint(FMath::RandRange(0, GridSubsys->GridXSize - 1),
+                FMath::RandRange(0, GridSubsys->GridYSize - 1));
+            if (AGridActor* Grid = GridSubsys->GetGridActor(PromotionHighlightedGrid); IsValid(Grid) && IsValid(ActingManager))
+                ActingManager->ShowPromotionVFX(Grid->GetActorLocation());
+        }
+        ExecuteCardsEffect();
+    }
+    OnHandCardSet.Broadcast(CardSlot, Card);
+    OnBattleCardDataChanged.Broadcast();
+    UE_LOG(LogTemp, Log, TEXT("[TargetCardChange] CardID=%d Slot=%d"), CardID, CardSlot);
+    return true;
+}
+
 void UStageCardWSubsystem::RemoveHandCard(int32 HandIndex)
 {
     if (HandIndex < 0 || HandIndex >= HandCount) return;
@@ -251,13 +328,15 @@ void UStageCardWSubsystem::GetBattleCardSlots(TArray<FBattleCardSlotViewData>& O
             SlotView.CardData = HandCards[SlotIndex];
         }
 
-        // TODO: Tick 기반 조건 검사 이관 후 실제 활성 상태를 여기서 전달합니다.
-        SlotView.bIsActive = false;
+        SlotView.bIsActive = Runtime[SlotIndex].bActive;
     }
 }
 
 void UStageCardWSubsystem::ClearSlot(int32 HandIndex, bool bNotify)
 {
+    SyncCardModifiers(HandIndex, {});
+    Runtime[HandIndex].EntryModifiers.Reset();
+    SetCardActive(HandIndex, false);
     bHasCard[HandIndex] = false;
     HandCards[HandIndex] = FCardData();
 
@@ -284,175 +363,203 @@ int32 UStageCardWSubsystem::GetCardCount() const
 
 void UStageCardWSubsystem::ClearAllModifiers()
 {
-    CoinMods.Empty();
+    for (int32 Slot = 0; Slot < HandCount; ++Slot)
+    {
+        for (const auto& Pair : Runtime[Slot].EntryModifiers)
+            if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin) && Pair.Value.ExtraActions > 0)
+                Coin->ClearAdditionalActions();
+        SyncCardModifiers(Slot, {});
+        Runtime[Slot].EntryModifiers.Reset();
+    }
     UnActiveCardUI();
 }
 
 void UStageCardWSubsystem::SettingDoSettingPhase()
 {
+    bTurnInitialized = false;
+    ClearAllModifiers();
     ClearPromotionHighlight();
-    //카드 활성화 초기화
-    UnActiveCardUI();
 }
 
 void UStageCardWSubsystem::ClearPromotionHighlight()
 {
-    if (ActingManager)
-    {
-        ActingManager->HidePromotionVFX();
-    }
-
-    PromotionHighlightedGrid.GridX = -1;
-    PromotionHighlightedGrid.GridY = -1;
+    if (IsValid(ActingManager)) ActingManager->HidePromotionVFX();
+    PromotionHighlightedGrid = FGridPoint(-1, -1);
 }
 
 FCoinCardModifiers UStageCardWSubsystem::GetModifiersForCoin(ACoinActor* Coin) const
 {
-    if (!IsValid(Coin))
-        return FCoinCardModifiers{};
-
-    if (const FCoinCardModifiers* Found = CoinMods.Find(Coin))
-        return *Found;
-
-    return FCoinCardModifiers{};
+    FCoinCardModifiers Result;
+    if (!IsValid(Coin)) return Result;
+    for (const FStageCardRuntimeState& State : Runtime)
+    {
+        if (const FCoinCardModifiers* Mods = State.Applied.Find(Coin))
+        {
+            Result.AttackAdd += Mods->AttackAdd;
+            Result.BehaviorAdd += Mods->BehaviorAdd;
+            Result.CountAdd += Mods->CountAdd;
+            Result.RangeAdd += Mods->RangeAdd;
+            Result.AbilityRangeAdd += Mods->AbilityRangeAdd;
+            Result.ExtraActions += Mods->ExtraActions;
+            Result.bLifeSteal |= Mods->bLifeSteal;
+        }
+    }
+    return Result;
 }
 
 void UStageCardWSubsystem::CollectCoinsOnField(TArray<FCoinOnGridInfo>& OutCoins) const
 {
     OutCoins.Reset();
-    if (!GridSubsys) return;
-
-    GridSubsys->CollectOccupiedCoins(OutCoins);
+    if (IsValid(GridSubsys)) GridSubsys->CollectOccupiedCoins(OutCoins);
+    OutCoins.RemoveAll([](const FCoinOnGridInfo& Info)
+    {
+        return !IsValid(Info.CoinActor) || !IsValid(Info.CoinActor->StatComponent) || Info.CoinActor->StatComponent->IsDead();
+    });
 }
 
-
-void UStageCardWSubsystem::ExecuteCardsEffect()
+void UStageCardWSubsystem::BuildSourceSlots(TMap<int32, int32>& OutSlots) const
 {
+    OutSlots.Reset();
+    const UCoinManagementWSubsystem* Coins = GetWorld() ? GetWorld()->GetSubsystem<UCoinManagementWSubsystem>() : nullptr;
+    if (!IsValid(Coins)) return;
+    for (const FReadyCoinData& Coin : Coins->GetReadyCoinData())
+        if (Coin.CoinInstanceID != INDEX_NONE && Coin.SourceSlotNumber != INDEX_NONE)
+            OutSlots.Add(Coin.CoinInstanceID, Coin.SourceSlotNumber);
+}
+
+void UStageCardWSubsystem::BeginCardTurn()
+{
+    if (bTurnInitialized) return;
     ClearAllModifiers();
     ClearPromotionHighlight();
-
+    bTurnInitialized = true;
     TArray<FCoinOnGridInfo> FieldCoins;
     CollectCoinsOnField(FieldCoins);
-
-    if (FieldCoins.Num() == 0)
-    {
-        return;
-    }
-
-    // 필드 코인 턴 버프 초기화
-    for (const FCoinOnGridInfo& Info : FieldCoins)
-    {
-        if (!IsValid(Info.CoinActor)) continue;
-        UComponent_Status* StatusComp = Info.CoinActor->FindComponentByClass<UComponent_Status>();
-        if (IsValid(StatusComp)) StatusComp->ClearTurnBasedBuffs();
-    }
-
-    // 프로모션 카드 보유 여부 확인 -> 랜덤 그리드 빛내기
+    TMap<int32, int32> SourceSlots;
+    BuildSourceSlots(SourceSlots);
     bool bHasPromotion = false;
     for (int32 Slot = 0; Slot < HandCount; ++Slot)
     {
-        if (bHasCard.IsValidIndex(Slot) && bHasCard[Slot] && HandCards[Slot].CardID == 3)
+        if (!bHasCard[Slot]) continue;
+        const FCardData& Card = HandCards[Slot];
+        Runtime[Slot].CardID = Card.CardID;
+        bHasPromotion |= Card.CardID == 3;
+        if (Card.CardID == 1 || Card.CardID == 4)
         {
-            bHasPromotion = true;
-            break;
+            const bool bActive = FCardLogicLibrary::Evaluate(Card, FieldCoins, SourceSlots,
+                BattleEntryGold, PromotionHighlightedGrid, DM, Runtime[Slot].EntryModifiers);
+            SetCardActive(Slot, bActive);
+            if (Card.CardID == 1)
+                for (const auto& Pair : Runtime[Slot].EntryModifiers)
+                    if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin)) Coin->GrantAdditionalActions(Pair.Value.ExtraActions);
         }
     }
-
-    if (bHasPromotion && GridSubsys && GridSubsys->GridXSize > 0 && GridSubsys->GridYSize > 0)
+    if (bHasPromotion && IsValid(GridSubsys) && GridSubsys->GridXSize > 0 && GridSubsys->GridYSize > 0)
     {
-        FGridPoint RandPoint;
-        RandPoint.GridX = FMath::RandRange(0, GridSubsys->GridXSize - 1);
-        RandPoint.GridY = FMath::RandRange(0, GridSubsys->GridYSize - 1);
-
-        if (AGridActor* HighlightGrid = GridSubsys->GetGridActor(RandPoint))
-        {
-            if (ActingManager)
-            {
-                ActingManager->ShowPromotionVFX(HighlightGrid->GetActorLocation());
-            }
-            PromotionHighlightedGrid = RandPoint;
-        }
+        PromotionHighlightedGrid = FGridPoint(FMath::RandRange(0, GridSubsys->GridXSize - 1),
+            FMath::RandRange(0, GridSubsys->GridYSize - 1));
+        if (AGridActor* Grid = GridSubsys->GetGridActor(PromotionHighlightedGrid); IsValid(Grid) && IsValid(ActingManager))
+            ActingManager->ShowPromotionVFX(Grid->GetActorLocation());
     }
+    ExecuteCardsEffect();
+}
 
-    TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers> LocalMods;
+void UStageCardWSubsystem::Tick(float DeltaTime)
+{
+    ExecuteCardsEffect();
+}
 
-    // 핸드 카드마다 테이블에서 로직 조회 후 실행
+TStatId UStageCardWSubsystem::GetStatId() const
+{
+    RETURN_QUICK_DECLARE_CYCLE_STAT(UStageCardWSubsystem, STATGROUP_Tickables);
+}
+
+void UStageCardWSubsystem::ExecuteCardsEffect()
+{
+    if (!bTurnInitialized || bRefreshingEffects || !IsValid(GetWorld())) return;
+    const UBattleManagerWSubsystem* Battle = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
+    if (!IsValid(Battle)) return;
+    const EPhaseState Phase = Battle->GetCurrentPhase();
+    if (Phase != EPhaseState::CoinBehaviorPhase && Phase != EPhaseState::BossPhase) return;
+    TGuardValue<bool> Guard(bRefreshingEffects, true);
+    TArray<FCoinOnGridInfo> FieldCoins;
+    CollectCoinsOnField(FieldCoins);
+    TMap<int32, int32> SourceSlots;
+    BuildSourceSlots(SourceSlots);
     for (int32 Slot = 0; Slot < HandCount; ++Slot)
     {
-        const bool bHas = bHasCard.IsValidIndex(Slot) && bHasCard[Slot];
-
-        if (!bHas) continue;
-
-        const FCardData& Card = HandCards[Slot];
-        if (Card.CardID < 0) continue;
-
-        if (Card.CardID == 3)
+        if (!bHasCard[Slot])
         {
-            // 프로모션: 빛나는 칸에 쇠파이프(WeaponID==3) 코인이 있을 때만 버프
-            if (PromotionHighlightedGrid.GridX >= 0)
-            {
-                if(FCardLogicLibrary::ApplyPromotion(Card, FieldCoins, LocalMods, DM, PromotionHighlightedGrid))
-                    OnStageHandCardActive.Broadcast(Slot, true);
-                else
-                    OnStageHandCardActive.Broadcast(Slot, false);
-            }
+            SyncCardModifiers(Slot, {});
+            SetCardActive(Slot, false);
+            continue;
         }
-        else if (const FCardLogicFn* Logic = CardLogicTable.Find(Card.CardID))
+        const FCardData& Card = HandCards[Slot];
+        if (Card.CardID == 1 || Card.CardID == 4)
         {
-            if((*Logic)(Card, FieldCoins, LocalMods, DM))
-                OnStageHandCardActive.Broadcast(Slot, true);
-            else
-                OnStageHandCardActive.Broadcast(Slot, false);
-
+            // 진입 시 판정과 대상은 고정합니다. 사망한 액터는 Sync에서 제외합니다.
+            SyncCardModifiers(Slot, Runtime[Slot].EntryModifiers);
         }
         else
         {
-            UE_LOG(LogTemp, Warning, TEXT("[StageCard] CardID=%d 에 등록된 로직 없음"), Card.CardID);
-            OnStageHandCardActive.Broadcast(Slot, false);
+            TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers> Desired;
+            const bool bActive = FCardLogicLibrary::Evaluate(Card, FieldCoins, SourceSlots,
+                BattleEntryGold, PromotionHighlightedGrid, DM, Desired);
+            SyncCardModifiers(Slot, Desired);
+            SetCardActive(Slot, bActive);
         }
     }
-
-    // modifier를 Component_Status 버프로 등록
-    for (const TPair<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Pair : LocalMods)
-    {
-        ACoinActor* Coin = Pair.Key.Get();
-        if (!IsValid(Coin)) continue;
-
-        UComponent_Status* StatusComp = Coin->FindComponentByClass<UComponent_Status>();
-        if (!IsValid(StatusComp))
-        {
-            UE_LOG(LogTemp, Warning, TEXT("[StageCard] %s has no StatusComponent."), *GetNameSafe(Coin));
-            continue;
-        }
-
-        const int32 AttackAdd   = Pair.Value.AttackAdd;
-        const int32 BehaviorAdd = Pair.Value.BehaviorAdd;
-        const int32 RangeAdd    = Pair.Value.RangeAdd;
-
-        FBuffInfo BuffInfo;
-        BuffInfo.BuffName = TEXT("StageCardBuff");
-        BuffInfo.StatDelegate = FOnCalculateStats::FDelegate::CreateWeakLambda(
-            StatusComp,
-            [AttackAdd, BehaviorAdd, RangeAdd](FActionTask& Task)
-            {
-                Task.ModifiedAttackPoint   += AttackAdd;
-                Task.ModifiedBehaviorPoint += BehaviorAdd;
-                Task.ModifiedRange.GridX   += RangeAdd;
-                Task.ModifiedRange.GridY   += RangeAdd;
-            });
-
-        StatusComp->AddBuffs(BuffInfo);
-    }
-
-    CoinMods = LocalMods;
-
 }
 
+void UStageCardWSubsystem::SyncCardModifiers(int32 Slot, const TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Desired)
+{
+    FStageCardRuntimeState& State = Runtime[Slot];
+    const int32 CardID = bHasCard.IsValidIndex(Slot) && bHasCard[Slot] ? HandCards[Slot].CardID : INDEX_NONE;
+    const int32 BuffType = CardBuffTypeBase + Slot;
+    for (auto It = State.Applied.CreateIterator(); It; ++It)
+    {
+        ACoinActor* Coin = It.Key().Get();
+        if (State.CardID != CardID || !Desired.Contains(It.Key()) || !IsValid(Coin) ||
+            !IsValid(Coin->StatComponent) || Coin->StatComponent->IsDead())
+        {
+            if (IsValid(Coin) && IsValid(Coin->StatComponent))
+                Coin->StatComponent->RemoveStatusEffectsByTypeAndSource(BuffType, EStatusEffectSourceType::Card, State.CardID);
+            It.RemoveCurrent();
+        }
+    }
+    State.CardID = CardID;
+    if (CardID == INDEX_NONE) return;
+    for (const auto& Pair : Desired)
+    {
+        ACoinActor* Coin = Pair.Key.Get();
+        if (!IsValid(Coin) || !IsValid(Coin->StatComponent) || Coin->StatComponent->IsDead()) continue;
+        const FCoinCardModifiers* Previous = State.Applied.Find(Pair.Key);
+        if (Previous && *Previous == Pair.Value &&
+            Coin->StatComponent->GetStatusEffectStackCount(BuffType, EStatusEffectSourceType::Card, CardID) > 0) continue;
+        FStatusEffectInstance Effect;
+        Effect.BuffTypeID = BuffType;
+        Effect.SourceType = EStatusEffectSourceType::Card;
+        Effect.SourceDataID = CardID;
+        Effect.DurationType = EBuffDurationType::TurnOnly;
+        Effect.Modifier.AttackPoint = Pair.Value.AttackAdd;
+        Effect.Modifier.WeaponPoint = Pair.Value.BehaviorAdd;
+        Effect.Modifier.WeaponCnt = Pair.Value.CountAdd;
+        Effect.Modifier.AttackRange = Pair.Value.RangeAdd;
+        Effect.Modifier.AbilityRange = Pair.Value.AbilityRangeAdd;
+        Effect.ReactiveBehavior = Pair.Value.bLifeSteal ? EStatusReactiveBehavior::LifeSteal : EStatusReactiveBehavior::None;
+        if (Coin->StatComponent->SetCardStatusEffect(Effect)) State.Applied.Add(Pair.Key, Pair.Value);
+    }
+}
+
+void UStageCardWSubsystem::SetCardActive(int32 Slot, bool bActive)
+{
+    if (Runtime[Slot].bActive == bActive) return;
+    Runtime[Slot].bActive = bActive;
+    OnStageHandCardActive.Broadcast(Slot, bActive);
+    OnBattleCardDataChanged.Broadcast();
+}
 
 void UStageCardWSubsystem::UnActiveCardUI()
 {
-    for(int i =0; i< HandCount; i++)
-    {
-        OnStageHandCardActive.Broadcast(i, false);
-    }
+    for (int32 Slot = 0; Slot < HandCount; ++Slot) SetCardActive(Slot, false);
 }

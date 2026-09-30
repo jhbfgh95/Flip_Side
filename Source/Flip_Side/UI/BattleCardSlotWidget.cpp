@@ -12,6 +12,16 @@ namespace
 	const FLinearColor CardIconColor(1.0f, 0.823529f, 1.0f, 1.0f); // FFD2FFFF
 }
 
+void UBattleCardSlotWidget::NativeOnInitialized()
+{
+	Super::NativeOnInitialized();
+
+	if (IsValid(ActiveCardEffect))
+	{
+		ActiveCardEffect->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
 void UBattleCardSlotWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -48,7 +58,11 @@ void UBattleCardSlotWidget::SetCardData(const FBattleCardSlotViewData& InData)
 		CardNameText->SetText(FText::FromString(InData.CardData.CardName));
 	}
 
-	// TODO: Tick 기반 조건 검사 이관 후 InData.bIsActive로 카드 활성 연출을 갱신합니다.
+	if (IsValid(ActiveCardEffect))
+	{
+		ActiveCardEffect->SetVisibility(bOccupied && InData.bIsActive
+			? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	}
 	SetVisibility(bOccupied ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 }
 
@@ -56,6 +70,10 @@ void UBattleCardSlotWidget::ClearCardData()
 {
 	SlotNumber = INDEX_NONE;
 	bOccupied = false;
+	if (IsValid(ActiveCardEffect))
+	{
+		ActiveCardEffect->SetVisibility(ESlateVisibility::Collapsed);
+	}
 	SetVisibility(ESlateVisibility::Collapsed);
 }
 

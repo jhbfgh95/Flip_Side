@@ -1,6 +1,7 @@
 #include "LevelGISubsystem.h"
 #include "BossSetupGISubsystem.h"
 #include "MoneyGISubsystem.h"
+#include "CrossingLevelGISubsystem.h"
 #include "Kismet/GameplayStatics.h"
 
 void ULevelGISubsystem::MoveBattleLevel()
@@ -8,6 +9,9 @@ void ULevelGISubsystem::MoveBattleLevel()
     UGameInstance* GI = Cast<UGameInstance>(GetOuter());
     if (GI)
     {
+        if (UCrossingLevelGISubsystem* Crossing = GI->GetSubsystem<UCrossingLevelGISubsystem>())
+            if (UMoneyGISubsystem* Money = GI->GetSubsystem<UMoneyGISubsystem>())
+                Crossing->SetBattleEntryGold(Money->GetCurrentMoney());
         UBossSetupGISubsystem* BossSetupGI = GI->GetSubsystem<UBossSetupGISubsystem>();
         if (BossSetupGI)
         {
@@ -59,6 +63,9 @@ void ULevelGISubsystem::MovingTutorialLevel(int32 tutorialflag)
         UGameInstance* GI = Cast<UGameInstance>(GetOuter());
         if (GI)
         {
+            if (UCrossingLevelGISubsystem* Crossing = GI->GetSubsystem<UCrossingLevelGISubsystem>())
+                if (UMoneyGISubsystem* Money = GI->GetSubsystem<UMoneyGISubsystem>())
+                    Crossing->SetBattleEntryGold(Money->GetCurrentMoney());
             UBossSetupGISubsystem* BossSetupGI = GI->GetSubsystem<UBossSetupGISubsystem>();
             if (BossSetupGI)
             {
@@ -94,6 +101,8 @@ void ULevelGISubsystem::SetBattleLevelIndex(int32 InBattleLevelIndex)
 
 void ULevelGISubsystem::MoveStartLevel()
 {
+    if (UCrossingLevelGISubsystem* Crossing = GetGameInstance()->GetSubsystem<UCrossingLevelGISubsystem>())
+        Crossing->ResetBattleEntryGold();
     if (UBossSetupGISubsystem* BossSetup = GetGameInstance()->GetSubsystem<UBossSetupGISubsystem>())
     {
         BossSetup->ResetBossStageAssignments();

@@ -1,4 +1,6 @@
 #include "AnimNotify_BossVFX.h"
+#include "BossActor.h"
+#include "Engine/World.h"
 #include "BossManagerSubsystem.h"
 #include "BattleLevelActingWSubsystem.h"
 #include "GridManagerSubsystem.h"
@@ -8,17 +10,17 @@
 
 void UAnimNotify_BossVFX::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	if (!MeshComp) return;
+	if (!IsValid(MeshComp)) return;
 
 	UWorld* World = MeshComp->GetWorld();
-	if (!World) return;
+	if (!IsValid(World) || !World->IsGameWorld()) return;
 
 	UBossManagerSubsystem* BossMgr = World->GetSubsystem<UBossManagerSubsystem>();
 	UBattleLevelActingWSubsystem* ActingMgr = World->GetSubsystem<UBattleLevelActingWSubsystem>();
 	UGridManagerSubsystem* GridMgr = World->GetSubsystem<UGridManagerSubsystem>();
 
 
-	if (!BossMgr || !ActingMgr || !GridMgr) return;
+	if (!IsValid(BossMgr) || !IsValid(ActingMgr) || !IsValid(GridMgr) || !BossMgr->IsAttackExecuting()) return;
 
 	const int32 PatternIndex = BossMgr->GetCurrentPhasePatternIndex();
 	UBossPatternBase* Pattern = BossMgr->GetCurrentPhasePattern();
@@ -28,7 +30,8 @@ void UAnimNotify_BossVFX::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
 
 	FBossPatternBattleData PatternData;
 	ABossActor* Boss = BossMgr->GetCurrentBoss();
-	if (!Boss || !Boss->GetPatternData(PatternIndex, PatternData)) return;
+	if (!IsValid(Boss) || MeshComp->GetOwner() != Boss || MeshComp != Boss->BossMesh || Boss->IsStunned() ||
+		!Boss->GetPatternData(PatternIndex, PatternData)) return;
 
 
 	// Effect: OverrideEffect 우선, 없으면 패턴 데이터 사용
@@ -43,7 +46,11 @@ void UAnimNotify_BossVFX::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
 	}
 
 
-	if (!Effect) return;
+	if (!IsValid(Effect))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BossNotify] BossVFX effect missing. Boss=%s PatternIndex=%d"), *GetNameSafe(Boss), PatternIndex);
+		return;
+	}
 
 	const FVector Scale = ScaleOverride.IsZero() ? PatternData.PatternScale : ScaleOverride;
 
@@ -67,11 +74,12 @@ void UAnimNotify_BossVFX::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
 			AnchorLocation += Loc;
 		AnchorLocation /= CellLocations.Num();
 	}
-	else if (CellLocations.Num() > 0)
+	const EBossPatternTarget Target = bOverrideEffectTarget ? EffectTarget : PatternData.PatternEffectTarget;
+	if (Target == EBossPatternTarget::BossLocation)
 	{
-		AnchorLocation = CellLocations[0];
+		AnchorLocation = Boss->GetSelfEffectLocation();
+		ActingMgr->PlayBossVFX(Effect, EBossPatternTarget::AnchorCell, Scale, CellLocations, AnchorLocation);
+		return;
 	}
-
-
-	ActingMgr->PlayBossVFX(Effect, PatternData.PatternEffectTarget, Scale, CellLocations, AnchorLocation);
+	ActingMgr->PlayBossVFX(Effect, Target, Scale, CellLocations, AnchorLocation);
 }

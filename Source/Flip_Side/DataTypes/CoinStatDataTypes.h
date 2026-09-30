@@ -38,7 +38,8 @@ enum class EStatusEffectSourceType : uint8
 	None,
 	Coin,
 	Item,
-	Boss
+	Boss,
+	Card
 };
 
 /** 단순 수치 Modifier 외에 피해 시점에 반응해야 하는 상태효과 동작입니다. */
@@ -49,7 +50,8 @@ enum class EStatusReactiveBehavior : uint8
 	DodgeChance,
 	ReduceNextDamageAndGrantAttack,
 	SurviveLethalOnce,
-	TemporaryShield
+	TemporaryShield,
+	LifeSteal
 };
 
 /** 호버 UI와 행동 후보 스냅숏이 어느 값의 변경으로 무효화됐는지 알려줍니다. */
@@ -148,10 +150,17 @@ struct FWeaponStatModifier
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FAttackAreaSpecModifier AbilityAreaSpec;
 
+	// 양면의 서로 다른 범위 형태에 각각 적용할 거리 증가량입니다.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 AttackRange = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 AbilityRange = 0;
+
 	bool IsZero() const
 	{
 		return AttackPoint == 0 && WeaponPoint == 0 && WeaponCnt == 0 && MaxHP == 0 &&
-			AttackAreaSpec.IsZero() && AbilityAreaSpec.IsZero();
+			AttackAreaSpec.IsZero() && AbilityAreaSpec.IsZero() && AttackRange == 0 && AbilityRange == 0;
 	}
 };
 
@@ -353,3 +362,7 @@ struct FStatusEffectsChangedEvent
 
 /** DataManager의 무기 정의를 전투 스냅숏이 사용하는 양면 기본 스탯으로 변환합니다. */
 FLIP_SIDE_API FWeaponFaceStats BuildWeaponFaceStatsFromDefinition(const FFaceData& WeaponDefinition);
+
+// 범위의 폭과 거리를 구분하며, 전체 행/열 등 거리 제한이 없는 형태는 변경하지 않습니다.
+FLIP_SIDE_API int32 GetWeaponAreaRange(const FAttackAreaSpec& Spec);
+FLIP_SIDE_API FAttackAreaSpecModifier MakeWeaponRangeModifier(const FAttackAreaSpec& Spec, int32 RangeAdd);

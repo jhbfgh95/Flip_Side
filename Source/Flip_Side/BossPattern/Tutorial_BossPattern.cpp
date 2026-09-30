@@ -11,32 +11,6 @@ void UTutorial_BossPattern::ExecutePattern(
 	const TArray<ACoinActor*>& InLockedTargets,
 	const TArray<ABase_OtherActor*>& InLockedOthers)
 {
-	if (!Boss) return;
-
-	UWorld* World = Boss->GetWorld();
-	if (!World) return;
-
-	UGridManagerSubsystem* GridMgr = World->GetSubsystem<UGridManagerSubsystem>();
-	if (!GridMgr) return;
-
-	const int32 PatternNum = Context.CurrentPatternIndex;
-	if (!PatternData.IsValidIndex(PatternNum)) return;
-
+	// 피해/기믹만 적용합니다. VFX는 BossVFX 노티파이에서 실행합니다.
 	UBossPatternBase::ExecutePattern(Boss, Context, InLockedTargets, InLockedOthers);
-
-	if (PatternData.IsValidIndex(PatternNum))
-	{
-		FVector SpawnLocation;
-		if (PatternData[PatternNum].bNoDamage)
-		{
-			ATutorial_BossActor* TutoBoss = Cast<ATutorial_BossActor>(Boss);
-			SpawnLocation = TutoBoss ? TutoBoss->GetSelfEffectLocation() : Boss->GetActorLocation();
-		}
-		else
-		{
-			FVector2D AnchorGrid2D = GridMgr->GetGridActor(PatternData[PatternNum].PatternSpec.AnchorCell)->GetGridWorldXY();
-			SpawnLocation = FVector(AnchorGrid2D.X, AnchorGrid2D.Y, -80.f);
-		}
-		PlayPatternEffect(PatternNum, SpawnLocation);
-	}
 }

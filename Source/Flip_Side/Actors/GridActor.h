@@ -2,6 +2,9 @@
 	머테리얼로 색 전체 통제 예정
 	- 평소엔 Fresnel을 이용한 흰 색
 	- 보스가 공격할 곳은 빨간 색
+	- TODO: 보스 이동 기능 추가 시, 그리드 위치 갱신 시점에 이전 칸의 아이콘 Plane을 숨기고
+	  도착 칸의 Boss_Icon을 해당 보스 아이콘으로 설정한 뒤 표시할 것.
+	  현재 보스 이동은 없으므로 이동에 따른 아이콘 갱신은 구현하지 않음.
 	
 */
 
@@ -37,6 +40,15 @@ class FLIP_SIDE_API AGridActor : public AActor, public IBattleClickInterface, pu
 
 	UPROPERTY(EditAnywhere, Category = "Grid | Component", meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* GridMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid | Boss Icon", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> BossIconMesh;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> BossIconMID;
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UTexture2D> CurrentBossIcon;
 
 	UPROPERTY(VisibleAnywhere, Category = "Grid | Component", meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* GridWall;
@@ -75,6 +87,8 @@ protected:
 	bool bBossColorFirstSetted = false;
 public:	
 	AGridActor();
+
+	void SetBossIcon(class UTexture2D* Icon);
 
 	FOnGridClicked OnGridClicked;
 

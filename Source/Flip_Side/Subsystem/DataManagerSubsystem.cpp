@@ -858,7 +858,7 @@ bool UDataManagerSubsystem::LoadCards()
     const TCHAR* Sql =
         TEXT("SELECT CardID, icon_path, CardName, Card_Description,")
         TEXT("       trigger_count, attack_add, behavior_add, range_add, extra_actions, b_lifesteal,")
-        TEXT("       IFNULL(price, 0) ")
+        TEXT("       IFNULL(price, 0), count_add, ability_range_add, trigger_range, required_weapon_id ")
         TEXT("FROM Card;");
 
     FSQLitePreparedStatement Stmt;
@@ -883,6 +883,10 @@ bool UDataManagerSubsystem::LoadCards()
         Card.ExtraActions     = GetColInt(Stmt, 8);
         Card.bLifeSteal       = GetColInt(Stmt, 9) != 0;
         Card.Price            = GetColInt(Stmt, 10);
+        Card.CountAdd         = GetColInt(Stmt, 11);
+        Card.AbilityRangeAdd  = GetColInt(Stmt, 12);
+        Card.TriggerRange     = GetColInt(Stmt, 13);
+        Card.RequiredWeaponID = GetColInt(Stmt, 14);
 
         if (!IconPath.IsEmpty())
         {
@@ -894,6 +898,27 @@ bool UDataManagerSubsystem::LoadCards()
     }
 
     Stmt.Destroy();
+    const TCHAR* TierSql = TEXT(
+        "SELECT card_id, minimum_gold, attack_add, behavior_add, count_add, attack_range_add, ability_range_add "
+        "FROM CardGoldTier ORDER BY card_id, minimum_gold;");
+    FSQLitePreparedStatement TierStmt;
+    if (!PrepareStmt(Db, TierSql, TierStmt)) return false;
+    while (TierStmt.Step() == ESQLitePreparedStatementStepResult::Row)
+    {
+        FCardData* Card = CardByID.Find(GetColInt(TierStmt, 0));
+        if (!Card) continue;
+        FCardGoldTierData Tier;
+        Tier.MinimumGold = GetColInt(TierStmt, 1);
+        Tier.Modifiers.AttackAdd = GetColInt(TierStmt, 2);
+        Tier.Modifiers.BehaviorAdd = GetColInt(TierStmt, 3);
+        Tier.Modifiers.CountAdd = GetColInt(TierStmt, 4);
+        Tier.Modifiers.RangeAdd = GetColInt(TierStmt, 5);
+        Tier.Modifiers.AbilityRangeAdd = GetColInt(TierStmt, 6);
+        Card->GoldTiers.Add(Tier);
+    }
+    TierStmt.Destroy();
+    for (FCardData& Card : Cards)
+        if (const FCardData* Loaded = CardByID.Find(Card.CardID)) Card = *Loaded;
     return true;
 }
 

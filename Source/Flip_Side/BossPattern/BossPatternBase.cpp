@@ -48,18 +48,30 @@ void UBossPatternBase::BuildTargetCells(
 		}
 	}
 
-	// ConeFromSide UseIndex 모드면 Side를 Up/Down 랜덤 선택
+	// 원뿔 강타는 (4,4)에서 시작해 Y가 감소하는 방향으로 펼칩니다.
+	// 현재 플레이 영역의 마지막 행은 Y=4입니다.
 	if (Spec.Pattern == EAttackAreaPattern::ConeFromSide && Spec.AnchorMode == EAreaAnchor::UseIndex)
 	{
-		Spec.Side = FMath::RandBool() ? EAreaSide::Up : EAreaSide::Down;
+		Spec.Index = 4;
+		Spec.Side = EAreaSide::Down;
 	}
 
 	// CircleOnCell UseAnchorCell 모드면 AnchorCell 랜덤 선택
 	if (Spec.Pattern == EAttackAreaPattern::CircleOnCell && Spec.AnchorMode == EAreaAnchor::UseAnchorCell)
 	{
 		const int32 Radius = FMath::Max(1, Spec.ParamA);
-		Spec.AnchorCell.GridX = FMath::RandRange(Radius, GridMgr->GridXSize - 1 - Radius);
-		Spec.AnchorCell.GridY = FMath::RandRange(Radius, GridMgr->GridYSize - 1 - Radius);
+		const int32 PlayableHeight = GridMgr->GetBossAreaStartY();
+		if (GridMgr->GridXSize <= 0 || PlayableHeight <= 0)
+		{
+			OutCells.Reset();
+			return;
+		}
+		// 보스 영역을 제외하고 전체 범위가 들어가는 중심을 선택합니다.
+		// 영역보다 큰 패턴은 중앙에 두어 역전된 랜덤 범위를 방지합니다.
+		const int32 MarginX = FMath::Min(Radius, (GridMgr->GridXSize - 1) / 2);
+		const int32 MarginY = FMath::Min(Radius, (PlayableHeight - 1) / 2);
+		Spec.AnchorCell.GridX = FMath::RandRange(MarginX, GridMgr->GridXSize - 1 - MarginX);
+		Spec.AnchorCell.GridY = FMath::RandRange(MarginY, PlayableHeight - 1 - MarginY);
 	}
 
 	// CrossOnCell UseAnchorCell 모드면 AnchorCell 랜덤 선택

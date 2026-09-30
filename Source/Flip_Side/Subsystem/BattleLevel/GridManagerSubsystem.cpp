@@ -8,6 +8,7 @@
 #include "WeaponRangePreviewActor.h"
 #include "Actors/Boss/BossCoinActor.h"
 #include "BossWallActor.h"
+#include "Engine/Texture2D.h"
 
 bool UGridManagerSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -102,6 +103,7 @@ void UGridManagerSubsystem::InstanceGrid()
 
 
 	SpawnBossWall();
+	RefreshBossIcons();
 
 	// 보스 코인 발판: 항상 그리드 가장 뒤 가운데 3x3 고정 위치에 스폰
 	if (UClass* BossCoinClass = Settings->BossCoinActorClass.LoadSynchronous())
@@ -122,6 +124,55 @@ void UGridManagerSubsystem::InstanceGrid()
 	}
 }
 
+
+void UGridManagerSubsystem::SetBossIcon(ABossActor* Boss, UTexture2D* Icon)
+{
+	if (IsValid(Boss) && !IsValid(Icon))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[GridBossIcon] DB BossIcon is missing; all icon planes will stay hidden."));
+	}
+	if (ABossActor* PreviousBoss = IconBoss.Get())
+	{
+		PreviousBoss->OnBossDead.RemoveDynamic(this, &UGridManagerSubsystem::ClearBossIcon);
+		PreviousBoss->OnDestroyed.RemoveDynamic(this, &UGridManagerSubsystem::HandleIconBossDestroyed);
+	}
+	IconBoss = Boss;
+	CurrentBossIcon = IsValid(Boss) ? Icon : nullptr;
+	if (IsValid(Boss))
+	{
+		Boss->OnBossDead.AddUniqueDynamic(this, &UGridManagerSubsystem::ClearBossIcon);
+		Boss->OnDestroyed.AddUniqueDynamic(this, &UGridManagerSubsystem::HandleIconBossDestroyed);
+	}
+	RefreshBossIcons();
+}
+
+void UGridManagerSubsystem::ClearBossIcon()
+{
+	UE_LOG(LogTemp, Log, TEXT("[GridBossIcon] ClearBossIcon: Boss=%s"), *GetNameSafe(IconBoss.Get()));
+	CurrentBossIcon = nullptr;
+	RefreshBossIcons();
+}
+
+void UGridManagerSubsystem::HandleIconBossDestroyed(AActor* DestroyedActor)
+{
+	ClearBossIcon();
+	IconBoss.Reset();
+}
+
+void UGridManagerSubsystem::RefreshBossIcons()
+{
+	int32 RequestedVisibleCells = 0;
+	// TODO: 보스 이동 구현 시 이전/도착 점유 칸을 갱신한 후 아이콘을 갱신할 것.
+	for (const auto& Entry : GridActors)
+	{
+		if (!IsValid(Entry.Value)) continue;
+		const bool bShowIcon = IconBoss.IsValid() && IsFixedBossFootprintCell(Entry.Key);
+		if (bShowIcon && IsValid(CurrentBossIcon)) ++RequestedVisibleCells;
+		Entry.Value->SetBossIcon(bShowIcon ? CurrentBossIcon.Get() : nullptr);
+	}
+	UE_LOG(LogTemp, Log, TEXT("[GridBossIcon] Refresh: Boss=%s Icon=%s GridCount=%d RequestedVisibleCells=%d (actual application logged per cell)"),
+		*GetNameSafe(IconBoss.Get()), *GetPathNameSafe(CurrentBossIcon.Get()), GridActors.Num(), RequestedVisibleCells);
+}
 
 void UGridManagerSubsystem::SpawnBossWall()
 {
@@ -756,9 +807,10 @@ void UGridManagerSubsystem::BuildBossAttackCells(const FAttackAreaSpec& Spec, TA
 {
     OutCells.Reset();
 
-	// Border는 보스 자기 영역을 제외한 플레이 영역의 테두리를 사용합니다.
-	// 보스 영역과 맞닿은 안쪽 경계도 공격 범위에 포함합니다.
-	const int32 EffectiveGridYSize = (Spec.Pattern == EAttackAreaPattern::Border) ? GetBossAreaStartY() : GridYSize;
+	// 테두리와 원뿔의 시작 경계는 보스 영역을 제외한 플레이 영역 기준입니다.
+	const bool bUsePlayableBoundary = Spec.Pattern == EAttackAreaPattern::Border || Spec.Pattern == EAttackAreaPattern::ConeFromSide;
+	const int32 EffectiveGridYSize = bUsePlayableBoundary ? GetBossAreaStartY() : GridYSize;
+	if (GridXSize <= 0 || EffectiveGridYSize <= 0) return;
 	FGridAreaBuilder::BuildCells(Spec, GridXSize, EffectiveGridYSize, OutCells);
 
 	// 보스 자기 영역(뒤쪽 3x9)은 코인이 설 수 없는 곳이라 공격 대상에서 제외 (다른 패턴들을 위한 안전장치)

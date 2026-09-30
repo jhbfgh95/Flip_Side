@@ -165,13 +165,6 @@ void UBattleCoinSlotWidget::UpdateWeaponIconMaterial(
 {
 	if (!IsValid(WeaponIconImage) || !IsValid(WeaponIconTexture))
 	{
-		UE_LOG(
-			LogTemp,
-			Warning,
-			TEXT("[BattleCoinSlot] Weapon material update skipped. Image=%s, Texture=%s"),
-			*GetNameSafe(WeaponIconImage),
-			*GetNameSafe(WeaponIconTexture)
-		);
 		return;
 	}
 

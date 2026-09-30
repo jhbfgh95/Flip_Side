@@ -38,20 +38,7 @@ void ABase_PatternVisualActor::BeginPlay()
 
 void ABase_PatternVisualActor::PlayBossPatternAct()
 {
-    if (TimeBeforeAct > 0.f)
-    {
-        GetWorld()->GetTimerManager().SetTimer(
-            WaitTimerHandle, 
-            this, 
-            &ABase_PatternVisualActor::StartMovement, 
-            TimeBeforeAct, 
-            false
-        );
-    }
-    else
-    {
-        StartMovement();
-    }
+    StartMovement();
 }
 
 void ABase_PatternVisualActor::StartMovement()

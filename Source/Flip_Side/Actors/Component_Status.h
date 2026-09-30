@@ -98,6 +98,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status|Effect")
 	bool AddStatusEffect(FStatusEffectInstance StatusEffect);
 
+	// 카드 슬롯별 효과는 중첩 대신 갱신합니다. 다른 출처의 버프는 건드리지 않습니다.
+	bool SetCardStatusEffect(const FStatusEffectInstance& StatusEffect);
+
 	// 개별 버프 출처가 해제될 때 BuffInstanceSerial로 정확한 한 인스턴스만 제거합니다.
 	UFUNCTION(BlueprintCallable, Category = "Status|Effect")
 	bool RemoveStatusEffectByInstanceSerial(int32 BuffInstanceSerial);

@@ -49,7 +49,9 @@ protected:
     FBossStageContext StageContext;
 
     FTimerHandle TelegraphTimerHandle;
-    FTimerHandle ApplyPatternTimerHandle;
+    bool bAttackExecuting = false;
+    bool bPatternApplied = false;
+    bool bVisualActStarted = false;
 
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
@@ -79,6 +81,11 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Boss")
     void ExecuteCurrentPattern();
 
+    bool IsAttackExecuting() const { return bAttackExecuting; }
+    void ApplyCurrentPattern();
+    void PlayCurrentVisualAct();
+    void FinishCurrentAttack(bool bInterrupted);
+
     UFUNCTION(BlueprintCallable, Category = "Boss")
     void ClearCurrentPhase();
 
@@ -86,9 +93,6 @@ public:
 
 private:
     bool Internal_SpawnBoss(const FBossBattleData& InBossData);
-
-    UFUNCTION()
-    void ApplyCurrentPattern();
 
     bool PrepareCurrentPattern();
     void ShowTelegraphPreview(const TArray<FGridPoint>& Cells, const FLinearColor& Color);

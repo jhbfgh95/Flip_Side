@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "DataTypes/CardTypes.h"
+#include "DataTypes/KeywordDataTypes.h"
+#include "Styling/SlateTypes.h"
 #include "W_CardWidget.generated.h"
 
 /**
@@ -31,7 +33,14 @@ class FLIP_SIDE_API UW_CardWidget : public UUserWidget
 	class UTextBlock* CardTitle;
 	
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* CardDescription;
+	class URichTextBlock* CardDescription;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Card Description", meta = (ClampMin = "1.0"))
+	FVector2D KeywordIconSize = FVector2D(24.0f, 24.0f);
+	UPROPERTY(EditDefaultsOnly, Category = "Card Description", meta = (ClampMin = "0.0"))
+	float KeywordIconNameSpacing = 4.0f;
+	UPROPERTY(Transient)
+	TMap<FName, FKeywordDefinitionData> KeywordDefinitions;
 
 	UPROPERTY()
 	TObjectPtr<class UMaterialInstanceDynamic> CardIconMaterialInstance;
@@ -40,4 +49,5 @@ class FLIP_SIDE_API UW_CardWidget : public UUserWidget
 	//void SetCardIcon(UImage* Image);
 	//void InitCard(UTexture2D* IconImage, FString Title,FString Description);
 	void InitCard(FCardData CardData);
+	TSharedPtr<SWidget> CreateKeywordDisplay(FName Code, const FTextBlockStyle& Style);
 };

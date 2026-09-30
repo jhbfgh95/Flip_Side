@@ -522,7 +522,10 @@ void UBattleLevelActingWSubsystem::UpdateCoinActionLower()
 void UBattleLevelActingWSubsystem::PlayBossVFX(UNiagaraSystem* Effect, EBossPatternTarget TargetMode, FVector PatternScale,
     const TArray<FVector>& TargetCellLocations, FVector AnchorLocation)
 {
-    if (!Effect || !GetWorld()) return;
+    if (!IsValid(Effect) || !IsValid(GetWorld()))
+    {
+        return;
+    }
 
 
     switch (TargetMode)
@@ -535,12 +538,19 @@ void UBattleLevelActingWSubsystem::PlayBossVFX(UNiagaraSystem* Effect, EBossPatt
         break;
 
     case EBossPatternTarget::AllCells:
-        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Effect, FVector(2220.f, -1000.f, 1270.f), FRotator::ZeroRotator, PatternScale);
+    {
+        const FVector SpawnLocation(2220.f, -800.f, -100.f);
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Effect, SpawnLocation, FRotator::ZeroRotator, PatternScale);
+
         break;
+    }
 
     case EBossPatternTarget::AnchorCell:
+    {
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Effect, AnchorLocation, FRotator::ZeroRotator, PatternScale);
+
         break;
+    }
 
     case EBossPatternTarget::BossLocation:
     default:

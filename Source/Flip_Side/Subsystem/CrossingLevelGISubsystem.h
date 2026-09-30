@@ -35,10 +35,21 @@ private:
 
 	bool IsCoinEmpty = false;
 
+	// 상점 출발 시 한 번 저장하고 다음 Battle 월드에서 소비합니다.
+	int32 PendingBattleEntryGold = INDEX_NONE;
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 public:
+	void SetBattleEntryGold(int32 Gold) { PendingBattleEntryGold = FMath::Max(0, Gold); }
+	int32 ConsumeBattleEntryGold(int32 FallbackGold)
+	{
+		const int32 Gold = PendingBattleEntryGold != INDEX_NONE ? PendingBattleEntryGold : FMath::Max(0, FallbackGold);
+		PendingBattleEntryGold = INDEX_NONE;
+		return Gold;
+	}
+	void ResetBattleEntryGold() { PendingBattleEntryGold = INDEX_NONE; }
 	//슬롯에 코인을 제작함
 	UFUNCTION(BlueprintCallable)
 	void SetSlotCoin(int SlotNum, FCoinTypeStructure CoinStruct);

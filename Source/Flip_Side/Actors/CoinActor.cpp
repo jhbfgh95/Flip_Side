@@ -297,6 +297,14 @@ void ACoinActor::MarkAllMainKeywordsConsumed()
 	RefreshOutline();
 }
 
+bool ACoinActor::ConsumeAdditionalAction()
+{
+	if (RemainingAdditionalActions <= 0 || !IsValid(StatComponent) || StatComponent->IsDead()) return false;
+	--RemainingAdditionalActions;
+	SetCoinIsActed(false);
+	return true;
+}
+
 void ACoinActor::SetCoinIsActing(const bool IsActing)
 {
 	bIsActing = IsActing;

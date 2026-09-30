@@ -1,227 +1,100 @@
 #include "Subsystem/CardLogicLibrary.h"
 
-#include "CoinActor.h"
-#include "Component_Status.h"
+#include "Actors/CoinActor.h"
+#include "Actors/Component_Status.h"
+#include "DataTypes/CoinStatDataTypes.h"
 #include "DataTypes/WeaponDataTypes.h"
-#include "DataTypes/AttackAreaTypes.h"
 #include "Subsystem/DataManagerSubsystem.h"
-#include "Subsystem/StageCardWSubsystem.h"
-#include "Subsystem/BattleLevel/GridManagerSubsystem.h"
-#include "FlipSide_Enum.h"
 
-// ===== BuildLogicTable =====
-
-void FCardLogicLibrary::BuildLogicTable(TMap<int32, FCardLogicFn>& OutTable)
-{
-    OutTable.Add(1, [](const FCardData& Card, const TArray<FCoinOnGridInfo>& Coins, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods, UDataManagerSubsystem* DM)
-    {
-        return Card_Encore(Card, Coins, Mods, DM);
-    });
-
-    OutTable.Add(2, [](const FCardData& Card, const TArray<FCoinOnGridInfo>& Coins, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods, UDataManagerSubsystem* DM)
-    {
-        return Card_LongRangeAmplifier(Card, Coins, Mods, DM);
-    });
-
-    // 3: 프로모션 - StageCardWSubsystem에서 직접 처리 (HighlightedGrid 필요)
-    OutTable.Add(3, [](const FCardData&, const TArray<FCoinOnGridInfo>&, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>&, UDataManagerSubsystem*)
-    {
-        return false;
-    });
-
-    // 4: 황금 기회 - 미구현
-    OutTable.Add(4, [](const FCardData&, const TArray<FCoinOnGridInfo>&, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>&, UDataManagerSubsystem*)
-    {
-        return false;
-    });
-
-    OutTable.Add(5, [](const FCardData& Card, const TArray<FCoinOnGridInfo>& Coins, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods, UDataManagerSubsystem* DM)
-    {
-        return Card_OneForAll(Card, Coins, Mods, DM);
-    });
-
-    OutTable.Add(6, [](const FCardData& Card, const TArray<FCoinOnGridInfo>& Coins, TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods, UDataManagerSubsystem* DM)
-    {
-        return Card_Alliance(Card, Coins, Mods, DM);
-    });
-}
-
-// ===== Utilities =====
-
-void FCardLogicLibrary::AddMods(
-    TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
-    ACoinActor* Coin,
-    int32 AttackAdd, int32 BehaviorAdd, int32 RangeAdd,
-    bool bLifeSteal, int32 ExtraActions)
-{
-    if (!IsValid(Coin)) return;
-
-    FCoinCardModifiers& M = Mods.FindOrAdd(Coin);
-    M.AttackAdd    += AttackAdd;
-    M.BehaviorAdd  += BehaviorAdd;
-    M.RangeAdd     += RangeAdd;
-    M.ExtraActions += ExtraActions;
-    if (bLifeSteal) M.bLifeSteal = true;
-}
-
-bool FCardLogicLibrary::TryGetFaceData(ACoinActor* Coin, UDataManagerSubsystem* DM, FFaceData& OutFace)
-{
-    if (!IsValid(Coin) || !DM) return false;
-    return DM->TryGetWeapon(Coin->GetCoinFaceID(), OutFace);
-}
-
-int32 FCardLogicLibrary::GetRangeValue(const FFaceData& Face)
-{
-    // AttackRange(range_x/y) is unused (all 0 in DB). Read actual range from AttackAreaSpec.
-    // SingleCell: param_b is range, CircleOnCell: param_a is radius, else: max(param_a, param_b)
-    const FAttackAreaSpec& Spec = Face.AttackAreaSpec;
-    switch (Spec.Pattern)
-    {
-    case EAttackAreaPattern::SingleCell:
-        return Spec.ParamB;
-    case EAttackAreaPattern::CircleOnCell:
-        return Spec.ParamA;
-    default:
-        return FMath::Max(Spec.ParamA, Spec.ParamB);
-    }
-}
-
-// ===== Card Logic =====
-
-bool FCardLogicLibrary::Card_Encore(
+bool FCardLogicLibrary::Evaluate(
     const FCardData& Card,
     const TArray<FCoinOnGridInfo>& FieldCoins,
-    TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
-    UDataManagerSubsystem* DM)
+    const TMap<int32, int32>& SourceSlotByCoinID,
+    int32 BattleEntryGold,
+    const FGridPoint& PromotionGrid,
+    UDataManagerSubsystem* DataManager,
+    TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& OutModifiers)
 {
+    OutModifiers.Reset();
+    TArray<ACoinActor*> Coins;
     for (const FCoinOnGridInfo& Info : FieldCoins)
     {
-        if (!IsValid(Info.CoinActor)) continue;
-        if (Info.CoinActor->GetCoinDecidedFace() != EFaceState::Front) return false;
+        if (IsValid(Info.CoinActor) && IsValid(Info.CoinActor->StatComponent) && !Info.CoinActor->StatComponent->IsDead())
+            Coins.AddUnique(Info.CoinActor);
     }
+    if (Coins.IsEmpty()) return false;
 
-    for (const FCoinOnGridInfo& Info : FieldCoins)
+    FCoinCardModifiers Base;
+    Base.AttackAdd = Card.AttackAdd;
+    Base.BehaviorAdd = Card.BehaviorAdd;
+    Base.CountAdd = Card.CountAdd;
+    Base.RangeAdd = Card.RangeAdd;
+    Base.AbilityRangeAdd = Card.AbilityRangeAdd;
+    Base.ExtraActions = Card.ExtraActions;
+    Base.bLifeSteal = Card.bLifeSteal;
+
+    switch (Card.CardID)
     {
-        if (!IsValid(Info.CoinActor)) continue;
-        AddMods(Mods, Info.CoinActor, 0, 0, 0, false, Card.ExtraActions);
+    case 1:
+        for (ACoinActor* Coin : Coins)
+            if (Coin->GetCoinDecidedFace() != EFaceState::Front) return false;
+        for (ACoinActor* Coin : Coins) OutModifiers.Add(Coin, Base);
+        break;
+    case 2:
+    {
+        if (!IsValid(DataManager)) return false;
+        TMap<ACoinActor*, int32> BaseRanges;
+        int32 HighRangeCount = 0;
+        for (ACoinActor* Coin : Coins)
+        {
+            FFaceData Weapon;
+            if (!DataManager->TryGetWeapon(Coin->GetCoinFaceID(), Weapon)) continue;
+            const int32 Range = GetWeaponAreaRange(Weapon.AttackAreaSpec);
+            BaseRanges.Add(Coin, Range);
+            if (Range >= Card.TriggerRange) ++HighRangeCount;
+        }
+        if (HighRangeCount < Card.TriggerCount) return false;
+        for (const auto& Pair : BaseRanges)
+        {
+            FCoinCardModifiers Modifier = Base;
+            Modifier.BehaviorAdd = Card.BehaviorAdd == -1 ? Pair.Value : Card.BehaviorAdd;
+            OutModifiers.Add(Pair.Key, Modifier);
+        }
         break;
     }
-    return true;
-}
-
-bool FCardLogicLibrary::Card_LongRangeAmplifier(
-    const FCardData& Card,
-    const TArray<FCoinOnGridInfo>& FieldCoins,
-    TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
-    UDataManagerSubsystem* DM)
-{
-    int32 CountHighRange = 0;
-    for (const FCoinOnGridInfo& Info : FieldCoins)
+    case 3:
+        if (PromotionGrid.GridX < 0 || PromotionGrid.GridY < 0) return false;
+        for (ACoinActor* Coin : Coins)
+            if (Coin->GetCoinFaceID() == Card.RequiredWeaponID && Coin->GetDecidedGrid() == PromotionGrid)
+                OutModifiers.Add(Coin, Base);
+        break;
+    case 4:
     {
-        FFaceData Face;
-        if (!TryGetFaceData(Info.CoinActor, DM, Face)) continue;
-        if (GetRangeValue(Face) >= 3) ++CountHighRange;
+        const FCardGoldTierData* Best = nullptr;
+        for (const FCardGoldTierData& Tier : Card.GoldTiers)
+            if (BattleEntryGold >= Tier.MinimumGold && (!Best || Tier.MinimumGold > Best->MinimumGold)) Best = &Tier;
+        if (!Best) return false;
+        for (ACoinActor* Coin : Coins) OutModifiers.Add(Coin, Best->Modifiers);
+        break;
     }
-
-    if (CountHighRange < Card.TriggerCount) return false;
-
-    // behavior_add == -1: sentinel meaning "equal to each coin's range value"
-    for (const FCoinOnGridInfo& Info : FieldCoins)
+    case 5:
+        if (Coins.Num() != Card.TriggerCount) return false;
+        for (ACoinActor* Coin : Coins) OutModifiers.Add(Coin, Base);
+        break;
+    case 6:
     {
-        FFaceData Face;
-        if (!TryGetFaceData(Info.CoinActor, DM, Face)) continue;
-
-        const int32 R = GetRangeValue(Face);
-        const int32 ActualBehaviorAdd = (Card.BehaviorAdd == -1) ? R : Card.BehaviorAdd;
-        AddMods(Mods, Info.CoinActor, Card.AttackAdd, ActualBehaviorAdd, Card.RangeAdd);
+        TMap<int32, int32> Counts;
+        for (ACoinActor* Coin : Coins)
+            if (const int32* Slot = SourceSlotByCoinID.Find(Coin->GetCoinID()); Slot && *Slot != INDEX_NONE)
+                ++Counts.FindOrAdd(*Slot);
+        for (ACoinActor* Coin : Coins)
+            if (const int32* Slot = SourceSlotByCoinID.Find(Coin->GetCoinID());
+                Slot && *Slot != INDEX_NONE && Counts.FindRef(*Slot) >= Card.TriggerCount)
+                OutModifiers.Add(Coin, Base);
+        break;
     }
-    return true;
-}
-
-bool FCardLogicLibrary::ApplyPromotion(
-    const FCardData& Card,
-    const TArray<FCoinOnGridInfo>& FieldCoins,
-    TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
-    UDataManagerSubsystem* DM,
-    const FGridPoint& HighlightedGrid)
-{
-    for (const FCoinOnGridInfo& Info : FieldCoins)
-    {
-        if (!IsValid(Info.CoinActor)) continue;
-        if (Info.CoinActor->GetCoinFaceID() != 1) continue;
-        if (!(Info.CoinActor->GetDecidedGrid() == HighlightedGrid)) continue;
-
-        AddMods(Mods, Info.CoinActor,
-            Card.AttackAdd, Card.BehaviorAdd, Card.RangeAdd, Card.bLifeSteal);
-        return true;
-    }
-    return false;
-}
-
-bool FCardLogicLibrary::Card_OneForAll(
-    const FCardData& Card,
-    const TArray<FCoinOnGridInfo>& FieldCoins,
-    TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
-    UDataManagerSubsystem* DM)
-{
-    ACoinActor* OnlyCoin = nullptr;
-    int32 ValidCount = 0;
-
-    for (const FCoinOnGridInfo& Info : FieldCoins)
-    {
-        if (!IsValid(Info.CoinActor)) continue;
-        ++ValidCount;
-        OnlyCoin = Info.CoinActor;
-        if (ValidCount > Card.TriggerCount) break;
-    }
-
-    if (ValidCount == Card.TriggerCount && IsValid(OnlyCoin))
-    {
-        AddMods(Mods, OnlyCoin, Card.AttackAdd, Card.BehaviorAdd, Card.RangeAdd);
-        return true;
-    }
-    else
+    default:
         return false;
-}
-
-bool FCardLogicLibrary::Card_Alliance(
-    const FCardData& Card,
-    const TArray<FCoinOnGridInfo>& FieldCoins,
-    TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Mods,
-    UDataManagerSubsystem* DM)
-{
-    TMap<EWeaponClass, TArray<ACoinActor*>> ClassCoins;
-
-    for (const FCoinOnGridInfo& Info : FieldCoins)
-    {
-        FFaceData Face;
-        if (!TryGetFaceData(Info.CoinActor, DM, Face)) continue;
-        ClassCoins.FindOrAdd(Face.WeaponType).Add(Info.CoinActor);
     }
-
-    for (auto& Pair : ClassCoins)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[Alliance] Class=%d, Count=%d, TriggerCount=%d"),
-            (int32)Pair.Key, Pair.Value.Num(), Card.TriggerCount);
-
-        if (Pair.Value.Num() < Card.TriggerCount) continue;
-
-        for (ACoinActor* Coin : Pair.Value)
-        {
-            if (Pair.Key == EWeaponClass::Deal)
-            {
-                AddMods(Mods, Coin, 0, Card.BehaviorAdd, 0);
-            }
-            else if (Pair.Key == EWeaponClass::Tank)
-            {
-                // TODO: MaxHP +1 (미구현)
-            }
-            else
-            {
-                AddMods(Mods, Coin, Card.AttackAdd, 0, 0);
-            }
-        }
-        return true;
-    }
-    return false;
+    return !OutModifiers.IsEmpty();
 }

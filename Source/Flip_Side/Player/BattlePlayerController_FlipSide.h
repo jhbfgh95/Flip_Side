@@ -223,6 +223,9 @@ public:
 	UFUNCTION(Exec)
 	void CreateSampleCoin(int32 FrontID, int32 BackID, int32 ReadyCoinSlotNum);
 
+	UFUNCTION(Exec)
+	void TargetCardChange(int32 CardID, int32 CardSlot);
+
 	UFUNCTION(BlueprintCallable)
 	void SetInputForTutorial(bool bEnable);
 };
