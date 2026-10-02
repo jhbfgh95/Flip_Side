@@ -2,6 +2,7 @@
 #include "BossActor.h"
 #include "CoinActor.h"
 #include "Component_Status.h"
+#include "Actors/DebuffComponent.h"
 #include "GridManagerSubsystem.h"
 #include "Actors/Others/Base_OtherActor.h"
 #include "CoinDataTypes.h"
@@ -15,7 +16,7 @@ void UBossGimmick_Poison::OnPatternExecute(
 	const TArray<ACoinActor*>& LockedTargets,
 	const TArray<ABase_OtherActor*>& LockedOthers)
 {
-	if (!Boss) return;
+	if (!IsValid(Boss)) return;
 
 	UWorld* World = Boss->GetWorld();
 	if (!World) return;
@@ -45,35 +46,62 @@ void UBossGimmick_Poison::OnPatternExecute(
 
 	// boss_gimmick(id=2, "독") param_int_a = 독 지속 턴수
 	const int32 Duration = GimmickData.ParamIntA > 0 ? GimmickData.ParamIntA : 2;
+	const FBossHUDData PatternData = Boss->GetBossHUDData();
 
 	for (ACoinActor* Coin : AllHitCoins)
 	{
 		if (!IsValid(Coin)) continue;
-		// 이미 독이 걸려있어도 갱신(기존 잔여 턴수를 지우고 새로 적용)
-		PoisonedCoins.Add(Coin, Duration);
+		UComponent_Status* StatusComp = Coin->FindComponentByClass<UComponent_Status>();
+		if (!IsValid(StatusComp)) continue;
+		FStatusEffectInstance Poison;
+		Poison.BuffTypeID = DebuffTypeID::Poison;
+		Poison.Polarity = EStatusPolarity::Debuff;
+		Poison.RemainingTurns = Duration;
+		Poison.SourceType = EStatusEffectSourceType::Boss;
+		Poison.SourceDataID = Boss->GetBossID();
+		Poison.SourcePatternIndex = PatternData.PatternDisplayIndex > 0 ? PatternData.PatternDisplayIndex - 1 : INDEX_NONE;
+		Poison.SourcePatternIcon = PatternData.PatternIcon;
+		// 공통 디버프 저장소에서 재적용 시 갱신하며, 코인 재생성 시에도 복원합니다.
+		StatusComp->AddStatusEffect(Poison);
 	}
 }
 
 void UBossGimmick_Poison::OnPlayerPhaseStart(ABossActor* Boss)
 {
-	if (!Boss || PoisonedCoins.Num() == 0) return;
+	if (!IsValid(Boss)) return;
 
 	UWorld* World = Boss->GetWorld();
 	if (!World) return;
 
 	const int32 PoisonDamage = GimmickData.ParamFloatA > 0.f ? static_cast<int32>(GimmickData.ParamFloatA) : 1;
 
-	World->GetTimerManager().SetTimer(PoisonTimerHandle, [this, Boss, PoisonDamage]()
+	const TWeakObjectPtr<ABossActor> WeakBoss = Boss;
+	const TWeakObjectPtr<UBossGimmick_Poison> WeakThis = this;
+	World->GetTimerManager().SetTimer(PoisonTimerHandle, [WeakThis, WeakBoss, PoisonDamage]()
 	{
-		for (const TPair<TWeakObjectPtr<ACoinActor>, int32>& Pair : PoisonedCoins)
+		ABossActor* ActiveBoss = WeakBoss.Get();
+		if (!WeakThis.IsValid() || !IsValid(ActiveBoss) || ActiveBoss->GetCurrentHP() <= 0) return;
+		UWorld* ActiveWorld = ActiveBoss->GetWorld();
+		UGridManagerSubsystem* ActiveGrid = IsValid(ActiveWorld) ? ActiveWorld->GetSubsystem<UGridManagerSubsystem>() : nullptr;
+		if (!IsValid(ActiveGrid)) return;
+		// 타이머를 만들 때 고정하지 않고 매 틱 조회하여 HP 감소 시 초기화를 즉시 반영합니다.
+		const int32 FinalDamage = ActiveBoss->GetDamageWithPillarBonus(PoisonDamage);
+		TArray<FCoinOnGridInfo> CurrentCoins;
+		ActiveGrid->CollectOccupiedCoins(CurrentCoins);
+		for (const FCoinOnGridInfo& Info : CurrentCoins)
 		{
-			if (!Pair.Key.IsValid()) continue;
-
-			ACoinActor* Coin = Pair.Key.Get();
-			UComponent_Status* StatusComp = Coin->FindComponentByClass<UComponent_Status>();
-			if (StatusComp)
+			if (!IsValid(Info.CoinActor)) continue;
+			UComponent_Status* StatusComp = Info.CoinActor->FindComponentByClass<UComponent_Status>();
+			if (!IsValid(StatusComp)) continue;
+			// 이전 턴 액터 참조 대신 현재 코인에 복원된 독 상태를 확인합니다.
+			for (const FStatusEffectInstance& Effect : StatusComp->GetStatusEffects())
 			{
-				StatusComp->ApplyDamage(PoisonDamage, Boss);
+				if (Effect.BuffTypeID == DebuffTypeID::Poison && Effect.RemainingTurns > 0 &&
+					Effect.SourceType == EStatusEffectSourceType::Boss && Effect.SourceDataID == ActiveBoss->GetBossID())
+				{
+					StatusComp->ApplyDamage(FinalDamage, ActiveBoss);
+					break;
+				}
 			}
 		}
 	},
@@ -82,25 +110,12 @@ void UBossGimmick_Poison::OnPlayerPhaseStart(ABossActor* Boss)
 
 void UBossGimmick_Poison::OnPlayerPhaseEnd(ABossActor* Boss)
 {
-	if (!Boss) return;
+	if (!IsValid(Boss)) return;
 
 	UWorld* World = Boss->GetWorld();
 	if (!World) return;
 
 	World->GetTimerManager().ClearTimer(PoisonTimerHandle);
 
-	// 한 턴이 지났으므로 잔여 지속 턴수를 깎고, 0이 되면 독 해제 (남은 코인은 다음 턴에도 계속 틱)
-	for (auto It = PoisonedCoins.CreateIterator(); It; ++It)
-	{
-		if (!It->Key.IsValid())
-		{
-			It.RemoveCurrent();
-			continue;
-		}
-
-		if (--It->Value <= 0)
-		{
-			It.RemoveCurrent();
-		}
-	}
+	// 지속 턴 감소는 코인 상태 저장 시 공통 디버프 저장소에서 한 번만 처리합니다.
 }

@@ -162,6 +162,9 @@ public:
 	TObjectPtr<class USceneComponent> CCEffectLocation;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Coin|Debuff")
 	TObjectPtr<class UStaticMeshComponent> CCDisplayMesh;
+	// 독 상태에서만 표시합니다. BP에서 메시/머테리얼과 상대 위치를 지정합니다.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Coin|Debuff")
+	TObjectPtr<class UStaticMeshComponent> PoisonMesh;
 	// CCDisplayMesh의 0번 머테리얼로부터 코인별 MID를 생성합니다.
 	UPROPERTY(Transient)
 	TObjectPtr<class UMaterialInstanceDynamic> CCDisplayMaterial;
@@ -376,6 +379,7 @@ protected:
 	void OnCCRemoved();
 
 	void HandleStatusEffectsChanged(const FStatusEffectsChangedEvent& ChangedEvent);
+	void RefreshPoisonVisual();
 
     void ResetFlash();
 

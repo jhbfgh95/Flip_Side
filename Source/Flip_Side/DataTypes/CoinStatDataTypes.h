@@ -51,7 +51,9 @@ enum class EStatusReactiveBehavior : uint8
 	ReduceNextDamageAndGrantAttack,
 	SurviveLethalOnce,
 	TemporaryShield,
-	LifeSteal
+	LifeSteal,
+	ShieldDamageMultiplier,
+	LifeStealFromTotalDamage
 };
 
 /** 호버 UI와 행동 후보 스냅숏이 어느 값의 변경으로 무효화됐는지 알려줍니다. */

@@ -168,6 +168,7 @@ void UBossPatternBase::ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, c
 {
     // BP에서 피해 함수를 직접 호출하는 경로도 동일한 CC 규칙을 적용합니다.
     if (!IsValid(Boss) || Boss->IsBlinded() || Boss->IsStunned()) return;
+    const int32 FinalDamage = Boss->GetDamageWithPillarBonus(Damage);
     for (ACoinActor* Coin : LockedTargets)
     {
         if (!IsValid(Coin)) continue;
@@ -179,14 +180,14 @@ void UBossPatternBase::ExecuteDamage(const TArray<ACoinActor*>& LockedTargets, c
             continue;
         }
 
-        StatusComp->ApplyDamage(Damage, Boss);
+        StatusComp->ApplyDamage(FinalDamage, Boss);
 
     }
 
     for (ABase_OtherActor* Other : LockedOthers)
     {
         if (!IsValid(Other)) continue;
-        Other->ApplyDamage(Damage, Boss);
+        Other->ApplyDamage(FinalDamage, Boss);
     }
 
 

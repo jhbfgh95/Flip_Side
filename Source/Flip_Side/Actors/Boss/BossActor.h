@@ -72,6 +72,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Gimmick")
 	TObjectPtr<UBossGimmickBase> ActiveGimmick;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Pillars")
+	TSubclassOf<class ABossPillarActor> LeftPillarClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Boss|Pillars")
+	TSubclassOf<class ABossPillarActor> RightPillarClass;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Boss|Pillars")
+	int32 PillarDamageBonus = 0;
+
+	bool bPillarTurnStarted = false;
+	bool bHPDamagedThisTurn = false;
+
 
 /* Stat Functions */
 public:
@@ -178,6 +190,18 @@ public:
 /* Status Functions*/
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	int32 GetAttackPoint() const;
+
+	TSubclassOf<ABossPillarActor> GetLeftPillarClass() const { return LeftPillarClass; }
+	TSubclassOf<ABossPillarActor> GetRightPillarClass() const { return RightPillarClass; }
+
+	void BeginPillarTurn();
+
+	UFUNCTION(BlueprintPure, Category = "Boss|Pillars")
+	int32 GetPillarDamageBonus() const { return PillarDamageBonus; }
+
+	// 기믹 배율 계산이 끝난 피해에 더해 누적 한 단계가 항상 피해 +1이 되게 합니다.
+	UFUNCTION(BlueprintPure, Category = "Boss|Pillars")
+	int32 GetDamageWithPillarBonus(int32 Damage) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	float GetStageMultiplierStat() const { return StageMultiplierStat; }

@@ -429,9 +429,7 @@ void UUseableItemWSubsystem::BuildEverywhereValidTargetGrids(ACoinActor* TargetC
 
     for(const FGridPoint& Candidate : CandidateGrids)
     {
-        AGridActor* Grid = GridManager->GetGridActor(Candidate);
-        if(!Grid) continue;
-        if(Grid->GetIsOccupied()) continue;
+        if(!GridManager->CanCoinOccupyCell(Candidate)) continue;
 
         ValidTargetGrids.Add(Candidate);
     }

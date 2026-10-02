@@ -109,7 +109,7 @@ void UBossGimmick_Swamp::OnPatternExecute(
 			{
 				continue;
 			}
-			const int32 Damage = GetPatternDamage(PendingPatternIndex, CoinHasSwampDebuff(Coin));
+			const int32 Damage = Boss->GetDamageWithPillarBonus(GetPatternDamage(PendingPatternIndex, CoinHasSwampDebuff(Coin)));
 			Coin->StatComponent->ApplyDamage(Damage, Boss);
 		}
 		break;

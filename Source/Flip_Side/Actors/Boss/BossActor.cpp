@@ -4,6 +4,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Actors/Component_Status.h"
+#include "Actors/CoinActor.h"
 #include "BossGimmick_Swamp.h"
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -85,6 +86,9 @@ void ABossActor::InitializeFromBossData(const FBossBattleData& InData)
 	AttackPoint = InData.AttackPoint;
 	MaxHP = InData.BossHP;
 	CurrentHP = MaxHP;
+	PillarDamageBonus = 0;
+	bPillarTurnStarted = false;
+	bHPDamagedThisTurn = false;
 	StageMultiplierStat = InData.StageMultiplierStat;
 	StageMultiplierGimmick = InData.StageMultiplierGimmick;
 
@@ -104,21 +108,27 @@ void ABossActor::ApplyDamage(int32 Damage, AActor* DamageCauser)
 
 int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCauser)
 {
-	if(!DamageCauser) return 0;
-	if(bIsDying) return 0;
+	if(!IsValid(DamageCauser)) return 0;
+	if(bIsDying || CurrentHP <= 0) return 0;
 
 	int32 FinalDamage = FMath::Max(0, Damage);
 
 	if (ActiveGimmick)
 		ActiveGimmick->OnDamageCalculate(this, FinalDamage);
 
+	FinalDamage = FMath::Max(0, FinalDamage);
 	int32 ActualDamageToHP = FinalDamage;
 
 	if(CurrentShield > 0)
 	{
-		const int32 ShieldDamage = FMath::Min(CurrentShield, FinalDamage);
+		const ACoinActor* Attacker = Cast<ACoinActor>(DamageCauser);
+		const int32 ShieldMultiplier = IsValid(Attacker) && IsValid(Attacker->StatComponent)
+			? Attacker->StatComponent->GetShieldDamageMultiplier() : 1;
+		const int64 ShieldDamageBudget = static_cast<int64>(FinalDamage) * ShieldMultiplier;
+		const int32 ShieldDamage = static_cast<int32>(FMath::Min<int64>(CurrentShield, ShieldDamageBudget));
 		CurrentShield -= ShieldDamage;
-		ActualDamageToHP = FinalDamage - ShieldDamage;
+		// 보호막을 깨고 남은 피해는 원래 배율로 HP에 적용합니다. 소수 피해는 버립니다.
+		ActualDamageToHP = static_cast<int32>((ShieldDamageBudget - ShieldDamage) / ShieldMultiplier);
 
 		if(ActualDamageToHP <= 0)
 		{
@@ -132,6 +142,8 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 	if(ActualDamageToHP <= 0) return 0;
 
 	CurrentHP -= ActualDamageToHP;
+	bHPDamagedThisTurn = true;
+	PillarDamageBonus = 0;
 
 	if(CurrentHP <= 0 && !bIsDying)
 	{
@@ -213,6 +225,25 @@ int32 ABossActor::GetAttackPoint() const
 {
 	return static_cast<int32>(FMath::Clamp<int64>(static_cast<int64>(AttackPoint) +
 		(IsValid(DebuffComponent) ? DebuffComponent->GetAttackModifier() : 0), 0, MAX_int32));
+}
+
+void ABossActor::BeginPillarTurn()
+{
+	const int32 PreviousBonus = PillarDamageBonus;
+	// 첫 턴은 보너스 없이 시작하며, 이후 완료된 턴에 HP 감소가 없었을 때만 누적합니다.
+	if (bPillarTurnStarted && !bHPDamagedThisTurn && CurrentHP > 0)
+	{
+		PillarDamageBonus = static_cast<int32>(FMath::Min<int64>(static_cast<int64>(PillarDamageBonus) + 1, MAX_int32));
+	}
+	bPillarTurnStarted = true;
+	bHPDamagedThisTurn = false;
+	if (PreviousBonus != PillarDamageBonus) BroadcastBossHUDDataChanged();
+}
+
+int32 ABossActor::GetDamageWithPillarBonus(int32 Damage) const
+{
+	return static_cast<int32>(FMath::Clamp<int64>(static_cast<int64>(FMath::Max(0, Damage)) +
+		PillarDamageBonus, 0, MAX_int32));
 }
 
 void ABossActor::HandleDebuffChanged(const FStatusEffectInstance& Effect, bool bGameplayChanged)
@@ -492,6 +523,11 @@ void ABossActor::SetCurrentPatternInfo(int32 PatternIndex, const FBossPatternBat
 
 void ABossActor::SetCurrentHP(int32 NewHP)
 {
+	if (NewHP < CurrentHP)
+	{
+		bHPDamagedThisTurn = true;
+		PillarDamageBonus = 0;
+	}
 	CurrentHP = NewHP;
 	BroadcastBossHUDDataChanged();
 }
@@ -540,6 +576,12 @@ FBossHUDData ABossActor::GetBossHUDData() const
 					break;
 				}
 			}
+		}
+		if (!CachedPatternData.bNoDamage)
+		{
+			HUDData.PatternDamage = GetDamageWithPillarBonus(HUDData.PatternDamage);
+			if (HUDData.bHasConditionalPatternDamage)
+				HUDData.ConditionalPatternDamage = GetDamageWithPillarBonus(HUDData.ConditionalPatternDamage);
 		}
 		HUDData.PatternIcon = CachedPatternData.PatternIcon;
 	}

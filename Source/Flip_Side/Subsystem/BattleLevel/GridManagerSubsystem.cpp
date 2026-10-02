@@ -7,6 +7,7 @@
 #include "FlipSideDevloperSettings.h"
 #include "WeaponRangePreviewActor.h"
 #include "Actors/Boss/BossCoinActor.h"
+#include "Actors/Boss/BossPillarActor.h"
 #include "BossWallActor.h"
 #include "Engine/Texture2D.h"
 
@@ -153,6 +154,22 @@ void UGridManagerSubsystem::ClearBossIcon()
 	RefreshBossIcons();
 }
 
+void UGridManagerSubsystem::RegisterBossPillar(ABossPillarActor* Pillar)
+{
+	if (!IsValid(Pillar)) return;
+	BossPillars.AddUnique(TWeakObjectPtr<ABossPillarActor>(Pillar));
+	RefreshBossIcons();
+}
+
+void UGridManagerSubsystem::UnregisterBossPillar(ABossPillarActor* Pillar)
+{
+	BossPillars.RemoveAll([Pillar](const TWeakObjectPtr<ABossPillarActor>& Entry)
+	{
+		return !Entry.IsValid() || Entry.Get() == Pillar;
+	});
+	RefreshBossIcons();
+}
+
 void UGridManagerSubsystem::HandleIconBossDestroyed(AActor* DestroyedActor)
 {
 	ClearBossIcon();
@@ -162,11 +179,10 @@ void UGridManagerSubsystem::HandleIconBossDestroyed(AActor* DestroyedActor)
 void UGridManagerSubsystem::RefreshBossIcons()
 {
 	int32 RequestedVisibleCells = 0;
-	// TODO: 보스 이동 구현 시 이전/도착 점유 칸을 갱신한 후 아이콘을 갱신할 것.
 	for (const auto& Entry : GridActors)
 	{
 		if (!IsValid(Entry.Value)) continue;
-		const bool bShowIcon = IconBoss.IsValid() && IsFixedBossFootprintCell(Entry.Key);
+		const bool bShowIcon = IconBoss.IsValid() && IsBossDamageCell(Entry.Key);
 		if (bShowIcon && IsValid(CurrentBossIcon)) ++RequestedVisibleCells;
 		Entry.Value->SetBossIcon(bShowIcon ? CurrentBossIcon.Get() : nullptr);
 	}
@@ -274,7 +290,7 @@ void UGridManagerSubsystem::CollectAttackRangeTargets(
 	BuildAreaCellsFromOrigin(Origin, AttackSpec, OutCells);
 	const bool bIntersectsBossFootprint = OutCells.ContainsByPredicate([this](const FGridPoint& Cell)
 	{
-		return IsFixedBossFootprintCell(Cell);
+		return IsBossDamageCell(Cell);
 	});
 	if (!bIntersectsBossFootprint)
 	{
@@ -384,7 +400,7 @@ bool UGridManagerSubsystem::TryBuildStraightRangeEndpoints(
 		}
 		OutEnd = Cell;
 
-		if (bStopAtBossFootprint && IsFixedBossFootprintCell(Cell))
+		if (bStopAtBossFootprint && IsBossDamageCell(Cell))
 		{
 			break;
 		}
@@ -425,6 +441,21 @@ bool UGridManagerSubsystem::IsFixedBossFootprintCell(const FGridPoint& P) const
 	return P.GridX >= BossCenterX - BossFootprintHalfWidth &&
 		P.GridX <= BossCenterX + BossFootprintHalfWidth &&
 		P.GridY >= BossFrontY;
+}
+
+bool UGridManagerSubsystem::IsBossDamageCell(const FGridPoint& P) const
+{
+	if (!IsInGrid(P.GridX, P.GridY)) return false;
+	if (IsFixedBossFootprintCell(P)) return true;
+	for (const TWeakObjectPtr<ABossPillarActor>& Entry : BossPillars)
+	{
+		const ABossPillarActor* Pillar = Entry.Get();
+		if (!IsValid(Pillar) || Pillar->IsHidden()) continue;
+		const ABossActor* Boss = Pillar->GetOwningBoss();
+		if (IsValid(Boss) && Boss == IconBoss.Get() && Boss->GetCurrentHP() > 0 &&
+			Pillar->GetOccupiedCells().Contains(P)) return true;
+	}
+	return false;
 }
 
 bool UGridManagerSubsystem::CanCoinOccupyCell(const FGridPoint& P) const

@@ -48,8 +48,11 @@ bool UDebuffComponent::IsSupportedEffect(const FStatusEffectInstance& Effect) co
 		return false;
 	if (Effect.CCType != ECCTypes::None && Effect.CCType != ECCTypes::Blind && Effect.CCType != ECCTypes::Stun)
 		return false;
-	// 이번 공통 범위는 공격력/무기력 약화와 실명/기절뿐입니다. 독과 반응형 버프는 받지 않습니다.
 	const FWeaponStatModifier& M = Effect.Modifier;
+	// 독은 CC/스탯 변경 없이 지속 기간만 저장하며, 피해는 보스 기믹이 처리합니다.
+	if (Effect.BuffTypeID == DebuffTypeID::Poison)
+		return !bAttackOnly && Effect.CCType == ECCTypes::None && M.IsZero() &&
+			Effect.ReactiveBehavior == EStatusReactiveBehavior::None;
 	if (M.AttackPoint > 0 || M.WeaponPoint > 0 || M.WeaponCnt != 0 || M.MaxHP != 0 ||
 		!M.AttackAreaSpec.IsZero() || !M.AbilityAreaSpec.IsZero() ||
 		Effect.ReactiveBehavior != EStatusReactiveBehavior::None || (bAttackOnly && M.WeaponPoint != 0)) return false;

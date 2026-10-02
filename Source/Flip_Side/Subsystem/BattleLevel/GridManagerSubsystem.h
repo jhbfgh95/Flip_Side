@@ -11,6 +11,7 @@
 class AGridActor;
 class ACoinActor;
 class AWeaponRangePreviewActor;
+class ABossPillarActor;
 
 USTRUCT(BlueprintType)
 struct FCoinOnGridInfo
@@ -84,6 +85,9 @@ private:
 
 	TWeakObjectPtr<ABossActor> IconBoss;
 
+	UPROPERTY(Transient)
+	TArray<TWeakObjectPtr<ABossPillarActor>> BossPillars;
+
 	UFUNCTION()
 	void ClearBossIcon();
 
@@ -96,6 +100,8 @@ public:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 
 	void SetBossIcon(ABossActor* Boss, UTexture2D* Icon);
+	void RegisterBossPillar(ABossPillarActor* Pillar);
+	void UnregisterBossPillar(ABossPillarActor* Pillar);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid|Spawn")
 	FVector GridOrigin = FVector(1340.f, -2560.f, -100.f);
@@ -155,7 +161,7 @@ public:
 		TArray<FGridPoint>& OutCells
 	) const;
 
-	/** 공격 셀과 고정 보스 3x3 점유 영역의 실제 교차 여부로 현재 보스를 수집합니다. */
+	/** 공격 셀과 보스 몸통 또는 기둥 점유 칸이 겹치면 현재 보스를 한 번만 수집합니다. */
 	void CollectAttackRangeTargets(
 		const FGridPoint& Origin,
 		const FAttackAreaSpec& AttackSpec,
@@ -171,7 +177,7 @@ public:
 		FObjectOnGridInfo& OutObjects
 	) const;
 
-	/** 직선 공격의 첫 셀과 끝 셀을 계산하며, 현재 고정 3x3 보스 발판에서 선택적으로 자릅니다. */
+	/** 직선 공격의 첫 셀과 끝 셀을 계산하며, 몸통 또는 기둥의 첫 점유 칸에서 선택적으로 자릅니다. */
 	bool TryBuildStraightRangeEndpoints(
 		const FGridPoint& Origin,
 		const FAttackAreaSpec& Spec,
@@ -191,6 +197,10 @@ public:
 	/** 현재 보스 코인 발판이 실제로 차지하는 뒤쪽 가운데 3x3 셀입니다. */
 	UFUNCTION(BlueprintPure, Category = "Grid|Boss")
 	bool IsFixedBossFootprintCell(const FGridPoint& P) const;
+
+	/** 몸통 3x3 및 살아 있는 기둥의 현재 점유 칸을 포함합니다. */
+	UFUNCTION(BlueprintPure, Category = "Grid|Boss")
+	bool IsBossDamageCell(const FGridPoint& P) const;
 
 	/** CoinActor가 현재 해당 셀을 새로 점유할 수 있는지 검사합니다. */
 	UFUNCTION(BlueprintPure, Category = "Grid|Coin")

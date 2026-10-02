@@ -76,6 +76,9 @@ public:
 	class UDebuffComponent* GetDebuffComponent() const;
 	bool IsStunned() const;
 	bool IsBlinded() const;
+	int32 GetShieldDamageMultiplier() const;
+	// 기본 공격과 능력 추가 피해의 보호막·HP 합계로 아이템 적중 효과를 처리합니다.
+	void ApplyOnHitStatusEffects(const FWeaponAttackResult& AttackResult);
 
 	// CoinManager가 CoinActor를 만들 때 양면 무기 정의와 이전 턴 생존 상태를 한 번에 설정합니다.
 	bool InitializeCoinStats(const FCoinStatInitializeData& InitializeData);

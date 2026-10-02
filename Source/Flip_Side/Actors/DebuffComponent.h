@@ -14,9 +14,10 @@ namespace DebuffTypeID
 {
 	constexpr int32 Blind = -1001;
 	constexpr int32 Stun = -1002;
+	constexpr int32 Poison = -1003;
 }
 
-/** 코인/보스 공통 디버프 저장소. 독, DB, UI, 기본 스탯은 소유하지 않습니다. */
+/** 코인/보스 공통 디버프 저장소. 독 피해 타이머, DB, UI, 기본 스탯은 소유하지 않습니다. */
 UCLASS(ClassGroup=(Status), meta=(BlueprintSpawnableComponent))
 class FLIP_SIDE_API UDebuffComponent : public UActorComponent
 {

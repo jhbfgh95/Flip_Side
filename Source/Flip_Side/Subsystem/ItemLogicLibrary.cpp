@@ -33,19 +33,19 @@ void UItemLogicLibrary::Test_Item(UItem_Action* ItemContext)
 void UItemLogicLibrary::MeltShieldPotion_Logic(UItem_Action* ItemContext)
 {
     ACoinActor* TargetCoin = GetFirstTargetCoin(ItemContext);
-    if(!TargetCoin || !TargetCoin->StatComponent) return;
+    if(!IsValid(TargetCoin) || !IsValid(TargetCoin->StatComponent)) return;
 
-    FBuffInfo Info;
-    Info.BuffName = TEXT("보호막 융해물약");
-    Info.PreGiveDelegate = FOnPreGiveDamage::FDelegate::CreateLambda([TargetCoin](AActor* Target, int32 FinalAttackPoint, int32& OutDmg)
-    {
-        ABossActor* Boss = Cast<ABossActor>(Target);
-        if(!Boss || !Boss->HasShield()) return;
+    UComponent_Status* TargetStat = TargetCoin->StatComponent;
+    if(TargetStat->GetStatusEffectStackCount(ItemBuffTypeID::ShieldMelt, EStatusEffectSourceType::Item, 1) > 0) return;
 
-        Boss->ApplyShieldOnlyDamage(FinalAttackPoint * 3, TargetCoin);
-    });
-
-    TargetCoin->StatComponent->AddBuffs(Info);
+    FStatusEffectInstance Effect;
+    Effect.BuffTypeID = ItemBuffTypeID::ShieldMelt;
+    Effect.SourceType = EStatusEffectSourceType::Item;
+    Effect.SourceDataID = 1;
+    Effect.DurationType = EBuffDurationType::TurnOnly;
+    Effect.ReactiveBehavior = EStatusReactiveBehavior::ShieldDamageMultiplier;
+    Effect.ReactiveMagnitude = 3;
+    TargetStat->AddStatusEffect(Effect);
 
     UE_LOG(LogTemp, Warning, TEXT("MeltShield"));
 }
@@ -53,20 +53,18 @@ void UItemLogicLibrary::MeltShieldPotion_Logic(UItem_Action* ItemContext)
 void UItemLogicLibrary::BloodPotion_Logic(UItem_Action* ItemContext)
 {
     ACoinActor* TargetCoin = GetFirstTargetCoin(ItemContext);
-    if(!TargetCoin || !TargetCoin->StatComponent) return;
+    if(!IsValid(TargetCoin) || !IsValid(TargetCoin->StatComponent)) return;
 
     UComponent_Status* TargetStat = TargetCoin->StatComponent;
+    if(TargetStat->GetStatusEffectStackCount(ItemBuffTypeID::BloodLifeSteal, EStatusEffectSourceType::Item, 2) > 0) return;
 
-    FBuffInfo Info;
-    Info.BuffName = TEXT("피의 갈망 물약");
-    Info.PostGiveDelegate = FOnPostGiveDamage::FDelegate::CreateLambda([TargetCoin, TargetStat](AActor* Target, int32 DealtHPDamage)
-    {
-        if(!Cast<ABossActor>(Target) || DealtHPDamage <= 0) return;
-
-        TargetStat->ApplyHeal(DealtHPDamage, TargetCoin);
-    });
-
-    TargetCoin->StatComponent->AddBuffs(Info);
+    FStatusEffectInstance Effect;
+    Effect.BuffTypeID = ItemBuffTypeID::BloodLifeSteal;
+    Effect.SourceType = EStatusEffectSourceType::Item;
+    Effect.SourceDataID = 2;
+    Effect.DurationType = EBuffDurationType::TurnOnly;
+    Effect.ReactiveBehavior = EStatusReactiveBehavior::LifeStealFromTotalDamage;
+    TargetStat->AddStatusEffect(Effect);
 
     UE_LOG(LogTemp, Warning, TEXT("Blood"));
 }

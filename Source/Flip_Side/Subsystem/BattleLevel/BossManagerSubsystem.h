@@ -9,6 +9,7 @@
 #include "BossManagerSubsystem.generated.h"
 
 class ABossActor;
+class ABossPillarActor;
 class UBossPatternBase;
 class UBossGimmickBase;
 class ACoinActor;
@@ -35,10 +36,17 @@ class FLIP_SIDE_API UBossManagerSubsystem : public UWorldSubsystem
 
 public:
     virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+    virtual void Deinitialize() override;
 
 protected:
     UPROPERTY()
     TObjectPtr<ABossActor> CurrentBoss = nullptr;
+
+    UPROPERTY(Transient, BlueprintReadOnly, Category = "Boss|Pillars")
+    TObjectPtr<ABossPillarActor> LeftPillar = nullptr;
+
+    UPROPERTY(Transient, BlueprintReadOnly, Category = "Boss|Pillars")
+    TObjectPtr<ABossPillarActor> RightPillar = nullptr;
 
     FBossBattleData CurrentBossBattleData;
 
@@ -93,6 +101,15 @@ public:
 
 private:
     bool Internal_SpawnBoss(const FBossBattleData& InBossData);
+
+    ABossPillarActor* SpawnBossPillar(TSubclassOf<ABossPillarActor> PillarClass, bool bLeft);
+    bool PlaceBossPillar(ABossPillarActor* Pillar, bool bLeft);
+
+    UFUNCTION()
+    void DestroyBossPillars();
+
+    UFUNCTION()
+    void HandleBossDestroyed(AActor* DestroyedActor);
 
     bool PrepareCurrentPattern();
     void ShowTelegraphPreview(const TArray<FGridPoint>& Cells, const FLinearColor& Color);

@@ -7,6 +7,13 @@
 #include "NiagaraSystem.h"
 #include "ItemDataTypes.generated.h"
 
+// 무기(10000), 보스(20000), 카드(30000) 버프와 구분하는 아이템 상태효과 ID입니다.
+namespace ItemBuffTypeID
+{
+    inline constexpr int32 ShieldMelt = 40001;
+    inline constexpr int32 BloodLifeSteal = 40002;
+}
+
 UENUM(BlueprintType)
 enum class EItemVFXTarget : uint8
 {

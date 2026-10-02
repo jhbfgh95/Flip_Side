@@ -1,6 +1,7 @@
 #include "BossManagerSubsystem.h"
 
 #include "BossActor.h"
+#include "BossPillarActor.h"
 #include "BattleLevelActingWSubsystem.h"
 #include "W_BossHP.h"
 #include "BossPatternBase.h"
@@ -22,6 +23,8 @@ void UBossManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
+    Collection.InitializeDependency<UGridManagerSubsystem>();
+
     UGameInstance* GI = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
     if (GI)
     {
@@ -35,6 +38,17 @@ void UBossManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
             UE_LOG(LogTemp, Warning, TEXT("[BossManager] No prepared boss, defaulting to BossID %d"), FallbackID);
         }
     }
+}
+
+void UBossManagerSubsystem::Deinitialize()
+{
+    DestroyBossPillars();
+    if (IsValid(CurrentBoss))
+    {
+        CurrentBoss->OnBossDead.RemoveDynamic(this, &UBossManagerSubsystem::DestroyBossPillars);
+        CurrentBoss->OnDestroyed.RemoveDynamic(this, &UBossManagerSubsystem::HandleBossDestroyed);
+    }
+    Super::Deinitialize();
 }
 
 bool UBossManagerSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -66,6 +80,7 @@ bool UBossManagerSubsystem::SpawnPreparedBoss()
         return false;
     }
 
+    DestroyBossPillars();
     if (IsValid(CurrentBoss))
     {
         CurrentBoss->Destroy();
@@ -215,7 +230,83 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossBattleData& InBossData
     StageContext.PickedBossID = InBossData.BossID;
     StageContext.PickedBossName = InBossData.BossName;
 
+    CurrentBoss->OnBossDead.AddUniqueDynamic(this, &UBossManagerSubsystem::DestroyBossPillars);
+    CurrentBoss->OnDestroyed.AddUniqueDynamic(this, &UBossManagerSubsystem::HandleBossDestroyed);
+    LeftPillar = SpawnBossPillar(CurrentBoss->GetLeftPillarClass(), true);
+    RightPillar = SpawnBossPillar(CurrentBoss->GetRightPillarClass(), false);
+
     return true;
+}
+
+ABossPillarActor* UBossManagerSubsystem::SpawnBossPillar(TSubclassOf<ABossPillarActor> PillarClass, bool bLeft)
+{
+    UWorld* World = GetWorld();
+    if (!IsValid(World) || !IsValid(CurrentBoss)) return nullptr;
+
+    UClass* SpawnClass = PillarClass ? PillarClass.Get() : ABossPillarActor::StaticClass();
+    ABossPillarActor* Pillar = World->SpawnActorDeferred<ABossPillarActor>(SpawnClass,
+        FTransform::Identity, CurrentBoss, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+    if (!IsValid(Pillar)) return nullptr;
+
+    Pillar->InitializeForBoss(CurrentBoss);
+    if (!PlaceBossPillar(Pillar, bLeft))
+    {
+        Pillar->Destroy();
+        return nullptr;
+    }
+    Pillar->FinishSpawning(Pillar->GetActorTransform());
+    return IsValid(Pillar) ? Pillar : nullptr;
+}
+
+bool UBossManagerSubsystem::PlaceBossPillar(ABossPillarActor* Pillar, bool bLeft)
+{
+    UWorld* World = GetWorld();
+    UGridManagerSubsystem* GridManager = IsValid(World) ? World->GetSubsystem<UGridManagerSubsystem>() : nullptr;
+    if (!IsValid(Pillar) || !IsValid(GridManager) || GridManager->GridXSize < 9 || GridManager->GridYSize < 3)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[BossPillar] Placement requires a valid pillar and a boss area of at least 9x3."));
+        return false;
+    }
+
+    constexpr int32 AreaSize = 3;
+    const int32 Size = Pillar->GetFootprintSize();
+    const int32 CenterX = GridManager->GridXSize / 2;
+    const int32 AreaStartX = bLeft ? CenterX - 4 : CenterX + 2;
+    const int32 AreaStartY = GridManager->GetBossAreaStartY();
+    const int32 StartX = FMath::RandRange(AreaStartX, AreaStartX + AreaSize - Size);
+    const int32 StartY = FMath::RandRange(AreaStartY, AreaStartY + AreaSize - Size);
+
+    TArray<FGridPoint> Cells;
+    FVector Center = FVector::ZeroVector;
+    for (int32 Y = 0; Y < Size; ++Y)
+    {
+        for (int32 X = 0; X < Size; ++X)
+        {
+            const FGridPoint Cell{StartX + X, StartY + Y};
+            FVector Location;
+            if (!IsValid(GridManager->GetGridActor(Cell)) || !GridManager->TryGetGridWorldLocation(Cell, Location))
+                return false;
+            Cells.Add(Cell);
+            Center += Location;
+        }
+    }
+    Pillar->SetGridPlacement(Cells, Center / Cells.Num());
+    return true;
+}
+
+void UBossManagerSubsystem::DestroyBossPillars()
+{
+    if (IsValid(LeftPillar)) LeftPillar->Destroy();
+    if (IsValid(RightPillar)) RightPillar->Destroy();
+    LeftPillar = nullptr;
+    RightPillar = nullptr;
+}
+
+void UBossManagerSubsystem::HandleBossDestroyed(AActor* DestroyedActor)
+{
+    if (DestroyedActor != CurrentBoss) return;
+    DestroyBossPillars();
+    CurrentBoss = nullptr;
 }
 
 bool UBossManagerSubsystem::StartBossSetting()
@@ -225,6 +316,10 @@ bool UBossManagerSubsystem::StartBossSetting()
         UE_LOG(LogTemp, Warning, TEXT("[BossManager] StartBossSetting failed: CurrentBoss null"));
         return false;
     }
+
+    CurrentBoss->BeginPillarTurn();
+    if (IsValid(LeftPillar)) PlaceBossPillar(LeftPillar, true);
+    if (IsValid(RightPillar)) PlaceBossPillar(RightPillar, false);
 
     if (!PrepareCurrentPattern())
     {

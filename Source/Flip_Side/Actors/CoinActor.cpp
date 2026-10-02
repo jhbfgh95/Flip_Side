@@ -60,6 +60,12 @@ ACoinActor::ACoinActor()
 	CCDisplayMesh->SetGenerateOverlapEvents(false);
 	CCDisplayMesh->SetCastShadow(false);
 	CCDisplayMesh->SetVisibility(false);
+	PoisonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PoisonMesh"));
+	PoisonMesh->SetupAttachment(RootComponent);
+	PoisonMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	PoisonMesh->SetGenerateOverlapEvents(false);
+	PoisonMesh->SetCastShadow(false);
+	PoisonMesh->SetVisibility(false);
 
 	CoinHPUI = CreateDefaultSubobject<UWidgetComponent>(TEXT("Coin HP UI"));
 	CoinHPUI->SetupAttachment(RootComponent);
@@ -79,6 +85,7 @@ void ACoinActor::OnConstruction(const FTransform &Transform)
 void ACoinActor::BeginPlay()
 {
 	Super::BeginPlay();
+	RefreshPoisonVisual();
 	if (IsValid(DebuffComponent))
 	{
 		DebuffComponent->OnCCChanged.AddUniqueDynamic(this, &ACoinActor::HandleCCVisualChanged);
@@ -791,6 +798,7 @@ void ACoinActor::OnCCRemoved()
 
 void ACoinActor::HandleStatusEffectsChanged(const FStatusEffectsChangedEvent& ChangedEvent)
 {
+	RefreshPoisonVisual();
 	RefreshOutline();
 	OnStatusVisualChanged(
 		ChangedEvent.BuffTypeID,
@@ -800,4 +808,22 @@ void ACoinActor::HandleStatusEffectsChanged(const FStatusEffectsChangedEvent& Ch
 		ChangedEvent.bIsDebuff,
 		ChangedEvent.bIsActive
 	);
+}
+
+void ACoinActor::RefreshPoisonVisual()
+{
+	if (!IsValid(PoisonMesh)) return;
+	bool bPoisoned = false;
+	if (!bDeathStarted && IsValid(DebuffComponent))
+	{
+		for (const FStatusEffectInstance& Effect : DebuffComponent->GetDebuffs())
+		{
+			if (Effect.BuffTypeID == DebuffTypeID::Poison && Effect.RemainingTurns > 0)
+			{
+				bPoisoned = true;
+				break;
+			}
+		}
+	}
+	PoisonMesh->SetVisibility(bPoisoned);
 }

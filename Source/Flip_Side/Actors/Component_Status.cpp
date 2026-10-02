@@ -952,6 +952,33 @@ void UComponent_Status::ClearTurnBasedBuffs()
 	}
 }
 
+int32 UComponent_Status::GetShieldDamageMultiplier() const
+{
+	int32 Multiplier = 1;
+	for (const FStatusEffectInstance& Effect : ActiveStatusEffects)
+	{
+		if (Effect.ReactiveBehavior == EStatusReactiveBehavior::ShieldDamageMultiplier)
+		{
+			// 동일 아이템을 여러 번 사용해도 보호막 피해 배율은 중첩하지 않습니다.
+			Multiplier = FMath::Max(Multiplier, Effect.ReactiveMagnitude);
+		}
+	}
+	return Multiplier;
+}
+
+void UComponent_Status::ApplyOnHitStatusEffects(const FWeaponAttackResult& AttackResult)
+{
+	if (bIsDead || !AttackResult.DidHit()) return;
+	for (const FStatusEffectInstance& Effect : ActiveStatusEffects)
+	{
+		if (Effect.ReactiveBehavior == EStatusReactiveBehavior::LifeStealFromTotalDamage)
+		{
+			ApplyHeal(AttackResult.GetTotalDamage(), GetOwner());
+			break;
+		}
+	}
+}
+
 void UComponent_Status::CheckAttackerPreBuff(AActor* Target, int32 InDmg, int32& OutDmg)
 {
 	if (OnPreGiveDamage.IsBound())

@@ -32,6 +32,7 @@
 #include "WeaponDataTypes.h"
 #include "ItemDataTypes.h"
 #include "Actors/Component_Status.h"
+#include "Actors/DebuffComponent.h"
 #include "Actors/CoinAttackRangeIndicatorActor.h"
 #include "Actors/AbilityRangeActor.h"
 #include "Actors/Boss/BossCoinActor.h"
@@ -1536,9 +1537,15 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
         NewViewData.SourceDataID = StatusEffect.SourceDataID;
         NewViewData.SourcePatternIndex = StatusEffect.SourcePatternIndex;
         NewViewData.Polarity = StatusEffect.Polarity;
-        // 디버프는 종류별 DB 아이콘, 버프는 기존 시전 무기/아이템 아이콘입니다.
+        // 독은 부여 당시 보스 패턴 아이콘을 사용합니다.
         NewViewData.Icon = StatusEffect.Polarity == EStatusPolarity::Debuff ? DebuffDefinition.Icon.Get() : SourceIcon;
-        if (bHasDebuffDefinition)
+        if (StatusEffect.Polarity == EStatusPolarity::Debuff && StatusEffect.BuffTypeID == DebuffTypeID::Poison)
+        {
+            NewViewData.Icon = SourceIcon;
+            NewViewData.DisplayName = NSLOCTEXT("Debuff", "Poison", "독");
+            NewViewData.Description = NSLOCTEXT("Debuff", "PoisonDescription", "플레이어 턴 동안 5초마다 독 피해를 받습니다. 다시 걸리면 지속 턴이 갱신됩니다.");
+        }
+        else if (bHasDebuffDefinition)
         {
             NewViewData.DisplayName = DebuffDefinition.DisplayName;
             NewViewData.Description = DebuffDefinition.Description;

@@ -197,7 +197,7 @@ bool UAbilityLogicLibrary::SniperOnHit(UWeapon_Action* WeaponContext)
 	int32 Distance = TNumericLimits<int32>::Max();
 	for (const FGridPoint& Cell : WeaponContext->GetAttackCells())
 	{
-		if (GridManager->IsFixedBossFootprintCell(Cell))
+		if (GridManager->IsBossDamageCell(Cell))
 		{
 			const int32 CellDistance = FMath::Abs(Cell.GridX - Origin.GridX) +
 				FMath::Abs(Cell.GridY - Origin.GridY);
