@@ -83,8 +83,7 @@ void UActionLogicRegistryGISubsystem::RegisterAllWeaponLogic()
 	RegisterAttackLogic(8, UAttackLogicLibrary::BasicAttack);
 	RegisterAttackLogic(9, UAttackLogicLibrary::BasicAttack);
 
-	// WeaponID 10 창의 적은 첫 대상 호버 투영 사거리까지 확정한 뒤 등록합니다.
-	// RegisterAttackLogic(10, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(10, UAttackLogicLibrary::BasicAttack);
 
 	RegisterAttackLogic(11, UAttackLogicLibrary::BasicAttack);
 	RegisterAttackLogic(12, UAttackLogicLibrary::BasicAttack);
@@ -122,6 +121,11 @@ void UActionLogicRegistryGISubsystem::RegisterAllWeaponLogic()
 		MakeTargetRule(EAbilityTargetFlags::Coin, EAbilitySelectionMode::Single,
 			ERepeatCountSource::One, true),
 		UAbilityLogicLibrary::ArmorSuitAfterAttack, TEXT("ArmorSuitAfterAttack"));
+
+	RegisterAbilityLogic(10, EAbilityTiming::AfterAttackAlways,
+		MakeTargetRule(EAbilityTargetFlags::EmptyGrid, EAbilitySelectionMode::Single,
+			ERepeatCountSource::One, true, true),
+		UAbilityLogicLibrary::SpearGuardAfterAttack, TEXT("SpearGuardAfterAttack"));
 
 	RegisterAbilityLogic(11, EAbilityTiming::OnHit, NoTargetRule(),
 		UAbilityLogicLibrary::GauntletOnHit, TEXT("GauntletOnHit"));

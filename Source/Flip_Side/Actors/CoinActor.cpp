@@ -475,8 +475,8 @@ void ACoinActor::RefreshCoinMaterial()
 	static const FName BackTextureParameter(TEXT("Back_Texture"));
 	static const FName FrontColorParameter(TEXT("Front_Color"));
 	static const FName BackColorParameter(TEXT("Back_Color"));
-	static const FLinearColor FrontWeaponColor(0.862745f, 0.913725f, 0.313725f, 1.0f);
-	static const FLinearColor BackWeaponColor(0.905882f, 0.933333f, 0.917647f, 1.0f);
+	static const FLinearColor FrontWeaponColor(0.32f, 0.19f, 0.035f, 1.0f);
+	static const FLinearColor BackWeaponColor(0.16f, 0.20f, 0.25f, 1.0f);
 
 	MID->SetTextureParameterValue(FrontTextureParameter, FrontIconTexture);
 	MID->SetTextureParameterValue(BackTextureParameter, BackIconTexture);

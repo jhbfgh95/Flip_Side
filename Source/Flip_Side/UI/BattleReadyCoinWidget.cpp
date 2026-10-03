@@ -8,6 +8,7 @@
 #include "UI/BattleCoinInfoWidget.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/Button.h"
+#include "Components/Overlay.h"
 
 void UBattleReadyCoinWidget::NativeConstruct()
 {
@@ -73,8 +74,11 @@ void UBattleReadyCoinWidget::SetInfoPageVisible(bool bVisible)
 {
 	if (bVisible) OnSlotHighlightClearRequested.Broadcast();
 	bInfoPageVisible = bVisible;
+	const ESlateVisibility BackToReadyVisibility = bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed;
 	if (IsValid(BackToReadyCoinButton))
-		BackToReadyCoinButton->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+		BackToReadyCoinButton->SetVisibility(BackToReadyVisibility);
+	if (IsValid(BackToReadyButtonOverlay))
+		BackToReadyButtonOverlay->SetVisibility(BackToReadyVisibility);
 	if (IsValid(ReadyInfoSwitcher) && ReadyInfoSwitcher->GetChildrenCount() >= 2)
 		ReadyInfoSwitcher->SetActiveWidgetIndex(bVisible ? 1 : 0);
 	if (IsValid(ReadyAreaTitleText)) ReadyAreaTitleText->SetText(bVisible

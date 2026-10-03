@@ -21,6 +21,9 @@ protected:
 	// HP 위에 겹칩니다. 감소한 영역은 머테리얼 Opacity 0으로 HP를 드러냅니다.
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UImage> ShieldImage;
+	// 현재 HP, 구분자, 최대 HP를 묶는 HorizontalBox 등 HP 텍스트 영역입니다.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UWidget> HPTextContainer;
 	// 기존 WBP 호환을 위해 Optional입니다. Bar WBP에는 같은 이름으로 배치합니다.
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> CoinCurrentHPText;
