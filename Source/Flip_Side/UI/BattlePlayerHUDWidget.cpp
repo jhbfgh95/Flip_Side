@@ -519,6 +519,7 @@ void UBattlePlayerHUDWidget::HandlePhaseProgressRequested()
 void UBattlePlayerHUDWidget::HandleItemSlotClicked(int32 ItemID)
 {
 	DismissCoinSlotInfo();
+	DismissItemInfo();
 	OnItemSlotClicked.Broadcast(ItemID);
 }
 

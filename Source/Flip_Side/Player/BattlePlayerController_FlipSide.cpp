@@ -138,6 +138,7 @@ void ABattlePlayerController_FlipSide::BeginPlay()
 
     if (UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>())
     {
+		PreviousPhase = BattleManager->GetCurrentPhase();
 		BattleManager->OnPhaseChanged.RemoveAll(this);
         BattleManager->OnPhaseChanged.AddDynamic(this, &ABattlePlayerController_FlipSide::OnPhaseChanged);
 		BattleManager->OnBossPhaseCompleted.RemoveAll(this);
@@ -539,7 +540,13 @@ void ABattlePlayerController_FlipSide::OnPhaseChanged(EPhaseState NewPhase)
 {
 	RefreshBattlePhaseHUD();
     ClearReadySlotHighlight();
-    // 페이즈 전환으로 정보 페이지나 선택을 초기화하지 않습니다.
+    // 행동 페이즈에서 보스 페이즈로 넘어갈 때 정보 페이지와 선택을 함께 해제합니다.
+    if (NewPhase == EPhaseState::BossPhase &&
+        (PreviousPhase == EPhaseState::CoinBehaviorPhase || PreviousPhase == EPhaseState::BehaviorPhase))
+    {
+        ResetBattleInfoSelection();
+    }
+    PreviousPhase = NewPhase;
     RefreshHoveredBattleCoinInfo();
 
     if (!ControlledPawn) return;

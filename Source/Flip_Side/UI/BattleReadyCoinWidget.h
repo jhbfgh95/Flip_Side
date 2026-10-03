@@ -39,6 +39,9 @@ public:
 	FOnBattleReadyCoinWidgetUnhovered OnReadyCoinUnhovered;
 
 protected:
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> BackToReadyCoinButton;
+
 	// BP Switcher의 0번은 슬롯 영역, 1번은 BattleCoinInfoWidget을 포함한 정보 영역입니다.
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UWidgetSwitcher> ReadyInfoSwitcher;
@@ -94,6 +97,7 @@ protected:
 	TObjectPtr<class UReadyCoinSlot> ReadyCoinSlot10;
 
 private:
+	UFUNCTION()
 	void HandleBackToReadyClicked();
 	void SetInfoPageVisible(bool bVisible);
 	bool bInfoPageVisible = false;

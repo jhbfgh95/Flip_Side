@@ -7,6 +7,7 @@
 #include "UI/ReadyCoinSlot.h"
 #include "UI/BattleCoinInfoWidget.h"
 #include "Components/WidgetSwitcher.h"
+#include "Components/Button.h"
 
 void UBattleReadyCoinWidget::NativeConstruct()
 {
@@ -14,6 +15,8 @@ void UBattleReadyCoinWidget::NativeConstruct()
 
 	CacheReadyCoinSlots();
 	UpdateReadyCoinCountText(0);
+	if (IsValid(BackToReadyCoinButton))
+		BackToReadyCoinButton->OnClicked.AddUniqueDynamic(this, &UBattleReadyCoinWidget::HandleBackToReadyClicked);
 	if (IsValid(BattleCoinInfoWidget))
 	{
 		BattleCoinInfoWidget->OnBackToReadyRequested.RemoveAll(this);
@@ -26,6 +29,8 @@ void UBattleReadyCoinWidget::NativeDestruct()
 {
 	OnInfoSelectionReset.Broadcast();
 	OnSlotHighlightClearRequested.Broadcast();
+	if (IsValid(BackToReadyCoinButton))
+		BackToReadyCoinButton->OnClicked.RemoveDynamic(this, &UBattleReadyCoinWidget::HandleBackToReadyClicked);
 	if (IsValid(BattleCoinInfoWidget)) BattleCoinInfoWidget->OnBackToReadyRequested.RemoveAll(this);
 	for (UReadyCoinSlot* SlotWidget : ReadyCoinSlots)
 	{
@@ -68,6 +73,8 @@ void UBattleReadyCoinWidget::SetInfoPageVisible(bool bVisible)
 {
 	if (bVisible) OnSlotHighlightClearRequested.Broadcast();
 	bInfoPageVisible = bVisible;
+	if (IsValid(BackToReadyCoinButton))
+		BackToReadyCoinButton->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 	if (IsValid(ReadyInfoSwitcher) && ReadyInfoSwitcher->GetChildrenCount() >= 2)
 		ReadyInfoSwitcher->SetActiveWidgetIndex(bVisible ? 1 : 0);
 	if (IsValid(ReadyAreaTitleText)) ReadyAreaTitleText->SetText(bVisible

@@ -66,6 +66,8 @@ private:
     UFUNCTION()
     void OnPhaseChanged(EPhaseState NewPhase);
 
+    EPhaseState PreviousPhase = EPhaseState::None;
+
     UFUNCTION()
     void OnStageEnded(int32 StageEndFlag);
 
