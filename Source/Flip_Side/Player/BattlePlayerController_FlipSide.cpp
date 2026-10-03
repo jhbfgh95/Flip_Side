@@ -1172,7 +1172,7 @@ void ABattlePlayerController_FlipSide::UpdateActionAbilityRangePreview()
 	UGridManagerSubsystem* GridManager = World->GetSubsystem<UGridManagerSubsystem>();
 	TArray<FGridPoint> Cells;
 	if (!bIsUIOnly && IsValid(ActionManager) && IsValid(GridManager) &&
-		ActionManager->GetActiveAbilityPreviewCells(Cells))
+		ActionManager->GetActiveAbilityPreviewCells(Cells, Cast<AGridActor>(LastHoveredActor)))
 	{
 		TArray<FVector> Locations;
 		for (const FGridPoint& Cell : Cells)

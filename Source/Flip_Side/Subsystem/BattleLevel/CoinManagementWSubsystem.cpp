@@ -580,7 +580,53 @@ void UCoinManagementWSubsystem::LockCoinReady(ACoinActor* TargetCoin)
 
 int32 UCoinManagementWSubsystem::CalculateCoinPrice() const
 {
-	return 0;
+	UWorld* World = GetWorld();
+	UGameInstance* GameInstance = IsValid(World) ? World->GetGameInstance() : nullptr;
+	const UDataManagerSubsystem* DataManager = IsValid(GameInstance)
+		? GameInstance->GetSubsystem<UDataManagerSubsystem>()
+		: nullptr;
+	if (!IsValid(DataManager) || !DataManager->IsCacheReady())
+	{
+		UE_LOG(LogTemp, Error, TEXT("[CoinManager] 코인 환급 계산 실패: DataManager 캐시가 준비되지 않았습니다."));
+		return 0;
+	}
+
+	int64 TotalCoinPrice = 0;
+	for (const FBattleCoinSlotData& CoinSlot : CoinSlots)
+	{
+		if (CoinSlot.AvailableCoinCount <= 0) continue;
+
+		FFaceData FrontWeaponData;
+		FFaceData BackWeaponData;
+		if (!DataManager->TryGetWeapon(CoinSlot.FrontWeaponID, FrontWeaponData) ||
+			!DataManager->TryGetWeapon(CoinSlot.BackWeaponID, BackWeaponData))
+		{
+			UE_LOG(LogTemp, Error, TEXT("[CoinManager] 코인 환급 제외: 슬롯 무기 조회 실패. Slot=%d Front=%d Back=%d"),
+				CoinSlot.SlotNumber, CoinSlot.FrontWeaponID, CoinSlot.BackWeaponID);
+			continue;
+		}
+		TotalCoinPrice += (int64(FrontWeaponData.Price) + BackWeaponData.Price) * CoinSlot.AvailableCoinCount;
+	}
+
+	// 슬롯에서 ReadyCoin으로 옮긴 코인은 슬롯 수량에서 이미 빠졌으므로 별도로 한 번씩 더합니다.
+	for (const FReadyCoinData& ReadyCoin : ReadyCoins)
+	{
+		if (ReadyCoin.CoinInstanceID == INDEX_NONE) continue;
+
+		FFaceData FrontWeaponData;
+		FFaceData BackWeaponData;
+		if (!DataManager->TryGetWeapon(ReadyCoin.FrontWeaponID, FrontWeaponData) ||
+			!DataManager->TryGetWeapon(ReadyCoin.BackWeaponID, BackWeaponData))
+		{
+			UE_LOG(LogTemp, Error, TEXT("[CoinManager] 코인 환급 제외: ReadyCoin 무기 조회 실패. Coin=%d Front=%d Back=%d"),
+				ReadyCoin.CoinInstanceID, ReadyCoin.FrontWeaponID, ReadyCoin.BackWeaponID);
+			continue;
+		}
+		TotalCoinPrice += int64(FrontWeaponData.Price) + BackWeaponData.Price;
+	}
+
+	// 기존 청산 규칙대로 전체 코인 가격의 절반을 환급하며 소수점은 버립니다.
+	return static_cast<int32>(FMath::Clamp<int64>(TotalCoinPrice / 2, 0, MAX_int32));
 }
 
 int32 UCoinManagementWSubsystem::CalculateCoinCount() const

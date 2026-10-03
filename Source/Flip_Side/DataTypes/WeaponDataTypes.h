@@ -162,6 +162,7 @@ namespace WeaponBuffTypeID
     inline constexpr int32 AmplificationRange = 10009;
     inline constexpr int32 EmergencySurvival = 10010;
     inline constexpr int32 CortisolWeaponPoint = 10011;
+    inline constexpr int32 SpearGuard = 10012;
 }
 
 USTRUCT(BlueprintType)

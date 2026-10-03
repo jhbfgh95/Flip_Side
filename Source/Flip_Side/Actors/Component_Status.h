@@ -196,6 +196,8 @@ private:
 	void ConsumeTemporaryShieldContribution(int32 AbsorbedDamage);
 	void RemoveLegacyBuffAt(int32 Index);
 	void HandleDeathIfNeeded();
+	bool TryInterceptBossDamage(int32 Damage, AActor* DamageCauser);
+	void ApplyDamageInternal(int32 Damage, AActor* DamageCauser, bool bAllowInterception);
 	void RemoveCC();
 	void HPChanged(int32 Damage);
 

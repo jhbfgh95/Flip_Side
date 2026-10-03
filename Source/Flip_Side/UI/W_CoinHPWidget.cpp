@@ -106,6 +106,9 @@ void UW_CoinHPWidget::ChangeShield(int32 ShieldModifier)
 void UW_CoinHPWidget::RefreshTextAndMaterialSettings()
 {
 	const float Ratio = FMath::Clamp(static_cast<float>(CurrentHp) / MaxHp, 0.0f, 1.0f);
+	if (IsValid(HPTextContainer))
+		HPTextContainer->SetVisibility(CurrentShield > 0
+			? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
 	if (IsValid(CoinCurrentHPText))
 	{
 		CoinCurrentHPText->SetText(FText::AsNumber(CurrentHp));

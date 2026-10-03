@@ -1,6 +1,10 @@
 #include "Actors/Component_Status.h"
 #include "Actors/DebuffComponent.h"
+#include "Actors/CoinActor.h"
+#include "Actors/Boss/BossActor.h"
 #include "DataTypes/WeaponDataTypes.h"
+#include "Engine/World.h"
+#include "Subsystem/BattleLevel/GridManagerSubsystem.h"
 
 namespace
 {
@@ -692,10 +696,62 @@ void UComponent_Status::ApplyFaceWeaponStat(EFaceState Face)
 
 void UComponent_Status::ApplyDamage(int32 Damage, AActor* DamageCauser)
 {
+	ApplyDamageInternal(Damage, DamageCauser, true);
+}
+
+bool UComponent_Status::TryInterceptBossDamage(int32 Damage, AActor* DamageCauser)
+{
+	// 독·늪을 포함한 보스 출처 피해만 보호하며 아이템, 코인 능력, 자해에는 관여하지 않습니다.
+	if (!IsValid(Cast<ABossActor>(DamageCauser))) return false;
+	ACoinActor* ProtectedCoin = Cast<ACoinActor>(GetOwner());
+	UWorld* World = GetWorld();
+	UGridManagerSubsystem* GridManager = IsValid(World) ? World->GetSubsystem<UGridManagerSubsystem>() : nullptr;
+	if (!IsValid(ProtectedCoin) || !ProtectedCoin->GetCoinOnBattle() || !IsValid(GridManager)) return false;
+	const FGridPoint ProtectedCell = ProtectedCoin->GetDecidedGrid();
+	TArray<FCoinOnGridInfo> Coins;
+	GridManager->CollectOccupiedCoins(Coins);
+
+	UComponent_Status* ProtectorStatus = nullptr;
+	int32 NearestDistance = MAX_int32;
+	int32 ProtectorCoinID = MAX_int32;
+	int32 Reduction = 0;
+	for (const FCoinOnGridInfo& Info : Coins)
+	{
+		ACoinActor* Coin = Info.CoinActor;
+		if (!IsValid(Coin) || Coin == ProtectedCoin || !Coin->GetCoinOnBattle() ||
+			!IsValid(Coin->StatComponent) || Coin->StatComponent->IsDead()) continue;
+		const int32 Distance = FMath::Abs(Info.GridXY.GridX - ProtectedCell.GridX) +
+			FMath::Abs(Info.GridXY.GridY - ProtectedCell.GridY);
+		if (Distance > NearestDistance || (Distance == NearestDistance && Info.CoinID >= ProtectorCoinID)) continue;
+
+		for (const FStatusEffectInstance& Effect : Coin->StatComponent->ActiveStatusEffects)
+		{
+			if (Effect.ReactiveBehavior != EStatusReactiveBehavior::InterceptBossDamage) continue;
+			TArray<FGridPoint> ProtectionCells;
+			GridManager->BuildAbilityAreaCellsFromOrigin(Info.GridXY, Effect.ProtectionAreaSpec, ProtectionCells);
+			if (!ProtectionCells.Contains(ProtectedCell)) continue;
+			ProtectorStatus = Coin->StatComponent;
+			NearestDistance = Distance;
+			ProtectorCoinID = Info.CoinID;
+			Reduction = FMath::Max(0, Effect.ReactiveMagnitude);
+			break;
+		}
+	}
+
+	if (!IsValid(ProtectorStatus)) return false;
+	// 원 대상의 회피·피해 감소·보호막을 소비하지 않고 보호 코인에게만 처리합니다.
+	// 전달 피해는 다시 대체하지 않아 창의 적끼리 연쇄·순환 보호가 일어나지 않습니다.
+	ProtectorStatus->ApplyDamageInternal(FMath::Max(0, Damage - Reduction), DamageCauser, false);
+	return true;
+}
+
+void UComponent_Status::ApplyDamageInternal(int32 Damage, AActor* DamageCauser, bool bAllowInterception)
+{
 	if (bIsDead || Damage <= 0)
 	{
 		return;
 	}
+	if (bAllowInterception && TryInterceptBossDamage(Damage, DamageCauser)) return;
 
 	int32 FinalDamage = Damage;
 	bool bIsIgnored = false;

@@ -9,6 +9,7 @@
 #include "DataTypes/BossDataTypes.h"
 #include "DataTypes/CoinDataTypes.h"
 #include "DataTypes/WeaponDataTypes.h"
+#include "Engine/World.h"
 #include "Objects/Weapon_Action.h"
 #include "Subsystem/AttackLogicLibrary.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
@@ -284,6 +285,68 @@ bool UAbilityLogicLibrary::ArmorSuitAfterAttack(UWeapon_Action* WeaponContext)
 		? bCasterApplied
 		: AddGuard(TargetStatus);
 	return bCasterApplied || bTargetApplied;
+}
+
+bool UAbilityLogicLibrary::TryGetSpearGuardDestination(
+	const UWeapon_Action* WeaponContext, const ACoinActor* TargetCoin, FGridPoint& OutDestination)
+{
+	OutDestination = FGridPoint{ -1, -1 };
+	ACoinActor* Caster = IsValid(WeaponContext) ? WeaponContext->GetCasterCoin() : nullptr;
+	if (!IsValid(Caster) || !IsValid(Caster->StatComponent) || Caster->StatComponent->IsDead() ||
+		!IsValid(TargetCoin) || TargetCoin == Caster || !TargetCoin->GetCoinOnBattle() ||
+		!IsValid(TargetCoin->StatComponent) || TargetCoin->StatComponent->IsDead()) return false;
+
+	UWorld* World = Caster->GetWorld();
+	UGridManagerSubsystem* GridManager = IsValid(World) ? World->GetSubsystem<UGridManagerSubsystem>() : nullptr;
+	if (!IsValid(GridManager) || TargetCoin->GetWorld() != World ||
+		GridManager->IsBossAreaCell(TargetCoin->GetDecidedGrid())) return false;
+	AGridActor* TargetGrid = GridManager->GetGridActor(TargetCoin->GetDecidedGrid());
+	if (!IsValid(TargetGrid) || TargetGrid->GetCurrentOccupied() != TargetCoin) return false;
+
+	// 보드의 전방은 +Y, 후방은 -Y입니다.
+	const FGridPoint TargetCell = TargetCoin->GetDecidedGrid();
+	OutDestination = FGridPoint{ TargetCell.GridX, TargetCell.GridY + 1 };
+	return GridManager->CanCoinOccupyCell(OutDestination);
+}
+
+bool UAbilityLogicLibrary::SpearGuardAfterAttack(UWeapon_Action* WeaponContext)
+{
+	if (!IsValid(WeaponContext) || WeaponContext->GetInRangeCoins().IsEmpty()) return false;
+	ACoinActor* Caster = WeaponContext->GetCasterCoin();
+	ACoinActor* TargetCoin = WeaponContext->GetInRangeCoins()[0];
+	AGridActor* SelectedGrid = WeaponContext->GetTargetGrid();
+	FGridPoint Destination;
+	if (!IsValid(SelectedGrid) || !TryGetSpearGuardDestination(WeaponContext, TargetCoin, Destination) ||
+		!(SelectedGrid->GetGridPoint() == Destination) ||
+		!WeaponContext->GetSnapshot().bHasAbilityArea) return false;
+
+	UWorld* World = Caster->GetWorld();
+	UGridManagerSubsystem* GridManager = IsValid(World) ? World->GetSubsystem<UGridManagerSubsystem>() : nullptr;
+	if (!IsValid(GridManager)) return false;
+	const FGridPoint PreviousCell = Caster->GetDecidedGrid();
+	AGridActor* PreviousGrid = GridManager->GetGridActor(PreviousCell);
+	AGridActor* DestinationGrid = GridManager->GetGridActor(Destination);
+	if (!IsValid(PreviousGrid) || PreviousGrid->GetCurrentOccupied() != Caster ||
+		!IsValid(DestinationGrid) || !GridManager->TryOccupyCoinCell(Destination, Caster)) return false;
+
+	GridManager->ReleaseCoinCell(PreviousCell, Caster);
+	const FVector2D WorldXY = DestinationGrid->GetGridWorldXY();
+	Caster->SetGridPoint(Destination);
+	Caster->SetActorLocation(FVector(WorldXY.X, WorldXY.Y, Caster->GetActorLocation().Z));
+
+	TArray<FGridPoint> ProtectionCells;
+	GridManager->BuildAbilityAreaCellsFromOrigin(
+		Destination, WeaponContext->GetSnapshot().AbilityAreaSpec, ProtectionCells);
+	WeaponContext->SetAbilityCells(ProtectionCells);
+
+	// 추가 행동으로 재사용해도 같은 코인의 보호 범위와 감소량은 최신 하나로 갱신합니다.
+	Caster->StatComponent->RemoveStatusEffectsByTypeAndSource(
+		WeaponBuffTypeID::SpearGuard, EStatusEffectSourceType::Coin, WeaponContext->GetSnapshot().WeaponID);
+	FStatusEffectInstance Guard = MakeWeaponStatus(WeaponContext, WeaponBuffTypeID::SpearGuard);
+	Guard.ReactiveBehavior = EStatusReactiveBehavior::InterceptBossDamage;
+	Guard.ReactiveMagnitude = FMath::Max(0, WeaponContext->GetFinalBehaviorPoint());
+	Guard.ProtectionAreaSpec = WeaponContext->GetSnapshot().AbilityAreaSpec;
+	return Caster->StatComponent->AddStatusEffect(Guard);
 }
 
 bool UAbilityLogicLibrary::GauntletOnHit(UWeapon_Action* WeaponContext)

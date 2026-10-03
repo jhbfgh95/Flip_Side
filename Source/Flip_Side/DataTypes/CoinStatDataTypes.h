@@ -53,7 +53,8 @@ enum class EStatusReactiveBehavior : uint8
 	TemporaryShield,
 	LifeSteal,
 	ShieldDamageMultiplier,
-	LifeStealFromTotalDamage
+	LifeStealFromTotalDamage,
+	InterceptBossDamage
 };
 
 /** 호버 UI와 행동 후보 스냅숏이 어느 값의 변경으로 무효화됐는지 알려줍니다. */
@@ -219,6 +220,10 @@ struct FStatusEffectInstance
 	// 확률, 피해 감소량 또는 최초 보호막 부여량처럼 반응 로직의 고정 수치입니다.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 ReactiveMagnitude = 0;
+
+	// 창의 적이 사용한 순간의 보호 범위를 저장하고, 피해 시 현재 코인 위치를 기준으로 해석합니다.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FAttackAreaSpec ProtectionAreaSpec;
 
 	// 남은 임시 보호막처럼 실행 도중 감소하는 런타임 수치입니다.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

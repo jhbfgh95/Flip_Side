@@ -11,6 +11,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Objects/Weapon_Action.h"
+#include "Subsystem/AbilityLogicLibrary.h"
 #include "Subsystem/BattleLevel/ActionLogicRegistryGISubsystem.h"
 #include "Subsystem/BattleLevel/BattleLevelActingWSubsystem.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
@@ -96,6 +97,7 @@ void UCoinActionManagementWSubsystem::ResetActionState(bool bResetSelectedAction
 
 	ClearBossOutline();
 	ClearValidAbilityTargets();
+	AbilityHoveredCoin.Reset();
 	bActionSequenceActive = false;
 	bPendingFailedVFX = false;
 	PipelineStage = ECoinWeaponPipelineStage::None;
@@ -202,6 +204,15 @@ UBattleLevelActingWSubsystem* UCoinActionManagementWSubsystem::GetActingManager(
 
 void UCoinActionManagementWSubsystem::SetSelectedWeapon(ACoinActor* HoveredCoin)
 {
+	if (bActionSequenceActive)
+	{
+		// 창의 적의 대상 호버는 행동 컨텍스트를 교체하지 않고 이동 후 범위만 투영합니다.
+		if (IsValid(SelectedAction) && SelectedAction->GetSnapshot().WeaponID == 10)
+		{
+			AbilityHoveredCoin = HoveredCoin;
+		}
+		return;
+	}
     if (IsValid(GetWorld()))
         if (UStageCardWSubsystem* Cards = GetWorld()->GetSubsystem<UStageCardWSubsystem>()) Cards->ExecuteCardsEffect();
 	if (!bIsCorrectPhase || bActionSequenceActive || !IsValid(HoveredCoin) ||
@@ -269,7 +280,7 @@ void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedC
 	const FWeaponLogicSet* LogicSet = GetCurrentLogicSet();
 	if (!LogicSet || !LogicSet->AttackLogic)
 	{
-		// WeaponID 10 창의 적처럼 후구현 대상으로 남긴 무기는 행동을 소비하지 않습니다.
+		// 등록되지 않은 무기는 행동을 소비하지 않습니다.
 		PlayFailedVFX();
 		return;
 	}
@@ -279,6 +290,7 @@ void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedC
 
 void UCoinActionManagementWSubsystem::HandleCoinUnHovered()
 {
+	AbilityHoveredCoin.Reset();
 	if (!bIsCorrectPhase || bActionSequenceActive)
 	{
 		return;
@@ -573,6 +585,10 @@ bool UCoinActionManagementWSubsystem::BeginManualAbilitySelection(
 	BuildValidAbilityTargets(AbilityLogic.TargetRule);
 	if (ValidTargetCoins.IsEmpty() && ValidTargetGrids.IsEmpty() && ValidTargetOthers.IsEmpty())
 	{
+		if (IsValid(SelectedAction) && SelectedAction->GetSnapshot().WeaponID == 10)
+		{
+			PlayFailedVFX();
+		}
 		ClearValidAbilityTargets();
 		return false;
 	}
@@ -632,6 +648,24 @@ void UCoinActionManagementWSubsystem::BuildValidAbilityTargets(const FAbilityTar
 
 	TArray<FGridPoint> AbilityCells;
 	FObjectOnGridInfo Objects;
+	if (SelectedAction->GetSnapshot().WeaponID == 10 && Rule.HasTarget(EAbilityTargetFlags::EmptyGrid))
+	{
+		// 코인 필드 전체에서 다른 코인 바로 전방의 빈 그리드를 선택 후보로 만듭니다.
+		TArray<FCoinOnGridInfo> FieldCoins;
+		GridManager->CollectOccupiedCoins(FieldCoins);
+		for (const FCoinOnGridInfo& Info : FieldCoins)
+		{
+			FGridPoint Destination;
+			if (IsValidCoinTarget(Info.CoinActor, Rule) &&
+				UAbilityLogicLibrary::TryGetSpearGuardDestination(SelectedAction, Info.CoinActor, Destination))
+			{
+				AGridActor* DestinationGrid = GridManager->GetGridActor(Destination);
+				if (IsValid(DestinationGrid)) ValidTargetGrids.AddUnique(DestinationGrid);
+			}
+		}
+		SelectedAction->SetAbilityCells(AbilityCells);
+		return;
+	}
 	if (SelectedAction->GetSnapshot().bHasAbilityArea)
 	{
 		GridManager->CollectAbilityRangeTargets(
@@ -785,7 +819,7 @@ bool UCoinActionManagementWSubsystem::TryExecuteOtherAction(ABase_OtherActor* Ta
 void UCoinActionManagementWSubsystem::ExecuteGridAction(AGridActor* TargetGrid)
 {
 	if (CurrentInputState != EActionInputState::WaitingForGridClick ||
-		!ValidTargetGrids.Contains(TargetGrid) || !IsValid(SelectedAction))
+		!IsValid(TargetGrid) || !ValidTargetGrids.Contains(TargetGrid) || !IsValid(SelectedAction))
 	{
 		if (CurrentInputState == EActionInputState::WaitingForGridClick)
 		{
@@ -794,8 +828,23 @@ void UCoinActionManagementWSubsystem::ExecuteGridAction(AGridActor* TargetGrid)
 		return;
 	}
 
-	SelectedAction->SetCurrentAbilityTargets(
-		TArray<ACoinActor*>(), TArray<ABase_OtherActor*>(), TargetGrid);
+	TArray<ACoinActor*> Coins;
+	if (SelectedAction->GetSnapshot().WeaponID == 10)
+	{
+		const FGridPoint Destination = TargetGrid->GetGridPoint();
+		AGridActor* RearGrid = IsValid(GridManager)
+			? GridManager->GetGridActor(FGridPoint{ Destination.GridX, Destination.GridY - 1 }) : nullptr;
+		ACoinActor* TargetCoin = IsValid(RearGrid) ? Cast<ACoinActor>(RearGrid->GetCurrentOccupied()) : nullptr;
+		FGridPoint CheckedDestination;
+		if (!UAbilityLogicLibrary::TryGetSpearGuardDestination(SelectedAction, TargetCoin, CheckedDestination) ||
+			!(CheckedDestination == Destination))
+		{
+			PlayFailedVFX();
+			return;
+		}
+		Coins.Add(TargetCoin);
+	}
+	SelectedAction->SetCurrentAbilityTargets(Coins, TArray<ABase_OtherActor*>(), TargetGrid);
 	SelectedAction->MarkAbilityActorSelected(TargetGrid);
 	CompleteManualAbilitySelection();
 }
@@ -812,13 +861,51 @@ void UCoinActionManagementWSubsystem::TryCancelCurrentAction()
 	FinishCoinActionSequence();
 }
 
-bool UCoinActionManagementWSubsystem::GetActiveAbilityPreviewCells(TArray<FGridPoint>& OutCells) const
+bool UCoinActionManagementWSubsystem::GetActiveAbilityPreviewCells(TArray<FGridPoint>& OutCells, AGridActor* HoveredGrid) const
 {
 	OutCells.Reset();
 	if (!bActionSequenceActive || !IsValid(SelectedAction) ||
 		!IsValid(SelectedAction->GetCasterCoin()) ||
 		PipelineStage == ECoinWeaponPipelineStage::Finishing ||
 		!SelectedAction->GetSnapshot().bHasAbilityArea) return false;
+	if (SelectedAction->GetSnapshot().WeaponID == 10 &&
+		CurrentInputState == EActionInputState::WaitingForGridClick)
+	{
+		ACoinActor* HoveredCoin = AbilityHoveredCoin.Get();
+		FGridPoint Destination;
+		bool bHasHoveredDestination = false;
+		if (IsValid(GridManager) && IsValid(HoveredGrid) && ValidTargetGrids.Contains(HoveredGrid))
+		{
+			Destination = HoveredGrid->GetGridPoint();
+			AGridActor* RearGrid = GridManager->GetGridActor(FGridPoint{ Destination.GridX, Destination.GridY - 1 });
+			HoveredCoin = IsValid(RearGrid) ? Cast<ACoinActor>(RearGrid->GetCurrentOccupied()) : nullptr;
+			FGridPoint CheckedDestination;
+			bHasHoveredDestination = UAbilityLogicLibrary::TryGetSpearGuardDestination(SelectedAction, HoveredCoin, CheckedDestination) &&
+				CheckedDestination == Destination;
+		}
+		else if (IsValid(GridManager) && UAbilityLogicLibrary::TryGetSpearGuardDestination(SelectedAction, HoveredCoin, Destination))
+		{
+			bHasHoveredDestination = ValidTargetGrids.Contains(GridManager->GetGridActor(Destination));
+		}
+		if (bHasHoveredDestination)
+		{
+			GridManager->BuildAbilityAreaCellsFromOrigin(
+				Destination, SelectedAction->GetSnapshot().AbilityAreaSpec, OutCells);
+			OutCells.AddUnique(Destination);
+		}
+		else if (IsValid(GridManager))
+		{
+			// 호버 전에도 이동 가능한 전방 칸을 보여 대상 선택 대기 상태를 드러냅니다.
+			for (AGridActor* Candidate : ValidTargetGrids)
+			{
+				if (IsValid(Candidate) && GridManager->CanCoinOccupyCell(Candidate->GetGridPoint()))
+				{
+					OutCells.AddUnique(Candidate->GetGridPoint());
+				}
+			}
+		}
+		return true;
+	}
 	// 상승부터 행동 종료까지 호버와 독립적으로 확정 스냅숏의 능력 범위를 유지합니다.
 	OutCells = SelectedAction->GetAbilityCells();
 	return true;
@@ -843,6 +930,7 @@ void UCoinActionManagementWSubsystem::FinishCoinActionSequence()
 	PipelineStage = ECoinWeaponPipelineStage::Finishing;
 	CurrentInputState = EActionInputState::ExecutingAction;
 	ClearValidAbilityTargets();
+	AbilityHoveredCoin.Reset();
 	if (IsValid(GridManager))
 	{
 		GridManager->SetGridClickFlag(EGridClickFlag::None);
@@ -943,7 +1031,7 @@ void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
 	case EWeaponVFXTarget::RangeCells:
 		if (IsValid(GridManager))
 		{
-			for (const FGridPoint& Cell : SelectedAction->GetAttackCells())
+			for (const FGridPoint& Cell : SelectedAction->GetAbilityCells())
 			{
 				if (AGridActor* Grid = GridManager->GetGridActor(Cell); IsValid(Grid))
 				{
