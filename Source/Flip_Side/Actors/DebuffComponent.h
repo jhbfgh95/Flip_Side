@@ -17,6 +17,16 @@ namespace DebuffTypeID
 	constexpr int32 Poison = -1003;
 }
 
+// 낙인(BuffTypeID = Poison)은 덮어쓰지 않고 맞을 때마다 개별 인스턴스로 쌓입니다.
+// RuntimeValue에는 낙인이 찍힌 턴(TurnCount)을 저장하며, 지난 턴 수는 현재 턴에서 뺀 값입니다.
+namespace BrandDebuff
+{
+	inline int32 ElapsedTurns(const FStatusEffectInstance& Effect, int32 CurrentTurn)
+	{
+		return FMath::Max(0, CurrentTurn - Effect.RuntimeValue);
+	}
+}
+
 /** 코인/보스 공통 디버프 저장소. 독 피해 타이머, DB, UI, 기본 스탯은 소유하지 않습니다. */
 UCLASS(ClassGroup=(Status), meta=(BlueprintSpawnableComponent))
 class FLIP_SIDE_API UDebuffComponent : public UActorComponent

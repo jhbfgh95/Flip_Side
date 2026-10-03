@@ -105,20 +105,30 @@ void UBattleBuffIconWidget::SetBuffData(const FBattleStatusEffectViewData& InDat
 	}
 
 	const int32 StackCount = FMath::Max(1, InData.StackCount);
+	// 낙인은 "그림 x N"(N=지난 턴)이라 1이어도 항상 표시합니다. 다른 상태는 2개 이상 중첩일 때만 표시합니다.
+	const bool bShowStack = InData.bIsElapsedCounter || StackCount > 1;
+	// 낙인의 "x N"만 키우고, 위젯을 재사용하는 다른 상태는 기본 크기로 되돌립니다.
+	const float StackScale = InData.bIsElapsedCounter ? ElapsedCounterScale : 1.f;
+	if (UWidget* StackWidget = IsValid(StackCountContainer) ? StackCountContainer.Get() : Cast<UWidget>(StackCountText.Get()))
+	{
+		// 기준점을 고정해 커질 때 텍스트가 칸 밖(아래)으로 밀려 잘리지 않게 합니다.
+		StackWidget->SetRenderTransformPivot(InData.bIsElapsedCounter ? ElapsedCounterPivot : FVector2D(0.5, 0.5));
+		StackWidget->SetRenderScale(FVector2D(StackScale, StackScale));
+	}
 	if (IsValid(StackCountText))
 	{
 		StackCountText->SetText(FText::AsNumber(StackCount));
-		StackCountText->SetVisibility(StackCount > 1 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		StackCountText->SetVisibility(bShowStack ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 	if (IsValid(StackCountContainer))
 	{
 		StackCountContainer->SetVisibility(
-			StackCount > 1 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+			bShowStack ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 	else if (IsValid(StackCountText))
 	{
 		StackCountText->SetVisibility(
-			StackCount > 1 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+			bShowStack ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 
 	SetVisibility(ESlateVisibility::HitTestInvisible);
