@@ -1486,10 +1486,28 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
     UDataManagerSubsystem* DataManager = GetGameInstance()
         ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>()
         : nullptr;
+    const UBattleManagerWSubsystem* BattleManagerForTurn = GetWorld() ? GetWorld()->GetSubsystem<UBattleManagerWSubsystem>() : nullptr;
+    const int32 CurrentTurn = IsValid(BattleManagerForTurn) ? BattleManagerForTurn->GetTurnCount() : 0;
+    // 낙인 설명에 "몇 개의 낙인, 합계 몇 턴"을 보여주기 위해 미리 집계합니다.
+    int32 BrandCount = 0;
+    int32 BrandTotalTurns = 0;
+    for (const FStatusEffectInstance& Effect : StatusEffects)
+    {
+        if (Effect.Polarity == EStatusPolarity::Debuff && Effect.BuffTypeID == DebuffTypeID::Poison)
+        {
+            ++BrandCount;
+            BrandTotalTurns += FMath::Max(1, BrandDebuff::ElapsedTurns(Effect, CurrentTurn));
+        }
+    }
     for (const FStatusEffectInstance& StatusEffect : StatusEffects)
     {
-        FBattleStatusEffectViewData* ExistingView = OutStatusEffects.FindByPredicate(
-            [&StatusEffect](const FBattleStatusEffectViewData& ViewData)
+        // 낙인(독)은 남은 턴이 아니라 "몇 턴째인지(찍힌 뒤 지난 턴 수)"를 표시합니다.
+        const bool bIsBrand = StatusEffect.Polarity == EStatusPolarity::Debuff && StatusEffect.BuffTypeID == DebuffTypeID::Poison;
+        // 낙인은 "그림 x N"으로 표시합니다. N은 다음 보스 페이즈에 곱해질 지난 턴 수이며 찍힌 직후에도 x1부터 시작합니다.
+        const int32 DisplayTurns = bIsBrand ? FMath::Max(1, BrandDebuff::ElapsedTurns(StatusEffect, CurrentTurn)) : StatusEffect.RemainingTurns;
+        // 낙인은 재타격마다 그림이 따로 추가되므로 같은 값이어도 하나로 합치지 않습니다.
+        FBattleStatusEffectViewData* ExistingView = bIsBrand ? nullptr : OutStatusEffects.FindByPredicate(
+            [&StatusEffect, DisplayTurns](const FBattleStatusEffectViewData& ViewData)
             {
                 return ViewData.BuffTypeID == StatusEffect.BuffTypeID &&
                     ViewData.SourceType == StatusEffect.SourceType &&
@@ -1497,7 +1515,7 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
                     ViewData.SourcePatternIndex == StatusEffect.SourcePatternIndex &&
                     ViewData.Polarity == StatusEffect.Polarity &&
                     ViewData.DurationType == StatusEffect.DurationType &&
-                    ViewData.RemainingTurns == StatusEffect.RemainingTurns &&
+                    ViewData.RemainingTurns == DisplayTurns &&
                     ViewData.CCType == StatusEffect.CCType;
             });
         if (ExistingView)
@@ -1549,16 +1567,21 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
         if (StatusEffect.Polarity == EStatusPolarity::Debuff && StatusEffect.BuffTypeID == DebuffTypeID::Poison)
         {
             NewViewData.Icon = SourceIcon;
-            NewViewData.DisplayName = NSLOCTEXT("Debuff", "Poison", "독");
-            NewViewData.Description = NSLOCTEXT("Debuff", "PoisonDescription", "플레이어 턴 동안 5초마다 독 피해를 받습니다. 다시 걸리면 지속 턴이 갱신됩니다.");
+            NewViewData.DisplayName = NSLOCTEXT("Debuff", "Brand", "낙인");
+            NewViewData.Description = FText::Format(
+                NSLOCTEXT("Debuff", "BrandDescriptionFmt",
+                    "x{0}: 찍힌 뒤 지난 턴입니다. 이 코인에 낙인 {1}개(합계 x{2})가 있으며, 합계만큼 보스 페이즈마다 피해를 받습니다. 다시 맞으면 새 낙인이 x1부터 따로 쌓이고, 정화 물약으로 해제할 수 있습니다."),
+                FText::AsNumber(DisplayTurns), FText::AsNumber(BrandCount), FText::AsNumber(BrandTotalTurns));
+            NewViewData.bIsElapsedCounter = true;
+            NewViewData.StackCount = DisplayTurns; // 그림 옆 "x N" 칸에 지난 턴 수를 표시
         }
         else if (bHasDebuffDefinition)
         {
             NewViewData.DisplayName = DebuffDefinition.DisplayName;
             NewViewData.Description = DebuffDefinition.Description;
         }
-        NewViewData.StackCount = 1;
-        NewViewData.RemainingTurns = StatusEffect.RemainingTurns;
+        if (!bIsBrand) NewViewData.StackCount = 1;
+        NewViewData.RemainingTurns = bIsBrand ? 0 : DisplayTurns;
         NewViewData.DurationType = StatusEffect.DurationType;
         NewViewData.CCType = StatusEffect.CCType;
     }

@@ -45,6 +45,14 @@ protected:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> StackCountText;
 
+	// 낙인("그림 x N")처럼 지난 턴을 보여주는 상태에서만 "x N" 표시를 이 배율로 키웁니다. 1이면 기본 크기입니다.
+	UPROPERTY(EditDefaultsOnly, Category = "Battle Buff Icon|Text", meta = (ClampMin = "0.5", ClampMax = "3.0"))
+	float ElapsedCounterScale = 1.5f;
+
+	// 배율을 적용할 때의 기준점(0~1)입니다. (1,1)=오른쪽 아래를 고정하고 왼쪽/위로 커집니다. 가운데(0.5,0.5)면 아래로 밀려 잘릴 수 있습니다.
+	UPROPERTY(EditDefaultsOnly, Category = "Battle Buff Icon|Text")
+	FVector2D ElapsedCounterPivot = FVector2D(1.0, 1.0);
+
 	UPROPERTY(EditDefaultsOnly, Category = "Battle Buff Icon|Coin")
 	TObjectPtr<class UTexture2D> CoinBorderTexture;
 

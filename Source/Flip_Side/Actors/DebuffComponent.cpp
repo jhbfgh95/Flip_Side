@@ -74,6 +74,8 @@ bool UDebuffComponent::ApplyDebuff(FStatusEffectInstance Effect)
 	const ECCTypes PreviousCC = GetCCType();
 	const int32 Index = Effects.IndexOfByPredicate([&](const FStatusEffectInstance& Existing)
 	{
+		// 낙인은 재적용 시 갱신하지 않고 항상 새 인스턴스로 추가합니다.
+		if (Effect.BuffTypeID == DebuffTypeID::Poison) return false;
 		return Effect.CCType != ECCTypes::None ? Existing.CCType != ECCTypes::None : Existing.BuffTypeID == Effect.BuffTypeID;
 	});
 	if (Index != INDEX_NONE)
@@ -167,10 +169,14 @@ void UDebuffComponent::Restore(const TArray<FStatusEffectInstance>& SavedEffects
 	{
 		if (!IsSupportedEffect(E) || NextSerial == MIN_int32) continue;
 		// 잘못된 저장 데이터도 동일 타입/CC를 중복 생성하지 않으며 마지막 항목을 사용합니다.
-		const TArray<FStatusEffectInstance> Existing = Effects;
-		for (const FStatusEffectInstance& Old : Existing)
-			if ((E.CCType != ECCTypes::None && Old.CCType != ECCTypes::None) || Old.BuffTypeID == E.BuffTypeID)
-				RemoveBySerial(Old.BuffInstanceSerial);
+		// 낙인은 여러 개가 공존하므로 중복 제거 대상이 아닙니다.
+		if (E.BuffTypeID != DebuffTypeID::Poison)
+		{
+			const TArray<FStatusEffectInstance> Existing = Effects;
+			for (const FStatusEffectInstance& Old : Existing)
+				if ((E.CCType != ECCTypes::None && Old.CCType != ECCTypes::None) || Old.BuffTypeID == E.BuffTypeID)
+					RemoveBySerial(Old.BuffInstanceSerial);
+		}
 		// 복원은 재적용이 아니므로 갱신/그로기 전환 없이 기존 수명과 출처를 보존합니다.
 		E.BuffInstanceSerial = NextSerial--;
 		E.DurationType = EBuffDurationType::PersistentInBattle;

@@ -337,7 +337,7 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 			StatText = FText::Format(NSLOCTEXT("BossInfo", "SwampFmt", "{0}턴 지속  공격력 -{1}"), FText::AsNumber(PatternData.GimmickParamA), FText::AsNumber(PatternData.GimmickParamB));
 			break;
 		case EBossGimmickType::Poison:
-			StatText = FText::Format(NSLOCTEXT("BossInfo", "PoisonFmt", "공격력  {0}  독 데미지  {1}/5초"), FText::AsNumber(FinalDamage), FText::AsNumber(FinalGimmickParamA));
+			StatText = FText::Format(NSLOCTEXT("BossInfo", "BrandFmt", "공격력  {0}  낙인 피해  {1} x 지난 턴"), FText::AsNumber(FinalDamage), FText::AsNumber(FinalGimmickParamA));
 			break;
 		default:
 			if (FinalDamage > 0)

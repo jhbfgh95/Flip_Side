@@ -8,7 +8,7 @@
 #include "CoinDataTypes.h"
 #include "FlipSide_Enum.h"
 #include "Engine/World.h"
-#include "TimerManager.h"
+#include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
 
 void UBossGimmick_Poison::OnPatternExecute(
 	ABossActor* Boss,
@@ -44,8 +44,10 @@ void UBossGimmick_Poison::OnPatternExecute(
 	}
 
 
-	// boss_gimmick(id=2, "독") param_int_a = 독 지속 턴수
-	const int32 Duration = GimmickData.ParamIntA > 0 ? GimmickData.ParamIntA : 2;
+	// 낙인은 지속 턴 제한 없이 끝까지 유지됩니다(정화 물약으로만 해제). 턴 차감으로 사라지지 않도록 상한값을 둡니다.
+	constexpr int32 BrandDuration = 999;
+	const UBattleManagerWSubsystem* Battle = World->GetSubsystem<UBattleManagerWSubsystem>();
+	const int32 AppliedTurn = IsValid(Battle) ? Battle->GetTurnCount() : 0;
 	const FBossHUDData PatternData = Boss->GetBossHUDData();
 
 	for (ACoinActor* Coin : AllHitCoins)
@@ -53,59 +55,18 @@ void UBossGimmick_Poison::OnPatternExecute(
 		if (!IsValid(Coin)) continue;
 		UComponent_Status* StatusComp = Coin->FindComponentByClass<UComponent_Status>();
 		if (!IsValid(StatusComp)) continue;
-		FStatusEffectInstance Poison;
-		Poison.BuffTypeID = DebuffTypeID::Poison;
-		Poison.Polarity = EStatusPolarity::Debuff;
-		Poison.RemainingTurns = Duration;
-		Poison.SourceType = EStatusEffectSourceType::Boss;
-		Poison.SourceDataID = Boss->GetBossID();
-		Poison.SourcePatternIndex = PatternData.PatternDisplayIndex > 0 ? PatternData.PatternDisplayIndex - 1 : INDEX_NONE;
-		Poison.SourcePatternIcon = PatternData.PatternIcon;
-		// 공통 디버프 저장소에서 재적용 시 갱신하며, 코인 재생성 시에도 복원합니다.
-		StatusComp->AddStatusEffect(Poison);
+		FStatusEffectInstance Brand;
+		Brand.BuffTypeID = DebuffTypeID::Poison;
+		Brand.Polarity = EStatusPolarity::Debuff;
+		Brand.RemainingTurns = BrandDuration;
+		Brand.RuntimeValue = AppliedTurn; // 찍힌 턴. 지난 턴 수 = 현재 턴 - 찍힌 턴
+		Brand.SourceType = EStatusEffectSourceType::Boss;
+		Brand.SourceDataID = Boss->GetBossID();
+		Brand.SourcePatternIndex = PatternData.PatternDisplayIndex > 0 ? PatternData.PatternDisplayIndex - 1 : INDEX_NONE;
+		Brand.SourcePatternIcon = PatternData.PatternIcon;
+		// DebuffComponent가 낙인은 덮어쓰지 않고 개별 인스턴스로 추가하며, 코인 재생성 시에도 복원합니다.
+		StatusComp->AddStatusEffect(Brand);
 	}
-}
-
-void UBossGimmick_Poison::OnPlayerPhaseStart(ABossActor* Boss)
-{
-	if (!IsValid(Boss)) return;
-
-	UWorld* World = Boss->GetWorld();
-	if (!World) return;
-
-	const int32 PoisonDamage = GimmickData.ParamFloatA > 0.f ? static_cast<int32>(GimmickData.ParamFloatA) : 1;
-
-	const TWeakObjectPtr<ABossActor> WeakBoss = Boss;
-	const TWeakObjectPtr<UBossGimmick_Poison> WeakThis = this;
-	World->GetTimerManager().SetTimer(PoisonTimerHandle, [WeakThis, WeakBoss, PoisonDamage]()
-	{
-		ABossActor* ActiveBoss = WeakBoss.Get();
-		if (!WeakThis.IsValid() || !IsValid(ActiveBoss) || ActiveBoss->GetCurrentHP() <= 0) return;
-		UWorld* ActiveWorld = ActiveBoss->GetWorld();
-		UGridManagerSubsystem* ActiveGrid = IsValid(ActiveWorld) ? ActiveWorld->GetSubsystem<UGridManagerSubsystem>() : nullptr;
-		if (!IsValid(ActiveGrid)) return;
-		// 타이머를 만들 때 고정하지 않고 매 틱 조회하여 HP 감소 시 초기화를 즉시 반영합니다.
-		const int32 FinalDamage = ActiveBoss->GetDamageWithPillarBonus(PoisonDamage);
-		TArray<FCoinOnGridInfo> CurrentCoins;
-		ActiveGrid->CollectOccupiedCoins(CurrentCoins);
-		for (const FCoinOnGridInfo& Info : CurrentCoins)
-		{
-			if (!IsValid(Info.CoinActor)) continue;
-			UComponent_Status* StatusComp = Info.CoinActor->FindComponentByClass<UComponent_Status>();
-			if (!IsValid(StatusComp)) continue;
-			// 이전 턴 액터 참조 대신 현재 코인에 복원된 독 상태를 확인합니다.
-			for (const FStatusEffectInstance& Effect : StatusComp->GetStatusEffects())
-			{
-				if (Effect.BuffTypeID == DebuffTypeID::Poison && Effect.RemainingTurns > 0 &&
-					Effect.SourceType == EStatusEffectSourceType::Boss && Effect.SourceDataID == ActiveBoss->GetBossID())
-				{
-					StatusComp->ApplyDamage(FinalDamage, ActiveBoss);
-					break;
-				}
-			}
-		}
-	},
-	5.f, true);
 }
 
 void UBossGimmick_Poison::OnPlayerPhaseEnd(ABossActor* Boss)
@@ -115,7 +76,38 @@ void UBossGimmick_Poison::OnPlayerPhaseEnd(ABossActor* Boss)
 	UWorld* World = Boss->GetWorld();
 	if (!World) return;
 
-	World->GetTimerManager().ClearTimer(PoisonTimerHandle);
+	UGridManagerSubsystem* GridMgr = World->GetSubsystem<UGridManagerSubsystem>();
+	const UBattleManagerWSubsystem* Battle = World->GetSubsystem<UBattleManagerWSubsystem>();
+	if (!IsValid(GridMgr) || !IsValid(Battle)) return;
 
-	// 지속 턴 감소는 코인 상태 저장 시 공통 디버프 저장소에서 한 번만 처리합니다.
+	// 보스 페이즈 진입 시점(새 패턴 실행 전)에 기존 낙인 피해를 줍니다.
+	const int32 CurrentTurn = Battle->GetTurnCount();
+	// 낙인 피해는 기둥 보너스를 더하지 않습니다. 보너스까지 턴 수에 곱해지면 피해가 의도보다 훨씬 커집니다.
+	const int32 BaseDamage = GimmickData.ParamFloatA > 0.f ? static_cast<int32>(GimmickData.ParamFloatA) : 1;
+
+	TArray<FCoinOnGridInfo> CurrentCoins;
+	GridMgr->CollectOccupiedCoins(CurrentCoins);
+	for (const FCoinOnGridInfo& Info : CurrentCoins)
+	{
+		if (!IsValid(Info.CoinActor)) continue;
+		UComponent_Status* StatusComp = Info.CoinActor->FindComponentByClass<UComponent_Status>();
+		if (!IsValid(StatusComp)) continue;
+
+		// 코인에 붙은 모든 낙인의 지난 턴 수를 합산합니다.
+		int64 TotalElapsedTurns = 0;
+		for (const FStatusEffectInstance& Effect : StatusComp->GetStatusEffects())
+		{
+			if (Effect.BuffTypeID == DebuffTypeID::Poison && Effect.RemainingTurns > 0 &&
+				Effect.SourceType == EStatusEffectSourceType::Boss && Effect.SourceDataID == Boss->GetBossID())
+			{
+				TotalElapsedTurns += BrandDebuff::ElapsedTurns(Effect, CurrentTurn);
+			}
+		}
+		if (TotalElapsedTurns <= 0) continue;
+
+		const int32 FinalDamage = static_cast<int32>(FMath::Clamp<int64>(static_cast<int64>(BaseDamage) * TotalElapsedTurns, 0, MAX_int32));
+		UE_LOG(LogTemp, Log, TEXT("[Brand] Turn=%d Coin=%s BaseDamage=%d TotalElapsedTurns=%lld FinalDamage=%d HP=%d"),
+			CurrentTurn, *GetNameSafe(Info.CoinActor), BaseDamage, TotalElapsedTurns, FinalDamage, StatusComp->GetHP());
+		StatusComp->ApplyDamage(FinalDamage, Boss);
+	}
 }

@@ -274,6 +274,10 @@ struct FBattleStatusEffectViewData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 StackCount = 1;
+
+    // true면 StackCount가 중첩 수가 아니라 "찍힌 뒤 지난 턴"(낙인)이며, 1이어도 "x N"을 표시합니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    bool bIsElapsedCounter = false;
 };
 
 /** Controller가 레디 영역의 BattleCoinInfoWidget으로 전달하는 양면 정보입니다. */
