@@ -12,6 +12,8 @@ void UW_ShopBossClearProgress::NativeConstruct()
 
 void UW_ShopBossClearProgress::SetBossProgress(const TArray<FBossDisplayData>& InBossDataList, int32 CurrentStage)
 {
+	UE_LOG(LogTemp, Warning, TEXT("초기설정"));
+
 	if (IsValid(BackgroundButton))
 	{
 		BackgroundButton->OnClicked.AddUniqueDynamic(this, &UW_ShopBossClearProgress::HandleBackgroundWidget);
@@ -40,7 +42,6 @@ void UW_ShopBossClearProgress::SetBossProgress(const TArray<FBossDisplayData>& I
 		IsCheckNextBoss = true;
 		return;
 	}
-
 	constexpr int32 MaxColumns = 4;
 	for (int i =0; i<InBossDataList.Num(); i++)
 	{
@@ -51,13 +52,13 @@ void UW_ShopBossClearProgress::SetBossProgress(const TArray<FBossDisplayData>& I
 		}
 
 		const bool bCleared = i+1 < CurrentStage;
-		ProgressSlot->InitializeProgressSlot(InBossDataList[i], bCleared);
 		ProgressSlot->OnOpenSlotAnimationFinished.AddUniqueDynamic(
 			this, &ThisClass::HandleOpenSlotAnimationFinished);
 		const int32 Row = i / MaxColumns;
 		const int32 Column = i % MaxColumns;
 		BossProgressBox->AddChildToUniformGrid(ProgressSlot, Row, Column);
 		ProgressSlots.Add(ProgressSlot);
+		ProgressSlot->InitializeProgressSlot(InBossDataList[i], bCleared);
 	}
 }
 
@@ -74,7 +75,7 @@ void UW_ShopBossClearProgress::HandleBackgroundWidget()
 	}
 	else
 	{
-		if(CurrentStageLevel == -1 || CurrentStageLevel<-1 ||ProgressSlots.Num()<=CurrentStageLevel)
+		if(CurrentStageLevel == -1 || CurrentStageLevel<-1 ||ProgressSlots.Num()<CurrentStageLevel)
 		{
 			return;
 		}

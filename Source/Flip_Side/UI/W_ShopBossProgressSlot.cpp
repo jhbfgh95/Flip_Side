@@ -31,7 +31,19 @@ void UW_ShopBossProgressSlot::InitializeProgressSlot(const FBossDisplayData& InB
 	// 이미 클리어한 보스는 등장 연출 없이 열린 모습으로 표시합니다.
 	if (bCleared && IsValid(OpenSlotAnimation))
 	{
-		SetAnimationCurrentTime(OpenSlotAnimation, OpenSlotAnimation->GetEndTime());
+		const float EndTime = OpenSlotAnimation->GetEndTime();
+		const float StartTime = FMath::Max(0.0f, EndTime - 0.01f);
+
+		PlayAnimationTimeRange(
+			OpenSlotAnimation,
+			StartTime,
+			EndTime,
+			1,
+			EUMGSequencePlayMode::Forward,
+			1.0f,
+			false);
+
+		return;
 	}
 
 	if (IsValid(OpenSlotAnimation))
