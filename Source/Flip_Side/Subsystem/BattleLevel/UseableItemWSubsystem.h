@@ -138,6 +138,9 @@ public:
 	bool IsItemUseAvailable() const;
 
 	bool TrySelectItem(int32 ItemID);
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnTutorialItemSelected, int32);
+	FOnTutorialItemSelected OnTutorialItemSelected;
+	FOnTutorialItemSelected OnTutorialItemUsed;
 
 	void CancelWantUseItem();
 

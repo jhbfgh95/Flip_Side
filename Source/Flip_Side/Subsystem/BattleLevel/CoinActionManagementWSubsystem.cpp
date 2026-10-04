@@ -18,6 +18,8 @@
 #include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 #include "Subsystem/FlipSideDevloperSettings.h"
 #include "TimerManager.h"
+#include "Subsystem/LevelGISubsystem.h"
+#include "Subsystem/BattleLevel/BattleTutorialWSubsystem.h"
 
 void UCoinActionManagementWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -301,6 +303,12 @@ void UCoinActionManagementWSubsystem::HandleCoinUnHovered()
 void UCoinActionManagementWSubsystem::StartCoinActionSequence()
 {
 	ACoinActor* CasterCoin = IsValid(SelectedAction) ? SelectedAction->GetCasterCoin() : nullptr;
+	const ULevelGISubsystem* Level = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+	if (IsValid(Level) && Level->IsBattleTutorialActive())
+	{
+		const auto* Tutorial = GetWorld()->GetSubsystem<UBattleTutorialWSubsystem>();
+		if (!IsValid(Tutorial) || !Tutorial->CanActWithTutorialCoin(CasterCoin)) return;
+	}
 	if (!bIsCorrectPhase || bActionSequenceActive || !IsValid(CasterCoin))
 	{
 		return;
@@ -311,6 +319,7 @@ void UCoinActionManagementWSubsystem::StartCoinActionSequence()
 	CasterCoin->SetCoinIsActed(true);
 	CasterCoin->SetCoinIsActing(true);
 	bActionSequenceActive = true;
+	OnTutorialCoinActionStarted.Broadcast(CasterCoin);
 	if (IsValid(CasterCoin->DebuffComponent))
 		CasterCoin->DebuffComponent->OnCCChanged.AddUniqueDynamic(this, &UCoinActionManagementWSubsystem::HandleActiveCoinCCChanged);
 	CurrentInputState = EActionInputState::ExecutingAction;
@@ -951,6 +960,8 @@ void UCoinActionManagementWSubsystem::FinishCoinActionSequence()
 
 void UCoinActionManagementWSubsystem::HandleCoinActionLowerFinished()
 {
+	ACoinActor* CompletedCoin = IsValid(SelectedAction) ? SelectedAction->GetCasterCoin() : nullptr;
+	const bool bCompleted = IsValid(CompletedCoin) && bIsCorrectPhase && CompletedCoin->bAllMainKeywordsConsumed;
 	if (IsValid(SelectedAction) && IsValid(SelectedAction->GetCasterCoin()))
 	{
 		ACoinActor* Coin = SelectedAction->GetCasterCoin();
@@ -962,6 +973,7 @@ void UCoinActionManagementWSubsystem::HandleCoinActionLowerFinished()
 		PlayFailedVFX();
 	}
 	ResetActionState();
+	if (bCompleted) OnTutorialCoinActionCompleted.Broadcast(CompletedCoin);
 }
 
 void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()

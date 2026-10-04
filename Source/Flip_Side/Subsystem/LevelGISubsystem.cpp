@@ -6,6 +6,7 @@
 
 void ULevelGISubsystem::MoveBattleLevel()
 {
+    bRunBattleTutorial = false;
     UGameInstance* GI = Cast<UGameInstance>(GetOuter());
     if (GI)
     {
@@ -23,6 +24,7 @@ void ULevelGISubsystem::MoveBattleLevel()
 
 void ULevelGISubsystem::MoveShopLevel()
 {
+    bRunBattleTutorial = false;
     BattleLevelIndex++;
     UGameInstance* GI = Cast<UGameInstance>(GetOuter());
     if (GI)
@@ -38,55 +40,32 @@ void ULevelGISubsystem::MoveShopLevel()
 
 void ULevelGISubsystem::MoveLoadedShopLevel()
 {
+    bRunBattleTutorial = false;
     UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_ShopLevel")));
 }
 
 void ULevelGISubsystem::MovingTutorialLevel(int32 tutorialflag)
 {
-    //상점으로 넘어가기 때문에 prepare해둔다.
+    if (tutorialflag < 0 || tutorialflag > 2 || !IsValid(GetGameInstance())) return;
     BattleLevelIndex = 0;
-    if(tutorialflag == 0)
+    bRunBattleTutorial = tutorialflag == 0;
+    UGameInstance* GI = GetGameInstance();
+    if (UBossSetupGISubsystem* BossSetup = GI->GetSubsystem<UBossSetupGISubsystem>(); IsValid(BossSetup))
     {
-        UGameInstance* GI = Cast<UGameInstance>(GetOuter());
-        if (GI)
-        {
-            UBossSetupGISubsystem* BossSetupGI = GI->GetSubsystem<UBossSetupGISubsystem>();
-            if (BossSetupGI)
-            {
-                BossSetupGI->PrepareBossForStage(BattleLevelIndex);
-            }
-        }
-        UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_Tutorial_TutoShop_Level")));
+        if (!BossSetup->PrepareBossForID(1)) return;
     }
-    else if(tutorialflag == 1)
-    {
-        UGameInstance* GI = Cast<UGameInstance>(GetOuter());
-        if (GI)
-        {
-            if (UCrossingLevelGISubsystem* Crossing = GI->GetSubsystem<UCrossingLevelGISubsystem>())
-                if (UMoneyGISubsystem* Money = GI->GetSubsystem<UMoneyGISubsystem>())
-                    Crossing->SetBattleEntryGold(Money->GetCurrentMoney());
-            UBossSetupGISubsystem* BossSetupGI = GI->GetSubsystem<UBossSetupGISubsystem>();
-            if (BossSetupGI)
-            {
-                BossSetupGI->PrepareBossForID(1);
-            }
-        }
-        UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_Stage_Battle_Tutorial")));
-    }
-    else if(tutorialflag == 2)
-    {
-        UGameInstance* GI = Cast<UGameInstance>(GetOuter());
-        if (GI)
-        {
-            UBossSetupGISubsystem* BossSetupGI = GI->GetSubsystem<UBossSetupGISubsystem>();
-            if (BossSetupGI)
-            {
-                BossSetupGI->PrepareBossForStage(BattleLevelIndex);
-            }
-        }
-        UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("L_Tutorial_Shop_Level")));
-    }
+    if (tutorialflag != 2)
+        if (UCrossingLevelGISubsystem* Crossing = GI->GetSubsystem<UCrossingLevelGISubsystem>(); IsValid(Crossing))
+            if (UMoneyGISubsystem* Money = GI->GetSubsystem<UMoneyGISubsystem>(); IsValid(Money))
+                Crossing->SetBattleEntryGold(Money->GetCurrentMoney());
+    UGameplayStatics::OpenLevel(GetWorld(), tutorialflag == 2
+        ? FName(TEXT("L_Tutorial_TutoShop_Level")) : FName(TEXT("L_Stage_BattleTutorial")));
+}
+
+bool ULevelGISubsystem::IsBattleTutorialActive() const
+{
+    return bRunBattleTutorial && IsValid(GetWorld()) &&
+        GetWorld()->GetName().Contains(TEXT("L_Stage_BattleTutorial"));
 }
 
 int32 ULevelGISubsystem::GetBattleLevelIndex()
@@ -101,6 +80,7 @@ void ULevelGISubsystem::SetBattleLevelIndex(int32 InBattleLevelIndex)
 
 void ULevelGISubsystem::MoveStartLevel()
 {
+    bRunBattleTutorial = false;
     if (UCrossingLevelGISubsystem* Crossing = GetGameInstance()->GetSubsystem<UCrossingLevelGISubsystem>())
         Crossing->ResetBattleEntryGold();
     if (UBossSetupGISubsystem* BossSetup = GetGameInstance()->GetSubsystem<UBossSetupGISubsystem>())

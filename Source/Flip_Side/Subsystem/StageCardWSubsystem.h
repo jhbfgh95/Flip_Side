@@ -54,6 +54,7 @@ public:
 
     // BattleManager가 코인 생성/면/좌표 확정 후 턴당 한 번 호출합니다.
     void BeginCardTurn();
+    void SetTutorialPromotionCell(const FGridPoint& Cell) { TutorialPromotionCell = Cell; }
     void StopCardEvaluation() { bTurnInitialized = false; }
     // Tick 및 클릭 직전 동기화. 추가 클릭 지급이나 무작위 칸 선정은 반복하지 않습니다.
     void ExecuteCardsEffect();
@@ -87,4 +88,5 @@ private:
     UPROPERTY() UDataManagerSubsystem* DM = nullptr;
     UPROPERTY() UBattleLevelActingWSubsystem* ActingManager = nullptr;
     FGridPoint PromotionHighlightedGrid = FGridPoint(-1, -1);
+    FGridPoint TutorialPromotionCell = FGridPoint(-1, -1);
 };

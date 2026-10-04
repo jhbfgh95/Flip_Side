@@ -31,6 +31,9 @@ class FLIP_SIDE_API UBattlePlayerHUDWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintPure, Category = "Tutorial")
+	UWidget* GetTutorialCoinSlot(int32 SlotNumber) const;
+	TSubclassOf<class UBattleCoinSlotWidget> GetTutorialCoinSlotClass() const { return BattleCoinSlotWidgetClass; }
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 	bool IsCoinSlotInfoOpen() const;

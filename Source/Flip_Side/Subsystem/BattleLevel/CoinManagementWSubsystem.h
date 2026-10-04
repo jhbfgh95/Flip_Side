@@ -34,6 +34,11 @@ public:
 	void InitializeCoinSlots(const TArray<FCoinTypeStructure>& InCoinSlots);
 
 	bool TryAddReadyCoinFromSlot(int32 SlotNumber);
+	UFUNCTION(BlueprintCallable, Category = "Tutorial")
+	void InitializeTutorialCoinSlots();
+	bool BuildTutorialCoinStates(TArray<FRandomState>& OutStates, FGridPoint& OutPromotionCell);
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnTutorialReadyCoinAdded, int32);
+	FOnTutorialReadyCoinAdded OnTutorialReadyCoinAdded;
 	bool TryCancelReadyCoin(int32 CoinInstanceID);
 	bool ReplaceReadyCoinWithSample(int32 FrontWeaponID, int32 BackWeaponID, int32 ReadySlotNumber);
 

@@ -27,6 +27,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Engine/GameInstance.h"
 #include "UI/W_StageEnd.h"
+#include "Subsystem/BattleLevel/BattleTutorialWSubsystem.h"
 
 #define BATTLE_COIN_MAX 10
 
@@ -146,8 +147,22 @@ bool UBattleManagerWSubsystem::RequestPhaseProgress(float TransitionLockTime)
 
     LeverLockTime = FMath::Max(0.f, TransitionLockTime);
 
+    const ULevelGISubsystem* Level = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+    if (IsValid(Level) && Level->IsBattleTutorialActive())
+    {
+        const auto* Tutorial = GetWorld()->GetSubsystem<UBattleTutorialWSubsystem>();
+        if (!IsValid(Tutorial) || !Tutorial->CanProgressTutorialPhase()) return false;
+    }
+    if (IsValid(Level) && Level->IsBattleTutorialActive() && TurnCount == 1 && CurrentPhase == EPhaseState::CoinReadyPhase)
+    {
+        FGridPoint PromotionCell;
+        if (!IsValid(CoinManager) || !CoinManager->BuildTutorialCoinStates(RandomStateArray, PromotionCell)) return false;
+        if (IsValid(StageCardManager)) StageCardManager->SetTutorialPromotionCell(PromotionCell);
+    }
+
     LockLever(EBattleLeverLockReason::PhaseTransition);
     PhaseProgressing();
+    OnBattleTutorialLeverTriggered.Broadcast();
 
     return true;
 }
@@ -160,8 +175,6 @@ bool UBattleManagerWSubsystem::StartBattleFromLever(float BattleLeverEndTime)
         return false;
     }
 
-    // TODO: 튜토리얼을 재구성할 때 새 UI 진행 버튼에 맞는 이벤트로 다시 연결합니다.
-    // OnBattleTutorialLeverTriggered.Broadcast();
     return true;
 }
 

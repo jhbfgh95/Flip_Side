@@ -205,6 +205,7 @@ public:
 	/** CoinActor가 현재 해당 셀을 새로 점유할 수 있는지 검사합니다. */
 	UFUNCTION(BlueprintPure, Category = "Grid|Coin")
 	bool CanCoinOccupyCell(const FGridPoint& P) const;
+	bool BuildTutorialCoinLayout(TArray<FGridPoint>& OutCells) const;
 
 	bool TryOccupyCoinCell(const FGridPoint& P, ACoinActor* Coin);
 	void ReleaseCoinCell(const FGridPoint& P, ACoinActor* Coin);

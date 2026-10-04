@@ -16,6 +16,7 @@
 #include "ItemDataTypes.h"
 #include "GridTypes.h"
 #include "Item_Action.h"
+#include "LevelGISubsystem.h"
 
 namespace
 {
@@ -54,6 +55,7 @@ void UUseableItemWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
     if(InWorld.IsGameWorld())
     {
+        InitUseitemSlot();
         InitializeBattleItemSlots();
     }
 
@@ -93,6 +95,17 @@ void UUseableItemWSubsystem::InitUseitemSlot()
     if(!CrossingLevelSubsystem) return;
 
     ItemSlotArray.Reset();
+    if (const ULevelGISubsystem* Level = GI->GetSubsystem<ULevelGISubsystem>(); IsValid(Level) && Level->IsBattleTutorialActive())
+    {
+        for (int32 ID : {4, 6, 1})
+        {
+            FSelectItem Item;
+            Item.ItemID = ID;
+            Item.SameItemNum = 5;
+            ItemSlotArray.Add(Item);
+        }
+        return;
+    }
     for(int i = 0; i < CrossingLevelSubsystem->GetMakedItemNum(); i++)
     {
         FSelectItem ItemData = CrossingLevelSubsystem->GetBattleUseItems(i);
@@ -457,10 +470,12 @@ void UUseableItemWSubsystem::ExecuteItemForGrid(AGridActor* TargetGrid)
 
     if(IsValid(SelectedItemAction))
     {
+        const int32 CompletedItemID = SelectedItemData.ItemID;
         SelectedItemAction->SetTargetGrid(TargetGrid);
         SelectedItemAction->ExecuteAction();
         PlaySelectedItemSuccessVFX(TargetGrid, SelectedTargetCoin, nullptr);
         ConsumeSelectedItem();
+        OnTutorialItemUsed.Broadcast(CompletedItemID);
     }
     CancelWantUseItem();
 }
@@ -516,6 +531,7 @@ void UUseableItemWSubsystem::ExecuteItemForCoin(ACoinActor* TargetCoin)
 
     if(IsValid(TargetCoin) && IsValid(SelectedItemAction))
     {
+        const int32 CompletedItemID = SelectedItemData.ItemID;
         SelectedItemAction->SetInRangeCoins(TargetCoin);
         if(GridManager)
         {
@@ -524,6 +540,7 @@ void UUseableItemWSubsystem::ExecuteItemForCoin(ACoinActor* TargetCoin)
         SelectedItemAction->ExecuteAction();
         PlaySelectedItemSuccessVFX(nullptr, TargetCoin, nullptr);
         ConsumeSelectedItem();
+        OnTutorialItemUsed.Broadcast(CompletedItemID);
     }
     CancelWantUseItem();
 }
@@ -598,6 +615,7 @@ bool UUseableItemWSubsystem::TrySelectItem(int32 ItemID)
         }
     }
 
+    OnTutorialItemSelected.Broadcast(ItemID);
     return true;
 }
 

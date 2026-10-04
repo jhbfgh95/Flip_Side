@@ -35,6 +35,9 @@ class FLIP_SIDE_API UCoinActionManagementWSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 
 public:
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnTutorialCoinActionCompleted, ACoinActor*);
+	FOnTutorialCoinActionCompleted OnTutorialCoinActionCompleted;
+	FOnTutorialCoinActionCompleted OnTutorialCoinActionStarted;
 	void SetPhase(bool bIsPhase);
 	void StopActionSequenceForStageEnd();
 	bool IsActionSequenceActive() const { return bActionSequenceActive; }

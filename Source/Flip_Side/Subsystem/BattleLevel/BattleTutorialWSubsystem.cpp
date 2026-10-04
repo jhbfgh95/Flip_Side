@@ -1,360 +1,384 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Subsystem/BattleLevel/BattleTutorialWSubsystem.h"
-
 #include "Actors/TutorialTargetPoint.h"
+#include "Actors/CoinActor.h"
 #include "BattleTutorialSequenceData.h"
-#include "Blueprint/UserWidget.h"
-#include "Kismet/GameplayStatics.h"
+#include "Blueprint/WidgetTree.h"
+#include "Components/PanelWidget.h"
+#include "Components/Button.h"
 #include "Player/BattlePlayerController_FlipSide.h"
+#include "UI/BattlePlayerHUDWidget.h"
+#include "UI/W_BattleTutorialOverlay.h"
+#include "Subsystem/LevelGISubsystem.h"
 #include "Subsystem/FlipSideDevloperSettings.h"
 #include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
 #include "Subsystem/BattleLevel/CoinManagementWSubsystem.h"
-#include "UI/W_BattleTutorialOverlay.h"
+#include "Subsystem/BattleLevel/CoinActionManagementWSubsystem.h"
+#include "Subsystem/BattleLevel/UseableItemWSubsystem.h"
+#include "Kismet/GameplayStatics.h"
 
 namespace
 {
-	constexpr float BattleTutorialLeverAdvanceDelay = 3.1f;
+	UButton* FindButton(UWidget* Widget)
+	{
+		if (!IsValid(Widget)) return nullptr;
+		if (UButton* Button = Cast<UButton>(Widget)) return Button;
+		if (UUserWidget* User = Cast<UUserWidget>(Widget))
+			if (User->WidgetTree) return FindButton(User->WidgetTree->RootWidget);
+		if (UPanelWidget* Panel = Cast<UPanelWidget>(Widget))
+			for (int32 Index = 0; Index < Panel->GetChildrenCount(); ++Index)
+				if (UButton* Button = FindButton(Panel->GetChildAt(Index))) return Button;
+		return nullptr;
+	}
 }
 
 bool UBattleTutorialWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
-	if (!Super::ShouldCreateSubsystem(Outer))
-	{
-		return false;
-	}
-
 	const UWorld* World = Cast<UWorld>(Outer);
-	return World && World->GetName().Contains(TEXT("L_Stage_Battle_Tutorial"));
+	return Super::ShouldCreateSubsystem(Outer) && IsValid(World) &&
+		World->GetName().Contains(TEXT("L_Stage_BattleTutorial"));
 }
 
 void UBattleTutorialWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
-
+	const ULevelGISubsystem* Level = InWorld.GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+	if (!IsValid(Level) || !Level->IsBattleTutorialActive()) return;
 	const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
-	const float InitDelay = Settings ? Settings->BattleTutorialInitDelay : 0.2f;
-
-	InWorld.GetTimerManager().SetTimer(
-		InitBattleTutorialTimerHandle,
-		this,
-		&UBattleTutorialWSubsystem::InitBattleTutorialFromSettings,
-		InitDelay,
-		false
-	);
+	InWorld.GetTimerManager().SetTimer(InitBattleTutorialTimerHandle, this,
+		&UBattleTutorialWSubsystem::InitBattleTutorialFromSettings, FMath::Max(0.01f, Settings->BattleTutorialInitDelay), false);
 }
 
 void UBattleTutorialWSubsystem::InitBattleTutorialFromSettings()
 {
-	const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
-	if (!Settings)
+	BattlePlayerController = Cast<ABattlePlayerController_FlipSide>(GetWorld()->GetFirstPlayerController());
+	if (!IsValid(BattlePlayerController) || !IsValid(BattlePlayerController->GetBattleHUDWidget()))
 	{
+		GetWorld()->GetTimerManager().SetTimer(InitBattleTutorialTimerHandle, this,
+			&UBattleTutorialWSubsystem::InitBattleTutorialFromSettings, 0.1f, false);
 		return;
 	}
-
-	UBattleTutorialSequenceData* LoadedSequenceData = Settings->BattleTutorialSequenceData.LoadSynchronous();
-	TSubclassOf<UW_BattleTutorialOverlay> LoadedOverlayClass = Settings->BattleTutorialOverlayWidgetClass.LoadSynchronous();
-
-	InitBattleTutorial(LoadedSequenceData, LoadedOverlayClass);
+	const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+	InitBattleTutorial(Settings->BattleTutorialSequenceData.LoadSynchronous(), Settings->BattleTutorialOverlayWidgetClass.LoadSynchronous());
 }
 
-void UBattleTutorialWSubsystem::InitBattleTutorial(UBattleTutorialSequenceData* InSequenceData, TSubclassOf<UW_BattleTutorialOverlay> InOverlayClass, int32 ZOrder)
+void UBattleTutorialWSubsystem::InitBattleTutorial(UBattleTutorialSequenceData* InSequenceData,
+	TSubclassOf<UW_BattleTutorialOverlay> InOverlayClass, int32 ZOrder)
 {
-	if (!InSequenceData || !InOverlayClass)
-	{
-		return;
-	}
-
+	const ULevelGISubsystem* Level = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+	if (!IsValid(Level) || !Level->IsBattleTutorialActive() || !IsValid(InSequenceData) || !InOverlayClass) return;
 	EndBattleTutorial();
-
 	SequenceData = InSequenceData;
-	CurrentStepIndex = 0;
-	CurrentStepClickCount = 0;
+	BattlePlayerController = Cast<ABattlePlayerController_FlipSide>(GetWorld()->GetFirstPlayerController());
+	if (!IsValid(BattlePlayerController)) return;
+	CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>();
+	BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
+	OverlayWidget = CreateWidget<UW_BattleTutorialOverlay>(BattlePlayerController, InOverlayClass);
+	if (!IsValid(OverlayWidget)) return;
 	bInitialized = true;
-
-	BattlePlayerController = Cast<ABattlePlayerController_FlipSide>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-	CoinManager = GetWorld() ? GetWorld()->GetSubsystem<UCoinManagementWSubsystem>() : nullptr;
-	BattleManager = GetWorld() ? GetWorld()->GetSubsystem<UBattleManagerWSubsystem>() : nullptr;
-
-	if (BattlePlayerController)
-	{
-		OverlayWidget = CreateWidget<UW_BattleTutorialOverlay>(BattlePlayerController, InOverlayClass);
-	}
-	else
-	{
-		OverlayWidget = CreateWidget<UW_BattleTutorialOverlay>(GetWorld(), InOverlayClass);
-	}
-
-	if (!OverlayWidget)
-	{
-		EndBattleTutorial();
-		return;
-	}
-
+	CurrentStepIndex = 0;
 	OverlayWidget->OnBattleTutorialOverlayClicked.AddUObject(this, &UBattleTutorialWSubsystem::HandleOverlayClicked);
 	OverlayWidget->AddToViewport(ZOrder);
-
 	CacheTutorialTargets();
 	BindBattleEvents();
 	ApplyCurrentStep();
 }
 
+void UBattleTutorialWSubsystem::Deinitialize()
+{
+	EndBattleTutorial();
+	Super::Deinitialize();
+}
+
 void UBattleTutorialWSubsystem::EndBattleTutorial()
 {
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(InitBattleTutorialTimerHandle);
-		World->GetTimerManager().ClearTimer(LeverAdvanceTimerHandle);
-	}
-
+	if (IsValid(GetWorld())) GetWorld()->GetTimerManager().ClearTimer(InitBattleTutorialTimerHandle);
 	UnbindBattleEvents();
-
-	if (OverlayWidget)
+	if (IsValid(OverlayWidget))
 	{
 		OverlayWidget->OnBattleTutorialOverlayClicked.RemoveAll(this);
 		OverlayWidget->RemoveFromParent();
-		OverlayWidget = nullptr;
 	}
+	if (IsValid(BattlePlayerController)) BattlePlayerController->SetInputForTutorial(false);
+	OverlayWidget = nullptr; SequenceData = nullptr; CoinManager = nullptr; BattleManager = nullptr; BattlePlayerController = nullptr;
+	TutorialTargetMap.Empty(); CurrentStepIndex = INDEX_NONE; CurrentStepClickCount = 0;
+	bInitialized = false; bAdvanceQueued = false; bWaitingForLanding = false;
+}
 
-	SetTutorialInput(false);
-
-	SequenceData = nullptr;
-	CoinManager = nullptr;
-	BattleManager = nullptr;
-	BattlePlayerController = nullptr;
-	TutorialTargetMap.Empty();
-	CurrentStepIndex = INDEX_NONE;
-	CurrentStepClickCount = 0;
-	bInitialized = false;
+void UBattleTutorialWSubsystem::FinishBattleTutorial()
+{
+	ULevelGISubsystem* Level = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+	EndBattleTutorial();
+	if (IsValid(Level)) Level->MovingTutorialLevel(2);
 }
 
 void UBattleTutorialWSubsystem::AdvanceBattleTutorial()
 {
-	if (!bInitialized || !SequenceData)
-	{
-		return;
-	}
-
-	CurrentStepIndex++;
-	CurrentStepClickCount = 0;
-
-	if (!SequenceData->Steps.IsValidIndex(CurrentStepIndex))
-	{
-		EndBattleTutorial();
-		return;
-	}
-
+	if (!bInitialized || !IsValid(SequenceData)) return;
+	++CurrentStepIndex;
+	if (!SequenceData->Steps.IsValidIndex(CurrentStepIndex)) { FinishBattleTutorial(); return; }
 	ApplyCurrentStep();
 }
 
-void UBattleTutorialWSubsystem::AdvanceAfterLeverAct()
+void UBattleTutorialWSubsystem::QueueAdvance()
 {
-	if (OverlayWidget)
+	if (bAdvanceQueued || !bInitialized) return;
+	bAdvanceQueued = true;
+	const int32 Step = CurrentStepIndex;
+	GetWorld()->GetTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this, [this, Step]()
 	{
-		OverlayWidget->SetVisibility(ESlateVisibility::Visible);
-	}
-
-	AdvanceBattleTutorial();
+		bAdvanceQueued = false;
+		if (!bInitialized || CurrentStepIndex != Step) return;
+		if (SequenceData->Steps[Step].AdvanceType == EBattleTutorialAdvanceType::End) FinishBattleTutorial();
+		else AdvanceBattleTutorial();
+	}));
 }
 
 void UBattleTutorialWSubsystem::CacheTutorialTargets()
 {
-	TutorialTargetMap.Empty();
-
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATutorialTargetPoint::StaticClass(), FoundActors);
-
-	for (AActor* Actor : FoundActors)
-	{
-		ATutorialTargetPoint* TargetPoint = Cast<ATutorialTargetPoint>(Actor);
-		if (!TargetPoint || TargetPoint->FocusId.IsNone())
-		{
-			continue;
-		}
-
-		TutorialTargetMap.Add(TargetPoint->FocusId, TargetPoint);
-	}
+	TArray<AActor*> Actors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATutorialTargetPoint::StaticClass(), Actors);
+	for (AActor* Actor : Actors)
+		if (ATutorialTargetPoint* Point = Cast<ATutorialTargetPoint>(Actor); IsValid(Point) && !Point->FocusId.IsNone())
+			TutorialTargetMap.Add(Point->FocusId, Point);
 }
 
 void UBattleTutorialWSubsystem::BindBattleEvents()
 {
-	// TODO: Battle Tutorial을 재작성할 때 UI CoinSlot 이벤트에 맞춰 다시 연결합니다.
-	// if (CoinManager)
-	// {
-	// 	CoinManager->OnBattleTutorialCoinSlotClicked.AddUObject(this, &UBattleTutorialWSubsystem::HandleCoinSlotClicked);
-	// }
-
-	if (BattleManager)
+	if (IsValid(CoinManager)) CoinManager->OnTutorialReadyCoinAdded.AddUObject(this, &UBattleTutorialWSubsystem::HandleCoinSlotAdded);
+	if (IsValid(BattleManager)) BattleManager->OnBattleTutorialLeverTriggered.AddUObject(this, &UBattleTutorialWSubsystem::HandleLeverTriggered);
+	if (auto* Action = GetWorld()->GetSubsystem<UCoinActionManagementWSubsystem>(); IsValid(Action))
 	{
-		BattleManager->OnBattleTutorialLeverTriggered.AddUObject(this, &UBattleTutorialWSubsystem::HandleLeverTriggered);
+		Action->OnTutorialCoinActionCompleted.AddUObject(this, &UBattleTutorialWSubsystem::HandleCoinActionCompleted);
+		Action->OnTutorialCoinActionStarted.AddUObject(this, &UBattleTutorialWSubsystem::HandleCoinActionStarted);
+	}
+	if (auto* Items = GetWorld()->GetSubsystem<UUseableItemWSubsystem>(); IsValid(Items))
+	{
+		Items->OnTutorialItemSelected.AddUObject(this, &UBattleTutorialWSubsystem::HandleItemSelected);
+		Items->OnTutorialItemUsed.AddUObject(this, &UBattleTutorialWSubsystem::HandleItemUsed);
 	}
 }
 
 void UBattleTutorialWSubsystem::UnbindBattleEvents()
 {
-	// TODO: Battle Tutorial을 재작성할 때 UI CoinSlot 이벤트에 맞춰 다시 해제합니다.
-	// if (CoinManager)
-	// {
-	// 	CoinManager->OnBattleTutorialCoinSlotClicked.RemoveAll(this);
-	// }
-
-	if (BattleManager)
+	if (UButton* Button = ActionButton.Get()) Button->OnClicked.RemoveDynamic(this, &UBattleTutorialWSubsystem::HandleActionButtonClicked);
+	ActionButton.Reset();
+	if (IsValid(CoinManager)) CoinManager->OnTutorialReadyCoinAdded.RemoveAll(this);
+	if (IsValid(BattleManager)) BattleManager->OnBattleTutorialLeverTriggered.RemoveAll(this);
+	if (!IsValid(GetWorld())) return;
+	if (auto* Action = GetWorld()->GetSubsystem<UCoinActionManagementWSubsystem>(); IsValid(Action))
 	{
-		BattleManager->OnBattleTutorialLeverTriggered.RemoveAll(this);
+		Action->OnTutorialCoinActionCompleted.RemoveAll(this);
+		Action->OnTutorialCoinActionStarted.RemoveAll(this);
 	}
+	if (auto* Items = GetWorld()->GetSubsystem<UUseableItemWSubsystem>(); IsValid(Items))
+	{
+		Items->OnTutorialItemSelected.RemoveAll(this); Items->OnTutorialItemUsed.RemoveAll(this);
+	}
+}
+
+UWidget* UBattleTutorialWSubsystem::ResolveWidget(const FString& Path) const
+{
+	UBattlePlayerHUDWidget* HUD = IsValid(BattlePlayerController) ? BattlePlayerController->GetBattleHUDWidget() : nullptr;
+	if (!IsValid(HUD) || Path.IsEmpty()) return nullptr;
+	TArray<FString> Parts; Path.ParseIntoArray(Parts, TEXT("/"), true);
+	UWidget* Current = HUD;
+	for (int32 Index = 0; Index < Parts.Num(); ++Index)
+	{
+		if (Index == 0 && Parts[Index].StartsWith(TEXT("CoinSlot[")))
+		{
+			Current = HUD->GetTutorialCoinSlot(FCString::Atoi(*Parts[Index].Mid(9)));
+			continue;
+		}
+		if (UUserWidget* User = Cast<UUserWidget>(Current))
+			Current = User->WidgetTree ? User->WidgetTree->FindWidget(FName(*Parts[Index])) : nullptr;
+		else if (UPanelWidget* Panel = Cast<UPanelWidget>(Current))
+		{
+			Current = nullptr;
+			for (int32 Child = 0; Child < Panel->GetChildrenCount(); ++Child)
+				if (Panel->GetChildAt(Child)->GetName() == Parts[Index]) { Current = Panel->GetChildAt(Child); break; }
+		}
+		else return nullptr;
+		if (!IsValid(Current)) return nullptr;
+	}
+	return Current;
+}
+
+ACoinActor* UBattleTutorialWSubsystem::ResolveRuntimeCoin(int32 Index) const
+{
+	if (!IsValid(CoinManager) || Index < 0 || Index > 3) return nullptr;
+	int32 Ordinal = 0;
+	const auto& Ready = CoinManager->GetReadyCoinData();
+	for (int32 Slot = 0; Slot < Ready.Num(); ++Slot)
+		if (Ready[Slot].CoinInstanceID != INDEX_NONE && Ready[Slot].SourceSlotNumber == (Index < 2 ? 1 : 2))
+		{
+			if (Ordinal == Index % 2) return CoinManager->GetRuntimeCoinAtReadySlot(Slot);
+			++Ordinal;
+		}
+	return nullptr;
 }
 
 void UBattleTutorialWSubsystem::ApplyCurrentStep()
 {
-	if (!SequenceData || !OverlayWidget || !SequenceData->Steps.IsValidIndex(CurrentStepIndex))
+	if (!IsValid(SequenceData) || !IsValid(OverlayWidget) || !SequenceData->Steps.IsValidIndex(CurrentStepIndex))
+	{ EndBattleTutorial(); return; }
+	if (UButton* Button = ActionButton.Get()) Button->OnClicked.RemoveDynamic(this, &UBattleTutorialWSubsystem::HandleActionButtonClicked);
+	ActionButton.Reset(); CurrentStepClickCount = 0; ReadyCountAtStepStart = 0;
+	const FBattleTutorialStep& Step = SequenceData->Steps[CurrentStepIndex];
+	if (IsValid(CoinManager))
+		for (const FReadyCoinData& Coin : CoinManager->GetReadyCoinData())
+			if (Coin.CoinInstanceID != INDEX_NONE && (Step.CoinSlotNumber == 0 || Coin.SourceSlotNumber == Step.CoinSlotNumber))
+				++ReadyCountAtStepStart;
+	OverlayWidget->ShowStep(Step);
+	OverlayWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	// 바깥 영역 입력은 오버레이에서 소비하고 구멍 안의 실제 UI/월드 입력은 그대로 전달합니다.
+	BattlePlayerController->SetInputForTutorial(false);
+	RefreshTarget();
+}
+
+void UBattleTutorialWSubsystem::RefreshTarget()
+{
+	const FBattleTutorialStep& Step = SequenceData->Steps[CurrentStepIndex];
+	if (Step.TargetType == EBattleTutorialTargetType::Actor)
 	{
-		EndBattleTutorial();
-		return;
+		AActor* Target = ResolveRuntimeCoin(Step.RuntimeCoinIndex);
+		if (!IsValid(Target))
+			if (const auto* Found = TutorialTargetMap.Find(Step.FocusId)) Target = Found->Get();
+		OverlayWidget->SetActorTarget(Target, Step.HoleSize.IsNearlyZero() ? FVector2D(0.08f, 0.14f) : Step.HoleSize);
 	}
-
-	const FBattleTutorialStep& CurrentStep = SequenceData->Steps[CurrentStepIndex];
-
-	OverlayWidget->SetTutorialText(CurrentStep.Text, CurrentStep.bUseTopTextBox);
-	OverlayWidget->SetNextButtonEnabled(CurrentStep.AdvanceType == EBattleTutorialAdvanceType::OverlayClick ||
-		CurrentStep.AdvanceType == EBattleTutorialAdvanceType::End);
-
-	SetTutorialInput(CurrentStep.bUIOnly);
-
-	if (CurrentStep.FocusId.IsNone())
+	else if (Step.TargetType == EBattleTutorialTargetType::Widget)
 	{
-		OverlayWidget->SetFocusUV(FVector2D(0.5f, 0.5f), FVector2D::ZeroVector);
-	}
-	else if (TObjectPtr<ATutorialTargetPoint>* TargetPoint = TutorialTargetMap.Find(CurrentStep.FocusId))
-	{
-		if (*TargetPoint)
+		FString Path = Step.WidgetPath;
+		if (Path.IsEmpty())
 		{
-			OverlayWidget->SetFocusFromWorldLocation(BattlePlayerController, (*TargetPoint)->GetActorLocation(), GetHoleSizeForStep(CurrentStep));
+			if (Step.FocusId == TEXT("Lever")) Path = TEXT("LeverWidget");
+			else if (Step.FocusId == TEXT("CoinSlot")) Path = FString::Printf(TEXT("CoinSlot[%d]"), FMath::Max(1, Step.CoinSlotNumber));
+			else if (Step.FocusId == TEXT("Card")) Path = TEXT("CardSlot1");
+			else if (Step.FocusId == TEXT("ItemSlot")) Path = TEXT("ItemSlot1");
+			else if (Step.FocusId == TEXT("Drawer") || Step.FocusId == TEXT("ReadyCoin")) Path = TEXT("BattleReadyCoinWidget");
 		}
-	}
-
-	if (CurrentStep.AdvanceType == EBattleTutorialAdvanceType::End)
-	{
-		// End 단계는 마지막 안내를 보여준 뒤 Overlay 클릭으로 종료한다.
-		OverlayWidget->SetNextButtonEnabled(true);
+		UWidget* Target = ResolveWidget(Path);
+		OverlayWidget->SetWidgetTarget(Target);
+		if (Step.bRequireHighlightedAction && Step.AdvanceType == EBattleTutorialAdvanceType::TargetAction)
+		{
+			UButton* Button = FindButton(Step.ActionWidgetPath.IsEmpty() ? Target : ResolveWidget(Step.ActionWidgetPath));
+			if (Button != ActionButton.Get())
+			{
+				if (UButton* Old = ActionButton.Get()) Old->OnClicked.RemoveDynamic(this, &UBattleTutorialWSubsystem::HandleActionButtonClicked);
+				ActionButton = Button;
+				if (IsValid(Button)) Button->OnClicked.AddUniqueDynamic(this, &UBattleTutorialWSubsystem::HandleActionButtonClicked);
+			}
+		}
 	}
 }
 
 void UBattleTutorialWSubsystem::HandleOverlayClicked()
 {
-	if (!SequenceData || !SequenceData->Steps.IsValidIndex(CurrentStepIndex))
-	{
-		return;
-	}
-
-	const FBattleTutorialStep& CurrentStep = SequenceData->Steps[CurrentStepIndex];
-	if (CurrentStep.AdvanceType == EBattleTutorialAdvanceType::End)
-	{
-		EndBattleTutorial();
-		return;
-	}
-
-	if (CurrentStep.AdvanceType != EBattleTutorialAdvanceType::OverlayClick)
-	{
-		return;
-	}
-
-	AdvanceBattleTutorial();
+	if (bInitialized && !SequenceData->Steps[CurrentStepIndex].bRequireHighlightedAction) QueueAdvance();
 }
 
-void UBattleTutorialWSubsystem::HandleCoinSlotClicked(ACoinActor* ClickedCoin)
+void UBattleTutorialWSubsystem::HandleCoinSlotAdded(int32 SlotNumber)
 {
-	if (!SequenceData || !SequenceData->Steps.IsValidIndex(CurrentStepIndex))
-	{
-		return;
-	}
-
-	const FBattleTutorialStep& CurrentStep = SequenceData->Steps[CurrentStepIndex];
-	if (CurrentStep.AdvanceType != EBattleTutorialAdvanceType::CoinSlotClick)
-	{
-		return;
-	}
-
-	CurrentStepClickCount++;
-	if (CurrentStepClickCount >= CurrentStep.RequiredClickCount)
-	{
-		AdvanceBattleTutorial();
-	}
+	if (!bInitialized) return;
+	const FBattleTutorialStep& Step = SequenceData->Steps[CurrentStepIndex];
+	if (!Step.bRequireHighlightedAction || Step.AdvanceType != EBattleTutorialAdvanceType::CoinSlotClick ||
+		(Step.CoinSlotNumber != 0 && Step.CoinSlotNumber != SlotNumber)) return;
+	int32 Count = 0;
+	for (const FReadyCoinData& Coin : CoinManager->GetReadyCoinData())
+		if (Coin.CoinInstanceID != INDEX_NONE && (Step.CoinSlotNumber == 0 || Coin.SourceSlotNumber == Step.CoinSlotNumber)) ++Count;
+	if (Count - ReadyCountAtStepStart >= Step.RequiredClickCount) QueueAdvance();
 }
 
 void UBattleTutorialWSubsystem::HandleLeverTriggered()
 {
-	if (!SequenceData || !SequenceData->Steps.IsValidIndex(CurrentStepIndex))
+	if (!bInitialized) return;
+	const FBattleTutorialStep& Step = SequenceData->Steps[CurrentStepIndex];
+	if (!Step.bRequireHighlightedAction || Step.AdvanceType != EBattleTutorialAdvanceType::LeverClick) return;
+	bWaitingForLanding = true;
+	OverlayWidget->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UBattleTutorialWSubsystem::HandleCoinActionCompleted(ACoinActor* Coin)
+{
+	if (!bInitialized) return;
+	const FBattleTutorialStep& Step = SequenceData->Steps[CurrentStepIndex];
+	if (Step.bRequireHighlightedAction && Step.AdvanceType == EBattleTutorialAdvanceType::CoinAction &&
+		IsValid(Coin) && Coin == ResolveRuntimeCoin(Step.ActionRuntimeCoinIndex >= 0 ? Step.ActionRuntimeCoinIndex : Step.RuntimeCoinIndex)) QueueAdvance();
+}
+
+void UBattleTutorialWSubsystem::HandleCoinActionStarted(ACoinActor* Coin)
+{
+	if (!bInitialized) return;
+	const FBattleTutorialStep& Step = SequenceData->Steps[CurrentStepIndex];
+	if (Step.bRequireHighlightedAction && Step.AdvanceType == EBattleTutorialAdvanceType::CoinActionStarted &&
+		IsValid(Coin) && Coin == ResolveRuntimeCoin(Step.ActionRuntimeCoinIndex >= 0 ? Step.ActionRuntimeCoinIndex : Step.RuntimeCoinIndex)) QueueAdvance();
+}
+
+void UBattleTutorialWSubsystem::HandleItemSelected(int32 ItemID)
+{
+	if (!bInitialized) return;
+	const FBattleTutorialStep& Step = SequenceData->Steps[CurrentStepIndex];
+	if (Step.bRequireHighlightedAction && Step.AdvanceType == EBattleTutorialAdvanceType::ItemSelected &&
+		(Step.ItemID < 0 || Step.ItemID == ItemID)) QueueAdvance();
+}
+
+void UBattleTutorialWSubsystem::HandleItemUsed(int32 ItemID)
+{
+	if (!bInitialized) return;
+	const FBattleTutorialStep& Step = SequenceData->Steps[CurrentStepIndex];
+	if (Step.bRequireHighlightedAction && Step.AdvanceType == EBattleTutorialAdvanceType::ItemUsed &&
+		(Step.ItemID < 0 || Step.ItemID == ItemID)) QueueAdvance();
+}
+
+void UBattleTutorialWSubsystem::HandleActionButtonClicked()
+{
+	if (++CurrentStepClickCount >= SequenceData->Steps[CurrentStepIndex].RequiredClickCount) QueueAdvance();
+}
+
+void UBattleTutorialWSubsystem::NotifyTargetAction(FName ActionId)
+{
+	if (!bInitialized) return;
+	const FBattleTutorialStep& Step = SequenceData->Steps[CurrentStepIndex];
+	if (Step.bRequireHighlightedAction && !ActionId.IsNone() && Step.ActionId == ActionId) HandleActionButtonClicked();
+}
+
+bool UBattleTutorialWSubsystem::CanAddTutorialCoin(int32 SlotNumber) const
+{
+	if (!bInitialized || !SequenceData->Steps.IsValidIndex(CurrentStepIndex)) return false;
+	const FBattleTutorialStep& Step = SequenceData->Steps[CurrentStepIndex];
+	return Step.bRequireHighlightedAction && Step.AdvanceType == EBattleTutorialAdvanceType::CoinSlotClick &&
+		(Step.CoinSlotNumber == 0 || Step.CoinSlotNumber == SlotNumber);
+}
+
+bool UBattleTutorialWSubsystem::CanActWithTutorialCoin(const ACoinActor* Coin) const
+{
+	if (!bInitialized || !SequenceData->Steps.IsValidIndex(CurrentStepIndex)) return false;
+	const FBattleTutorialStep& Step = SequenceData->Steps[CurrentStepIndex];
+	return Step.bRequireHighlightedAction && (Step.AdvanceType == EBattleTutorialAdvanceType::CoinAction ||
+		Step.AdvanceType == EBattleTutorialAdvanceType::CoinActionStarted) &&
+		Coin == ResolveRuntimeCoin(Step.ActionRuntimeCoinIndex >= 0 ? Step.ActionRuntimeCoinIndex : Step.RuntimeCoinIndex);
+}
+
+bool UBattleTutorialWSubsystem::CanProgressTutorialPhase() const
+{
+	return bInitialized && !bWaitingForLanding && !bAdvanceQueued && SequenceData->Steps.IsValidIndex(CurrentStepIndex) &&
+		SequenceData->Steps[CurrentStepIndex].bRequireHighlightedAction &&
+		SequenceData->Steps[CurrentStepIndex].AdvanceType == EBattleTutorialAdvanceType::LeverClick;
+}
+
+void UBattleTutorialWSubsystem::Tick(float DeltaTime)
+{
+	if (!bInitialized) return;
+	if (bWaitingForLanding)
 	{
+		const auto* Items = GetWorld()->GetSubsystem<UUseableItemWSubsystem>();
+		if (BattleManager->GetCurrentPhase() != EPhaseState::CoinBehaviorPhase || (IsValid(Items) && Items->IsItemUseAvailable()))
+		{ bWaitingForLanding = false; QueueAdvance(); }
 		return;
 	}
-
-	const FBattleTutorialStep& CurrentStep = SequenceData->Steps[CurrentStepIndex];
-	if (CurrentStep.AdvanceType == EBattleTutorialAdvanceType::LeverClick)
-	{
-		if (OverlayWidget)
-		{
-			OverlayWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-
-		if (UWorld* World = GetWorld())
-		{
-			World->GetTimerManager().SetTimer(
-				LeverAdvanceTimerHandle,
-				this,
-				&UBattleTutorialWSubsystem::AdvanceAfterLeverAct,
-				BattleTutorialLeverAdvanceDelay,
-				false
-			);
-		}
-		else
-		{
-			AdvanceAfterLeverAct();
-		}
-	}
+	RefreshTarget();
 }
 
-void UBattleTutorialWSubsystem::SetTutorialInput(bool bUIOnly)
+TStatId UBattleTutorialWSubsystem::GetStatId() const
 {
-	if (BattlePlayerController)
-	{
-		BattlePlayerController->SetInputForTutorial(bUIOnly);
-	}
-}
-
-FVector2D UBattleTutorialWSubsystem::GetHoleSizeForStep(const FBattleTutorialStep& Step) const
-{
-	if (!Step.HoleSize.IsNearlyZero())
-	{
-		return Step.HoleSize;
-	}
-
-	return GetDefaultHoleSize(Step.FocusId);
-}
-
-FVector2D UBattleTutorialWSubsystem::GetDefaultHoleSize(FName FocusId) const
-{
-	if (FocusId == TEXT("Lever"))
-	{
-		return FVector2D(0.06f, 0.14f);
-	}
-
-	if (FocusId == TEXT("CoinSlot"))
-	{
-		return FVector2D(0.2f, 0.15f);
-	}
-
-	// TODO: DrawActor가 제거되었으므로 새 ReadyCoinWidget 튜토리얼 포커스로 대체합니다.
-
-	if (FocusId == TEXT("ItemSlot"))
-	{
-		return FVector2D(0.08f, 0.1f);
-	}
-
-	if (FocusId == TEXT("Card"))
-	{
-		return FVector2D(0.3f, 1.0f);
-	}
-
-	return FVector2D(0.03f, 0.05f);
+	RETURN_QUICK_DECLARE_CYCLE_STAT(UBattleTutorialWSubsystem, STATGROUP_Tickables);
 }

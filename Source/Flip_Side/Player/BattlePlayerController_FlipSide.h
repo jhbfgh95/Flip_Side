@@ -211,6 +211,7 @@ protected:
 	bool bIsUIOnly = false;
 
 public:
+	UBattlePlayerHUDWidget* GetBattleHUDWidget() const { return BattleHUDWidget; }
 	ABattlePlayerController_FlipSide();
 
 	virtual void SetupInputComponent() override;

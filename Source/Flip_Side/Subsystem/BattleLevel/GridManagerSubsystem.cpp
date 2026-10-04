@@ -1,4 +1,5 @@
 #include "GridManagerSubsystem.h"
+#include "DataManagerSubsystem.h"
 #include "Engine/World.h"
 #include "GridActor.h"
 #include "GridAreaBuilder.h"
@@ -10,6 +11,51 @@
 #include "Actors/Boss/BossPillarActor.h"
 #include "BossWallActor.h"
 #include "Engine/Texture2D.h"
+
+bool UGridManagerSubsystem::BuildTutorialCoinLayout(TArray<FGridPoint>& OutCells) const
+{
+	OutCells.Reset();
+	const UDataManagerSubsystem* Data = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
+	FFaceData Pipe, Lens, Kit;
+	if (!IsValid(Data) || !Data->TryGetWeapon(1, Pipe) || !Data->TryGetWeapon(15, Lens) || !Data->TryGetWeapon(12, Kit)) return false;
+	TArray<FGridPoint> Free;
+	for (int32 Y = 0; Y < GetBossAreaStartY(); ++Y)
+		for (int32 X = 0; X < GridXSize; ++X)
+			if (CanCoinOccupyCell(FGridPoint(X, Y))) Free.Add(FGridPoint(X, Y));
+	auto HitsBoss = [this](const FGridPoint& Cell, const FAttackAreaSpec& Spec)
+	{
+		TArray<FGridPoint> Cells; ABossActor* Boss = nullptr;
+		CollectAttackRangeTargets(Cell, Spec, Cells, Boss);
+		return IsValid(Boss);
+	};
+	// 뒤쪽부터 회복 대상과 키트의 실제 능력 범위가 겹치는 두 셀을 찾습니다.
+	for (const FGridPoint& Far : Free)
+	{
+		if (HitsBoss(Far, Pipe.AttackAreaSpec)) continue;
+		for (const FGridPoint& Heal : Free)
+		{
+			if (Heal == Far || HitsBoss(Heal, Kit.AttackAreaSpec)) continue;
+			TArray<FGridPoint> AbilityCells;
+			BuildAbilityAreaCellsFromOrigin(Heal, Kit.AbilityAreaSpec, AbilityCells);
+			if (!Kit.bHasAbilityArea || !AbilityCells.Contains(Far)) continue;
+			for (int32 LensIndex = Free.Num() - 1; LensIndex >= 0; --LensIndex)
+			{
+				const FGridPoint Near = Free[LensIndex];
+				if (Near == Far || Near == Heal || !HitsBoss(Near, Lens.AttackAreaSpec)) continue;
+				for (int32 PipeIndex = Free.Num() - 1; PipeIndex >= 0; --PipeIndex)
+				{
+					const FGridPoint Promotion = Free[PipeIndex];
+					if (Promotion == Far || Promotion == Heal || Promotion == Near) continue;
+					if (!HitsBoss(Promotion, Pipe.AttackAreaSpec)) continue;
+					OutCells = {Promotion, Far, Near, Heal};
+					return true;
+				}
+			}
+		}
+	}
+	UE_LOG(LogTemp, Error, TEXT("[Tutorial] DB 사거리와 보스 점유 칸에 맞는 시연 배치를 찾지 못했습니다."));
+	return false;
+}
 
 bool UGridManagerSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {

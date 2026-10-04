@@ -24,6 +24,13 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Layout/WidgetPath.h"
 
+UWidget* UBattlePlayerHUDWidget::GetTutorialCoinSlot(int32 SlotNumber) const
+{
+	for (UBattleCoinSlotWidget* Widget : CoinSlotWidgets)
+		if (IsValid(Widget) && Widget->GetSlotNumber() == SlotNumber) return Widget;
+	return nullptr;
+}
+
 void UBattlePlayerHUDWidget::NativeConstruct()
 {
 	Super::NativeConstruct();

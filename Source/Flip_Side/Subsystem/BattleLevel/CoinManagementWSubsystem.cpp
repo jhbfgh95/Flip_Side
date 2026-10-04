@@ -10,6 +10,9 @@
 #include "DataTypes/WeaponDataTypes.h"
 #include "Subsystems/Subsystem.h"
 #include "Engine/World.h"
+#include "Subsystem/LevelGISubsystem.h"
+#include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
+#include "Subsystem/BattleLevel/BattleTutorialWSubsystem.h"
 
 namespace
 {
@@ -56,6 +59,12 @@ void UCoinManagementWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
 	if (!InWorld.IsGameWorld())
 	{
+		return;
+	}
+	if (ULevelGISubsystem* Level = InWorld.GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+		IsValid(Level) && Level->IsBattleTutorialActive())
+	{
+		InitializeTutorialCoinSlots();
 		return;
 	}
 
@@ -188,6 +197,20 @@ void UCoinManagementWSubsystem::CreateDummyCoinSlots()
 
 bool UCoinManagementWSubsystem::TryAddReadyCoinFromSlot(int32 SlotNumber)
 {
+	const ULevelGISubsystem* Level = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+	const UBattleManagerWSubsystem* Battle = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
+	if (IsValid(Level) && Level->IsBattleTutorialActive())
+	{
+		const auto* Tutorial = GetWorld()->GetSubsystem<UBattleTutorialWSubsystem>();
+		if (!IsValid(Tutorial) || !Tutorial->CanAddTutorialCoin(SlotNumber)) return false;
+	}
+	if (IsValid(Level) && Level->IsBattleTutorialActive() && IsValid(Battle) && Battle->GetTurnCount() == 1)
+	{
+		int32 Count = 0;
+		for (const FReadyCoinData& Coin : ReadyCoins)
+			if (Coin.CoinInstanceID != INDEX_NONE && Coin.SourceSlotNumber == SlotNumber) ++Count;
+		if (SlotNumber < 1 || SlotNumber > 2 || Count >= 2) return false;
+	}
 	if (!bIsCoinReadyPhase || GetReadyCoinCount() >= MaxReadyCoinCount)
 	{
 		return false;
@@ -222,6 +245,48 @@ bool UCoinManagementWSubsystem::TryAddReadyCoinFromSlot(int32 SlotNumber)
 	--CoinSlot->AvailableCoinCount;
 	OnCoinAddedToReady.Broadcast();
 	BroadcastCoinDataChanged();
+	OnTutorialReadyCoinAdded.Broadcast(SlotNumber);
+	return true;
+}
+
+void UCoinManagementWSubsystem::InitializeTutorialCoinSlots()
+{
+	TArray<FCoinTypeStructure> Slots;
+	for (int32 Index = 0; Index < 2; ++Index)
+	{
+		FCoinTypeStructure& Slot = Slots.AddDefaulted_GetRef();
+		Slot.SlotNum = Index;
+		Slot.FrontWeaponID = Index == 0 ? 1 : 15;
+		Slot.BackWeaponID = Index == 0 ? 2 : 12;
+		Slot.SameTypeCoinNum = 15;
+		Slot.Level = 1;
+	}
+	InitializeCoinSlots(Slots);
+}
+
+bool UCoinManagementWSubsystem::BuildTutorialCoinStates(TArray<FRandomState>& OutStates, FGridPoint& OutPromotionCell)
+{
+	TArray<int32> PipeSlots, OtherSlots;
+	for (int32 Index = 0; Index < ReadyCoins.Num(); ++Index)
+	{
+		if (ReadyCoins[Index].CoinInstanceID == INDEX_NONE) continue;
+		if (ReadyCoins[Index].SourceSlotNumber == 1) PipeSlots.Add(Index);
+		else if (ReadyCoins[Index].SourceSlotNumber == 2) OtherSlots.Add(Index);
+		else return false;
+	}
+	if (PipeSlots.Num() != 2 || OtherSlots.Num() != 2 || !IsValid(GridManager)) return false;
+	TArray<FGridPoint> Cells;
+	if (!GridManager->BuildTutorialCoinLayout(Cells) || Cells.Num() != 4) return false;
+	OutStates.Init(FRandomState(), MaxReadyCoinCount);
+	const int32 Slots[] = {PipeSlots[0], PipeSlots[1], OtherSlots[0], OtherSlots[1]};
+	for (int32 Index = 0; Index < 4; ++Index)
+	{
+		OutStates[Slots[Index]].RandomFace = Index == 3 ? EFaceState::Back : EFaceState::Front;
+		OutStates[Slots[Index]].RandomGrid = Cells[Index];
+		ReadyCoins[Slots[Index]].bCanCancel = false;
+	}
+	ReadyCoins[PipeSlots[1]].CurrentHP = FMath::Max(1, ReadyCoins[PipeSlots[1]].BaseMaxHP / 2);
+	OutPromotionCell = Cells[0];
 	return true;
 }
 

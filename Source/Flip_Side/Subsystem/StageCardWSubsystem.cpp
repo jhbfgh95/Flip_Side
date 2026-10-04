@@ -18,6 +18,7 @@
 
 #include "DataTypes/GridTypes.h"
 #include "DataTypes/WeaponDataTypes.h"
+#include "Subsystem/LevelGISubsystem.h"
 
 bool UStageCardWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -105,7 +106,9 @@ void UStageCardWSubsystem::RefreshHandFromGI()
     ClearAllModifiers();
     CardPrice = 0;
 
-    const TArray<int32> IDs = CrossingGI->GetBattleCardIDs();
+    const ULevelGISubsystem* Level = GI->GetSubsystem<ULevelGISubsystem>();
+    const TArray<int32> IDs = IsValid(Level) && Level->IsBattleTutorialActive()
+        ? TArray<int32>{3, 6, -1} : CrossingGI->GetBattleCardIDs();
 
     for (int32 Slot = 0; Slot < HandCount; ++Slot)
     {
@@ -460,6 +463,11 @@ void UStageCardWSubsystem::BeginCardTurn()
     {
         PromotionHighlightedGrid = FGridPoint(FMath::RandRange(0, GridSubsys->GridXSize - 1),
             FMath::RandRange(0, CoinAreaHeight - 1));
+        if (TutorialPromotionCell.GridX >= 0)
+        {
+            PromotionHighlightedGrid = TutorialPromotionCell;
+            TutorialPromotionCell = FGridPoint(-1, -1);
+        }
         if (AGridActor* Grid = GridSubsys->GetGridActor(PromotionHighlightedGrid); IsValid(Grid) && IsValid(ActingManager))
             ActingManager->ShowPromotionVFX(Grid->GetActorLocation());
     }

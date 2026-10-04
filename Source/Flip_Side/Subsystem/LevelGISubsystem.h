@@ -30,10 +30,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void MoveLoadedShopLevel();
 
-	//int값으로 0은 상점 튜토리얼, 1은 배틀 튜토리얼로 넘어감.
-	//이거 이렇게 한 이유? 나중에 튜토리얼 추가되면 걍 이거로 넘어다니게
+	// 0: 전투 설명 시작, 1: 상점 이후 실제 튜토리얼 보스전, 2: 상점 튜토리얼.
 	UFUNCTION(BlueprintCallable)
 	void MovingTutorialLevel(int32 tutorialflag);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tutorial")
+	bool bRunBattleTutorial = false;
+
+	bool IsBattleTutorialActive() const;
 
 	//처음으로 돌아가면 무조건 초기화
 	UFUNCTION(BlueprintCallable)
