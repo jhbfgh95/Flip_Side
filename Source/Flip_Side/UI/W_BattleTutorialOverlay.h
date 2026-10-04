@@ -7,9 +7,9 @@
 
 class UCanvasPanel;
 class UBorder;
-class URichTextBlock;
 class UDataTable;
 class UTutorialClickHintWidget;
+class UTutorialDescriptionWidget;
 
 DECLARE_MULTICAST_DELEGATE(FOnBattleTutorialOverlayClicked);
 
@@ -26,7 +26,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial|Layout")
 	TArray<FVector2D> ExplanationPositions = {FVector2D(0.f, 300.f), FVector2D(0.f, -300.f), FVector2D(-400.f, 0.f)};
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial|Layout")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial|Description")
+	TSoftClassPtr<UTutorialDescriptionWidget> DescriptionWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial|Layout", meta = (AdvancedDisplay, ToolTip = "빈 설명 위젯의 기본 폭. BP 디자인이 있으면 DescriptionSizeBox의 설정을 사용합니다."))
 	float ExplanationWidth = 620.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial|Appearance", meta = (ClampMin = "0", ClampMax = "1"))
 	float DimOpacity = 0.8f;
@@ -37,7 +39,7 @@ public:
 	// 4:3, 1:1, 3:4 순서입니다. 비어 있으면 코드 테두리를 표시합니다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial|Appearance")
 	TArray<FSlateBrush> FrameBrushes;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial|Text")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial|Text", meta = (AdvancedDisplay, ToolTip = "설명 위젯에 Text Style Set이 없을 때 사용하는 기본 RichText 스타일입니다."))
 	TObjectPtr<UDataTable> RichTextStyleSet;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial|Hint")
 	TSubclassOf<UTutorialClickHintWidget> ClickHintWidgetClass;
@@ -53,8 +55,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UCanvasPanel> TutorialCanvas;
 	UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> DimRegions;
 	UPROPERTY(Transient) TObjectPtr<UBorder> HoleInput;
-	UPROPERTY(Transient) TObjectPtr<UBorder> ExplanationRoot;
-	UPROPERTY(Transient) TObjectPtr<URichTextBlock> ExplanationText;
+	UPROPERTY(Transient) TObjectPtr<UTutorialDescriptionWidget> ExplanationWidget;
 	UPROPERTY(Transient) TObjectPtr<UTutorialClickHintWidget> ClickHint;
 	TWeakObjectPtr<UWidget> WidgetTarget;
 	TWeakObjectPtr<AActor> ActorTarget;

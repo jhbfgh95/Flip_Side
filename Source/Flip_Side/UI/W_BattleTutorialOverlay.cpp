@@ -1,11 +1,11 @@
 #include "UI/W_BattleTutorialOverlay.h"
 #include "UI/TutorialClickHintWidget.h"
+#include "UI/TutorialDescriptionWidget.h"
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Border.h"
-#include "Components/RichTextBlock.h"
 #include "Engine/DataTable.h"
 #include "GameFramework/Actor.h"
 #include "Rendering/DrawElements.h"
@@ -14,6 +14,8 @@
 UW_BattleTutorialOverlay::UW_BattleTutorialOverlay(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	ClickHintWidgetClass = UTutorialClickHintWidget::StaticClass();
+	DescriptionWidgetClass = TSoftClassPtr<UTutorialDescriptionWidget>(FSoftObjectPath(
+		TEXT("/Game/BattleTutorial/WBP_TutorialDescription.WBP_TutorialDescription_C")));
 	static ConstructorHelpers::FObjectFinder<UDataTable> Styles(TEXT("/Game/UI/Fonts/DT_RichTextStyles"));
 	RichTextStyleSet = Styles.Object;
 }
@@ -35,19 +37,18 @@ void UW_BattleTutorialOverlay::NativeOnInitialized()
 	HoleInput = WidgetTree->ConstructWidget<UBorder>();
 	HoleInput->SetBrushColor(FLinearColor::Transparent);
 	TutorialCanvas->AddChildToCanvas(HoleInput);
-	ExplanationRoot = WidgetTree->ConstructWidget<UBorder>();
-	ExplanationRoot->SetBrushColor(FLinearColor(0.04f, 0.04f, 0.05f, 1.f));
-	ExplanationRoot->SetPadding(FMargin(24.f));
-	ExplanationText = WidgetTree->ConstructWidget<URichTextBlock>();
-	ExplanationText->SetAutoWrapText(true);
-	if (IsValid(RichTextStyleSet)) ExplanationText->SetTextStyleSet(RichTextStyleSet);
-	ExplanationRoot->SetContent(ExplanationText);
-	UCanvasPanelSlot* TextSlot = TutorialCanvas->AddChildToCanvas(ExplanationRoot);
-	TextSlot->SetAnchors(FAnchors(0.5f, 0.5f));
-	TextSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-	TextSlot->SetAutoSize(true);
-	TextSlot->SetZOrder(10);
-	ExplanationText->SetWrapTextAt(FMath::Max(100.f, ExplanationWidth - 48.f));
+	TSubclassOf<UTutorialDescriptionWidget> DescriptionClass = DescriptionWidgetClass.LoadSynchronous();
+	if (!DescriptionClass) DescriptionClass = UTutorialDescriptionWidget::StaticClass();
+	ExplanationWidget = CreateWidget<UTutorialDescriptionWidget>(GetOwningPlayer(), DescriptionClass);
+	if (IsValid(ExplanationWidget))
+	{
+		ExplanationWidget->ConfigureFallbackAppearance(ExplanationWidth, RichTextStyleSet);
+		UCanvasPanelSlot* TextSlot = TutorialCanvas->AddChildToCanvas(ExplanationWidget);
+		TextSlot->SetAnchors(FAnchors(0.5f, 0.5f));
+		TextSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+		TextSlot->SetAutoSize(true);
+		TextSlot->SetZOrder(10);
+	}
 	if (ClickHintWidgetClass)
 	{
 		ClickHint = CreateWidget<UTutorialClickHintWidget>(GetOwningPlayer(), ClickHintWidgetClass);
@@ -68,12 +69,13 @@ void UW_BattleTutorialOverlay::ShowStep(const FBattleTutorialStep& Step)
 	WidgetTarget.Reset();
 	ActorTarget.Reset();
 	bHasHighlight = false;
-	FString Text = Step.Text.ToString();
-	Text.ReplaceInline(TEXT("\\n"), TEXT("\n"));
-	ExplanationText->SetText(FText::FromString(Text));
 	const int32 Index = ExplanationPositions.IsValidIndex(Step.ExplanationPositionIndex) ? Step.ExplanationPositionIndex : 0;
-	if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(ExplanationRoot->Slot))
-		CanvasSlot->SetPosition(ExplanationPositions.IsValidIndex(Index) ? ExplanationPositions[Index] : FVector2D::ZeroVector);
+	if (IsValid(ExplanationWidget))
+	{
+		ExplanationWidget->SetDescriptionText(Step.Text);
+		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(ExplanationWidget->Slot))
+			CanvasSlot->SetPosition(ExplanationPositions.IsValidIndex(Index) ? ExplanationPositions[Index] : FVector2D::ZeroVector);
+	}
 	if (IsValid(ClickHint))
 		ClickHint->SetVisibility(Step.bRequireHighlightedAction ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 }
