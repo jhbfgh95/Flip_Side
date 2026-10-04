@@ -350,7 +350,11 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 
 	if(PatternDescriptionText)
 	{
-		PatternDescriptionText->SetText(PatternData.PatternDescription);
+		// 상점은 일반 TextBlock이므로 전투 팝업용 상세 설명 서식 태그만 제거합니다.
+		const FString Description = PatternData.PatternDescription.ToString()
+			.Replace(TEXT("<DebuffDesc>"), TEXT(""))
+			.Replace(TEXT("</>"), TEXT(""));
+		PatternDescriptionText->SetText(FText::FromString(Description));
 	}
 }
 

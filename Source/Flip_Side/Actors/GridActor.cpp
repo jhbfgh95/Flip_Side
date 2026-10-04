@@ -48,23 +48,16 @@ void AGridActor::SetBossIcon(UTexture2D* Icon)
 	CurrentBossIcon = Icon;
 	if (!IsValid(BossIconMesh))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[GridBossIcon] Grid=(%d,%d) Actor=%s: BossIconMesh component missing."), GridXY.GridX, GridXY.GridY, *GetName());
 		return;
 	}
-	const bool bWasVisible = BossIconMesh->IsVisible();
 	BossIconMesh->SetVisibility(false);
 	BossIconMesh->SetHiddenInGame(true);
 	if (!IsValid(Icon))
 	{
-		if (bWasVisible)
-		{
-			UE_LOG(LogTemp, Log, TEXT("[GridBossIcon] Grid=(%d,%d): hidden (no icon)."), GridXY.GridX, GridXY.GridY);
-		}
 		return;
 	}
 	if (!IsValid(BossIconMesh->GetStaticMesh()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[GridBossIcon] Grid=(%d,%d) Actor=%s: Plane mesh not assigned."), GridXY.GridX, GridXY.GridY, *GetName());
 		return;
 	}
 
@@ -74,22 +67,12 @@ void AGridActor::SetBossIcon(UTexture2D* Icon)
 	}
 	if (!IsValid(BossIconMID))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[GridBossIcon] Grid=(%d,%d): MID creation failed. Material[0]=%s"), GridXY.GridX, GridXY.GridY, *GetPathNameSafe(BossIconMesh->GetMaterial(0)));
 		return;
-	}
-
-	UTexture* ParameterTexture = nullptr;
-	if (!BossIconMID->GetTextureParameterValue(FMaterialParameterInfo(TEXT("Boss_Icon")), ParameterTexture))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[GridBossIcon] Grid=(%d,%d): Boss_Icon texture parameter missing. Material=%s"), GridXY.GridX, GridXY.GridY, *GetPathNameSafe(BossIconMesh->GetMaterial(0)));
 	}
 
 	BossIconMID->SetTextureParameterValue(TEXT("Boss_Icon"), Icon);
 	BossIconMesh->SetVisibility(true);
 	BossIconMesh->SetHiddenInGame(false);
-	UE_LOG(LogTemp, Log, TEXT("[GridBossIcon] Grid=(%d,%d) Actor=%s: visibility enabled. Icon=%s Material=%s Location=%s Scale=%s"),
-		GridXY.GridX, GridXY.GridY, *GetName(), *GetPathNameSafe(Icon), *GetPathNameSafe(BossIconMID.Get()),
-		*BossIconMesh->GetComponentLocation().ToString(), *BossIconMesh->GetComponentScale().ToString());
 }
 
 void AGridActor::OnConstruction(const FTransform& Transform)

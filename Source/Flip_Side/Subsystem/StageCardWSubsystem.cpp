@@ -268,11 +268,12 @@ bool UStageCardWSubsystem::ChangeHandCard(int32 CardID, int32 CardSlot)
                 for (const auto& Pair : Runtime[CardSlot].EntryModifiers)
                     if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin)) Coin->GrantAdditionalActions(Pair.Value.ExtraActions);
         }
+        const int32 CoinAreaHeight = IsValid(GridSubsys) ? GridSubsys->GetBossAreaStartY() : 0;
         if (CardID == 3 && PromotionHighlightedGrid.GridX < 0 && IsValid(GridSubsys) &&
-            GridSubsys->GridXSize > 0 && GridSubsys->GridYSize > 0)
+            GridSubsys->GridXSize > 0 && CoinAreaHeight > 0)
         {
             PromotionHighlightedGrid = FGridPoint(FMath::RandRange(0, GridSubsys->GridXSize - 1),
-                FMath::RandRange(0, GridSubsys->GridYSize - 1));
+                FMath::RandRange(0, CoinAreaHeight - 1));
             if (AGridActor* Grid = GridSubsys->GetGridActor(PromotionHighlightedGrid); IsValid(Grid) && IsValid(ActingManager))
                 ActingManager->ShowPromotionVFX(Grid->GetActorLocation());
         }
@@ -454,10 +455,11 @@ void UStageCardWSubsystem::BeginCardTurn()
                     if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin)) Coin->GrantAdditionalActions(Pair.Value.ExtraActions);
         }
     }
-    if (bHasPromotion && IsValid(GridSubsys) && GridSubsys->GridXSize > 0 && GridSubsys->GridYSize > 0)
+    const int32 CoinAreaHeight = IsValid(GridSubsys) ? GridSubsys->GetBossAreaStartY() : 0;
+    if (bHasPromotion && IsValid(GridSubsys) && GridSubsys->GridXSize > 0 && CoinAreaHeight > 0)
     {
         PromotionHighlightedGrid = FGridPoint(FMath::RandRange(0, GridSubsys->GridXSize - 1),
-            FMath::RandRange(0, GridSubsys->GridYSize - 1));
+            FMath::RandRange(0, CoinAreaHeight - 1));
         if (AGridActor* Grid = GridSubsys->GetGridActor(PromotionHighlightedGrid); IsValid(Grid) && IsValid(ActingManager))
             ActingManager->ShowPromotionVFX(Grid->GetActorLocation());
     }

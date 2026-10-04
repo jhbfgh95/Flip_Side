@@ -128,10 +128,6 @@ void UGridManagerSubsystem::InstanceGrid()
 
 void UGridManagerSubsystem::SetBossIcon(ABossActor* Boss, UTexture2D* Icon)
 {
-	if (IsValid(Boss) && !IsValid(Icon))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[GridBossIcon] DB BossIcon is missing; all icon planes will stay hidden."));
-	}
 	if (ABossActor* PreviousBoss = IconBoss.Get())
 	{
 		PreviousBoss->OnBossDead.RemoveDynamic(this, &UGridManagerSubsystem::ClearBossIcon);
@@ -149,7 +145,6 @@ void UGridManagerSubsystem::SetBossIcon(ABossActor* Boss, UTexture2D* Icon)
 
 void UGridManagerSubsystem::ClearBossIcon()
 {
-	UE_LOG(LogTemp, Log, TEXT("[GridBossIcon] ClearBossIcon: Boss=%s"), *GetNameSafe(IconBoss.Get()));
 	CurrentBossIcon = nullptr;
 	RefreshBossIcons();
 }
@@ -178,16 +173,12 @@ void UGridManagerSubsystem::HandleIconBossDestroyed(AActor* DestroyedActor)
 
 void UGridManagerSubsystem::RefreshBossIcons()
 {
-	int32 RequestedVisibleCells = 0;
 	for (const auto& Entry : GridActors)
 	{
 		if (!IsValid(Entry.Value)) continue;
 		const bool bShowIcon = IconBoss.IsValid() && IsBossDamageCell(Entry.Key);
-		if (bShowIcon && IsValid(CurrentBossIcon)) ++RequestedVisibleCells;
 		Entry.Value->SetBossIcon(bShowIcon ? CurrentBossIcon.Get() : nullptr);
 	}
-	UE_LOG(LogTemp, Log, TEXT("[GridBossIcon] Refresh: Boss=%s Icon=%s GridCount=%d RequestedVisibleCells=%d (actual application logged per cell)"),
-		*GetNameSafe(IconBoss.Get()), *GetPathNameSafe(CurrentBossIcon.Get()), GridActors.Num(), RequestedVisibleCells);
 }
 
 void UGridManagerSubsystem::SpawnBossWall()
