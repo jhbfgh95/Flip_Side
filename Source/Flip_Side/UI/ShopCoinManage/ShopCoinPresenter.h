@@ -17,6 +17,12 @@ class UW_ShopCoinWidget;
 class UUnlockGISubsystem;
 class AShopCoinUIActor;
 class AShopWeaponRangePreviewActor;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopCoinSlotPurchased, int32, Level);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopCoinWeaponClicked, int32, WeaponID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopCoinPresenterSideChanged, bool, bIsFrontSide);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnShopCoinCountIncreased, int32, SlotIndex, int32, Count);
+
 UCLASS()
 class FLIP_SIDE_API UShopCoinPresenter : public UObject
 {
@@ -27,6 +33,21 @@ public:
 		UShopCoinWSubsystem* InCoinSubsystem, UDataManagerSubsystem* InDataManager, 
 		UUnlockGISubsystem* InUnlockSubsystem, AShopCoinUIActor* InShopCoinUIActor
 		,AShopWeaponRangePreviewActor* InRangePreviewActor );
+
+	UW_ShopCoinWidget* GetShopCoinWidget() const { return ShopCoinWidget; }
+	AShopCoinUIActor* GetShopCoinUIActor() const { return ShopCoinUIActor; }
+
+	UPROPERTY(BlueprintAssignable)
+	FOnShopCoinSlotPurchased OnCoinSlotPurchased;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnShopCoinWeaponClicked OnCoinWeaponClicked;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnShopCoinPresenterSideChanged OnCoinSideChanged;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnShopCoinCountIncreased OnCoinCountIncreased;
 
 
 protected:

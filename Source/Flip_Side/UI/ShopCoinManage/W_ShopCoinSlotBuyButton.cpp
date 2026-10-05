@@ -19,7 +19,15 @@ void UW_ShopCoinSlotBuyButton::InitWidget(int32 InBuySlotLevel, int32 InSlotPric
     BuySlotHp = InBuySlotHp;
 
     BuySlotHpTextBlock->SetText(FText::AsNumber(BuySlotHp));
-    BuySlotPriceTextBlock->SetText(FText::AsNumber(SlotPrice));
+	BuySlotPriceTextBlock->SetText(FText::AsNumber(SlotPrice));
+}
+
+void UW_ShopCoinSlotBuyButton::SetPurchaseInputEnabled(bool bInEnabled)
+{
+	if (IsValid(BuySlotButton))
+	{
+		BuySlotButton->SetIsEnabled(bInEnabled);
+	}
 }
 
 void UW_ShopCoinSlotBuyButton::ClickBuySlotButton()

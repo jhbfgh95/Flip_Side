@@ -10,6 +10,7 @@ class UWidgetAnimation;
 class UW_ShopPageChangeButton;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopPageRequested, EShopPage, Page);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnNavigationToggleClicked);
 
 UCLASS()
 class FLIP_SIDE_API UW_ShopNavigationBar : public UUserWidget
@@ -51,9 +52,17 @@ protected:
 
 public:
 	FOnShopPageRequested OnShopPageRequested;
+	FOnNavigationToggleClicked OnNavigationToggleClicked;
 
 	// 현재 페이지에 해당하는 버튼의 Normal 이미지 Tint 알파를 선택 상태로 만듭니다.
 	void SetSelectedPageButton(EShopPage Page);
+
+	// bLockAll이 true면 토글을 포함한 모든 버튼을 잠급니다.
+	// false면 토글과 AllowedPage 버튼만 열며, AllowedPage가 None이면 모두 엽니다.
+	void SetNavigationButtonsLocked(bool bLockAll, EShopPage AllowedPage);
+
+	// 접힌 상태에서도 표시되는 네비게이션 바 토글 버튼입니다.
+	UButton* GetNavigationToggleButton() const { return NavigationToggleButton; }
 
 private:
 	bool bNavigationBarOpen = false;

@@ -41,6 +41,14 @@ void UW_ShopItemPurchasePopup::Close()
 	SetVisibility(ESlateVisibility::Collapsed);
 }
 
+void UW_ShopItemPurchasePopup::SetOnlyPurchaseControlsEnabled(bool bInEnabled)
+{
+	if (IsValid(CountPlusButton)) CountPlusButton->SetIsEnabled(!bInEnabled);
+	if (IsValid(CountMinusButton)) CountMinusButton->SetIsEnabled(!bInEnabled);
+	if (IsValid(PurchaseButton)) PurchaseButton->SetIsEnabled(true);
+	if (IsValid(CancelButton)) CancelButton->SetIsEnabled(!bInEnabled);
+}
+
 void UW_ShopItemPurchasePopup::ClickPlus()
 {
 	++CurrentCount;

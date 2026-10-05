@@ -156,13 +156,29 @@ void UW_ShopCoinSlot::SetSelected(bool bInIsSelected)
     {
         SelectBorder->SetVisibility(
             bIsSelected ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
-    }
+	}
+}
+
+void UW_ShopCoinSlot::SetCoinSlotInputEnabled(bool bInEnabled)
+{
+	bCoinSlotInputEnabled = bInEnabled;
+	SetIsEnabled(bInEnabled);
+
+	if (IsValid(FrontWeaponImageButton)) FrontWeaponImageButton->SetIsEnabled(bInEnabled);
+	if (IsValid(BackWeaponImageButton)) BackWeaponImageButton->SetIsEnabled(bInEnabled);
+	if (IsValid(IncreaseButton)) IncreaseButton->SetIsEnabled(bInEnabled);
+	if (IsValid(DecreaseButton)) DecreaseButton->SetIsEnabled(bInEnabled);
 }
 
 FReply UW_ShopCoinSlot::NativeOnMouseButtonDown(
     const FGeometry& InGeometry,
     const FPointerEvent& InMouseEvent)
 {
+	if (!bCoinSlotInputEnabled)
+	{
+		return FReply::Unhandled();
+	}
+
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
     {
         PressSlotButton();
@@ -179,6 +195,11 @@ void UW_ShopCoinSlot::NativeOnDragDetected(
     const FPointerEvent& InMouseEvent,
     UDragDropOperation*& OutOperation)
 {
+	if (!bCoinSlotInputEnabled)
+	{
+		return;
+	}
+
     Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
     UShopCoinSlotDragDropOperation* DragOperation =
@@ -201,6 +222,11 @@ bool UW_ShopCoinSlot::NativeOnDrop(
     const FDragDropEvent& InDragDropEvent,
     UDragDropOperation* InOperation)
 {
+	if (!bCoinSlotInputEnabled)
+	{
+		return false;
+	}
+
     UShopCoinSlotDragDropOperation* DragOperation =
         Cast<UShopCoinSlotDragDropOperation>(InOperation);
 

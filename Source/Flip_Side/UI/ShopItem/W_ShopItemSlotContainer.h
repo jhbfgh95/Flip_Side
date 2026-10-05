@@ -30,5 +30,7 @@ protected:
 public:
 	void InitWidget(TArray<FItemData> InItemDataArray);
 
+	void SetItemSlotInputEnabled(bool bInEnabled);
+
 	TArray<TObjectPtr<UW_ShopItemSlot>> GetShopItemSlots();
 };

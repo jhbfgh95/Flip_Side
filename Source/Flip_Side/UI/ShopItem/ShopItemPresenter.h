@@ -20,6 +20,11 @@ class UW_ShopItemWidget;
 class UW_ShopItemPurchasePopup;
 class UW_ShopItemSellPopup;
 class AShopItemUIActor;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopItemPurchaseClicked, int32, ItemID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnShopItemPurchased, int32, ItemID, int32, Count);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnShopItemSold, int32, ItemID, int32, Count);
+
 USTRUCT(BlueprintType)
 struct FShopItemWidgets
 {
@@ -42,6 +47,17 @@ class FLIP_SIDE_API UShopItemPresenter : public UObject
 public:
     void InitPresenter(UW_ShopItemWidget* InShopItemWidget, UShopItemWSubsystem* InItemSubsystem,
         UDataManagerSubsystem* InDataManager, AShopItemUIActor* InShopItemUIActor);
+
+    UW_ShopItemWidget* GetShopItemWidget() const { return ShopItemWidget; }
+
+    UPROPERTY(BlueprintAssignable)
+    FOnShopItemPurchaseClicked OnItemPurchaseClicked;
+
+    UPROPERTY(BlueprintAssignable)
+    FOnShopItemPurchased OnItemPurchased;
+
+    UPROPERTY(BlueprintAssignable)
+    FOnShopItemSold OnItemSold;
 
 protected:
 	UPROPERTY()
@@ -66,9 +82,9 @@ protected:
 protected:
 
 	UFUNCTION()
-	void BuyItem(int32 ItemID, int32 Count);
+	bool BuyItem(int32 ItemID, int32 Count);
 	UFUNCTION()
-	void SellItem(int32 Index, int32 ItemID, int32 Count);
+	bool SellItem(int32 Index, int32 ItemID, int32 Count);
 	UFUNCTION()
 	void HoveredItemSlot(int32 ItemID);
 	UFUNCTION()

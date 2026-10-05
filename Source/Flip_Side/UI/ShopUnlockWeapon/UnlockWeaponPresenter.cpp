@@ -116,6 +116,7 @@ void UUnlockWeaponPresenter::TryUnlockWeapon(int32 WeaponID)
 
 	if (UnlockWeaponSubsystem->UnlockWeapon(WeaponID))
 	{
+		OnWeaponUnlocked.Broadcast(WeaponID);
 		if (!IsValid(ShopUnlockWeaponUIActor) || !ShopUnlockWeaponUIActor->PlayBuyWeaponAnim())
 		{
 			FinishedUnlockWeapon();

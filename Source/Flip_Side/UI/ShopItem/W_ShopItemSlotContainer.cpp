@@ -22,6 +22,17 @@ void UW_ShopItemSlotContainer::InitWidget(TArray<FItemData> InItemDataArray)
         }
     }
 }
+
+void UW_ShopItemSlotContainer::SetItemSlotInputEnabled(bool bInEnabled)
+{
+    for (UW_ShopItemSlot* ItemSlot : ShopItemSlots)
+    {
+        if (IsValid(ItemSlot))
+        {
+            ItemSlot->SetItemSlotInputEnabled(bInEnabled);
+        }
+    }
+}
 	
 TArray<TObjectPtr<UW_ShopItemSlot>> UW_ShopItemSlotContainer::GetShopItemSlots()
 {

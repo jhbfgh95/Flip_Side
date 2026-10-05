@@ -63,6 +63,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CloseSlotBuyPopupBorder();
 
+	// 슬롯 구매 팝업을 여는 버튼과 내부 슬롯 구매 버튼을 함께 제어합니다.
+	void SetCoinSlotPurchaseInputEnabled(bool bInEnabled);
+
 private:
 	UFUNCTION()
 	void ClickOpenSlotBuyPopup();

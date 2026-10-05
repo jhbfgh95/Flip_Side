@@ -17,6 +17,10 @@ class UDataManagerSubsystem;
 class UW_ShopCardSlot;
 class UW_ShopPlayerCardSlot;
 class UW_ShopPlayerSelectedCardSlot;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopCardPurchased, int32, CardID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopPlayerCardSelected, int32, CardID);
+
 UCLASS()
 class FLIP_SIDE_API UShopCardPresenter : public UObject
 {
@@ -41,6 +45,14 @@ public:
 	void InitPresenter(UW_ShopCardMainWidget* InShopCardMainWidget, 
 		UShopCardWSubsystem* InShopCardSubsystem, UDataManagerSubsystem* InDataManager
 	,UUnlockGISubsystem* InUnlockSubsystem);
+
+	UW_ShopCardMainWidget* GetShopCardMainWidget() const { return ShopCardMainWidget; }
+
+	UPROPERTY(BlueprintAssignable)
+	FOnShopCardPurchased OnCardPurchased;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnShopPlayerCardSelected OnPlayerCardSelected;
 protected:
 	
 	TArray<TObjectPtr<UW_ShopCardSlot>> ShopCardSlotViews;

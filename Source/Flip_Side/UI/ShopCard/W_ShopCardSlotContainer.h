@@ -30,6 +30,8 @@ protected:
 
 public:
 	void InitWidget(TArray<FCardData> InCardData);
+
+	void SetCardSlotInputEnabled(bool bInEnabled);
 	
 	TArray<UW_ShopCardSlot*> GetShopCardSlots();
 };

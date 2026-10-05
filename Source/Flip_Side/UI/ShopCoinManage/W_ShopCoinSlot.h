@@ -106,6 +106,7 @@ protected:
 	TObjectPtr<UMaterialInstanceDynamic> BackWeaponIconMaterialInstance;
 
 	bool bIsSelected = false;
+	bool bCoinSlotInputEnabled = true;
 	
 	
 protected:
@@ -142,6 +143,8 @@ public:
 	void ResetSlot();
 
 	void SetSelected(bool bInIsSelected);
+
+	void SetCoinSlotInputEnabled(bool bInEnabled);
 
 protected:
 	virtual FReply NativeOnMouseButtonDown(
