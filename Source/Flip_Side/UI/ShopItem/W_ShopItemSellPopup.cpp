@@ -46,6 +46,14 @@ void UW_ShopItemSellPopup::Close()
     SetVisibility(ESlateVisibility::Collapsed);
 }
 
+void UW_ShopItemSellPopup::SetOnlySellControlsEnabled(bool bInEnabled)
+{
+    if (IsValid(CountPlusButton)) CountPlusButton->SetIsEnabled(!bInEnabled);
+    if (IsValid(CountMinusButton)) CountMinusButton->SetIsEnabled(!bInEnabled);
+    if (IsValid(SellButton)) SellButton->SetIsEnabled(true);
+    if (IsValid(CancelButton)) CancelButton->SetIsEnabled(!bInEnabled);
+}
+
 void UW_ShopItemSellPopup::RefreshCountAndPrice()
 {
     ItemCountText->SetText(FText::AsNumber(CurrentCount));

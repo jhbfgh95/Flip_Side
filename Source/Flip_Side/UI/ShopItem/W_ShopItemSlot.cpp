@@ -46,13 +46,24 @@ void UW_ShopItemSlot::SetItemSlotImage(FItemData SetItemData)
     ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), SetItemData.TypeColor);
 
     ItemNameTextBlock->SetText(FText::FromString(SetItemData.ItemName));
-    ItemPriceTextBlock->SetText(FText::AsNumber(SetItemData.Price));
+	ItemPriceTextBlock->SetText(FText::AsNumber(SetItemData.Price));
+}
+
+void UW_ShopItemSlot::SetItemSlotInputEnabled(bool bInEnabled)
+{
+    bItemSlotInputEnabled = bInEnabled;
+    SetIsEnabled(bInEnabled);
 }
 
 FReply UW_ShopItemSlot::NativeOnMouseButtonDown(
     const FGeometry& InGeometry,
     const FPointerEvent& InMouseEvent)
 {
+    if (!bItemSlotInputEnabled)
+    {
+        return FReply::Unhandled();
+    }
+
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
     {
         OnClickShopItemSlot.Broadcast(this, WidgetItemData.ItemID);

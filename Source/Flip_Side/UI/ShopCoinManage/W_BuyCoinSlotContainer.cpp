@@ -82,6 +82,27 @@ void UW_BuyCoinSlotContainer::CloseSlotBuyPopupBorder()
 	}
 }
 
+void UW_BuyCoinSlotContainer::SetCoinSlotPurchaseInputEnabled(bool bInEnabled)
+{
+	if (IsValid(OpenSlotBuyPopupButton))
+	{
+		OpenSlotBuyPopupButton->SetIsEnabled(bInEnabled);
+	}
+
+	for (UW_ShopCoinSlotBuyButton* SlotBuyButton : SlotBuyButtons)
+	{
+		if (IsValid(SlotBuyButton))
+		{
+			SlotBuyButton->SetPurchaseInputEnabled(bInEnabled);
+		}
+	}
+
+	if (!bInEnabled)
+	{
+		CloseSlotBuyPopupBorder();
+	}
+}
+
 void UW_BuyCoinSlotContainer::ClickOpenSlotBuyPopup()
 {
 	if(!IsPopupOpen)
@@ -107,4 +128,3 @@ void UW_BuyCoinSlotContainer::ClickSlotBuyButton(int32 SlotLevel)
 {
 	OnBuyCoinSlotRequested.Broadcast(SlotLevel);
 }
-

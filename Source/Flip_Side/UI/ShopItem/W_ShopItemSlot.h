@@ -52,11 +52,13 @@ public:
 
 protected:
 	FItemData WidgetItemData;
+	bool bItemSlotInputEnabled = true;
 
 public:
 
 	void InitItemWidget(FItemData SetItemData);
 	void SetItemSlotImage(FItemData SetItemData);
+	void SetItemSlotInputEnabled(bool bInEnabled);
 
 	
 protected:

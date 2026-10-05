@@ -10,6 +10,7 @@
 #include "Subsystem/BossSetupGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/LevelGISubsystem.h"
+#include "Subsystem/ShopTutorialWSubsystem.h"
 #include "Subsystem/UnlockGISubsystem.h"
 
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
@@ -25,8 +26,10 @@
 #include "UI/ShopUnlockWeapon/ShopUnlockWeaponUIActor.h"
 #include "UI/ShopUnlockWeapon/UnlockWeaponPresenter.h"
 #include "UI/ShopPageChangePresenter.h"
+#include "UI/ShopTutorialPresenter.h"
 #include "UI/ShopUISelectRegistry.h"
 #include "UI/W_ShopBossClearProgress.h"
+#include "UI/W_ShopTutorialWidget.h"
 
 #include "Interface/ShopMouseInterface.h"
 #include "UI/W_ShopWidgetContainer.h"
@@ -98,11 +101,13 @@ void AShopController_FlipSide::BeginPlay()
     TryInitPageChangePresenter();
     
     ShopWidgetContainer->AddToViewport();
+	TryInitShopTutorialPresenter();
     UMoneyGISubsystem* MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
     if(MoneySubsystem)
         MoneySubsystem->UpdateMoneyDisplayWidget();
 
-	if (IsValid(BossClearProgressWidgetClass))
+
+	if (IsValid(BossClearProgressWidgetClass) && ! GetWorld()->GetMapName().Contains(TEXT("L_Tutorial_TutoShop_Level")))
 	{
 		BossClearProgressWidget = CreateWidget<UW_ShopBossClearProgress>(this, BossClearProgressWidgetClass);
 		if (IsValid(BossClearProgressWidget))
@@ -186,7 +191,49 @@ void AShopController_FlipSide::TryInitPageChangePresenter()
     }
 
     PageChangePresenter = NewObject<UShopPageChangePresenter>(this);
-    PageChangePresenter->InitPresenter(ShopUISelectRegistry, ShopWidgetContainer, ControlledPawn);
+	PageChangePresenter->InitPresenter(ShopUISelectRegistry, ShopWidgetContainer, ControlledPawn);
+}
+
+void AShopController_FlipSide::TryInitShopTutorialPresenter()
+{
+	if (IsValid(TutorialPresenter) || !GetWorld())
+	{
+		return;
+	}
+
+	const FString MapName = GetWorld()->GetMapName();
+	const bool bIsTutorialShopLevel = (MapName.Contains(TEXT("L_Tutorial_TutoShop_Level")));
+	if (!bIsTutorialShopLevel)
+	{
+		return;
+	}
+
+	UShopTutorialWSubsystem* TutorialSubsystem = GetWorld()->GetSubsystem<UShopTutorialWSubsystem>();
+	if (!IsValid(TutorialSubsystem) || !ShopTutorialWidgetClass)
+	{
+		return;
+	}
+
+	ShopTutorialWidget = CreateWidget<UW_ShopTutorialWidget>(this, ShopTutorialWidgetClass);
+	if (!IsValid(ShopTutorialWidget))
+	{
+		return;
+	}
+
+	ShopTutorialWidget->AddToViewport(50);
+	ShopTutorialWidget->SetTutorialActive(false);
+
+	TutorialPresenter = NewObject<UShopTutorialPresenter>(this);
+	TutorialPresenter->InitPresenter(
+		TutorialSubsystem,
+		ShopTutorialWidget,
+		ShopWidgetContainer);
+	TutorialPresenter->SetShopPresenters(
+		CardPresenter,
+		ItemPresenter,
+		CoinPresenter,
+		UnlockWeaponPresenter,
+		PageChangePresenter);
 }
 
 

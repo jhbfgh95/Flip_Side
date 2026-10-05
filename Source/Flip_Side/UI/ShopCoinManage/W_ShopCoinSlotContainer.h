@@ -52,6 +52,8 @@ public:
 
 	void ResetSlotPreview();
 
+	void SetCoinSlotInputEnabled(bool bInEnabled);
+
 
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))

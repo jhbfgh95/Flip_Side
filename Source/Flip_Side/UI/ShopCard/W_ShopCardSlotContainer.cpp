@@ -22,6 +22,17 @@ void UW_ShopCardSlotContainer::InitWidget(TArray<FCardData> InCardData)
         }
     }
 }
+
+void UW_ShopCardSlotContainer::SetCardSlotInputEnabled(bool bInEnabled)
+{
+    for (UW_ShopCardSlot* CardSlot : ShopCardSlots)
+    {
+        if (IsValid(CardSlot))
+        {
+            CardSlot->SetCardSlotInputEnabled(bInEnabled);
+        }
+    }
+}
 	
 TArray<UW_ShopCardSlot*> UW_ShopCardSlotContainer::GetShopCardSlots()
 {

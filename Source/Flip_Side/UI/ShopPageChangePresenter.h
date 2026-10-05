@@ -12,6 +12,8 @@ class AShopUISelectRegistry;
 class AShopUISelectActor;
 class ULightComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopPageMoveCompleted, EShopPage, CompletedPage);
+
 struct FShopLightFadeTarget
 {
 	TWeakObjectPtr<ULightComponent> Light;
@@ -28,6 +30,15 @@ public:
 		UW_ShopWidgetContainer* InWidgetContainer,
 		AShopPlayerPawn_FlipSide* InShopPawn);
 
+	UPROPERTY(BlueprintAssignable)
+	FOnShopPageMoveCompleted OnPageMoveCompleted;
+
+	// Main은 모든 선택 액터를, 그 외 페이지는 대응하는 선택 액터 하나만 클릭 가능하게 설정합니다.
+	void SetShopUISelectActorsEnabledForPage(EShopPage Page);
+
+	UFUNCTION()
+	void HandlePageRequested(EShopPage Page);
+
 protected:
 	UPROPERTY()
 	TObjectPtr<UW_ShopWidgetContainer> WidgetContainer;
@@ -42,9 +53,6 @@ protected:
 	TArray<TObjectPtr<AShopUISelectActor>> SelectActors;
 
 private:
-	UFUNCTION()
-	void HandlePageRequested(EShopPage Page);
-
 	UFUNCTION()
 	void HandleMoveCompleted(EShopPage Page);
 

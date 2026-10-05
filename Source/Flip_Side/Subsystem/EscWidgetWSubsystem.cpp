@@ -62,7 +62,7 @@ void UEscWidgetWSubsystem::CreateAndShowESCWidget(UWorld& World)
 	{
 		ESCWidgetInstance->OnQuitGameClicked.AddUniqueDynamic(this, &ThisClass::HandleQuitGameRequested);
 		ESCWidgetInstance->OnMainMenuClicked.AddUniqueDynamic(this, &ThisClass::HandleMainMenuRequested);
-		ESCWidgetInstance->AddToViewport(50);
+		ESCWidgetInstance->AddToViewport(500);
 		// 루트의 빈 영역은 아래 UI 입력을 통과시키고, 자식 버튼만 입력을 받습니다.
 		ESCWidgetInstance->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	}
@@ -71,6 +71,18 @@ void UEscWidgetWSubsystem::CreateAndShowESCWidget(UWorld& World)
 void UEscWidgetWSubsystem::SaveCurrentGame() const
 {
 	UWorld* World = GetWorld();
+	if (!IsValid(World))
+	{
+		return;
+	}
+
+	const FString LevelName = UGameplayStatics::GetCurrentLevelName(World, true);
+	if (LevelName.Equals(TEXT("L_Stage_BattleTutorial")) ||
+		LevelName.Equals(TEXT("L_Tutorial_TutoShop_Level")))
+	{
+		return;
+	}
+
 	if (UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr)
 	{
 		if (USaveGISubsystem* SaveSubsystem = GameInstance->GetSubsystem<USaveGISubsystem>())

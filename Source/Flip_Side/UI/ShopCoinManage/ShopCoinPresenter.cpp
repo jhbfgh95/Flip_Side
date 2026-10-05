@@ -144,6 +144,8 @@ void UShopCoinPresenter::SelectSlotFrontWeapon(int32 SlotIndex)
 	const FCoinTypeStructure CoinData = CoinSubsystem->GetCoinSlotCoinType(SlotIndex);
 	ShopCoinWidget->GetShopWeaponSlotContainer()->SelectWeaponSlots(
 		CoinData.FrontWeaponID, CoinData.BackWeaponID);
+	
+	OnCoinSideChanged.Broadcast(true);
 }
 
 void UShopCoinPresenter::SelectSlotBackWeapon(int32 SlotIndex)
@@ -159,6 +161,9 @@ void UShopCoinPresenter::SelectSlotBackWeapon(int32 SlotIndex)
 	const FCoinTypeStructure CoinData = CoinSubsystem->GetCoinSlotCoinType(SlotIndex);
 	ShopCoinWidget->GetShopWeaponSlotContainer()->SelectWeaponSlots(
 		CoinData.FrontWeaponID, CoinData.BackWeaponID);
+
+	
+	OnCoinSideChanged.Broadcast(false);
 }
 
 void UShopCoinPresenter::HoverSlot(int32 SlotIndex)
@@ -180,6 +185,7 @@ void UShopCoinPresenter::SelectWeapon(UW_ShopCoinWeaponSlot* ClickedWeaponSlot)
 		return;
 
 	const int32 WeaponID = ClickedWeaponSlot->GetWeaponSlotID();
+	OnCoinWeaponClicked.Broadcast(WeaponID);
 
 	const FFaceData WeaponData = GetWeaponData(WeaponID);
 	UpdateWeaponDescription(WeaponData);
@@ -331,6 +337,7 @@ void UShopCoinPresenter::BuySlot(int32 Level)
 		RefreshCoinSlotInfo();
 		SelectSlot(CoinSubsystem->GetUnlockCoinSlotCount()-1);
 		CloseSlotBuyPopup();
+		OnCoinSlotPurchased.Broadcast(Level);
 	}
 }
 
@@ -350,10 +357,17 @@ void UShopCoinPresenter::BuyCoinSlotCoin(int32 SlotIndex, int32 Count)
 	if(!CoinSubsystem->GetIsCoinSlotUnlockByIndex(SlotIndex) || !CoinSlotViews.IsValidIndex(SlotIndex))
 		return;
 
+	const int32 PreviousCount = CoinSubsystem->GetCoinSlotCoinType(SlotIndex).SameTypeCoinNum;
 	CoinSubsystem->IncreaseCoinSlotCoin(SlotIndex, Count);
+	const int32 NewCount = CoinSubsystem->GetCoinSlotCoinType(SlotIndex).SameTypeCoinNum;
 	CoinSlotViews[SlotIndex]->SetCountText(
-		CoinSubsystem->GetCoinSlotCoinType(SlotIndex).SameTypeCoinNum);
+		NewCount);
 	RefreshCoinSlotInfo();
+
+	if (NewCount > PreviousCount)
+	{
+		OnCoinCountIncreased.Broadcast(SlotIndex, NewCount - PreviousCount);
+	}
 }
 
 void UShopCoinPresenter::SellCoinSlotCoin(int32 SlotIndex, int32 Count)
@@ -518,7 +532,10 @@ void UShopCoinPresenter::UpdateWeaponDescription(const FFaceData& WeaponData)
 		}
 		DescriptionWidget->SetWeaponDescription(WeaponData, Keywords);
 
-		RangePreviewActor->ShowWeaponDefinition(WeaponData);
+		if (IsValid(RangePreviewActor))
+		{
+			RangePreviewActor->ShowWeaponDefinition(WeaponData);
+		}
 	}
 }
 
@@ -549,4 +566,5 @@ void UShopCoinPresenter::ChangeCoinSide()
 {
 	SetCoinSideFront(!IsCurrentCoinSideFront);
 	RestoreSelectedCoinSideWeaponDescription();
+	OnCoinSideChanged.Broadcast(IsCurrentCoinSideFront);
 }

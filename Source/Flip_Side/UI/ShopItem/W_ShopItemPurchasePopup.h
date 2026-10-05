@@ -55,6 +55,9 @@ public:
 	void Open(const FItemData& InItemData);
 	void Close();
 
+	// true면 구매 확정 버튼만 가능하며 수량 조절·취소 버튼은 잠급니다.
+	void SetOnlyPurchaseControlsEnabled(bool bInEnabled);
+
 private:
 	UFUNCTION() void ClickPlus();
 	UFUNCTION() void ClickMinus();

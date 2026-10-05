@@ -35,14 +35,14 @@ void UShopItemPresenter::InitPresenter(UW_ShopItemWidget* InShopItemWidget, USho
     
 }
 
-void UShopItemPresenter::BuyItem(int32 ItemID, int32 Count)
+bool UShopItemPresenter::BuyItem(int32 ItemID, int32 Count)
 {
     const FItemData ItemData = GetItemData(ItemID);
     SetItemDescription(ItemData);
-    ItemSubsystem->BuyItem(ItemData, Count);
+    return ItemSubsystem->BuyItem(ItemData, Count);
 }
 
-void UShopItemPresenter::SellItem(int32 Index, int32 ItemID, int32 Count)
+bool UShopItemPresenter::SellItem(int32 Index, int32 ItemID, int32 Count)
 {
     
     const FItemData ItemData = GetItemData(ItemID);
@@ -60,6 +60,8 @@ void UShopItemPresenter::SellItem(int32 Index, int32 ItemID, int32 Count)
         ShopPlayerItemSlotViews[Index]->UpdateItemCount(IndexItemCount);
     else
         ShopPlayerItemSlotViews[Index]->DeleteItemWidget();
+
+	return bSold;
 }
 
 void UShopItemPresenter::SetPlayerItemSlot(int32 SetSlotIndex)
@@ -177,6 +179,7 @@ void UShopItemPresenter::OpenPurchasePopup(UW_ShopItemSlot* ClickedSlot, int32 I
     {
         IsPurchasePopUpOpen = true;
         Popup->Open(SetItemData);
+		OnItemPurchaseClicked.Broadcast(ItemID);
     }
 }
 
@@ -186,8 +189,11 @@ void UShopItemPresenter::RequestPurchaseFromPopup(int32 ItemID, int32 Count)
     if (!ItemSubsystem->CanBuyItem(ItemData.Price, Count))
         return;
 
-    BuyItem(ItemID, Count);
-    ClosePurchasePopup();
+	if (BuyItem(ItemID, Count))
+	{
+		OnItemPurchased.Broadcast(ItemID, Count);
+		ClosePurchasePopup();
+	}
 }
 
 void UShopItemPresenter::ClosePurchasePopup()
@@ -247,8 +253,11 @@ void UShopItemPresenter::RequestSellFromPopup(int32 InventoryIndex, int32 ItemID
     if (PlayerItem.ItemID != ItemID || Count <= 0 || Count > PlayerItem.SameItemNum)
         return;
 
-    SellItem(InventoryIndex, ItemID, Count);
-    CloseSellPopup();
+	if (SellItem(InventoryIndex, ItemID, Count))
+	{
+		OnItemSold.Broadcast(ItemID, Count);
+		CloseSellPopup();
+	}
 }
 
 void UShopItemPresenter::CloseSellPopup()

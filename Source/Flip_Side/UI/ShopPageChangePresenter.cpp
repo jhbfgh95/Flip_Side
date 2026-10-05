@@ -71,6 +71,7 @@ void UShopPageChangePresenter::HandleMoveCompleted(EShopPage Page)
 	WidgetContainer->ShowShopPage(Page);
 	SetLight(Page);
 	SetShopUISelectActorsEnabled(Page == EShopPage::Main);
+	OnPageMoveCompleted.Broadcast(Page);
 }
 
 void UShopPageChangePresenter::SetShopUISelectActorsEnabled(bool bEnabled)
@@ -81,6 +82,54 @@ void UShopPageChangePresenter::SetShopUISelectActorsEnabled(bool bEnabled)
 		{
 			SelectActor->SetClickCollisionEnabled(bEnabled);
 		}
+	}
+}
+
+void UShopPageChangePresenter::SetShopUISelectActorsEnabledForPage(EShopPage Page)
+{
+	if (!IsValid(ShopUISelectRegistry))
+	{
+		return;
+	}
+
+	if (Page == EShopPage::Main)
+	{
+		SetShopUISelectActorsEnabled(true);
+		return;
+	}
+	SetShopUISelectActorsEnabled(false);
+
+	if (Page == EShopPage::None)
+	{
+		return;
+	}
+
+
+	AShopUISelectActor* TargetSelectActor = nullptr;
+	switch (Page)
+	{
+	case EShopPage::Coin:
+		TargetSelectActor = ShopUISelectRegistry->GetCoinUISelectActor();
+		break;
+	case EShopPage::Item:
+		TargetSelectActor = ShopUISelectRegistry->GetItemUISelectActor();
+		break;
+	case EShopPage::Card:
+		TargetSelectActor = ShopUISelectRegistry->GetCardUISelectActor();
+		break;
+	case EShopPage::UnlockWeapon:
+		TargetSelectActor = ShopUISelectRegistry->GetWeaponUISelectActor();
+		break;
+	case EShopPage::Boss:
+		TargetSelectActor = ShopUISelectRegistry->GetBossUISelectActor();
+		break;
+	default:
+		break;
+	}
+
+	if (IsValid(TargetSelectActor))
+	{
+		TargetSelectActor->SetClickCollisionEnabled(true);
 	}
 }
 

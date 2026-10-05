@@ -22,6 +22,7 @@ void UW_ShopNavigationBar::NativeOnInitialized()
 void UW_ShopNavigationBar::ToggleNavigationBar()
 {
 	bNavigationBarOpen = !bNavigationBarOpen;
+	OnNavigationToggleClicked.Broadcast();
 	PlayAnimation(
 		SlideNavigationAnim,
 		0.f,
@@ -60,6 +61,37 @@ void UW_ShopNavigationBar::SetSelectedPageButton(EShopPage Page)
 	NormalTint.A = 0.3f;
 	ButtonStyle.Normal.TintColor = FSlateColor(NormalTint);
 	SelectedButton->SetStyle(ButtonStyle);
+}
+
+void UW_ShopNavigationBar::SetNavigationButtonsLocked(bool bLockAll, EShopPage AllowedPage)
+{
+	if(bLockAll&& AllowedPage==EShopPage::None)
+	{
+		bNavigationBarOpen = false;
+		PlayAnimation(
+			SlideNavigationAnim,
+			0.f,
+			1, EUMGSequencePlayMode::Reverse);
+	}
+
+	const bool bEnableAllButtons = !bLockAll && AllowedPage == EShopPage::None;
+	const bool bEnableMainButton = !bLockAll && (bEnableAllButtons || AllowedPage == EShopPage::Main);
+	const bool bEnableCoinButton = !bLockAll && (bEnableAllButtons || AllowedPage == EShopPage::Coin);
+	const bool bEnableItemButton = !bLockAll && (bEnableAllButtons || AllowedPage == EShopPage::Item);
+	const bool bEnableCardButton = !bLockAll && (bEnableAllButtons || AllowedPage == EShopPage::Card);
+	const bool bEnableUnlockWeaponButton = !bLockAll && (bEnableAllButtons || AllowedPage == EShopPage::UnlockWeapon);
+	const bool bEnableBossButton = !bLockAll && (bEnableAllButtons || AllowedPage == EShopPage::Boss);
+	const bool bEnableStartGameButton = !bLockAll && (bEnableAllButtons || AllowedPage == EShopPage::GameStart);
+
+	if (IsValid(NavigationToggleButton)) 
+		NavigationToggleButton->SetIsEnabled(!bLockAll);
+	if (IsValid(MainButton)) MainButton->SetIsEnabled(bEnableMainButton);
+	if (IsValid(CoinButton)) CoinButton->SetIsEnabled(bEnableCoinButton);
+	if (IsValid(ItemButton)) ItemButton->SetIsEnabled(bEnableItemButton);
+	if (IsValid(CardButton)) CardButton->SetIsEnabled(bEnableCardButton);
+	if (IsValid(UnlockWeaponButton)) UnlockWeaponButton->SetIsEnabled(bEnableUnlockWeaponButton);
+	if (IsValid(BossButton)) BossButton->SetIsEnabled(bEnableBossButton);
+	if (IsValid(StartGameButton)) StartGameButton->SetIsEnabled(bEnableStartGameButton);
 }
 
 void UW_ShopNavigationBar::ShowCoinPage()

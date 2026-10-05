@@ -145,8 +145,24 @@ bool AShopCoinUIActor::SwapMeshPositions()
 	return true;
 }
 
+void AShopCoinUIActor::SetCoinInteractionEnabled(bool bInEnabled)
+{
+	bCoinInteractionEnabled = bInEnabled;
+
+	if (IsValid(SwapCollision))
+	{
+		SwapCollision->SetCollisionEnabled(
+			bCoinInteractionEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+	}
+}
+
 void AShopCoinUIActor::InteractLeftClick_Implementation()
 {
+	if (!bCoinInteractionEnabled)
+	{
+		return;
+	}
+
 	if (SwapMeshPositions())
 	{
 		OnShopCoinSideChanged.Broadcast();

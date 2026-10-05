@@ -12,6 +12,7 @@ class AShopItemUIActor;
 class AShopCoinUIActor;
 class AShopUnlockWeaponUIActor;
 class UW_ShopBossClearProgress;
+class UW_ShopTutorialWidget;
 UCLASS(abstract)
 class AShopController_FlipSide : public APlayerController
 {
@@ -41,8 +42,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UW_ShopBossClearProgress> BossClearProgressWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UW_ShopTutorialWidget> ShopTutorialWidgetClass;
+
 	UPROPERTY()
 	TObjectPtr<UW_ShopBossClearProgress> BossClearProgressWidget;
+
+	UPROPERTY()
+	TObjectPtr<UW_ShopTutorialWidget> ShopTutorialWidget;
 
 protected:
 /*UI에 쓰이는 액터들 */
@@ -75,6 +82,9 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UShopPageChangePresenter> PageChangePresenter;
 
+	UPROPERTY()
+	TObjectPtr<class UShopTutorialPresenter> TutorialPresenter;
+
 //UI 스크립트
 private:
 
@@ -100,6 +110,7 @@ public:
 
 private:
 	void TryInitPageChangePresenter();
+	void TryInitShopTutorialPresenter();
 
 public:
 	UFUNCTION()

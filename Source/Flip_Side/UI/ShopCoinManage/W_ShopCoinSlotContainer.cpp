@@ -157,7 +157,18 @@ void UW_ShopCoinSlotContainer::RemoveCoinSlot(int32 RemoveSlotIndex)
 
 void UW_ShopCoinSlotContainer::ResetSlotPreview()
 {
-    RebuildSlotBox(CoinSlots);
+	RebuildSlotBox(CoinSlots);
+}
+
+void UW_ShopCoinSlotContainer::SetCoinSlotInputEnabled(bool bInEnabled)
+{
+	for (UW_ShopCoinSlot* CoinSlot : CoinSlots)
+	{
+		if (IsValid(CoinSlot))
+		{
+			CoinSlot->SetCoinSlotInputEnabled(bInEnabled);
+		}
+	}
 }
 
 void UW_ShopCoinSlotContainer::RebuildSlotBox(

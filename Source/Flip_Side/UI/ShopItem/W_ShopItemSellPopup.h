@@ -67,6 +67,9 @@ public:
     void Open(int32 InInventoryIndex, const FItemData& InItemData, int32 InMaxSellCount);
     void Close();
 
+    // true면 판매 확정 버튼만 가능하며 수량 조절·취소 버튼은 잠급니다.
+    void SetOnlySellControlsEnabled(bool bInEnabled);
+
 private:
     void RefreshCountAndPrice();
 

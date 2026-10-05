@@ -42,6 +42,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void InitWidget(int32 InBuySlotLevel, int32 InSlotPrice, int32 InBuySlotHp);
+
+	void SetPurchaseInputEnabled(bool bInEnabled);
 protected:
 	UFUNCTION()
 	void ClickBuySlotButton();

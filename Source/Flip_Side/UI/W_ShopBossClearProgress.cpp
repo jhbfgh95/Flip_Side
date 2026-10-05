@@ -12,7 +12,6 @@ void UW_ShopBossClearProgress::NativeConstruct()
 
 void UW_ShopBossClearProgress::SetBossProgress(const TArray<FBossDisplayData>& InBossDataList, int32 CurrentStage)
 {
-	UE_LOG(LogTemp, Warning, TEXT("초기설정"));
 
 	if (IsValid(BackgroundButton))
 	{

@@ -49,6 +49,7 @@ public:
 protected:
 
 	FCardData WidgetCardData;
+	bool bCardSlotInputEnabled = true;
 
 	UPROPERTY()
 	TObjectPtr<UMaterialInstanceDynamic> CardImageMI;
@@ -58,6 +59,8 @@ public:
 	void InitCardSlot(FCardData InitCard);
 
 	void SetCardSlotHidden();
+
+	void SetCardSlotInputEnabled(bool bInEnabled);
 protected:
 	UFUNCTION()
 	void ClickBuyCardButton();

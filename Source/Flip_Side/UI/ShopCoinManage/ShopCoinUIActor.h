@@ -43,6 +43,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Shop Coin")
 	bool SwapMeshPositions();
 
+	// 코인 앞·뒤 전환용 월드 상호작용을 켜거나 끕니다.
+	UFUNCTION(BlueprintCallable, Category = "Shop Coin")
+	void SetCoinInteractionEnabled(bool bInEnabled);
+
 	FOnShopCoinSideChanged OnShopCoinSideChanged;
 
 	virtual void InteractLeftClick_Implementation() override;
@@ -88,6 +92,7 @@ protected:
 
 	FVector FrontStartLocation;
 	FVector BackStartLocation;
+	bool bCoinInteractionEnabled = true;
 
 	UFUNCTION()
 	void UpdateSwapMovement(float Alpha);

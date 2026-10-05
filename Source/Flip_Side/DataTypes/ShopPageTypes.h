@@ -6,7 +6,8 @@
 UENUM(BlueprintType)
 enum class EShopPage : uint8
 {
-	Main,
+	None = 255,
+	Main = 0,
 	Coin,
 	Item,
 	Card,

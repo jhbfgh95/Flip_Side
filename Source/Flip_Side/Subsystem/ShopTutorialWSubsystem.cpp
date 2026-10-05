@@ -14,55 +14,52 @@ bool UShopTutorialWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
         return false;
 
     const FString MapName = World->GetName();
-    return MapName.Contains(TEXT("L_Tutorial_TutoShop_Level"));
+    return MapName.Contains(TEXT("L_Tutorial_Shop_Level")) ||
+        MapName.Contains(TEXT("L_Tutorial_TutoShop_Level"));
 }
 
-void UShopTutorialWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
+void UShopTutorialWSubsystem::SetTutorialActionSequence(const TArray<EShopTutorialAction>& InActionSequence)
 {
-    Super::OnWorldBeginPlay(InWorld);
+	TutorialActionSequence = InActionSequence;
+	CurrentStepIndex = INDEX_NONE;
 }
 
-bool UShopTutorialWSubsystem::SetTutorialEvent(int32 EventOrder, TScriptInterface<IShopTutorialInterface> SetEvent)
+void UShopTutorialWSubsystem::StartTutorial()
 {
-    if(EventOrder <=-1)
-        return false;
-    
-    if(ReadyTutorialEvents.Num()<=EventOrder)
-    {
-        ReadyTutorialEvents.SetNum(EventOrder+1);
-    }
-    
-    ReadyTutorialEvents[EventOrder].TutorialEvents.Add(SetEvent);
-
-    if(EventOrder == 0)
-    {
-        SetEvent->Execute_ExecuteTutorialEvent(SetEvent.GetObject());
-    }
-    return true;
+	CurrentStepIndex = TutorialActionSequence.IsEmpty() ? INDEX_NONE : 0;
+	if (IsTutorialActive())
+	{
+		OnTutorialStarted.Broadcast(CurrentStepIndex);
+	}
 }
-	
-void UShopTutorialWSubsystem::ExecuteEvents(int32 EventOrder)
+
+bool UShopTutorialWSubsystem::ReportAction(EShopTutorialAction Action)
 {
-    if(ReadyTutorialEvents.Num()<= EventOrder || EventOrder==-1)
-        return;
-    CurrentExecuteNum = EventOrder;
+	if (!IsTutorialActive() || GetExpectedAction() != Action)
+	{
+		return false;
+	}
 
-    if(0<=EventOrder-1)
-    {
-        for(TScriptInterface<IShopTutorialInterface>& TutorialObject : ReadyTutorialEvents[EventOrder-1].TutorialEvents)
-        {
-            TutorialObject->Execute_FinishTutorialEvent(TutorialObject.GetObject());
-        }
-    }
+	++CurrentStepIndex;
+	const EShopTutorialAction NextAction = GetExpectedAction();
+	OnTutorialStepChanged.Broadcast(CurrentStepIndex, Action, NextAction);
 
-    for(TScriptInterface<IShopTutorialInterface>& TutorialObject : ReadyTutorialEvents[EventOrder].TutorialEvents)
-    {
-        TutorialObject->Execute_ExecuteTutorialEvent(TutorialObject.GetObject());
-    }
-    
+	if (CurrentStepIndex >= TutorialActionSequence.Num())
+	{
+		OnTutorialCompleted.Broadcast();
+	}
+
+	return true;
 }
-    
-int32 UShopTutorialWSubsystem::GetExecuteOrderNum()
+
+EShopTutorialAction UShopTutorialWSubsystem::GetExpectedAction() const
 {
-    return CurrentExecuteNum;
+	return IsTutorialActive()
+		? TutorialActionSequence[CurrentStepIndex]
+		: EShopTutorialAction::None;
+}
+
+bool UShopTutorialWSubsystem::IsTutorialActive() const
+{
+	return TutorialActionSequence.IsValidIndex(CurrentStepIndex);
 }

@@ -35,6 +35,7 @@ void UShopCardPresenter::BuyCard(UW_ShopCardSlot* BuyCardSlot, int32 CardID)
     if(CardSubsystem->BuyCard(GetCardData(CardID)))
     {
         BuyCardSlot->SetCardSlotHidden();
+		OnCardPurchased.Broadcast(CardID);
     }
 }
 	
@@ -72,6 +73,8 @@ void UShopCardPresenter::SelectedPlayerCard(UW_ShopPlayerCardSlot* SelectedCardS
     ShopCardMainWidget
         ->GetShopPlayerCardSlotContainer()
         ->SetSelectCardCountText(CardSubsystem->GetPlayerSelectCardCount());
+
+	OnPlayerCardSelected.Broadcast(CardID);
 
 }
 

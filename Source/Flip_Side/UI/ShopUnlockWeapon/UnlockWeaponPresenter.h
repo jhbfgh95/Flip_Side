@@ -12,6 +12,8 @@ class UDataManagerSubsystem;
 class UUnlockGISubsystem;
 class AShopWeaponRangePreviewActor;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopWeaponUnlocked, int32, WeaponID);
+
 UCLASS()
 class FLIP_SIDE_API UUnlockWeaponPresenter : public UObject
 {
@@ -24,6 +26,11 @@ public:
 		UUnlockGISubsystem* InUnlockSubsystem,
 		AShopUnlockWeaponUIActor* InShopUnlockWeaponUIActor,
 		AShopWeaponRangePreviewActor* InRangePreviewActor);
+
+	UPROPERTY(BlueprintAssignable)
+	FOnShopWeaponUnlocked OnWeaponUnlocked;
+
+	UW_UnlockWeaponWidget* GetShopUnlockWidget() const { return UnlockWeaponWidget; }
 
 private:
 	UPROPERTY()

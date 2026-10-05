@@ -41,6 +41,12 @@ void UW_ShopCardSlot::SetCardSlotHidden()
     this->SetVisibility(ESlateVisibility::Collapsed);
 }
 
+void UW_ShopCardSlot::SetCardSlotInputEnabled(bool bInEnabled)
+{
+    bCardSlotInputEnabled = bInEnabled;
+    SetIsEnabled(bInEnabled);
+}
+
 void UW_ShopCardSlot::ClickBuyCardButton()
 {
     OnBuyCard.Broadcast(this, WidgetCardData.CardID);
@@ -72,6 +78,11 @@ void UW_ShopCardSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 
 FReply UW_ShopCardSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
+    if (!bCardSlotInputEnabled)
+    {
+        return FReply::Unhandled();
+    }
+
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
     {
         ClickBuyCardButton();
