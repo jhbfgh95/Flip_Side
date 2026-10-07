@@ -39,6 +39,12 @@ protected:
 	UPROPERTY(meta= (BindWidget))
 	class UTextBlock* WeaponNameText;
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> AttackPower;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> WeaponPower;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> CountText;
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> AbilityButton;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> RangeButton;

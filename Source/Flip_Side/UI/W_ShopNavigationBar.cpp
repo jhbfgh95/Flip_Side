@@ -58,7 +58,7 @@ void UW_ShopNavigationBar::SetSelectedPageButton(EShopPage Page)
 	if (!IsValid(SelectedButton))
 		return;
 
-	NormalTint.A = 0.3f;
+	NormalTint.A = 0.8f;
 	ButtonStyle.Normal.TintColor = FSlateColor(NormalTint);
 	SelectedButton->SetStyle(ButtonStyle);
 }
