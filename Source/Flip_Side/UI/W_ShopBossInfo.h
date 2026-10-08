@@ -63,7 +63,7 @@ protected:
 	class UTextBlock* PatternAttackText;
 
 	UPROPERTY(meta = (BindWidgetOptional))
-	class UTextBlock* PatternDescriptionText;
+	class URichTextBlock* PatternDescriptionText;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	class UButton* PassiveButton;

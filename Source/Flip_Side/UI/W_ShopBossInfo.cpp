@@ -8,6 +8,7 @@
 #include "Components/Button.h"
 #include "Components/HorizontalBox.h"
 #include "Components/Image.h"
+#include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
 #include "Engine/GameInstance.h"
 #include "Subsystem/BossSetupGISubsystem.h"
@@ -205,9 +206,9 @@ void UW_ShopBossInfo::RefreshBossTexts()
 {
 	if(BossImage)
 	{
-		if(CurrentBossData.BossImage)
+		if(CurrentBossData.BossIcon)
 		{
-			BossImage->SetBrushFromTexture(CurrentBossData.BossImage);
+			BossImage->SetBrushFromTexture(CurrentBossData.BossIcon);
 			BossImage->SetVisibility(ESlateVisibility::HitTestInvisible);
 		}
 		else
@@ -350,11 +351,7 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 
 	if(PatternDescriptionText)
 	{
-		// 상점은 일반 TextBlock이므로 전투 팝업용 상세 설명 서식 태그만 제거합니다.
-		const FString Description = PatternData.PatternDescription.ToString()
-			.Replace(TEXT("<DebuffDesc>"), TEXT(""))
-			.Replace(TEXT("</>"), TEXT(""));
-		PatternDescriptionText->SetText(FText::FromString(Description));
+		PatternDescriptionText->SetText(PatternData.PatternDescription);
 	}
 }
 

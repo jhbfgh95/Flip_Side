@@ -110,6 +110,7 @@ void UShopCoinPresenter::InitShopCoinUIActor()
 	if (IsValid(ShopCoinUIActor))
 	{
 		ShopCoinUIActor->OnShopCoinSideChanged.AddDynamic(this, &UShopCoinPresenter::ChangeCoinSide);
+		ShopCoinUIActor->ResetWeaponIcons();
 	}
 }
 

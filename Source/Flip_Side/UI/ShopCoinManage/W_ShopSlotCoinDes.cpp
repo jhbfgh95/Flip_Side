@@ -84,6 +84,9 @@ void UW_ShopSlotCoinDes::SetExplainTextEmpty()
     {
         WeaponNameText->SetText(FText::GetEmpty());
     }
+    if (AttackPower) AttackPower->SetText(FText::GetEmpty());
+    if (WeaponPower) WeaponPower->SetText(FText::GetEmpty());
+    if (CountText) CountText->SetText(FText::GetEmpty());
 
     SetVisibility(ESlateVisibility::Collapsed);
 }
@@ -93,6 +96,9 @@ void UW_ShopSlotCoinDes::SetWeaponDescription(const FFaceData& Weapon, const TAr
     SetExplainTextEmpty();
     if (WeaponNameText) WeaponNameText->SetText(FText::FromString(Weapon.WeaponName));
     const FWeaponNumericStats Stats{Weapon.AttackPoint, Weapon.BehaviorPoint, Weapon.Count};
+    if (AttackPower) AttackPower->SetText(FText::AsNumber(Stats.AttackPoint));
+    if (WeaponPower) WeaponPower->SetText(FText::AsNumber(Stats.WeaponPoint));
+    if (CountText) CountText->SetText(FText::AsNumber(Stats.WeaponCnt));
     Sections = FCoinDescriptionFormatter::Parse(Weapon.KOR_DES, Keywords, Stats).Sections;
     if (!IsValid(DescriptionSection))
     {
