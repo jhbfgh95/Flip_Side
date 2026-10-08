@@ -12,6 +12,7 @@
 #include "Engine/World.h"
 #include "Objects/Weapon_Action.h"
 #include "Subsystem/AttackLogicLibrary.h"
+#include "Subsystem/BattleLevel/CoinActionManagementWSubsystem.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
 #include "Subsystem/BattleLevel/OthersWSubsystem.h"
 
@@ -51,9 +52,13 @@ namespace
 
 	void AddAdditionalDamageToState(UWeapon_Action* Context, const FWeaponAttackResult& Result)
 	{
-		if (Context)
+		if (IsValid(Context))
 		{
 			Context->GetExecutionState().TotalDamageDealt += Result.GetTotalDamage();
+			UWorld* World = Context->GetWorld();
+			UCoinActionManagementWSubsystem* ActionManager = IsValid(World)
+				? World->GetSubsystem<UCoinActionManagementWSubsystem>() : nullptr;
+			if (IsValid(ActionManager)) ActionManager->PlayCommonVFX(Result);
 		}
 	}
 }

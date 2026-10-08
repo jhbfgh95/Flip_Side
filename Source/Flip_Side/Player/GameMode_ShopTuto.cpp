@@ -20,24 +20,13 @@ void AGameMode_ShopTuto::ChangeBattleLevel()
     ULevelGISubsystem* LevelSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
 
 
-    if(ShopCoinSubsystem->GetIsCoinEmpty())
-    {
-        CrossSubsystem->SetIsCoinEmpty(true);
-    }
-    else
-    {
-        CrossSubsystem->SetIsCoinEmpty(false);
-        //코인값 넘겨줌
-        for(int i =0; i<10; i++)
-        {
-            FCoinTypeStructure CoinData = ShopCoinSubsystem->GetSlotCoin(i);
-            
-            UE_LOG(LogTemp, Warning, TEXT("앞면 정보 %d / 뒷면정보%d"), CoinData.FrontWeaponID,CoinData.BackWeaponID);
+    if (!IsValid(CrossSubsystem) || !IsValid(ShopCoinSubsystem) || !IsValid(ShopCardSubsystem) ||
+        !IsValid(ShopItemSubsystem) || !IsValid(LevelSubsystem)) return;
 
-            //if(CoinData.FrontWeaponID != -1 && CoinData.BackWeaponID != -1)
-            CrossSubsystem->SetSlotCoin(i, CoinData);
-        }
-    }
+    CrossSubsystem->SetIsCoinEmpty(ShopCoinSubsystem->GetIsCoinEmpty());
+    // 빈 슬롯도 전달하여 이전 보유 데이터를 덮어씁니다.
+    for (int32 Slot = 0; Slot < 10; ++Slot)
+        CrossSubsystem->SetSlotCoin(Slot, ShopCoinSubsystem->GetSlotCoin(Slot));
     //카드값 넘겨줌
     for(int i =0; i<3; i++)
     {
@@ -45,13 +34,12 @@ void AGameMode_ShopTuto::ChangeBattleLevel()
         CrossSubsystem->SetBattleCardID(CardID,i);
     }
     //아이템값 넘겨줌
-    for(int i =0; i<ShopItemSubsystem->GetPlayerItemNum(); i++)
+    for(int i =0; i<3; i++)
     {
-        FSelectItem PlayerItem = ShopItemSubsystem->GetPlayerItem(i);
-        if(PlayerItem.ItemID != -1 && PlayerItem.SameItemNum != -1)
-        {
-            CrossSubsystem->SetBattleUseItemID(PlayerItem.ItemID,i, PlayerItem.SameItemNum);
-        }
+        FSelectItem PlayerItem;
+        if (i < ShopItemSubsystem->GetPlayerItemNum()) PlayerItem = ShopItemSubsystem->GetPlayerItem(i);
+        const bool bHasItem = PlayerItem.ItemID >= 0 && PlayerItem.SameItemNum > 0;
+        CrossSubsystem->SetBattleUseItemID(bHasItem ? PlayerItem.ItemID : -1, i, bHasItem ? PlayerItem.SameItemNum : 0);
     }
     LevelSubsystem->MovingTutorialLevel(1);
 }

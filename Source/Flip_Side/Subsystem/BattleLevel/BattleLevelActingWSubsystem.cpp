@@ -330,7 +330,8 @@ void UBattleLevelActingWSubsystem::PlayPhaseChangePotionAct(ACoinActor* TargetCo
 
     TargetCoin->DoCoinActAtBattleStart(
         TargetGrid->GetGridWorldXY().X,
-        TargetGrid->GetGridWorldXY().Y
+        TargetGrid->GetGridWorldXY().Y,
+        FSimpleDelegate::CreateWeakLambda(this, [this]() { OnTutorialItemAnimationFinished.Broadcast(); })
     );
 }
 

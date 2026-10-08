@@ -33,6 +33,16 @@ class FLIP_SIDE_API UBattlePlayerHUDWidget : public UUserWidget
 public:
 	UFUNCTION(BlueprintPure, Category = "Tutorial")
 	UWidget* GetTutorialCoinSlot(int32 SlotNumber) const;
+	UWidget* GetTutorialCoinInfo() const;
+	UWidget* GetTutorialItemInfo() const;
+	UWidget* GetTutorialCardInfo() const;
+	UWidget* GetTutorialMobilityBookmark() const;
+	bool IsTutorialCardInfoOpen(int32 SlotNumber) const;
+	bool IsTutorialCardSlotHovered(int32 SlotNumber) const;
+	void DismissTutorialCardInfo();
+	void ReturnTutorialInfoToReady();
+	void SetTutorialInfoPinned(bool bPinned) { bTutorialInfoPinned = bPinned; }
+	bool IsTutorialInfoPinned() const { return bTutorialInfoPinned; }
 	TSubclassOf<class UBattleCoinSlotWidget> GetTutorialCoinSlotClass() const { return BattleCoinSlotWidgetClass; }
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
@@ -142,6 +152,7 @@ protected:
 	TSubclassOf<class UW_CardWidget> CardInfoWidgetClass;
 
 private:
+	bool bTutorialInfoPinned = false;
 	bool bShowingReadySlotInfo = false;
 	void HandleBossPatternHovered();
 	void HandleBossPatternUnhovered();
@@ -155,6 +166,8 @@ private:
 	TSharedPtr<class FCoinSlotPopupInputProcessor> CoinPopupInputProcessor;
 	int32 DisplayedCoinSlotNumber = INDEX_NONE;
 	int32 DisplayedItemID = INDEX_NONE;
+	int32 DisplayedCardSlotNumber = INDEX_NONE;
+	int32 HoveredCardSlotNumber = INDEX_NONE;
 	void EnsureCoinSlotWidgets(int32 RequiredCount);
 	void RefreshCoinSlotInfoSelection();
 	void RefreshItemInfoSelection();

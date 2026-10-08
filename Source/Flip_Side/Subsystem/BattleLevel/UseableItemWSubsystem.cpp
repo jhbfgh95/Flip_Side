@@ -17,6 +17,7 @@
 #include "GridTypes.h"
 #include "Item_Action.h"
 #include "LevelGISubsystem.h"
+#include "Subsystem/BattleLevel/BattleTutorialWSubsystem.h"
 
 namespace
 {
@@ -95,7 +96,8 @@ void UUseableItemWSubsystem::InitUseitemSlot()
     if(!CrossingLevelSubsystem) return;
 
     ItemSlotArray.Reset();
-    if (const ULevelGISubsystem* Level = GI->GetSubsystem<ULevelGISubsystem>(); IsValid(Level) && Level->IsBattleTutorialActive())
+    const ULevelGISubsystem* Level = GI->GetSubsystem<ULevelGISubsystem>();
+    if (IsValid(Level) && Level->IsBattleTutorialActive())
     {
         for (int32 ID : {4, 6, 1})
         {
@@ -106,7 +108,10 @@ void UUseableItemWSubsystem::InitUseitemSlot()
         }
         return;
     }
-    for(int i = 0; i < CrossingLevelSubsystem->GetMakedItemNum(); i++)
+    // 튜토리얼 보스전은 중간 슬롯이 비어 있어도 뒤쪽 구매 아이템을 읽습니다.
+    const int32 SlotCount = IsValid(Level) && Level->IsTutorialBossBattleActive()
+        ? 3 : CrossingLevelSubsystem->GetMakedItemNum();
+    for(int i = 0; i < SlotCount; i++)
     {
         FSelectItem ItemData = CrossingLevelSubsystem->GetBattleUseItems(i);
         ItemSlotArray.Add(ItemData);
@@ -144,7 +149,8 @@ void UUseableItemWSubsystem::InitializeBattleItemSlots()
         NewSlot.AvailableCount = SelectItemData.SameItemNum;
     }
 
-	if (BattleItemSlots.IsEmpty())
+	const ULevelGISubsystem* Level = GI->GetSubsystem<ULevelGISubsystem>();
+	if (BattleItemSlots.IsEmpty() && (!IsValid(Level) || !Level->IsTutorialBossBattleActive()))
 	{
 		TestItemGenerate();
 		return;
@@ -482,6 +488,11 @@ void UUseableItemWSubsystem::ExecuteItemForGrid(AGridActor* TargetGrid)
 
 void UUseableItemWSubsystem::ExecuteItemForCoin(ACoinActor* TargetCoin)
 {
+	if (const ULevelGISubsystem* Level = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>(); IsValid(Level) && Level->IsBattleTutorialActive())
+	{
+		const auto* Tutorial = GetWorld()->GetSubsystem<UBattleTutorialWSubsystem>();
+		if (!IsValid(Tutorial) || !Tutorial->CanSelectTutorialCoin(TargetCoin)) return;
+	}
     if(CurrentTargetMode == EUseableItemTargetMode::CoinThenGrid)
     {
         if(!IsValid(TargetCoin) || !IsValid(SelectedItemAction) || SelectedItemID == INDEX_NONE)
@@ -552,6 +563,11 @@ bool UUseableItemWSubsystem::IsItemUseAvailable() const
 
 bool UUseableItemWSubsystem::TrySelectItem(int32 ItemID)
 {
+	if (const ULevelGISubsystem* Level = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>(); IsValid(Level) && Level->IsBattleTutorialActive())
+	{
+		const auto* Tutorial = GetWorld()->GetSubsystem<UBattleTutorialWSubsystem>();
+		if (!IsValid(Tutorial) || !Tutorial->CanSelectTutorialItem(ItemID)) return false;
+	}
     if(!IsItemUseAvailable())
     {
         return false;

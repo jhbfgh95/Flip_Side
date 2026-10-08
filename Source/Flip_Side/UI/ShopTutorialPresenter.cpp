@@ -21,6 +21,7 @@
 #include "Subsystem/LevelGISubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
+#include "Player/GameMode_Shop.h"
 #include "UI/ShopCard/W_ShopPlayerCardSlotContainer.h"
 #include "Components/Button.h"
 #include "UI/ShopItem/W_ShopPlayerItemSlotContainer.h"
@@ -286,18 +287,13 @@ void UShopTutorialPresenter::ShowTutorialStep(
 			break;
 			
 		case EShopTutorialAction::EndTutorial:
-			
-			if (UWorld* World = GetWorld())
-			{
-				if (UGameInstance* GameInstance = World->GetGameInstance())
+			if (UWorld* World = GetWorld(); IsValid(World))
+				if (AGameMode_Shop* GameMode = World->GetAuthGameMode<AGameMode_Shop>(); IsValid(GameMode))
 				{
-					if (ULevelGISubsystem* LevelSubsystem = GameInstance->GetSubsystem<ULevelGISubsystem>())
-					{
-						LevelSubsystem->MoveStartLevel();
-					}
+					TutorialWidget->SetTutorialActive(false);
+					GameMode->ChangeBattleLevel();
 				}
-			}
-			break;
+			return;
 
 		default:
 			break;

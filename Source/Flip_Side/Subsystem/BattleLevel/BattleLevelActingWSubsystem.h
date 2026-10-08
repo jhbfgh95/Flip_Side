@@ -138,6 +138,7 @@ public:
 	void PlayUseableItemVFX(const FItemData& ItemData, class AGridActor* TargetGrid, ACoinActor* TargetCoin, AActor* TargetOther);
 
 	void PlayPhaseChangePotionAct(ACoinActor* TargetCoin);
+	FSimpleMulticastDelegate OnTutorialItemAnimationFinished;
 
 	void ShowPromotionVFX(const FVector& Location);
 

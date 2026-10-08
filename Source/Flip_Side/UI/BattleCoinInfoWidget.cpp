@@ -7,6 +7,7 @@
 #include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Subsystem/LevelGISubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Engine/Texture2D.h"
 #include "Components/WrapBox.h"
@@ -15,6 +16,23 @@
 #include "UI/CoinDescriptionBookmarkWidget.h"
 #include "UI/CoinDescriptionSectionWidget.h"
 #include "UI/KeywordDescriptionWidget.h"
+
+UWidget* UBattleCoinInfoWidget::GetTutorialBookmark(FName KeywordCode) const
+{
+	for (int32 Index = 0; Index < DescriptionData.Num(); ++Index)
+		if (DescriptionData[Index].MainKeywordCode == KeywordCode && Bookmarks.IsValidIndex(Index)) return Bookmarks[Index];
+	return nullptr;
+}
+
+void UBattleCoinInfoWidget::SelectTutorialKeyword(FName KeywordCode)
+{
+	for (int32 Index = 0; Index < DescriptionData.Num(); ++Index)
+		if (DescriptionData[Index].MainKeywordCode == KeywordCode)
+		{
+			if (SelectedSection != Index) SelectDescription(Index);
+			return;
+		}
+}
 
 void UBattleCoinInfoWidget::NativeConstruct()
 {
@@ -287,6 +305,9 @@ void UBattleCoinInfoWidget::ToggleDetailedDescriptions()
 
 void UBattleCoinInfoWidget::RefreshDetailedDescriptions()
 {
+	UGameInstance* Instance = GetGameInstance();
+	const ULevelGISubsystem* Level = IsValid(Instance) ? Instance->GetSubsystem<ULevelGISubsystem>() : nullptr;
+	if (IsValid(Level) && Level->IsBattleTutorialActive()) bDetailed = true;
 	// 상세 버튼, 면 전환, 실시간 스탯 갱신 모두 같은 표시 상태를 사용합니다.
 	if (CurrentData.CoinInstanceID != INDEX_NONE)
 	{

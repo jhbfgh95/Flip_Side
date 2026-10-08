@@ -37,6 +37,7 @@ namespace
     constexpr int32 GameOverFlag = 1;
     constexpr int32 GameClearFlag = 2;
     constexpr int32 GameClearBattleLevelIndex = 2;
+    constexpr int32 TutorialBossBattleTurnLimit = 10;
 }
 
 void UBattleManagerWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -254,8 +255,15 @@ void UBattleManagerWSubsystem::GenerateRandomStates()
         return;
     }
 
+    UGameInstance* Instance = IsValid(GetWorld()) ? GetWorld()->GetGameInstance() : nullptr;
+    ULevelGISubsystem* Level = IsValid(Instance) ? Instance->GetSubsystem<ULevelGISubsystem>() : nullptr;
+    const bool bTutorialBossBattle = IsValid(Level) && Level->IsTutorialBossBattleActive();
+    const int32 SpawnEndY = bTutorialBossBattle ? GridManager->GetBossAreaStartY() : GridManager->GridYSize;
+    const int32 SpawnStartY = bTutorialBossBattle ? FMath::Max(0, SpawnEndY - 2) : 0;
+
+    // 상점 안내 이후의 튜토리얼 보스전은 보스 영역 바로 앞 두 줄에만 배치합니다.
     TArray<FGridPoint> CandidateCells;
-    for (int32 GridY = 0; GridY < GridManager->GridYSize; ++GridY)
+    for (int32 GridY = SpawnStartY; GridY < SpawnEndY; ++GridY)
     {
         for (int32 GridX = 0; GridX < GridManager->GridXSize; ++GridX)
         {
@@ -439,15 +447,36 @@ void UBattleManagerWSubsystem::DoBossPhase()
         ItemManager->SetPhase(false);
     }
 
+    const ULevelGISubsystem* Level = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+    bTutorialBossPatternDeferred = IsValid(Level) && Level->IsBattleTutorialActive();
+    if (bTutorialBossPatternDeferred) return;
     if (IsValid(BossManager))
     {
         BossManager->ExecuteCurrentPattern();
     }
 }
 
+void UBattleManagerWSubsystem::ResumeTutorialBossPattern()
+{
+    if (!bTutorialBossPatternDeferred || bIsStageEnded || CurrentPhase != EPhaseState::BossPhase || !IsValid(BossManager)) return;
+    bTutorialBossPatternDeferred = false;
+    BossManager->ExecuteCurrentPattern();
+}
+
 void UBattleManagerWSubsystem::DoSettingPhase()
 {
     if (bIsStageEnded) return;
+
+    UGameInstance* Instance = IsValid(GetWorld()) ? GetWorld()->GetGameInstance() : nullptr;
+    ULevelGISubsystem* Level = IsValid(Instance) ? Instance->GetSubsystem<ULevelGISubsystem>() : nullptr;
+    if (IsValid(Level) && Level->IsTutorialBossBattleActive() && TurnCount >= TutorialBossBattleTurnLimit)
+    {
+        // 10턴의 보스 페이즈까지 완료한 뒤 판정하며 11턴은 시작하지 않습니다.
+        ABossActor* Boss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
+        if (IsValid(Boss) && Boss->GetCurrentHP() <= 0) StageEnded();
+        else if (TryEndStage(GameOverFlag)) ShowStageEndWidget(GameOverFlag);
+        return;
+    }
 
     TurnCount++;
 
@@ -526,6 +555,11 @@ void UBattleManagerWSubsystem::StageEnded()
 {
     UGameInstance* GameInstance = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
     ULevelGISubsystem* LevelManager = GameInstance ? GameInstance->GetSubsystem<ULevelGISubsystem>() : nullptr;
+    if (IsValid(LevelManager) && LevelManager->IsTutorialBossBattleActive())
+    {
+        if (TryEndStage(StageClearFlag)) LevelManager->MoveStartLevel();
+        return;
+    }
     const int32 StageEndFlag = LevelManager && LevelManager->GetBattleLevelIndex() >= GameClearBattleLevelIndex
         ? GameClearFlag
         : StageClearFlag;
@@ -556,6 +590,10 @@ void UBattleManagerWSubsystem::BossDeathStarted()
 
 void UBattleManagerWSubsystem::GameOver()
 {
+    UGameInstance* Instance = IsValid(GetWorld()) ? GetWorld()->GetGameInstance() : nullptr;
+    const ULevelGISubsystem* Level = IsValid(Instance) ? Instance->GetSubsystem<ULevelGISubsystem>() : nullptr;
+    // 실제 튜토리얼 보스전은 코인 전멸로 조기 패배하지 않고 10턴 완료 시에만 실패합니다.
+    if (IsValid(Level) && Level->IsTutorialBossBattleActive()) return;
     if (!TryEndStage(GameOverFlag)) return;
 
     ShowStageEndWidget(GameOverFlag);

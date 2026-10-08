@@ -16,8 +16,11 @@ class FLIP_SIDE_API ULevelGISubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 	int32 BattleLevelIndex = 0;
+	bool bRunTutorialBossBattle = false;
 
 public:
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+
 	//배틀레벨 넘어가는 용도
 	UFUNCTION(BlueprintCallable)
 	void MoveBattleLevel();
@@ -38,6 +41,7 @@ public:
 	bool bRunBattleTutorial = false;
 
 	bool IsBattleTutorialActive() const;
+	bool IsTutorialBossBattleActive() const;
 
 	//처음으로 돌아가면 무조건 초기화
 	UFUNCTION(BlueprintCallable)

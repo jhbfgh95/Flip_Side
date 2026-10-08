@@ -134,7 +134,7 @@ void UStageCardWSubsystem::RefreshHandFromGI()
         OnHandCardSet.Broadcast(Slot, CardData);
     }
 
-    if (GetCardCount() == 0)
+    if (GetCardCount() == 0 && (!IsValid(Level) || !Level->IsTutorialBossBattleActive()))
     {
         TestCardGenerate();
         return;

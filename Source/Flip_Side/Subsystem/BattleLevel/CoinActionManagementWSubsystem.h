@@ -15,6 +15,7 @@ class UActionLogicRegistryGISubsystem;
 class UBattleLevelActingWSubsystem;
 class UGridManagerSubsystem;
 class UWeapon_Action;
+class UNiagaraComponent;
 struct FRegisteredAbilityLogic;
 struct FWeaponLogicSet;
 
@@ -38,9 +39,12 @@ public:
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnTutorialCoinActionCompleted, ACoinActor*);
 	FOnTutorialCoinActionCompleted OnTutorialCoinActionCompleted;
 	FOnTutorialCoinActionCompleted OnTutorialCoinActionStarted;
+	FOnTutorialCoinActionCompleted OnTutorialCoinActionFinished;
 	void SetPhase(bool bIsPhase);
 	void StopActionSequenceForStageEnd();
 	bool IsActionSequenceActive() const { return bActionSequenceActive; }
+	bool HaveTutorialActionVFXFinished() const;
+	void PlayCommonVFX(const FWeaponAttackResult& AttackResult);
 	bool GetActiveAbilityPreviewCells(TArray<FGridPoint>& OutCells, AGridActor* HoveredGrid = nullptr) const;
 
 	UFUNCTION()
@@ -104,7 +108,7 @@ private:
 	void ExecuteGridAction(AGridActor* TargetGrid);
 
 	void PlayCoinSpecificVFX();
-	void PlayCommonVFX(const FWeaponAttackResult& AttackResult);
+	void CollectCoinVFXLocations(TArray<FVector>& OutLocations) const;
 	void PlayFailedVFX();
 	void SpawnVFXAtLocation(class UNiagaraSystem* VFX, const FVector& Location) const;
 	void ClearBossOutline();
@@ -122,6 +126,7 @@ private:
 
 	FTimerHandle CommonVFXTimerHandle;
 	FTimerHandle CCInterruptTimerHandle;
+	mutable TArray<TWeakObjectPtr<UNiagaraComponent>> TutorialActionVFX;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UWeapon_Action> SelectedAction = nullptr;

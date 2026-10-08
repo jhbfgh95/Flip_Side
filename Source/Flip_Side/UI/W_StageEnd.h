@@ -15,6 +15,7 @@ class FLIP_SIDE_API UW_StageEnd : public UUserWidget
 	
 protected:
 	virtual void NativeConstruct() override;
+	virtual FReply NativeOnPreviewMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& Event) override;
 
 public:
 	UFUNCTION(BlueprintCallable)

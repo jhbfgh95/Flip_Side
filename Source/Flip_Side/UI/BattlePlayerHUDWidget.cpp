@@ -2,6 +2,7 @@
 
 
 #include "UI/BattlePlayerHUDWidget.h"
+#include "UI/BattleCoinInfoWidget.h"
 
 #include "Components/CanvasPanelSlot.h"
 #include "Components/PanelWidget.h"
@@ -112,9 +113,58 @@ bool UBattlePlayerHUDWidget::IsItemInfoOpen() const
 
 void UBattlePlayerHUDWidget::DismissItemInfo()
 {
+	if (bTutorialInfoPinned) return;
 	DisplayedItemID = INDEX_NONE;
 	if (IsValid(ItemInfoWidget)) ItemInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
 	RefreshItemInfoSelection();
+}
+
+UWidget* UBattlePlayerHUDWidget::GetTutorialCoinInfo() const
+{
+	return IsCoinSlotInfoOpen() ? CoinSlotInfoWidget.Get() : nullptr;
+}
+
+UWidget* UBattlePlayerHUDWidget::GetTutorialItemInfo() const
+{
+	return IsItemInfoOpen() ? ItemInfoWidget.Get() : nullptr;
+}
+
+UWidget* UBattlePlayerHUDWidget::GetTutorialCardInfo() const
+{
+	return IsTutorialCardInfoOpen(DisplayedCardSlotNumber) ? CardInfoWidget.Get() : nullptr;
+}
+
+bool UBattlePlayerHUDWidget::IsTutorialCardInfoOpen(int32 SlotNumber) const
+{
+	return IsVisible() && SlotNumber != INDEX_NONE && DisplayedCardSlotNumber == SlotNumber &&
+		IsValid(CardInfoWidget) && CardInfoWidget->IsVisible();
+}
+
+bool UBattlePlayerHUDWidget::IsTutorialCardSlotHovered(int32 SlotNumber) const
+{
+	return HoveredCardSlotNumber == SlotNumber && IsTutorialCardInfoOpen(SlotNumber);
+}
+
+void UBattlePlayerHUDWidget::DismissTutorialCardInfo()
+{
+	if (bTutorialInfoPinned) return;
+	DisplayedCardSlotNumber = INDEX_NONE;
+	if (IsValid(CardInfoWidget)) CardInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+UWidget* UBattlePlayerHUDWidget::GetTutorialMobilityBookmark() const
+{
+	if (!IsValid(BattleReadyCoinWidget) || !BattleReadyCoinWidget->IsInfoPageVisible() || !BattleReadyCoinWidget->WidgetTree) return nullptr;
+	auto* Info = Cast<UBattleCoinInfoWidget>(BattleReadyCoinWidget->WidgetTree->FindWidget(TEXT("BattleCoinInfoWidget")));
+	if (!IsValid(Info)) return nullptr;
+	Info->SelectTutorialKeyword(TEXT("Mobility"));
+	return Info->GetTutorialBookmark(TEXT("Mobility"));
+}
+
+void UBattlePlayerHUDWidget::ReturnTutorialInfoToReady()
+{
+	HideBattleCoinInfo();
+	HandleBattleInfoSelectionReset();
 }
 
 void UBattlePlayerHUDWidget::RefreshItemInfoSelection()
@@ -126,6 +176,7 @@ void UBattlePlayerHUDWidget::RefreshItemInfoSelection()
 
 void UBattlePlayerHUDWidget::DismissCoinSlotInfo()
 {
+	if (bTutorialInfoPinned) return;
 	bShowingReadySlotInfo = false;
 	const int32 PreviousSlot = DisplayedCoinSlotNumber;
 	DisplayedCoinSlotNumber = INDEX_NONE;
@@ -570,6 +621,7 @@ void UBattlePlayerHUDWidget::HandleItemSlotUnhovered(int32 ItemID)
 
 void UBattlePlayerHUDWidget::HandleCardSlotHovered(int32 SlotNumber)
 {
+	HoveredCardSlotNumber = SlotNumber;
 	DismissCoinSlotInfo();
 	DismissItemInfo();
 	const FBattleCardSlotViewData* CardSlotData = CardSlotViewDataByNumber.Find(SlotNumber);
@@ -589,6 +641,7 @@ void UBattlePlayerHUDWidget::HandleCardSlotHovered(int32 SlotNumber)
 
 	if (IsValid(CardInfoWidget))
 	{
+		DisplayedCardSlotNumber = SlotNumber;
 		CardInfoWidget->InitCard(CardSlotData->CardData);
 		CardInfoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 		ApplyPopupAnchorLayout(CardInfoWidget, CardPopupAnchor);
@@ -597,6 +650,9 @@ void UBattlePlayerHUDWidget::HandleCardSlotHovered(int32 SlotNumber)
 
 void UBattlePlayerHUDWidget::HandleCardSlotUnhovered(int32 SlotNumber)
 {
+	if (HoveredCardSlotNumber == SlotNumber) HoveredCardSlotNumber = INDEX_NONE;
+	if (bTutorialInfoPinned) return;
+	DisplayedCardSlotNumber = INDEX_NONE;
 	if (IsValid(CardInfoWidget))
 	{
 		CardInfoWidget->SetVisibility(ESlateVisibility::Hidden);

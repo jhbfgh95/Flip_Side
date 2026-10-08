@@ -9,6 +9,7 @@
 #include "Actors/Others/Base_OtherActor.h"
 #include "Engine/World.h"
 #include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
 #include "Objects/Weapon_Action.h"
 #include "Subsystem/AbilityLogicLibrary.h"
@@ -248,6 +249,11 @@ void UCoinActionManagementWSubsystem::ExecuteSelectedWeapon(ACoinActor* ClickedC
 
 	if (CurrentInputState == EActionInputState::WaitingForCoinClick)
 	{
+		if (const ULevelGISubsystem* Level = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>(); IsValid(Level) && Level->IsBattleTutorialActive())
+		{
+			const auto* Tutorial = GetWorld()->GetSubsystem<UBattleTutorialWSubsystem>();
+			if (!IsValid(Tutorial) || !Tutorial->CanSelectTutorialCoin(ClickedCoin)) return;
+		}
 		if (!ValidTargetCoins.Contains(ClickedCoin) || !IsValid(SelectedAction))
 		{
 			PlayFailedVFX();
@@ -319,6 +325,7 @@ void UCoinActionManagementWSubsystem::StartCoinActionSequence()
 	CasterCoin->SetCoinIsActed(true);
 	CasterCoin->SetCoinIsActing(true);
 	bActionSequenceActive = true;
+	TutorialActionVFX.Reset();
 	OnTutorialCoinActionStarted.Broadcast(CasterCoin);
 	if (IsValid(CasterCoin->DebuffComponent))
 		CasterCoin->DebuffComponent->OnCCChanged.AddUniqueDynamic(this, &UCoinActionManagementWSubsystem::HandleActiveCoinCCChanged);
@@ -621,7 +628,12 @@ void UCoinActionManagementWSubsystem::CompleteManualAbilitySelection()
 
 	const FRegisteredAbilityLogic& AbilityLogic = LogicSet->AbilityLogics[PendingAbilityIndex];
 	SelectedAction->GetExecutionState().CurrentRepeatIndex++;
-	SelectedAction->ExecuteAbility(AbilityLogic);
+	UNiagaraSystem* AbilityVFX = SelectedAction->GetWeaponData().WeaponVFX;
+	TArray<FVector> AbilityVFXLocations;
+	if (IsValid(AbilityVFX)) CollectCoinVFXLocations(AbilityVFXLocations);
+	// 능력으로 대상이 파괴되거나 행동 컨텍스트가 초기화되어도 선택한 위치에 재생합니다.
+	if (SelectedAction->ExecuteAbility(AbilityLogic))
+		for (const FVector& Location : AbilityVFXLocations) SpawnVFXAtLocation(AbilityVFX, Location);
 	--PendingSelectionCount;
 	ClearValidAbilityTargets();
 
@@ -860,6 +872,7 @@ void UCoinActionManagementWSubsystem::ExecuteGridAction(AGridActor* TargetGrid)
 
 void UCoinActionManagementWSubsystem::TryCancelCurrentAction()
 {
+	if (const ULevelGISubsystem* Level = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>(); IsValid(Level) && Level->IsBattleTutorialActive()) return;
 	if (!bActionSequenceActive ||
 		(CurrentInputState != EActionInputState::WaitingForCoinClick &&
 		 CurrentInputState != EActionInputState::WaitingForGridClick &&
@@ -974,6 +987,7 @@ void UCoinActionManagementWSubsystem::HandleCoinActionLowerFinished()
 	}
 	ResetActionState();
 	if (bCompleted) OnTutorialCoinActionCompleted.Broadcast(CompletedCoin);
+	if (IsValid(CompletedCoin)) OnTutorialCoinActionFinished.Broadcast(CompletedCoin);
 }
 
 void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
@@ -999,19 +1013,29 @@ void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
 		return;
 	}
 
+	TArray<FVector> Locations;
+	CollectCoinVFXLocations(Locations);
+	for (const FVector& Location : Locations) SpawnVFXAtLocation(WeaponData.WeaponVFX, Location);
+}
+
+void UCoinActionManagementWSubsystem::CollectCoinVFXLocations(TArray<FVector>& OutLocations) const
+{
+	OutLocations.Reset();
+	if (!IsValid(SelectedAction)) return;
+	const FFaceData& WeaponData = SelectedAction->GetWeaponData();
 	switch (WeaponData.WeaponVFXTarget)
 	{
 	case EWeaponVFXTarget::Caster:
 		if (ACoinActor* Coin = SelectedAction->GetCasterCoin(); IsValid(Coin))
 		{
-			SpawnVFXAtLocation(WeaponData.WeaponVFX, Coin->GetActorLocation());
+			OutLocations.Add(Coin->GetActorLocation());
 		}
 		break;
 	case EWeaponVFXTarget::TargetGrid:
 		if (AGridActor* Grid = SelectedAction->GetTargetGrid(); IsValid(Grid))
 		{
 			const FVector2D XY = Grid->GetGridWorldXY();
-			SpawnVFXAtLocation(WeaponData.WeaponVFX, FVector(XY.X, XY.Y, -80.0f));
+			OutLocations.Add(FVector(XY.X, XY.Y, -80.0f));
 		}
 		break;
 	case EWeaponVFXTarget::TargetCoin:
@@ -1020,7 +1044,7 @@ void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
 		{
 			if (IsValid(Coin))
 			{
-				SpawnVFXAtLocation(WeaponData.WeaponVFX, Coin->GetActorLocation());
+				OutLocations.Add(Coin->GetActorLocation());
 				if (WeaponData.WeaponVFXTarget == EWeaponVFXTarget::TargetCoin)
 				{
 					break;
@@ -1031,13 +1055,13 @@ void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
 	case EWeaponVFXTarget::TargetOther:
 		if (ABase_OtherActor* Other = SelectedAction->GetTargetOther(); IsValid(Other))
 		{
-			SpawnVFXAtLocation(WeaponData.WeaponVFX, Other->GetActorLocation());
+			OutLocations.Add(Other->GetActorLocation());
 		}
 		break;
 	case EWeaponVFXTarget::Boss:
 		if (ABossActor* Boss = SelectedAction->GetAttackBoss(); IsValid(Boss))
 		{
-			SpawnVFXAtLocation(WeaponData.WeaponVFX, Boss->GetActorLocation());
+			OutLocations.Add(Boss->GetActorLocation());
 		}
 		break;
 	case EWeaponVFXTarget::RangeCells:
@@ -1048,7 +1072,7 @@ void UCoinActionManagementWSubsystem::PlayCoinSpecificVFX()
 				if (AGridActor* Grid = GridManager->GetGridActor(Cell); IsValid(Grid))
 				{
 					const FVector2D XY = Grid->GetGridWorldXY();
-					SpawnVFXAtLocation(WeaponData.WeaponVFX, FVector(XY.X, XY.Y, -80.0f));
+					OutLocations.Add(FVector(XY.X, XY.Y, -80.0f));
 				}
 			}
 		}
@@ -1095,8 +1119,22 @@ void UCoinActionManagementWSubsystem::SpawnVFXAtLocation(
 {
 	if (IsValid(VFX) && IsValid(GetWorld()))
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), VFX, Location);
+		UNiagaraComponent* Component = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), VFX, Location);
+		const UGameInstance* Instance = GetWorld()->GetGameInstance();
+		const auto* Level = IsValid(Instance) ? Instance->GetSubsystem<ULevelGISubsystem>() : nullptr;
+		if (IsValid(Component) && IsValid(Level) && Level->IsBattleTutorialActive())
+			TutorialActionVFX.Add(Component);
 	}
+}
+
+bool UCoinActionManagementWSubsystem::HaveTutorialActionVFXFinished() const
+{
+	TutorialActionVFX.RemoveAll([](const TWeakObjectPtr<UNiagaraComponent>& Entry)
+	{
+		const UNiagaraComponent* Component = Entry.Get();
+		return !IsValid(Component) || Component->IsComplete();
+	});
+	return TutorialActionVFX.IsEmpty();
 }
 
 void UCoinActionManagementWSubsystem::ClearBossOutline()

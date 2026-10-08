@@ -3,6 +3,7 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Subsystem/LevelGISubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Engine/Texture2D.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -245,6 +246,9 @@ void UW_CoinSlotInfo::ResetDetailedDescriptions()
 
 void UW_CoinSlotInfo::RefreshDetailedDescriptions()
 {
+	UGameInstance* Instance = GetGameInstance();
+	const ULevelGISubsystem* Level = IsValid(Instance) ? Instance->GetSubsystem<ULevelGISubsystem>() : nullptr;
+	if (IsValid(Level) && Level->IsBattleTutorialActive()) bDetailToggleEnabled = true;
 	if (IsValid(DetailedDescriptionToggleText))
 		DetailedDescriptionToggleText->SetText(bDetailToggleEnabled
 			? NSLOCTEXT("CoinDescription", "DetailOn", "상세 표시: 켜짐")

@@ -61,8 +61,8 @@ void UCoinManagementWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		return;
 	}
-	if (ULevelGISubsystem* Level = InWorld.GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
-		IsValid(Level) && Level->IsBattleTutorialActive())
+	const ULevelGISubsystem* Level = InWorld.GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+	if (IsValid(Level) && Level->IsBattleTutorialActive())
 	{
 		InitializeTutorialCoinSlots();
 		return;
@@ -87,7 +87,7 @@ void UCoinManagementWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		}
 	}
 
-	if (InventoryCoinSlots.IsEmpty())
+	if (InventoryCoinSlots.IsEmpty() && (!IsValid(Level) || !Level->IsTutorialBossBattleActive()))
 	{
 		CreateDummyCoinSlots();
 	}
@@ -292,6 +292,7 @@ bool UCoinManagementWSubsystem::BuildTutorialCoinStates(TArray<FRandomState>& Ou
 
 bool UCoinManagementWSubsystem::TryCancelReadyCoin(int32 CoinInstanceID)
 {
+	if (const ULevelGISubsystem* Level = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>(); IsValid(Level) && Level->IsBattleTutorialActive()) return false;
 	const int32 ReadyCoinIndex = ReadyCoins.IndexOfByPredicate([CoinInstanceID](const FReadyCoinData& ReadyCoin)
 	{
 		return ReadyCoin.CoinInstanceID == CoinInstanceID;

@@ -163,11 +163,14 @@ public:
 	FOnStageEnded OnStageEnded;
 
 	FOnBattleTutorialLeverTriggered OnBattleTutorialLeverTriggered;
+	bool bTutorialBossPatternDeferred = false;
 
 	EPhaseState GetCurrentPhase() const;
 	int32 GetTurnCount() const { return TurnCount; }
 
 	bool RequestPhaseProgress(float TransitionLockTime = 0.f);
+	void ResumeTutorialBossPattern();
+	bool IsTutorialBossPatternDeferred() const { return bTutorialBossPatternDeferred; }
 
 	// TODO: 3D BattleLever가 제거되기 전까지 기존 호출 경로를 유지합니다.
 	bool StartBattleFromLever(float BattleLeverEndTime);

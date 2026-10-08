@@ -31,6 +31,8 @@ public:
 	virtual void NativeDestruct() override;
 	void SetBattleCoinInfo(const FBattleCoinInfoViewData& InData);
 	void ClearBattleCoinInfo();
+	UWidget* GetTutorialBookmark(FName KeywordCode) const;
+	void SelectTutorialKeyword(FName KeywordCode);
 	UFUNCTION(BlueprintCallable, Category = "Coin Description")
 	void ToggleDetailedDescriptions();
 

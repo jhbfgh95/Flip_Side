@@ -61,6 +61,11 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Battle | Tutorial")
 	float BattleTutorialInitDelay = 0.2f;
 
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(Config, EditAnywhere, Category = "Debug | Tutorial", meta = (DisplayName = "PIE에서 전투 튜토리얼 바로 시작", ToolTip = "L_Stage_BattleTutorial을 직접 PIE로 실행하면 영상 없이 설명 모드와 튜토리얼 보스를 준비합니다. PIE를 시작한 맵에만 적용됩니다."))
+	bool bStartBattleTutorialInPIE = false;
+#endif
+
 	UPROPERTY(EditAnywhere, config, Category = "Common | UI")
 	TSoftClassPtr<UW_MoneyDisplay> MoneyDisplayWidgetClass;
 

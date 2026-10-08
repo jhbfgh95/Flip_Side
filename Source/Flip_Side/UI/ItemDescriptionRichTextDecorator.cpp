@@ -1,6 +1,7 @@
 #include "UI/ItemDescriptionRichTextDecorator.h"
 #include "UI/W_ItemInfo.h"
 #include "UI/W_CardWidget.h"
+#include "UI/TutorialDescriptionWidget.h"
 #include "Components/RichTextBlock.h"
 
 namespace ItemDescriptionPrivate
@@ -11,6 +12,7 @@ namespace ItemDescriptionPrivate
 		explicit FKeywordDecorator(URichTextBlock* Owner) : FRichTextDecorator(Owner),
 			Info(Owner ? Owner->GetTypedOuter<UW_ItemInfo>() : nullptr),
 			CardInfo(Owner ? Owner->GetTypedOuter<UW_CardWidget>() : nullptr),
+			TutorialInfo(Owner ? Owner->GetTypedOuter<UTutorialDescriptionWidget>() : nullptr),
 			bHeader(Owner && Owner->GetFName() == TEXT("ItemKeywordHeader")) {}
 		virtual bool Supports(const FTextRunParseResults& Run, const FString& Text) const override
 		{
@@ -21,11 +23,13 @@ namespace ItemDescriptionPrivate
 		{
 			const FString* Code = Run.MetaData.Find(TEXT("code"));
 			if (CardInfo.IsValid() && Code) return CardInfo->CreateKeywordDisplay(FName(**Code), Style);
+			if (TutorialInfo.IsValid() && Code) return TutorialInfo->CreateKeywordDisplay(FName(**Code), Style);
 			return Info.IsValid() && Code ? Info->CreateKeywordDisplay(FName(**Code), Style, bHeader) : nullptr;
 		}
 	private:
 		TWeakObjectPtr<UW_ItemInfo> Info;
 		TWeakObjectPtr<UW_CardWidget> CardInfo;
+		TWeakObjectPtr<UTutorialDescriptionWidget> TutorialInfo;
 		bool bHeader = false;
 	};
 }

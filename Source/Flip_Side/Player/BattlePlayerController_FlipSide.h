@@ -113,7 +113,9 @@ private:
     TWeakObjectPtr<ATurret_OtherActor> HoveredRangeTurret;
     bool bShowingTurretRange = false;
     void ShowBattleCoinRangePreviews(ACoinActor* CoinActor);
-    void HideBattleCoinRangePreviews(ACoinActor* CoinActor = nullptr);
+    void HideBattleCoinRangePreviews(ACoinActor* CoinActor = nullptr, bool bForce = false);
+    TWeakObjectPtr<ACoinActor> TutorialRangePreviewCoin;
+    bool bTutorialAbilityRangeOnly = false;
     void SetBossTargetArrowVisible(bool bVisible);
     void ObserveBattleInfoCoin(ACoinActor* CoinActor);
     void StopObservingBattleInfoCoin();
@@ -212,6 +214,8 @@ protected:
 
 public:
 	UBattlePlayerHUDWidget* GetBattleHUDWidget() const { return BattleHUDWidget; }
+	ACoinActor* GetTutorialHoveredCoin() const { return HoveredBattleCoin.Get(); }
+	void SetTutorialRangePreviewCoin(ACoinActor* CoinActor, bool bAbilityRangeOnly = false);
 	ABattlePlayerController_FlipSide();
 
 	virtual void SetupInputComponent() override;

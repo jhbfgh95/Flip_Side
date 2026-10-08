@@ -44,8 +44,26 @@ void UW_StageEnd::SetStageEndFlag(int32 NewStageEndFlag)
         GameClearPannel->SetVisibility(StageEndFlag == 2 ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
     }
 
+    UGameInstance* Instance = GetGameInstance();
+    const ULevelGISubsystem* Level = IsValid(Instance) ? Instance->GetSubsystem<ULevelGISubsystem>() : nullptr;
+    if (StageEndFlag == 1 && IsValid(Level) && Level->IsTutorialBossBattleActive())
+        SetVisibility(ESlateVisibility::Visible);
+
     OnStageEndFlagChanged(StageEndFlag);
     UpdateMoneySummary();
+}
+
+FReply UW_StageEnd::NativeOnPreviewMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& Event)
+{
+    UGameInstance* Instance = GetGameInstance();
+    ULevelGISubsystem* Level = IsValid(Instance) ? Instance->GetSubsystem<ULevelGISubsystem>() : nullptr;
+    if (Event.GetEffectingButton() == EKeys::LeftMouseButton && StageEndFlag == 1 &&
+        IsValid(Level) && Level->IsTutorialBossBattleActive())
+    {
+        Level->MoveStartLevel();
+        return FReply::Handled();
+    }
+    return Super::NativeOnPreviewMouseButtonDown(Geometry, Event);
 }
 
 void UW_StageEnd::UpdateMoneySummary()

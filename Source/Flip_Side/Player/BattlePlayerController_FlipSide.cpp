@@ -17,6 +17,8 @@
 #include "BattleHoverInterface.h"
 #include "BattleClickInterface.h"
 #include "Subsystem/BattleLevel/CoinActionManagementWSubsystem.h"
+#include "Subsystem/BattleLevel/BattleTutorialWSubsystem.h"
+#include "Subsystem/LevelGISubsystem.h"
 #include "Actors/Others/Turret_OtherActor.h"
 #include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
@@ -321,6 +323,11 @@ void ABattlePlayerController_FlipSide::ReturnToDefaultCamera() // 일단 당장�
 
 void ABattlePlayerController_FlipSide::OnLeftClick()
 {
+	if (const ULevelGISubsystem* Level = GetGameInstance()->GetSubsystem<ULevelGISubsystem>(); IsValid(Level) && Level->IsBattleTutorialActive())
+	{
+		const auto* Tutorial = GetWorld()->GetSubsystem<UBattleTutorialWSubsystem>();
+		if (!IsValid(Tutorial) || !Tutorial->IsTutorialWorldClickAllowed()) return;
+	}
     if (bIsUIOnly)
     {
         return;
@@ -422,6 +429,12 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
         CurrentActor = nullptr;
     }
 
+	if (const ULevelGISubsystem* Level = GetGameInstance()->GetSubsystem<ULevelGISubsystem>(); IsValid(Level) && Level->IsBattleTutorialActive())
+		if (ACoinActor* Coin = Cast<ACoinActor>(CurrentActor))
+		{
+			const auto* Tutorial = GetWorld()->GetSubsystem<UBattleTutorialWSubsystem>();
+			if (!IsValid(Tutorial) || !Tutorial->CanHoverTutorialCoin(Coin)) CurrentActor = nullptr;
+		}
     if (LastHoveredActor != CurrentActor)
     {
         if (LastHoveredActor)
@@ -452,16 +465,16 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
     }
 
     // 스탯 이벤트 없이 코인 위치/면 또는 현재 보스가 변경된 경우에도 표시를 갱신합니다.
-    if (ACoinActor* HoveredCoin = HoveredBattleCoin.Get(); IsValid(HoveredCoin))
+    if (ACoinActor* PreviewCoin = TutorialRangePreviewCoin.IsValid() ? TutorialRangePreviewCoin.Get() : HoveredBattleCoin.Get(); IsValid(PreviewCoin))
     {
         UWorld* World = GetWorld();
         UBossManagerSubsystem* BossManager = IsValid(World)
             ? World->GetSubsystem<UBossManagerSubsystem>() : nullptr;
         ABossActor* Boss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
-        if (!(RangePreviewCoinCell == HoveredCoin->GetDecidedGrid()) ||
-            RangePreviewCoinFace != HoveredCoin->GetCoinDecidedFace() ||
+        if (!(RangePreviewCoinCell == PreviewCoin->GetDecidedGrid()) ||
+            RangePreviewCoinFace != PreviewCoin->GetCoinDecidedFace() ||
             bRangePreviewHasBoss != IsValid(Boss) || RangePreviewBoss.Get() != Boss ||
-            !HoveredCoin->GetCoinOnBattle())
+            !PreviewCoin->GetCoinOnBattle())
         {
             RefreshBattleCoinRangePreviews();
         }
@@ -501,6 +514,7 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
 // 우클릭: 디폴트 카메라 시점으로 복귀
 void ABattlePlayerController_FlipSide::OnRightClick()
 {
+	if (const ULevelGISubsystem* Level = GetGameInstance()->GetSubsystem<ULevelGISubsystem>(); IsValid(Level) && Level->IsBattleTutorialActive()) return;
     if (bIsUIOnly)
     {
         return;
@@ -976,19 +990,36 @@ void ABattlePlayerController_FlipSide::SpawnBattleRangePreviewActors()
 
 void ABattlePlayerController_FlipSide::RefreshBattleCoinRangePreviews()
 {
+	if (ACoinActor* CoinActor = TutorialRangePreviewCoin.Get(); IsValid(CoinActor))
+	{
+		ShowBattleCoinRangePreviews(CoinActor);
+		return;
+	}
 	if (ACoinActor* CoinActor = HoveredBattleCoin.Get(); IsValid(CoinActor))
 	{
 		ShowBattleCoinRangePreviews(CoinActor);
 	}
 }
 
+void ABattlePlayerController_FlipSide::SetTutorialRangePreviewCoin(ACoinActor* CoinActor, bool bAbilityRangeOnly)
+{
+	if (TutorialRangePreviewCoin.Get() == CoinActor && bTutorialAbilityRangeOnly == bAbilityRangeOnly) return;
+	ACoinActor* Previous = TutorialRangePreviewCoin.Get();
+	TutorialRangePreviewCoin.Reset();
+	HideBattleCoinRangePreviews(Previous, true);
+	TutorialRangePreviewCoin = CoinActor;
+	bTutorialAbilityRangeOnly = IsValid(CoinActor) && bAbilityRangeOnly;
+	if (IsValid(CoinActor)) ShowBattleCoinRangePreviews(CoinActor);
+}
+
 void ABattlePlayerController_FlipSide::ShowBattleCoinRangePreviews(ACoinActor* CoinActor)
 {
+	if (ACoinActor* TutorialCoin = TutorialRangePreviewCoin.Get(); IsValid(TutorialCoin)) CoinActor = TutorialCoin;
 	UWorld* PreviewWorld = GetWorld();
 	UCoinActionManagementWSubsystem* ActionManager = IsValid(PreviewWorld)
 		? PreviewWorld->GetSubsystem<UCoinActionManagementWSubsystem>() : nullptr;
 	if (IsValid(ActionManager) && ActionManager->IsActionSequenceActive()) return;
-	HideBattleCoinRangePreviews(CoinActor);
+	HideBattleCoinRangePreviews(CoinActor, true);
 
 	UWorld* World = GetWorld();
 	if (!IsValid(CoinActor) || !CoinActor->GetCoinOnBattle() ||
@@ -1023,7 +1054,8 @@ void ABattlePlayerController_FlipSide::ShowBattleCoinRangePreviews(ACoinActor* C
 		return;
 	}
 
-	CoinActor->SetAttackRangeBracketVisible(ShowAttackRangePreview(CoinCell, PreviewSnapshot.AttackAreaSpec));
+	if (!bTutorialAbilityRangeOnly)
+		CoinActor->SetAttackRangeBracketVisible(ShowAttackRangePreview(CoinCell, PreviewSnapshot.AttackAreaSpec));
 
 	if (PreviewSnapshot.bHasAbilityArea && IsValid(AbilityRangeActor))
 	{
@@ -1132,8 +1164,15 @@ void ABattlePlayerController_FlipSide::UpdateTurretRangePreview()
 	}
 }
 
-void ABattlePlayerController_FlipSide::HideBattleCoinRangePreviews(ACoinActor* CoinActor)
+void ABattlePlayerController_FlipSide::HideBattleCoinRangePreviews(ACoinActor* CoinActor, bool bForce)
 {
+	// 튜토리얼 설명 중에는 마우스가 설명창으로 이동해도 강조할 범위를 유지합니다.
+	if (!bForce && TutorialRangePreviewCoin.IsValid())
+	{
+		UWorld* World = GetWorld();
+		const auto* Action = IsValid(World) ? World->GetSubsystem<UCoinActionManagementWSubsystem>() : nullptr;
+		if (!IsValid(Action) || !Action->IsActionSequenceActive()) return;
+	}
 	if (ATurret_OtherActor* Turret = HoveredRangeTurret.Get(); IsValid(Turret))
 	{
 		Turret->SetAttackRangeBracketVisible(false);
@@ -1193,6 +1232,8 @@ void ABattlePlayerController_FlipSide::UpdateActionAbilityRangePreview()
 		AbilityRangeActor->HideRange();
 		bShowingActionAbilityRange = false;
 		AbilityRangePreviewLocations.Reset();
+		if (bTutorialAbilityRangeOnly && TutorialRangePreviewCoin.IsValid())
+			ShowBattleCoinRangePreviews(TutorialRangePreviewCoin.Get());
 	}
 }
 

@@ -17,7 +17,7 @@ bool FCoinSlotPopupInputProcessor::ShouldConsumeDismissClick(ECoinPopupPointerRe
 
 void FCoinSlotPopupInputProcessor::Tick(float DeltaTime, FSlateApplication& SlateApp, TSharedRef<ICursor> Cursor)
 {
-	if (!HUD.IsValid() || (!HUD->IsCoinSlotInfoOpen() && !HUD->IsItemInfoOpen())) return;
+	if (!HUD.IsValid() || HUD->IsTutorialInfoPinned() || (!HUD->IsCoinSlotInfoOpen() && !HUD->IsItemInfoOpen())) return;
 	const ECoinPopupPointerRegion Region = HUD->GetCoinPopupPointerRegion(SlateApp.GetCursorPos());
 	if (HUD->IsCoinSlotInfoOpen() && ShouldDismissOnHover(false, Region))
 		HUD->DismissCoinSlotInfo();
@@ -27,7 +27,7 @@ void FCoinSlotPopupInputProcessor::Tick(float DeltaTime, FSlateApplication& Slat
 
 bool FCoinSlotPopupInputProcessor::HandleMouseButtonDownEvent(FSlateApplication& SlateApp, const FPointerEvent& Event)
 {
-	if (!HUD.IsValid() || (!HUD->IsCoinSlotInfoOpen() && !HUD->IsItemInfoOpen())) return false;
+	if (!HUD.IsValid() || HUD->IsTutorialInfoPinned() || (!HUD->IsCoinSlotInfoOpen() && !HUD->IsItemInfoOpen())) return false;
 	const ECoinPopupPointerRegion Region = HUD->GetCoinPopupPointerRegion(Event.GetScreenSpacePosition());
 	if (Region == ECoinPopupPointerRegion::OutsideGame) return false;
 	const FKey Button = Event.GetEffectingButton();

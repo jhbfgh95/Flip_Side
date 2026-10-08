@@ -6,6 +6,7 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Border.h"
+#include "Components/MeshComponent.h"
 #include "Engine/DataTable.h"
 #include "GameFramework/Actor.h"
 #include "Rendering/DrawElements.h"
@@ -13,11 +14,32 @@
 
 UW_BattleTutorialOverlay::UW_BattleTutorialOverlay(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	ExplanationLayouts = {
+		FBattleTutorialExplanationLayout(FVector2D(-116.f, -420.f)),
+		FBattleTutorialExplanationLayout(FVector2D(-400.f, 240.f)),
+		FBattleTutorialExplanationLayout(FVector2D(-160.f, 210.f)),
+		FBattleTutorialExplanationLayout(FVector2D(-430.f, 50.f)),
+		FBattleTutorialExplanationLayout(FVector2D(-355.f, 55.f)),
+		FBattleTutorialExplanationLayout(FVector2D(-50.f, 25.f)),
+		FBattleTutorialExplanationLayout(FVector2D(-365.f, 240.f))
+	};
 	ClickHintWidgetClass = UTutorialClickHintWidget::StaticClass();
 	DescriptionWidgetClass = TSoftClassPtr<UTutorialDescriptionWidget>(FSoftObjectPath(
 		TEXT("/Game/BattleTutorial/WBP_TutorialDescription.WBP_TutorialDescription_C")));
 	static ConstructorHelpers::FObjectFinder<UDataTable> Styles(TEXT("/Game/UI/Fonts/DT_RichTextStyles"));
 	RichTextStyleSet = Styles.Object;
+}
+
+void UW_BattleTutorialOverlay::PostLoad()
+{
+	Super::PostLoad();
+	if (!ExplanationPositions.IsEmpty())
+	{
+		ExplanationLayouts.Reset(ExplanationPositions.Num());
+		for (const FVector2D& Position : ExplanationPositions)
+			ExplanationLayouts.Add(FBattleTutorialExplanationLayout(Position));
+		ExplanationPositions.Reset();
+	}
 }
 
 void UW_BattleTutorialOverlay::NativeOnInitialized()
@@ -68,22 +90,31 @@ void UW_BattleTutorialOverlay::ShowStep(const FBattleTutorialStep& Step)
 	CurrentStep = Step;
 	WidgetTarget.Reset();
 	ActorTarget.Reset();
+	AreaTargets.Reset();
+	bTransitionBusy = false;
+	bAdvancePending = false;
 	bHasHighlight = false;
-	const int32 Index = ExplanationPositions.IsValidIndex(Step.ExplanationPositionIndex) ? Step.ExplanationPositionIndex : 0;
+	const int32 Index = ExplanationLayouts.IsValidIndex(Step.ExplanationPositionIndex) ? Step.ExplanationPositionIndex : 0;
+	const FBattleTutorialExplanationLayout Layout = ExplanationLayouts.IsValidIndex(Index)
+		? ExplanationLayouts[Index] : FBattleTutorialExplanationLayout();
 	if (IsValid(ExplanationWidget))
 	{
 		ExplanationWidget->SetDescriptionText(Step.Text);
+		ExplanationWidget->SetDescriptionSize(Layout.Size);
 		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(ExplanationWidget->Slot))
-			CanvasSlot->SetPosition(ExplanationPositions.IsValidIndex(Index) ? ExplanationPositions[Index] : FVector2D::ZeroVector);
+			CanvasSlot->SetPosition(Layout.Position);
 	}
 	if (IsValid(ClickHint))
-		ClickHint->SetVisibility(Step.bRequireHighlightedAction ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		ClickHint->SetVisibility(Step.bRequireHighlightedAction && !Step.ActionId.ToString().StartsWith(TEXT("Hover"))
+			? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	if (IsValid(ExplanationWidget)) ExplanationWidget->SetVisibility(ESlateVisibility::Visible);
 }
 
 void UW_BattleTutorialOverlay::SetWidgetTarget(UWidget* Widget)
 {
 	WidgetTarget = Widget;
 	ActorTarget.Reset();
+	AreaTargets.Reset();
 }
 
 void UW_BattleTutorialOverlay::SetActorTarget(AActor* Actor, const FVector2D& HoleSize)
@@ -91,6 +122,31 @@ void UW_BattleTutorialOverlay::SetActorTarget(AActor* Actor, const FVector2D& Ho
 	ActorTarget = Actor;
 	WidgetTarget.Reset();
 	ActorHoleSize = HoleSize;
+	AreaTargets.Reset();
+}
+
+void UW_BattleTutorialOverlay::SetActorTargets(const TArray<AActor*>& Actors)
+{
+	WidgetTarget.Reset(); ActorTarget.Reset(); AreaTargets.Reset();
+	for (AActor* Actor : Actors) if (IsValid(Actor)) AreaTargets.Add(Actor);
+}
+
+void UW_BattleTutorialOverlay::SetTransitionBusy(bool bBusy)
+{
+	bTransitionBusy = bBusy;
+	if (IsValid(ExplanationWidget)) ExplanationWidget->SetVisibility(bBusy ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+	if (IsValid(ClickHint)) ClickHint->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UW_BattleTutorialOverlay::SetAdvancePending(bool bPending)
+{
+	bAdvancePending = bPending;
+	if (bPending)
+	{
+		// 설명과 강조는 유지하면서 실제 대상에 중복 입력이 전달되지 않도록 막습니다.
+		if (IsValid(HoleInput)) HoleInput->SetVisibility(ESlateVisibility::Visible);
+		if (IsValid(ClickHint)) ClickHint->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void UW_BattleTutorialOverlay::Place(UWidget* Widget, const FVector2D& Position, const FVector2D& Size)
@@ -126,34 +182,50 @@ void UW_BattleTutorialOverlay::NativeTick(const FGeometry& Geometry, float Delta
 			bHasHighlight = true;
 		}
 	}
-	else if (AActor* TargetActor = ActorTarget.Get(); IsValid(TargetActor))
+	else if (ActorTarget.IsValid() || !AreaTargets.IsEmpty())
 	{
-		FVector2D Screen;
-		if (UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayer(), TargetActor->GetActorLocation(), Screen, false))
+		Min = FVector2D(TNumericLimits<float>::Max(), TNumericLimits<float>::Max()); Max = -Min;
+		const FGeometry ViewportGeometry = UWidgetLayoutLibrary::GetViewportWidgetGeometry(this);
+		auto IncludePoint = [&](const FVector& WorldPoint)
 		{
-			const FGeometry ViewportGeometry = UWidgetLayoutLibrary::GetViewportWidgetGeometry(this);
-			const FVector2D Center = Geometry.AbsoluteToLocal(ViewportGeometry.LocalToAbsolute(Screen));
-			const FVector2D Half = View * ActorHoleSize * 0.5f;
-			Min = Center - Half; Max = Center + Half;
-			bHasHighlight = true;
+			FVector2D Screen;
+			if (!UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayer(), WorldPoint, Screen, false)) return;
+			const FVector2D P = Geometry.AbsoluteToLocal(ViewportGeometry.LocalToAbsolute(Screen));
+			Min.X = FMath::Min(Min.X, P.X); Min.Y = FMath::Min(Min.Y, P.Y);
+			Max.X = FMath::Max(Max.X, P.X); Max.Y = FMath::Max(Max.Y, P.Y); bHasHighlight = true;
+		};
+		TArray<TWeakObjectPtr<AActor>> Targets = AreaTargets;
+		if (ActorTarget.IsValid()) Targets.Add(ActorTarget);
+		for (const auto& Entry : Targets)
+		{
+			AActor* Actor = Entry.Get(); if (!IsValid(Actor) || Actor->IsHidden()) continue;
+			TArray<UMeshComponent*> Meshes; Actor->GetComponents<UMeshComponent>(Meshes);
+			for (UMeshComponent* Mesh : Meshes)
+			{
+				if (!IsValid(Mesh) || !Mesh->IsVisible() || Mesh->bHiddenInGame || Mesh->Bounds.BoxExtent.IsNearlyZero()) continue;
+				// 피벗 대신 실제로 보이는 메쉬의 월드 바운드 8개 모서리를 투영합니다.
+				for (int32 Corner = 0; Corner < 8; ++Corner)
+					IncludePoint(Mesh->Bounds.Origin + Mesh->Bounds.BoxExtent * FVector(
+						Corner & 1 ? 1.f : -1.f, Corner & 2 ? 1.f : -1.f, Corner & 4 ? 1.f : -1.f));
+			}
+		}
+		if (AActor* Actor = ActorTarget.Get(); IsValid(Actor))
+		{
+			FVector2D Screen;
+			if (UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayer(), Actor->GetActorLocation(), Screen, false))
+			{
+				const FVector2D Center = Geometry.AbsoluteToLocal(ViewportGeometry.LocalToAbsolute(Screen));
+				const FVector2D Half = View * ActorHoleSize * 0.5f;
+				Min.X = FMath::Min(Min.X, Center.X - Half.X); Min.Y = FMath::Min(Min.Y, Center.Y - Half.Y);
+				Max.X = FMath::Max(Max.X, Center.X + Half.X); Max.Y = FMath::Max(Max.Y, Center.Y + Half.Y); bHasHighlight = true;
+			}
 		}
 	}
 	if (bHasHighlight)
 	{
-		const FVector2D HighlightPadding(FMath::Max(0.f, CurrentStep.Padding.X), FMath::Max(0.f, CurrentStep.Padding.Y));
-		const FVector2D Required = Max - Min + HighlightPadding * 2.f;
-		const float Ratios[] = {4.f / 3.f, 1.f, 3.f / 4.f};
-		float BestArea = TNumericLimits<float>::Max();
-		for (int32 Index = 0; Index < 3; ++Index)
-		{
-			if (CurrentStep.Frame != EBattleTutorialFrame::Auto && static_cast<int32>(CurrentStep.Frame) != Index + 1) continue;
-			const float Width = FMath::Max(Required.X, Required.Y * Ratios[Index]);
-			const FVector2D Size(Width, Width / Ratios[Index]);
-			if (Size.X * Size.Y < BestArea)
-			{
-				BestArea = Size.X * Size.Y; HighlightSize = Size; FrameIndex = Index;
-			}
-		}
+		const FVector2D Required = Max - Min + CurrentStep.Padding * 2.f;
+		// 음수 여백으로 줄이되 사각형이 뒤집히지 않도록 중심을 유지하고 최소 크기를 보장합니다.
+		HighlightSize = FVector2D(FMath::Max(1.f, Required.X), FMath::Max(1.f, Required.Y));
 		HighlightPosition = (Min + Max - HighlightSize) * 0.5f;
 	}
 	const FVector2D A = bHasHighlight ? HighlightPosition.ClampAxes(0.f, TNumericLimits<float>::Max()) : FVector2D::ZeroVector;
@@ -165,17 +237,30 @@ void UW_BattleTutorialOverlay::NativeTick(const FGeometry& Geometry, float Delta
 	Place(DimRegions[2], FVector2D(0.f, Top), FVector2D(Left, Bottom - Top));
 	Place(DimRegions[3], FVector2D(Right, Top), FVector2D(View.X - Right, Bottom - Top));
 	Place(HoleInput, FVector2D(Left, Top), FVector2D(Right - Left, Bottom - Top));
-	HoleInput->SetVisibility(CurrentStep.bRequireHighlightedAction ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+	HoleInput->SetVisibility(CurrentStep.bRequireHighlightedAction && !bTransitionBusy && !bAdvancePending && bHasHighlight
+		? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 	if (IsValid(ClickHint))
 		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(ClickHint->Slot))
 			CanvasSlot->SetPosition(FVector2D((Left + Right) * 0.5f, Top) + ClickHintOffset);
+}
+
+FReply UW_BattleTutorialOverlay::NativeOnPreviewMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& Event)
+{
+	if (bAdvancePending) return FReply::Handled();
+	// 설명 BP의 Button 등이 클릭을 소비하기 전에 일반 설명 단계의 진행 입력을 받습니다.
+	if (Event.GetEffectingButton() == EKeys::LeftMouseButton && !CurrentStep.bRequireHighlightedAction && !bTransitionBusy)
+	{
+		OnBattleTutorialOverlayClicked.Broadcast();
+		return FReply::Handled();
+	}
+	return Super::NativeOnPreviewMouseButtonDown(Geometry, Event);
 }
 
 FReply UW_BattleTutorialOverlay::NativeOnMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& Event)
 {
 	if (Event.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
-		if (!CurrentStep.bRequireHighlightedAction) OnBattleTutorialOverlayClicked.Broadcast();
+		if (!CurrentStep.bRequireHighlightedAction && !bTransitionBusy && !bAdvancePending) OnBattleTutorialOverlayClicked.Broadcast();
 		return FReply::Handled();
 	}
 	return FReply::Handled();
@@ -185,17 +270,10 @@ int32 UW_BattleTutorialOverlay::NativePaint(const FPaintArgs& Args, const FGeome
 	FSlateWindowElementList& Elements, int32 Layer, const FWidgetStyle& Style, bool bParentEnabled) const
 {
 	const int32 Painted = Super::NativePaint(Args, Geometry, CullingRect, Elements, Layer, Style, bParentEnabled);
-	if (!bHasHighlight) return Painted;
-	if (FrameBrushes.IsValidIndex(FrameIndex) && FrameBrushes[FrameIndex].GetResourceObject())
-		FSlateDrawElement::MakeBox(Elements, Painted + 1,
-			Geometry.ToPaintGeometry(HighlightSize, FSlateLayoutTransform(HighlightPosition)), &FrameBrushes[FrameIndex],
-			ESlateDrawEffect::None, FrameColor);
-	else
-	{
-		TArray<FVector2D> Points = {HighlightPosition, HighlightPosition + FVector2D(HighlightSize.X, 0.f),
-			HighlightPosition + HighlightSize, HighlightPosition + FVector2D(0.f, HighlightSize.Y), HighlightPosition};
-		FSlateDrawElement::MakeLines(Elements, Painted + 1, Geometry.ToPaintGeometry(), Points,
-			ESlateDrawEffect::None, FrameColor, true, FrameThickness);
-	}
+	if (!bHasHighlight || FrameThickness <= 0.f) return Painted;
+	TArray<FVector2D> Points = {HighlightPosition, HighlightPosition + FVector2D(HighlightSize.X, 0.f),
+		HighlightPosition + HighlightSize, HighlightPosition + FVector2D(0.f, HighlightSize.Y), HighlightPosition};
+	FSlateDrawElement::MakeLines(Elements, Painted + 1, Geometry.ToPaintGeometry(), Points,
+		ESlateDrawEffect::None, FrameColor, true, FrameThickness);
 	return Painted + 1;
 }

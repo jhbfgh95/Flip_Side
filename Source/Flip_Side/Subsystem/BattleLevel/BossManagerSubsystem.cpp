@@ -18,6 +18,7 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "FlipSideDevloperSettings.h"
+#include "LevelGISubsystem.h"
 
 void UBossManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -273,8 +274,12 @@ bool UBossManagerSubsystem::PlaceBossPillar(ABossPillarActor* Pillar, bool bLeft
     const int32 CenterX = GridManager->GridXSize / 2;
     const int32 AreaStartX = bLeft ? CenterX - 4 : CenterX + 2;
     const int32 AreaStartY = GridManager->GetBossAreaStartY();
-    const int32 StartX = FMath::RandRange(AreaStartX, AreaStartX + AreaSize - Size);
-    const int32 StartY = FMath::RandRange(AreaStartY, AreaStartY + AreaSize - Size);
+    const ULevelGISubsystem* Level = World->GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+    const bool bTutorial = IsValid(Level) && Level->IsBattleTutorialActive();
+    const int32 StartX = bTutorial ? (bLeft ? AreaStartX : AreaStartX + AreaSize - Size)
+        : FMath::RandRange(AreaStartX, AreaStartX + AreaSize - Size);
+    const int32 StartY = bTutorial ? AreaStartY + AreaSize - Size
+        : FMath::RandRange(AreaStartY, AreaStartY + AreaSize - Size);
 
     TArray<FGridPoint> Cells;
     FVector Center = FVector::ZeroVector;
