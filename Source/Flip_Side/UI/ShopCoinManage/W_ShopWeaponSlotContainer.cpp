@@ -90,6 +90,28 @@ void UW_ShopWeaponSlotContainer::SelectWeaponSlot(
     ClickedWeaponSlot->SelectSlot();
 }
 
+void UW_ShopWeaponSlotContainer::SetWeaponSlotInputEnabled(bool bInEnabled)
+{
+    for (UW_ShopCoinWeaponSlot* WeaponSlot : WeaponSlotArray)
+    {
+        if (IsValid(WeaponSlot))
+        {
+            WeaponSlot->SetIsEnabled(bInEnabled);
+        }
+    }
+}
+
+void UW_ShopWeaponSlotContainer::SetOnlyWeaponSlotInputEnabled(int32 AllowedIndex)
+{
+    for (int32 Index = 0; Index < WeaponSlotArray.Num(); ++Index)
+    {
+        if (UW_ShopCoinWeaponSlot* WeaponSlot = WeaponSlotArray[Index]; IsValid(WeaponSlot))
+        {
+            WeaponSlot->SetIsEnabled(Index == AllowedIndex);
+        }
+    }
+}
+
 void UW_ShopWeaponSlotContainer::UnSelectWeaponSlots()
 {
     if (IsValid(SelectFrontWeaponSlot))

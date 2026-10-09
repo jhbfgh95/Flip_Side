@@ -49,4 +49,9 @@ public:
 	void SelectWeaponSlots(int32 FrontWeaponID, int32 BackWeaponID);
 	void SelectWeaponSlot(bool bIsFrontWeapon, UW_ShopCoinWeaponSlot* ClickedWeaponSlot);
 	void UnSelectWeaponSlots();
+
+	void SetWeaponSlotInputEnabled(bool bInEnabled);
+
+	// 배열 인덱스는 0부터 시작합니다. 유효하지 않은 인덱스면 모두 잠급니다.
+	void SetOnlyWeaponSlotInputEnabled(int32 AllowedIndex);
 };

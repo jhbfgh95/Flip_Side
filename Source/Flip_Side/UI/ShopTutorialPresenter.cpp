@@ -279,21 +279,21 @@ void UShopTutorialPresenter::ShowTutorialStep(
 			break;
 
 		case EShopTutorialAction::FrontCoinWeaponClicked:
-			ShopCoinWidget->GetBuyCoinSlotContainer()->SetOnlyCoinSlotPurchaseEnabled(0);
+			ShopCoinWidget->GetShopWeaponSlotContainer()->SetOnlyWeaponSlotInputEnabled(0);
 			ShopCoinWidget->GetShopCoinSlotContainer()->SetCoinSlotInputEnabled(false);
 			CoinPresenter->GetShopCoinUIActor()->SetCoinInteractionEnabled(false);
 			SetDimMaskHoleFromWidget(ShopCoinWidget->GetShopWeaponSlotContainer());
 			break;
 
 		case EShopTutorialAction::BackCoinWeaponClicked:
-			ShopCoinWidget->GetBuyCoinSlotContainer()->SetOnlyCoinSlotPurchaseEnabled(1);
+			ShopCoinWidget->GetShopWeaponSlotContainer()->SetOnlyWeaponSlotInputEnabled(1);
 			ShopCoinWidget->GetShopCoinSlotContainer()->SetCoinSlotInputEnabled(false);
 			CoinPresenter->GetShopCoinUIActor()->SetCoinInteractionEnabled(false);
 			SetDimMaskHoleFromWidget(ShopCoinWidget->GetShopWeaponSlotContainer());
 			break;
 
 		case EShopTutorialAction::CoinSideChanged:
-			ShopCoinWidget->GetBuyCoinSlotContainer()->SetOnlyCoinSlotPurchaseEnabled(-1);
+			ShopCoinWidget->GetShopWeaponSlotContainer()->SetOnlyWeaponSlotInputEnabled(-1);
 			ShopCoinWidget->GetBuyCoinSlotContainer()->SetCoinSlotPurchaseInputEnabled(false);
 			ShopCoinWidget->GetShopCoinSlotContainer()->SetCoinSlotInputEnabled(true);
 			CoinPresenter->GetShopCoinUIActor()->SetCoinInteractionEnabled(true);
