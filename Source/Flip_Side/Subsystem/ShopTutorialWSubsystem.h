@@ -30,6 +30,10 @@ enum class EShopTutorialAction : uint8
 	ItemPurchased,
 	ItemSold,
 	CoinWeaponClicked,
+
+	FrontCoinWeaponClicked,
+	BackCoinWeaponClicked,
+
 	CoinSideChanged,
 	CoinCountIncreased,
 	CoinSlotPurchased,

@@ -18,6 +18,7 @@
 #include "UI/ShopCard/W_ShopCardWidget.h"
 #include "UI/ShopItem/W_ShopItemSlotContainer.h"
 #include "Components/Widget.h"
+#include "Components/Border.h"
 #include "Subsystem/LevelGISubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
@@ -25,6 +26,15 @@
 #include "UI/ShopCard/W_ShopPlayerCardSlotContainer.h"
 #include "Components/Button.h"
 #include "UI/ShopItem/W_ShopPlayerItemSlotContainer.h"
+#include "UI/ShopUISelectRegistry.h"
+#include "UI/ShopUISelectActor.h"
+
+void UShopTutorialPresenter::InitShopActors(AShopUISelectRegistry* InShopUISelectRegistry, AShopCoinUIActor* InCoinUIActor)
+{
+	ShopUISelectRegistry = InShopUISelectRegistry;
+	CoinUIActor = InCoinUIActor;
+}
+
 void UShopTutorialPresenter::InitPresenter(
 	UShopTutorialWSubsystem* InTutorialSubsystem,
 	UW_ShopTutorialWidget* InTutorialWidget,
@@ -107,6 +117,8 @@ void UShopTutorialPresenter::SetShopPresenters(
 	{
 		PageChangePresenter->OnPageMoveCompleted.AddUniqueDynamic(
 			this, &ThisClass::HandlePageMoveCompleted);
+		PageChangePresenter->PageChangeStart.AddUniqueDynamic(
+			this, &ThisClass::HandlePageChangeStart);
 	}
 	StartTutorial();
 }
@@ -155,16 +167,24 @@ bool UShopTutorialPresenter::ReportAction(EShopTutorialAction Action)
 
 void UShopTutorialPresenter::SetDimMaskHoleFromWidget(UWidget* TargetWidget)
 {
-	
-	TutorialWidget->SetHighlightOverlayVisible(true);
-	if (!IsValid(TutorialWidget) || !IsValid(TargetWidget))
+	SetHighlightBoxFromWidget(TargetWidget);
+}
+
+void UShopTutorialPresenter::SetHighlightBoxFromWidget(UWidget* TargetWidget, bool bKeepExistingBoxes)
+{
+	if (!IsValid(TutorialWidget))
 	{
 		return;
 	}
-	const FGeometry& TargetGeometry = TargetWidget->GetCachedGeometry();
-	const FVector2D TargetTopLeft = TargetGeometry.LocalToAbsolute(FVector2D::ZeroVector);
-	const FVector2D TargetBottomRight = TargetGeometry.LocalToAbsolute(TargetGeometry.GetLocalSize());
-	TutorialWidget->SetDimMaskHole(TargetTopLeft, TargetBottomRight - TargetTopLeft);
+	TutorialWidget->SetHighlightTargetWidget(TargetWidget, bKeepExistingBoxes);
+}
+
+void UShopTutorialPresenter::SetHighlightBoxFromActor(AActor* TargetActor, FVector2D MinimumScreenSize, bool bKeepExistingBoxes)
+{
+	if (IsValid(TutorialWidget))
+	{
+		TutorialWidget->SetHighlightTargetActor(TargetActor, MinimumScreenSize, bKeepExistingBoxes);
+	}
 }
 
 /*튜토리얼 내용*/
@@ -189,7 +209,7 @@ void UShopTutorialPresenter::ShowTutorialStep(
 			{
 				NavigationBar->SetNavigationButtonsLocked(false, EShopPage::None);
 				PageChangePresenter->SetShopUISelectActorsEnabledForPage(EShopPage::None);
-				SetDimMaskHoleFromWidget(NavigationBar);
+				SetDimMaskHoleFromWidget(NavigationBar->GetNavigationToggleButton());
 			}	
 			break;
 		
@@ -197,30 +217,42 @@ void UShopTutorialPresenter::ShowTutorialStep(
 			if (IsValid(NavigationBar))
 			{
 				NavigationBar->SetNavigationButtonsLocked(false, EShopPage::Boss);
+				NavigationBar->SetNavigationToggleLocked(true);
+				SetDimMaskHoleFromWidget(NavigationBar->GetBossButton());
 			}
 			if (IsValid(PageChangePresenter))
 			{
 				PageChangePresenter->SetShopUISelectActorsEnabledForPage(EShopPage::Boss);
+				if (IsValid(ShopUISelectRegistry))
+				{
+					SetHighlightBoxFromActor(ShopUISelectRegistry->GetBossUISelectActor(), FVector2D(0.2f, 0.3f), true);
+				}
 			}
 			break;
 
 		case EShopTutorialAction::PageChangedWeapon:
+			
+			TutorialWidget->SetHighlightOverlayVisible(false);
 			PageChangePresenter->HandlePageRequested(EShopPage::UnlockWeapon);
 			break;
 
 		case EShopTutorialAction::PageChangedCoin:
+			TutorialWidget->SetHighlightOverlayVisible(false);
 			PageChangePresenter->HandlePageRequested(EShopPage::Coin);
 			break;
 
 		case EShopTutorialAction::PageChangedCard:
+			TutorialWidget->SetHighlightOverlayVisible(false);
 			PageChangePresenter->HandlePageRequested(EShopPage::Card);
 			break;
 
 		case EShopTutorialAction::PageChangedItem:
+			TutorialWidget->SetHighlightOverlayVisible(false);
 			PageChangePresenter->HandlePageRequested(EShopPage::Item);
 			break;
 
 		case EShopTutorialAction::PageChangedMain:
+			TutorialWidget->SetHighlightOverlayVisible(false);
 			PageChangePresenter->HandlePageRequested(EShopPage::Main);
 			break;
 
@@ -230,7 +262,10 @@ void UShopTutorialPresenter::ShowTutorialStep(
 			{
 				if (UW_UnlockWeaponWidget* ShopUnlockWidget = UnlockWeaponPresenter->GetShopUnlockWidget())
 				{
-					SetDimMaskHoleFromWidget(ShopUnlockWidget->GetUnlockWeaponSlotContainer());
+					if (UW_UnlockWeaponSlotContainer* SlotContainer = ShopUnlockWidget->GetUnlockWeaponSlotContainer(); IsValid(SlotContainer))
+					{
+						SetDimMaskHoleFromWidget(SlotContainer->GetUnlockWeaponBorder());
+					}
 				}
 			}
 			break;
@@ -243,17 +278,37 @@ void UShopTutorialPresenter::ShowTutorialStep(
 			SetDimMaskHoleFromWidget(ShopCoinWidget->GetBuyCoinSlotContainer());
 			break;
 
-		case EShopTutorialAction::CoinWeaponClicked:
-			ShopCoinWidget->GetBuyCoinSlotContainer()->SetCoinSlotPurchaseInputEnabled(false);
+		case EShopTutorialAction::FrontCoinWeaponClicked:
+			ShopCoinWidget->GetBuyCoinSlotContainer()->SetOnlyCoinSlotPurchaseEnabled(0);
 			ShopCoinWidget->GetShopCoinSlotContainer()->SetCoinSlotInputEnabled(false);
 			CoinPresenter->GetShopCoinUIActor()->SetCoinInteractionEnabled(false);
 			SetDimMaskHoleFromWidget(ShopCoinWidget->GetShopWeaponSlotContainer());
 			break;
-		
+
+		case EShopTutorialAction::BackCoinWeaponClicked:
+			ShopCoinWidget->GetBuyCoinSlotContainer()->SetOnlyCoinSlotPurchaseEnabled(1);
+			ShopCoinWidget->GetShopCoinSlotContainer()->SetCoinSlotInputEnabled(false);
+			CoinPresenter->GetShopCoinUIActor()->SetCoinInteractionEnabled(false);
+			SetDimMaskHoleFromWidget(ShopCoinWidget->GetShopWeaponSlotContainer());
+			break;
+
 		case EShopTutorialAction::CoinSideChanged:
+			ShopCoinWidget->GetBuyCoinSlotContainer()->SetOnlyCoinSlotPurchaseEnabled(-1);
 			ShopCoinWidget->GetBuyCoinSlotContainer()->SetCoinSlotPurchaseInputEnabled(false);
 			ShopCoinWidget->GetShopCoinSlotContainer()->SetCoinSlotInputEnabled(true);
 			CoinPresenter->GetShopCoinUIActor()->SetCoinInteractionEnabled(true);
+			if (UW_ShopCoinSlotContainer* SlotContainer = ShopCoinWidget->GetShopCoinSlotContainer(); IsValid(SlotContainer))
+			{
+				const auto& CoinSlots = SlotContainer->GetCoinSlots();
+				if (CoinSlots.IsValidIndex(0) && IsValid(CoinSlots[0]))
+				{
+					SetHighlightBoxFromWidget(CoinSlots[0]->GetBackWeaponImageButton());
+				}
+			}
+			if (IsValid(CoinUIActor))
+			{
+				SetHighlightBoxFromActor(CoinUIActor, FVector2D(0.3f, 0.3f), true);
+			}
 			break;
 
 		case EShopTutorialAction::CoinCountIncreased:
@@ -261,29 +316,48 @@ void UShopTutorialPresenter::ShowTutorialStep(
 			ShopCoinWidget->GetBuyCoinSlotContainer()->SetCoinSlotPurchaseInputEnabled(false);
 			ShopCoinWidget->GetShopCoinSlotContainer()->SetCoinSlotInputEnabled(true);
 			CoinPresenter->GetShopCoinUIActor()->SetCoinInteractionEnabled(false);
-			SetDimMaskHoleFromWidget(ShopCoinWidget->GetShopCoinSlotContainer());
+			if (UW_ShopCoinSlotContainer* SlotContainer = ShopCoinWidget->GetShopCoinSlotContainer(); IsValid(SlotContainer))
+			{
+				const auto& CoinSlots = SlotContainer->GetCoinSlots();
+				if (CoinSlots.IsValidIndex(0) && IsValid(CoinSlots[0]))
+				{
+					SetHighlightBoxFromWidget(CoinSlots[0]->GetIncreaseButton());
+				}
+			}
 			break;
 
 		/*카드관련 튜토리얼*/
 
 		case EShopTutorialAction::CardSelected:
 			ShopCardMainWidget->GetShopCardSlotContainer()->SetCardSlotInputEnabled(false);
-			SetDimMaskHoleFromWidget(ShopCardMainWidget->GetShopPlayerCardSlotContainer());
+			if (UW_ShopPlayerCardSlotContainer* Container = ShopCardMainWidget->GetShopPlayerCardSlotContainer(); IsValid(Container))
+			{
+				SetDimMaskHoleFromWidget(Container->GetShopPlayerCardBorder());
+			}
 			break;
 		case EShopTutorialAction::CardPurchased:
-			SetDimMaskHoleFromWidget(ShopCardMainWidget->GetShopCardSlotContainer());
+			if (UW_ShopCardSlotContainer* Container = ShopCardMainWidget->GetShopCardSlotContainer(); IsValid(Container))
+			{
+				SetDimMaskHoleFromWidget(Container->GetShopCardBorder());
+			}
 			break;
 		/*아이템 */
 		case EShopTutorialAction::ItemPurchased:
 
 			ShopItemWidget->GetShopItemPurchasePopup()->SetOnlyPurchaseControlsEnabled(true);
-			SetDimMaskHoleFromWidget(ShopItemWidget->GetShopItemSlotContainer());
+			if (UW_ShopItemSlotContainer* Container = ShopItemWidget->GetShopItemSlotContainer(); IsValid(Container))
+			{
+				SetDimMaskHoleFromWidget(Container->GetShopItemBorder());
+			}
 			break;
 
 		case EShopTutorialAction::ItemSold:
 			ShopItemWidget->GetShopItemSlotContainer()->SetItemSlotInputEnabled(false);
 			ShopItemWidget->GetShopItemSellPopup()->SetOnlySellControlsEnabled(true);
-			SetDimMaskHoleFromWidget(ShopItemWidget->GetShopPlayerItemSlotContainer());
+			if (UW_ShopPlayerItemSlotContainer* Container = ShopItemWidget->GetShopPlayerItemSlotContainer(); IsValid(Container))
+			{
+				SetDimMaskHoleFromWidget(Container->GetShopPlayerItemBorder());
+			}
 			break;
 			
 		case EShopTutorialAction::EndTutorial:
@@ -402,7 +476,10 @@ void UShopTutorialPresenter::HandleCoinSlotPurchased(int32 Level)
 
 void UShopTutorialPresenter::HandleCoinWeaponClicked(int32 WeaponID)
 {
-	ReportAction(EShopTutorialAction::CoinWeaponClicked);
+	if(WeaponID == 1)
+		ReportAction(EShopTutorialAction::FrontCoinWeaponClicked);
+	else
+		ReportAction(EShopTutorialAction::BackCoinWeaponClicked);
 }
 
 void UShopTutorialPresenter::HandleCoinSideChanged(bool bIsFrontSide)
@@ -415,6 +492,15 @@ void UShopTutorialPresenter::HandleCoinSideChanged(bool bIsFrontSide)
 void UShopTutorialPresenter::HandleCoinCountIncreased(int32 SlotIndex, int32 Count)
 {
 	ReportAction(EShopTutorialAction::CoinCountIncreased);
+}
+
+void UShopTutorialPresenter::HandlePageChangeStart(EShopPage TargetPage)
+{
+	if (IsValid(TutorialWidget))
+	{
+		TutorialWidget->SetHighlightOverlayVisible(false);
+		TutorialWidget->SetDialogueBorderVisible(false);
+	}
 }
 
 void UShopTutorialPresenter::HandlePageMoveCompleted(EShopPage CompletedPage)

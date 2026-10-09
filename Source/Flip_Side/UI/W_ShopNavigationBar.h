@@ -61,8 +61,12 @@ public:
 	// false면 토글과 AllowedPage 버튼만 열며, AllowedPage가 None이면 모두 엽니다.
 	void SetNavigationButtonsLocked(bool bLockAll, EShopPage AllowedPage);
 
+	void SetNavigationToggleLocked(bool bLocked);
+
 	// 접힌 상태에서도 표시되는 네비게이션 바 토글 버튼입니다.
 	UButton* GetNavigationToggleButton() const { return NavigationToggleButton; }
+
+	UButton* GetBossButton() const { return BossButton; }
 
 private:
 	bool bNavigationBarOpen = false;

@@ -63,6 +63,14 @@ void UW_ShopNavigationBar::SetSelectedPageButton(EShopPage Page)
 	SelectedButton->SetStyle(ButtonStyle);
 }
 
+void UW_ShopNavigationBar::SetNavigationToggleLocked(bool bLocked)
+{
+	if (IsValid(NavigationToggleButton))
+	{
+		NavigationToggleButton->SetIsEnabled(!bLocked);
+	}
+}
+
 void UW_ShopNavigationBar::SetNavigationButtonsLocked(bool bLockAll, EShopPage AllowedPage)
 {
 	if(bLockAll&& AllowedPage==EShopPage::None)

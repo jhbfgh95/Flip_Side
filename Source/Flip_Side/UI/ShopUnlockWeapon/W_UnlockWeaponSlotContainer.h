@@ -11,6 +11,7 @@
  * 
  */
 class UVerticalBox;
+class UBorder;
 class UW_UnlockWeaponSlot;
 UCLASS()
 class FLIP_SIDE_API UW_UnlockWeaponSlotContainer : public UUserWidget
@@ -28,6 +29,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UVerticalBox> UnlockWeaponSlotBox;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBorder> UnlockWeaponBorder;
+
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UW_UnlockWeaponSlot> UnlockWeaponSlot;
 
@@ -36,5 +40,6 @@ public:
 	void AddWeaponSlot(const FFaceData& InWeaponData);
 	bool RemoveWeaponSlot(int32 WeaponID);
 	const TArray<TObjectPtr<UW_UnlockWeaponSlot>>& GetWeaponSlots() const { return UnlockWeaponSlots; }
+	UBorder* GetUnlockWeaponBorder() const { return UnlockWeaponBorder.Get(); }
 
 };

@@ -146,6 +146,9 @@ public:
 
 	void SetCoinSlotInputEnabled(bool bInEnabled);
 
+	UButton* GetBackWeaponImageButton() const { return BackWeaponImageButton.Get(); }
+	UButton* GetIncreaseButton() const { return IncreaseButton.Get(); }
+
 protected:
 	virtual FReply NativeOnMouseButtonDown(
 		const FGeometry& InGeometry,

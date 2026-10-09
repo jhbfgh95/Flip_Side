@@ -12,6 +12,7 @@
  */
 class UW_ShopItemSlot;
 class UVerticalBox;
+class UBorder;
 UCLASS()
 class FLIP_SIDE_API UW_ShopItemSlotContainer : public UUserWidget
 {
@@ -24,10 +25,14 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UVerticalBox> SlotBox;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBorder> ShopItemBorder;
+
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	TSubclassOf<UUserWidget> SellItemSlot;
 
 public:
+	UBorder* GetShopItemBorder() const { return ShopItemBorder.Get(); }
 	void InitWidget(TArray<FItemData> InItemDataArray);
 
 	void SetItemSlotInputEnabled(bool bInEnabled);

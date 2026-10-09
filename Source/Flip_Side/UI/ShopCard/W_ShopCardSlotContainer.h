@@ -11,6 +11,7 @@
  * 
  */
 class UVerticalBox;
+class UBorder;
 class UW_ShopCardSlot;
 class UShopCardWSubsystem;
 UCLASS()
@@ -25,10 +26,14 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UVerticalBox> SlotBox;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBorder> ShopCardBorder;
+
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess))
 	TSubclassOf<UUserWidget> ShopCardSlotWidget;
 
 public:
+	UBorder* GetShopCardBorder() const { return ShopCardBorder.Get(); }
 	void InitWidget(TArray<FCardData> InCardData);
 
 	void SetCardSlotInputEnabled(bool bInEnabled);

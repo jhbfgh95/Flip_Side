@@ -66,6 +66,9 @@ public:
 	// 슬롯 구매 팝업을 여는 버튼과 내부 슬롯 구매 버튼을 함께 제어합니다.
 	void SetCoinSlotPurchaseInputEnabled(bool bInEnabled);
 
+	// 0부터 시작하는 배열 인덱스입니다. 잘못된 인덱스면 내부 구매 버튼을 모두 잠급니다.
+	void SetOnlyCoinSlotPurchaseEnabled(int32 AllowedIndex);
+
 private:
 	UFUNCTION()
 	void ClickOpenSlotBuyPopup();

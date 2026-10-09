@@ -13,6 +13,7 @@ class AShopUISelectActor;
 class ULightComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopPageMoveCompleted, EShopPage, CompletedPage);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopPageChangeStart, EShopPage, TargetPage);
 
 struct FShopLightFadeTarget
 {
@@ -32,6 +33,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnShopPageMoveCompleted OnPageMoveCompleted;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnShopPageChangeStart PageChangeStart;
 
 	// Main은 모든 선택 액터를, 그 외 페이지는 대응하는 선택 액터 하나만 클릭 가능하게 설정합니다.
 	void SetShopUISelectActorsEnabledForPage(EShopPage Page);

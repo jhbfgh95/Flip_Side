@@ -57,6 +57,7 @@ void UShopPageChangePresenter::HandlePageRequested(EShopPage Page)
 	}
 	SetShopUISelectActorsEnabled(false);
 	WidgetContainer->HideShopContent();
+	PageChangeStart.Broadcast(Page);
 	ShopPawn->MoveToShopPage(Page);
 }
 

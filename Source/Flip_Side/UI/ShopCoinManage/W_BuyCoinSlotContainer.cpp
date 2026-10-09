@@ -103,6 +103,23 @@ void UW_BuyCoinSlotContainer::SetCoinSlotPurchaseInputEnabled(bool bInEnabled)
 	}
 }
 
+void UW_BuyCoinSlotContainer::SetOnlyCoinSlotPurchaseEnabled(int32 AllowedIndex)
+{
+	// 선택한 구매 버튼에 접근할 수 있도록 팝업 열기/닫기 버튼은 활성화합니다.
+	if (IsValid(OpenSlotBuyPopupButton))
+	{
+		OpenSlotBuyPopupButton->SetIsEnabled(true);	
+	}
+
+	for (int32 Index = 0; Index < SlotBuyButtons.Num(); ++Index)
+	{
+		if (UW_ShopCoinSlotBuyButton* SlotBuyButton = SlotBuyButtons[Index]; IsValid(SlotBuyButton))
+		{
+			SlotBuyButton->SetPurchaseInputEnabled(Index == AllowedIndex);
+		}
+	}
+}
+
 void UW_BuyCoinSlotContainer::ClickOpenSlotBuyPopup()
 {
 	if(!IsPopupOpen)

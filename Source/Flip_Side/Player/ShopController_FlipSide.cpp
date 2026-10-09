@@ -228,6 +228,7 @@ void AShopController_FlipSide::TryInitShopTutorialPresenter()
 		TutorialSubsystem,
 		ShopTutorialWidget,
 		ShopWidgetContainer);
+	TutorialPresenter->InitShopActors(ShopUISelectRegistry, ShopCoinUIActor);
 	TutorialPresenter->SetShopPresenters(
 		CardPresenter,
 		ItemPresenter,

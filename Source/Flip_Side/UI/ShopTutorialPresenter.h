@@ -24,6 +24,9 @@ class UShopTutorialFlow;
 class UW_ShopWidgetContainer;
 class UW_ShopNavigationBar;
 class UWidget;
+class AActor;
+class AShopUISelectRegistry;
+class AShopCoinUIActor;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(
 	FOnShopTutorialPresenterStepChanged,
@@ -56,11 +59,16 @@ public:
 		UShopPageChangePresenter* InPageChangePresenter);
 
 	void StartTutorial();
+	void InitShopActors(AShopUISelectRegistry* InShopUISelectRegistry, AShopCoinUIActor* InCoinUIActor);
 	void StartTutorialWithSequence(
 		const TArray<FText>& InDialogueList,
 		const TArray<EShopTutorialAction>& InActionSequence);
 
 	bool ReportAction(EShopTutorialAction Action);
+
+	void SetHighlightBoxFromWidget(UWidget* TargetWidget, bool bKeepExistingBoxes = false);
+	// 메시 바운드와 액터 중심의 최소 영역을 화면에 투영합니다. 크기는 화면 비율입니다.
+	void SetHighlightBoxFromActor(AActor* TargetActor, FVector2D MinimumScreenSize = FVector2D(1.f, 1.f), bool bKeepExistingBoxes = false);
 
 	UPROPERTY(BlueprintAssignable)
 	FOnShopTutorialPresenterStepChanged OnTutorialStepChanged;
@@ -72,6 +80,12 @@ public:
 	FOnShopTutorialPresenterCompleted OnTutorialCompleted;
 
 private:
+	UPROPERTY()
+	TObjectPtr<AShopUISelectRegistry> ShopUISelectRegistry;
+
+	UPROPERTY()
+	TObjectPtr<AShopCoinUIActor> CoinUIActor;
+
 	UPROPERTY()
 	TObjectPtr<UShopTutorialWSubsystem> TutorialSubsystem;
 
@@ -158,6 +172,9 @@ private:
 
 	UFUNCTION()
 	void HandlePageMoveCompleted(EShopPage CompletedPage);
+
+	UFUNCTION()
+	void HandlePageChangeStart(EShopPage TargetPage);
 
 	UFUNCTION()
 	void HandleTutorialStepChanged(
