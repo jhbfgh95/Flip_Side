@@ -29,8 +29,12 @@ public:
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Keyword Description")
 	EKeywordDescriptionGroup KeywordGroup = EKeywordDescriptionGroup::Main;
+	// 드롭다운을 펼치거나 닫을 때 화살표가 180도 도는 시간(초)입니다. 0이면 즉시 바뀝니다.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Keyword Description", meta = (ClampMin = "0.0"))
+	float ArrowRotateDuration = 0.15f;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UComboBoxString> KeywordDropdown;
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -45,6 +49,13 @@ private:
 	UFUNCTION()
 	void HandleSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 	void RefreshDescription();
+	void UpdateDropdownArrow(float DeltaTime);
+	void CollectDropdownArrowImages();
+	// 콤보 버튼 내부의 화살표 SImage(그림자 포함)입니다. 위젯이 재생성되면 다시 찾습니다.
+	TArray<TWeakPtr<SWidget>> DropdownArrowImages;
+	float DropdownArrowAngle = 0.f;
+	// 줄바꿈 위치를 계산한 설명 칸 폭입니다. 폭이 바뀌면 다시 계산합니다.
+	float LastDescriptionWidth = 0.f;
 	UPROPERTY(Transient)
 	TArray<FKeywordDefinitionData> Options;
 	UPROPERTY(Transient)
