@@ -79,4 +79,5 @@ public:
 	UW_ShopCheckStartGame* GetShopCheckStartWidget();
 
 	UW_ShopNavigationBar* GetShopNavigationBar() const;
+	UUserWidget* GetShopBossWidget() const { return ShopBossWidget; }
 };

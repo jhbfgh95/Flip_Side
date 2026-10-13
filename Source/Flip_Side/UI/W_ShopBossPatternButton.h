@@ -29,6 +29,8 @@ protected:
 	int32 ButtonIndex = INDEX_NONE;
 
 public:
+	UButton* GetPatternButton() const { return PatternButton.Get(); }
+
 	FOnShopBossPatternButtonClicked OnShopBossPatternButtonClicked;
 
 	UFUNCTION(BlueprintCallable, Category = "Boss Pattern")

@@ -19,7 +19,7 @@ void UW_ShopBossInfo::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if(PassiveButton) PassiveButton->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPassive);
+	if(PassiveButton) PassiveButton->OnClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::HandlePassiveButtonClicked);
 
 	RefreshPreparedBossInfo();
 }
@@ -124,6 +124,18 @@ void UW_ShopBossInfo::SelectPattern(int32 PatternIndex)
 	RefreshPatternButtonState();
 }
 
+void UW_ShopBossInfo::HandlePassiveButtonClicked()
+{
+	SelectPassive();
+	OnPassiveButtonClicked.Broadcast();
+}
+
+void UW_ShopBossInfo::HandlePatternButtonClicked(int32 PatternIndex)
+{
+	SelectPattern(PatternIndex);
+	OnPatternButtonClicked.Broadcast(PatternIndex);
+}
+
 void UW_ShopBossInfo::SelectPassive()
 {
 	if (CurrentBossData.BossAbilityDescription.IsEmpty())
@@ -196,7 +208,7 @@ void UW_ShopBossInfo::RebuildPatternButtons(int32 PatternCount)
 			);
 		}
 		PatternButton->InitPatternButton(Index,ButtonLabel);
-		PatternButton->OnShopBossPatternButtonClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::SelectPattern);
+		PatternButton->OnShopBossPatternButtonClicked.AddUniqueDynamic(this, &UW_ShopBossInfo::HandlePatternButtonClicked);
 		PatternButtonBox->AddChildToHorizontalBox(PatternButton);
 		PatternButtons.Add(PatternButton);
 	}

@@ -141,6 +141,12 @@ private:
 	void HandleNavigationToggleClicked();
 
 	UFUNCTION()
+	void HandleBossPassiveClicked();
+
+	UFUNCTION()
+	void HandleBossPatternClicked(int32 PatternIndex);
+
+	UFUNCTION()
 	void HandleCardPurchased(int32 CardID);
 
 	UFUNCTION()

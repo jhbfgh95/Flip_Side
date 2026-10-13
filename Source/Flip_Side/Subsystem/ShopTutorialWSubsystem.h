@@ -38,7 +38,10 @@ enum class EShopTutorialAction : uint8
 	CoinCountIncreased,
 	CoinSlotPurchased,
 
-	EndTutorial
+	EndTutorial,
+
+	BossPassiveClicked,
+	BossPatternClicked
 
 };
 

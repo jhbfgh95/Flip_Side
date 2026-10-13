@@ -9,6 +9,9 @@
 #include "BossPatternPreviewActor.h"
 #include "W_ShopBossInfo.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShopBossPassiveButtonClicked);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopBossPatternClicked, int32, PatternIndex);
+
 /**
  * 
  */
@@ -87,6 +90,15 @@ protected:
 	TArray<FBossPatternDisplayData> CurrentPatternDataList;
 
 public:
+	UButton* GetPassiveButton() const { return PassiveButton; }
+	const TArray<TObjectPtr<class UW_ShopBossPatternButton>>& GetPatternButtons() const { return PatternButtons; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Boss|Event")
+	FOnShopBossPassiveButtonClicked OnPassiveButtonClicked;
+
+	UPROPERTY(BlueprintAssignable, Category = "Boss|Event")
+	FOnShopBossPatternClicked OnPatternButtonClicked;
+
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	void RefreshPreparedBossInfo();
 
@@ -102,6 +114,12 @@ public:
 	void SetPatternButtonCount(int32 PatternCount);
 
 protected:
+	UFUNCTION()
+	void HandlePassiveButtonClicked();
+
+	UFUNCTION()
+	void HandlePatternButtonClicked(int32 PatternIndex);
+
 	UFUNCTION()
 	void SelectPassive();
 

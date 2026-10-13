@@ -28,6 +28,8 @@
 #include "UI/ShopItem/W_ShopPlayerItemSlotContainer.h"
 #include "UI/ShopUISelectRegistry.h"
 #include "UI/ShopUISelectActor.h"
+#include "UI/W_ShopBossInfo.h"
+#include "UI/W_ShopBossPatternButton.h"
 
 void UShopTutorialPresenter::InitShopActors(AShopUISelectRegistry* InShopUISelectRegistry, AShopCoinUIActor* InCoinUIActor)
 {
@@ -43,6 +45,14 @@ void UShopTutorialPresenter::InitPresenter(
 	TutorialSubsystem = InTutorialSubsystem;
 	TutorialWidget = InTutorialWidget;
 	ShopWidgetContainer = InShopWidgetContainer;
+	if (IsValid(ShopWidgetContainer))
+	{
+		if (UW_ShopBossInfo* BossInfo = Cast<UW_ShopBossInfo>(ShopWidgetContainer->GetShopBossWidget()); IsValid(BossInfo))
+		{
+			BossInfo->OnPassiveButtonClicked.AddUniqueDynamic(this, &ThisClass::HandleBossPassiveClicked);
+			BossInfo->OnPatternButtonClicked.AddUniqueDynamic(this, &ThisClass::HandleBossPatternClicked);
+		}
+	}
 	NavigationBar = IsValid(ShopWidgetContainer)
 		? ShopWidgetContainer->GetShopNavigationBar()
 		: nullptr;
@@ -255,8 +265,38 @@ void UShopTutorialPresenter::ShowTutorialStep(
 			TutorialWidget->SetHighlightOverlayVisible(false);
 			PageChangePresenter->HandlePageRequested(EShopPage::Main);
 			break;
+		/*보스관련*/
 
-		
+		case EShopTutorialAction::BossPassiveClicked:
+			if (IsValid(ShopWidgetContainer))
+			{
+				if (UW_ShopBossInfo* BossInfo = Cast<UW_ShopBossInfo>(ShopWidgetContainer->GetShopBossWidget()); IsValid(BossInfo))
+				{
+					SetDimMaskHoleFromWidget(BossInfo->GetPassiveButton());
+				}
+			}
+			break;
+
+		case EShopTutorialAction::BossPatternClicked:
+			if (IsValid(ShopWidgetContainer))
+			{
+				if (UW_ShopBossInfo* BossInfo = Cast<UW_ShopBossInfo>(ShopWidgetContainer->GetShopBossWidget()); IsValid(BossInfo))
+				{
+					// 현재 선택되어 잠긴 버튼을 제외하고 첫 번째 클릭 가능한 패턴 버튼을 강조합니다.
+					for (UW_ShopBossPatternButton* PatternWidget : BossInfo->GetPatternButtons())
+					{
+						if (!IsValid(PatternWidget) || !PatternWidget->GetIsEnabled()) continue;
+						if (UButton* Button = PatternWidget->GetPatternButton(); IsValid(Button) && Button->GetIsEnabled())
+						{
+							SetDimMaskHoleFromWidget(Button);
+							break;
+						}
+					}
+				}
+			}
+			break;
+
+		/*무기관련 튜토리얼*/
 		case EShopTutorialAction::WeaponUnlocked:
 			if (IsValid(UnlockWeaponPresenter))
 			{
@@ -431,6 +471,16 @@ void UShopTutorialPresenter::HandleTutorialCompleted()
 void UShopTutorialPresenter::HandleDialogueClicked()
 {
 	ReportAction(EShopTutorialAction::DialogueClicked);
+}
+
+void UShopTutorialPresenter::HandleBossPassiveClicked()
+{
+	ReportAction(EShopTutorialAction::BossPassiveClicked);
+}
+
+void UShopTutorialPresenter::HandleBossPatternClicked(int32 PatternIndex)
+{
+	ReportAction(EShopTutorialAction::BossPatternClicked);
 }
 
 void UShopTutorialPresenter::HandleNavigationToggleClicked()
