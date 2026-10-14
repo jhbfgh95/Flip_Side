@@ -32,7 +32,7 @@ public:
 	float SpacingY = 440.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
-	int32 GridXSize = 8;
+	int32 GridXSize = 9;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Grid")
 	int32 GridYSize = 5;
@@ -44,10 +44,10 @@ public:
 	FLinearColor AttackHighlightColor = FLinearColor(1.f, 0.f, 0.f, 1.f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview|Visual")
-	float HighlightFillIntensity = 0.3f;
+	float HighlightFillIntensity = 0.9f;
 
 	UFUNCTION(BlueprintCallable, Category = "Preview")
-	void ShowPatternPreview(const FAttackAreaSpec& Spec);
+	void ShowPatternPreview(const FAttackAreaSpec& Spec, bool bNoDamage = false);
 
 	UFUNCTION(BlueprintCallable, Category = "Preview")
 	void ClearPreview();

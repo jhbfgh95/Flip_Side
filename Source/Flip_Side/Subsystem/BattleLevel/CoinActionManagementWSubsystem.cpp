@@ -491,7 +491,8 @@ void UCoinActionManagementWSubsystem::BeginAttackStep()
 	}
 	if (RemainingAttackCount <= 0)
 	{
-		PipelineStage = SelectedAction->GetExecutionState().TotalDamageDealt > 0
+		// 보스에게 닿았다면 피해가 0이어도 명중 효과를 실행합니다.
+		PipelineStage = SelectedAction->GetExecutionState().bHitBoss
 			? ECoinWeaponPipelineStage::OnHit
 			: ECoinWeaponPipelineStage::AfterAttackAlways;
 		CurrentAbilityIndex = 0;

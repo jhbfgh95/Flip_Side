@@ -147,6 +147,7 @@ FWeaponAttackResult UWeapon_Action::ExecuteAttack()
 		Coin->StatComponent->CheckAttackerPostBuff(Result.Boss.Get(), Result.HPDamage);
 	ExecutionState.LastAttack = Result;
 	ExecutionState.TotalDamageDealt += Result.GetTotalDamage();
+	ExecutionState.bHitBoss |= Result.bAttackAttempted && Result.bEnemyInRange;
 	return Result;
 }
 

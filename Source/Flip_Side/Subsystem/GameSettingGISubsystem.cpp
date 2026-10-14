@@ -16,6 +16,12 @@ void UGameSettingGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	GameUserSettings = UGameUserSettings::GetGameUserSettings();
+	if (IsValid(GameUserSettings))
+	{
+		// 게임 시작 시 기본 프레임 제한을 적용하며, 레벨 전환 후에도 유지됩니다.
+		GameUserSettings->SetFrameRateLimit(60.f);
+		GameUserSettings->ApplyNonResolutionSettings();
+	}
 }
 
 void UGameSettingGISubsystem::SetMasterVolume(int32 VolumePercent)

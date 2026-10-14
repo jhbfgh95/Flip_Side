@@ -117,7 +117,11 @@ void UW_ShopBossInfo::SelectPattern(int32 PatternIndex)
 
 	if(IsValid(PatternPreviewActor))
 	{
-		PatternPreviewActor->ShowPatternPreview(CurrentPatternDataList[PatternIndex].PatternSpec);
+		const FBossPatternDisplayData& PatternData = CurrentPatternDataList[PatternIndex];
+		if (PatternData.GimmickType == EBossGimmickType::RoleTarget)
+			PatternPreviewActor->ClearPreview();
+		else
+			PatternPreviewActor->ShowPatternPreview(PatternData.PatternSpec, PatternData.bNoDamage);
 	}
 
 	RefreshPatternTexts();
@@ -143,8 +147,8 @@ void UW_ShopBossInfo::SelectPassive()
 
 	CurrentPatternIndex = INDEX_NONE;
 
-	//if (IsValid(PatternPreviewActor))
-	//	PatternPreviewActor->ClearPreview();
+	if (IsValid(PatternPreviewActor))
+		PatternPreviewActor->ClearPreview();
 
 	RefreshPatternTexts();
 	RefreshPatternButtonState();
@@ -273,9 +277,15 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 			PatternRangeImage->SetVisibility(ESlateVisibility::Hidden);
 		if (PatternIconImage)
 		{
-			if (CurrentBossData.BossIcon)
-				PatternIconImage->SetBrushFromTexture(CurrentBossData.BossIcon);
-			PatternIconImage->SetVisibility(ESlateVisibility::Hidden);
+			if (IsValid(CurrentBossData.BossPassiveIcon))
+			{
+				PatternIconImage->SetBrushFromTexture(CurrentBossData.BossPassiveIcon);
+				PatternIconImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+			}
+			else
+			{
+				PatternIconImage->SetVisibility(ESlateVisibility::Hidden);
+			}
 		}
 		if (PatternTitleText)
 			PatternTitleText->SetText(NSLOCTEXT("BossInfo", "PassiveTitle", "패시브"));

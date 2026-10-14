@@ -135,6 +135,10 @@ struct FWeaponExecutionState
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     int32 TotalDamageDealt = 0;
 
+    // 피해량과 별개로, 이번 행동의 공격 중 한 번이라도 보스에게 닿았는지 기록합니다.
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    bool bHitBoss = false;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     int32 AbsorbedAmount = 0;
 

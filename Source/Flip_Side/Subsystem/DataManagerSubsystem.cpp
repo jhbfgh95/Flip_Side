@@ -446,7 +446,7 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
 {
     {
         const TCHAR* Sql = TEXT(
-            "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, ability_description, attack_point, boss_hp, shield_value, boss_icon_path "
+            "SELECT boss_id, boss_stage, theme_id, boss_name, boss_image_path, ability_description, attack_point, boss_hp, shield_value, boss_icon_path, boss_passive_icon_path "
             "FROM boss_def;"
         );
 
@@ -477,6 +477,10 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
             const FString IconPath = GetColText(Stmt, 9);
             if (!IconPath.IsEmpty())
                 Boss.BossIcon = LoadObject<UTexture2D>(nullptr, *IconPath);
+
+            const FString PassiveIconPath = GetColText(Stmt, 10);
+            if (!PassiveIconPath.IsEmpty())
+                Boss.BossPassiveIcon = LoadObject<UTexture2D>(nullptr, *PassiveIconPath);
 
             BossByID.Add(Boss.BossID, Boss);
             BossIDByStage.Add(Boss.BossStage, Boss.BossID);
@@ -526,7 +530,7 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
         "p.area_pattern, p.anchor_dx, p.anchor_dy, p.anchor_mode, p.param_a, p.param_b, p.side, "
         "p.pattern_icon_path, p.pattern_range_image_path, p.shield_heal, "
         "p.gimmick_type, p.param_a, p.param_b, "
-        "COALESCE(g.param_int_a, 0) AS gimmick_int_a, COALESCE(g.param_int_b, 0) AS gimmick_int_b "
+        "COALESCE(g.param_int_a, 0) AS gimmick_int_a, COALESCE(g.param_int_b, 0) AS gimmick_int_b, p.no_damage "
         "FROM boss_pattern_def p "
         "LEFT JOIN boss_gimmick g ON p.boss_id = g.boss_id AND p.gimmick_type = g.gimmick_type "
         "ORDER BY p.boss_id, p.pattern_order;"
@@ -549,6 +553,7 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
 
         Pattern.PatternSpec.Pattern    = AttackAreaPatternFromInt(GetColInt(Stmt, 5));
         Pattern.PatternSpec.AnchorCell = FGridPoint(GetColInt(Stmt, 6), GetColInt(Stmt, 7));
+        Pattern.PatternSpec.Index      = GetColInt(Stmt, 6);
         Pattern.PatternSpec.AnchorMode = AreaAnchorFromInt(GetColInt(Stmt, 8));
         Pattern.PatternSpec.ParamA     = GetColInt(Stmt, 9);
         Pattern.PatternSpec.ParamB     = GetColInt(Stmt, 10);
@@ -563,6 +568,7 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
             Pattern.PatternRangeImage = LoadObject<UTexture2D>(nullptr, *RangeImagePath);
 
         Pattern.ShieldHeal   = GetColInt(Stmt, 14);
+        Pattern.bNoDamage   = GetColInt(Stmt, 20) != 0;
         Pattern.GimmickType  = static_cast<EBossGimmickType>(GetColInt(Stmt, 15));
         Pattern.bIsGimmick   = Pattern.GimmickType != EBossGimmickType::None;
 

@@ -102,6 +102,10 @@ struct FBossDisplayData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TObjectPtr<UTexture2D> BossIcon = nullptr;
 
+    // 상점 패시브 표시용 아이콘. boss_def.boss_passive_icon_path.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<UTexture2D> BossPassiveIcon = nullptr;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 AttackPoint = 0;
 
@@ -141,6 +145,9 @@ struct FBossPatternDisplayData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FAttackAreaSpec PatternSpec;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    bool bNoDamage = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 ShieldHeal = 0;
