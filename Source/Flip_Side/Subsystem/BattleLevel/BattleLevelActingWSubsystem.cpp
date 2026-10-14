@@ -170,6 +170,12 @@ void UBattleLevelActingWSubsystem::DoCoinTeleportAct()
     PendingLandingCoinCount = CoinsToLaunch.Num();
     bAllCoinsLanded = PendingLandingCoinCount == 0;
 
+    // 코인들이 동시에 튀어 오르므로 소리 같은 연출 신호는 한 번만 보냅니다.
+    if (CoinsToLaunch.Num() > 0)
+    {
+        OnCoinLaunched.ExecuteIfBound();
+    }
+
     for (ACoinActor* Coin : CoinsToLaunch)
     {
         TeleportReadyCoinsToDecidedGrid(

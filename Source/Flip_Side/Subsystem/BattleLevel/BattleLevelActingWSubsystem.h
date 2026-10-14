@@ -148,6 +148,9 @@ public:
 public:
 	FOnGear DoGearMove;
 
+	// 레버를 당긴 뒤 코인들이 한꺼번에 튀어 오르는 순간에 한 번 불립니다.
+	FOnGear OnCoinLaunched;
+
 	FOnGear OnCoinLanded;
 
 	FOnGear OnBossDeadAct;

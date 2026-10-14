@@ -3,6 +3,7 @@
 #include "Engine/GameInstance.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Actors/Boss/BossPortraitComponent.h"
 #include "Actors/Component_Status.h"
 #include "Actors/CoinActor.h"
 #include "BossGimmick_Swamp.h"
@@ -48,6 +49,9 @@ ABossActor::ABossActor()
 
 	BossSelfEffectLoc = CreateDefaultSubobject<USceneComponent>(TEXT("SelfEffectLocation"));
 	BossSelfEffectLoc->SetupAttachment(RootComponent);
+
+	PortraitComponent = CreateDefaultSubobject<UBossPortraitComponent>(TEXT("PortraitCamera"));
+	PortraitComponent->SetupAttachment(RootComponent);
 }
 
 void ABossActor::BeginPlay()
@@ -91,6 +95,7 @@ void ABossActor::InitializeFromBossData(const FBossBattleData& InData)
 	bHPDamagedThisTurn = false;
 	StageMultiplierStat = InData.StageMultiplierStat;
 	StageMultiplierGimmick = InData.StageMultiplierGimmick;
+	BossIcon = InData.BossIcon;
 
 	if (!InData.ClearAnim.IsNull())
 		BossClearAnim = InData.ClearAnim.LoadSynchronous();
@@ -547,6 +552,9 @@ FBossHUDData ABossActor::GetBossHUDData() const
 	HUDData.CurrentShield = CurrentShield;
 	HUDData.MaxShield = MaxShield;
 	HUDData.bHasPatternInfo = bHasCachedPatternInfo;
+	// 체력바 둥근 창용: 초상화 카메라 화면(있으면)과 문양. HUD는 이 값만 보고 그립니다.
+	HUDData.BossIcon = BossIcon;
+	HUDData.PortraitTexture = IsValid(PortraitComponent) ? PortraitComponent->GetPortraitRenderTarget() : nullptr;
 
 	if (bHasCachedPatternInfo)
 	{

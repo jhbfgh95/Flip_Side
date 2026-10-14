@@ -9,6 +9,7 @@
 #include "Components/Border.h"
 #include "Input/Reply.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 void UW_ShopItemSlot::NativeConstruct()
 {
@@ -84,6 +85,7 @@ void UW_ShopItemSlot::NativeOnMouseEnter(const FGeometry& InGeometry,const FPoin
     }
 
     OnHoveredSlot.Broadcast(WidgetItemData.ItemID);
+    USoundManagerWSubsystem::PlayHoverSoundFromWidget(this, InMouseEvent);
 }
 
 void UW_ShopItemSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)

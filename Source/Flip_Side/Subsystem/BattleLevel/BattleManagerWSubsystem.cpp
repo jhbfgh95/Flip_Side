@@ -85,6 +85,12 @@ void UBattleManagerWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
     StageCardManager = InWorld.GetSubsystem<UStageCardWSubsystem>();
 
+    ActingManager->OnCoinLaunched.BindLambda([this]()
+    {
+        if (SoundManager)
+            SoundManager->PlayCoinLaunchSound();
+    });
+
     ActingManager->OnCoinLanded.BindLambda([this]()
     {
         if (BossManager)

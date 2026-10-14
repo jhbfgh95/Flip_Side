@@ -8,6 +8,7 @@
 #include "W_SettingSound.generated.h"
 
 class UEditableTextBox;
+class UGameSettingGISubsystem;
 class USlider;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSettingSoundValueChanged, int32, NewValue);
@@ -47,8 +48,16 @@ private:
 	UFUNCTION()
 	void HandleVolumeTextCommitted(const FText& Text, ETextCommit::Type CommitMethod);
 
+	// 슬라이더를 놓았을 때 한 번 저장합니다. 드래그 중에는 적용만 합니다.
+	UFUNCTION()
+	void HandleVolumeSliderCaptureEnd();
+
 	void SetVolumeValue(int32 NewValue, bool bBroadcastChange);
 	int32 GetClampedVolumeValue(int32 Value) const;
+
+	// 슬라이더 값을 게임 전체 볼륨으로 적용·저장합니다.
+	UPROPERTY()
+	TObjectPtr<UGameSettingGISubsystem> GameSettingSubsystem;
 
 	bool bIsSynchronizingValue = false;
 };

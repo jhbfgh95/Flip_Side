@@ -40,8 +40,15 @@ private:
 	UFUNCTION()
 	void HandleBossLeverAnimationFinished();
 
+	// 레버가 원래 자리로 올라오기 시작할 때 소리를 냅니다.
+	UFUNCTION()
+	void PlayLeverReturnSound();
+
 	void UpdatePhaseProgressButtonState();
 
 	EPhaseState DisplayedPhase = EPhaseState::None;
 	bool bIsLeverAnimationPlaying = false;
+
+	// 준비 단계는 내려갔다가 바로 올라오므로(PingPong), 올라오기 시작하는 순간을 이 타이머로 잡습니다.
+	FTimerHandle LeverReturnSoundTimer;
 };

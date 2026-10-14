@@ -5,6 +5,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "W_ShopWidget.h"
 #include "ShopPlayerPawn_FlipSide.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 #include "Subsystem/MoneyGISubsystem.h"
 #include "Subsystem/BossSetupGISubsystem.h"
@@ -34,6 +35,7 @@
 #include "Interface/ShopMouseInterface.h"
 #include "UI/W_ShopWidgetContainer.h"
 #include "Kismet/GameplayStatics.h"
+
 AShopController_FlipSide::AShopController_FlipSide()
 {
     bShowMouseCursor = true;
@@ -328,6 +330,10 @@ void AShopController_FlipSide::CheckMouseHover()
 {
     if(!CanClick)
         return;
+    // 커서가 실제로 움직였을 때만 3D 오브젝트 호버 소리를 냅니다(페이지 이동으로 대상이 바뀐 경우 제외).
+    USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>();
+    const bool bHoverCursorMoved = SoundManager && SoundManager->PollCursorMoved();
+
     FHitResult Hit;
     AActor* NewHoverActor = nullptr;
     if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
@@ -350,6 +356,13 @@ void AShopController_FlipSide::CheckMouseHover()
         if (CurrentHoverActor)
         {
             IShopMouseInterface::Execute_InteractHover(CurrentHoverActor);
+
+            // 상점 3D 오브젝트도 버튼처럼 마우스를 올리면 소리를 냅니다.
+            // 커서 아래에 버튼이 있으면 그 버튼 소리가 이미 나므로 3D 오브젝트 소리는 내지 않습니다.
+            if (bHoverCursorMoved && !USoundManagerWSubsystem::IsSlateButtonUnderCursor())
+            {
+                SoundManager->PlayHoverSound();
+            }
         }
     }
 }

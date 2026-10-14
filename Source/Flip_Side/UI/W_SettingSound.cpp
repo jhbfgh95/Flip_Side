@@ -5,10 +5,17 @@
 
 #include "Components/EditableTextBox.h"
 #include "Components/Slider.h"
+#include "Engine/GameInstance.h"
+#include "Subsystem/GameSettingGISubsystem.h"
 
 void UW_SettingSound::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
+
+	if (UGameInstance* GameInstance = GetGameInstance())
+	{
+		GameSettingSubsystem = GameInstance->GetSubsystem<UGameSettingGISubsystem>();
+	}
 
 	MaximumVolume = FMath::Max(MaximumVolume, MinimumVolume);
 
@@ -19,6 +26,8 @@ void UW_SettingSound::NativeOnInitialized()
 		VolumeSlider->SetStepSize(1.0f);
 		VolumeSlider->OnValueChanged.AddUniqueDynamic(
 			this, &ThisClass::HandleVolumeSliderValueChanged);
+		VolumeSlider->OnMouseCaptureEnd.AddUniqueDynamic(
+			this, &ThisClass::HandleVolumeSliderCaptureEnd);
 	}
 
 	if (IsValid(VolumeValueTextBox))
@@ -27,7 +36,8 @@ void UW_SettingSound::NativeOnInitialized()
 			this, &ThisClass::HandleVolumeTextCommitted);
 	}
 
-	SetVolumeValue(InitialVolume, false);
+	// 저장된 전체 볼륨이 있으면 그 값으로 시작합니다.
+	SetVolumeValue(IsValid(GameSettingSubsystem) ? GameSettingSubsystem->GetMasterVolume() : InitialVolume, false);
 }
 
 void UW_SettingSound::HandleVolumeSliderValueChanged(float NewValue)
@@ -44,11 +54,23 @@ void UW_SettingSound::HandleVolumeTextCommitted(const FText& Text, ETextCommit::
 	if (InputText.IsNumeric())
 	{
 		SetVolumeValue(FCString::Atoi(*InputText), true);
+		if (IsValid(GameSettingSubsystem))
+		{
+			GameSettingSubsystem->SaveMasterVolume();
+		}
 	}
 	else
 	{
 		// 유효하지 않은 입력은 현재 슬라이더 값으로 되돌립니다.
 		SetVolumeValue(VolumeSlider ? FMath::RoundToInt(VolumeSlider->GetValue()) : InitialVolume, false);
+	}
+}
+
+void UW_SettingSound::HandleVolumeSliderCaptureEnd()
+{
+	if (IsValid(GameSettingSubsystem))
+	{
+		GameSettingSubsystem->SaveMasterVolume();
 	}
 }
 
@@ -70,6 +92,10 @@ void UW_SettingSound::SetVolumeValue(int32 NewValue, bool bBroadcastChange)
 
 	if (bBroadcastChange)
 	{
+		if (IsValid(GameSettingSubsystem))
+		{
+			GameSettingSubsystem->SetMasterVolume(ClampedValue);
+		}
 		OnSoundValueChanged.Broadcast(ClampedValue);
 	}
 }

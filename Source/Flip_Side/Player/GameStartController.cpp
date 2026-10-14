@@ -5,6 +5,7 @@
 
 #include "Engine/GameInstance.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 #include "Subsystem/LevelGISubsystem.h"
 #include "Subsystem/MoneyGISubsystem.h"
 #include "Subsystem/SaveGISubsystem.h"
@@ -89,7 +90,7 @@ void AGameStartController::HandleGameSettingRequested()
 {
 	if (IsValid(SettingWidget))
 	{
-		SettingWidget->SetVisibility(ESlateVisibility::Visible);
+		USoundManagerWSubsystem::SetPopupVisibility(SettingWidget, ESlateVisibility::Visible);
 	}
 }
 
@@ -110,6 +111,6 @@ void AGameStartController::HandleSettingClosed()
 {
 	if (IsValid(SettingWidget))
 	{
-		SettingWidget->SetVisibility(ESlateVisibility::Collapsed);
+		USoundManagerWSubsystem::SetPopupVisibility(SettingWidget, ESlateVisibility::Collapsed);
 	}
 }

@@ -8,6 +8,7 @@
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "UI/ShopCoinManage/W_ShopCoinSlotBuyButton.h"
 
@@ -68,7 +69,7 @@ void UW_BuyCoinSlotContainer::OpenSlotBuyPopupBorder()
 	if (IsValid(SlotBuyBorder))
 	{
 		IsPopupOpen = true;
-		SlotBuyBorder->SetVisibility(ESlateVisibility::Visible);
+		USoundManagerWSubsystem::SetPopupVisibility(SlotBuyBorder, ESlateVisibility::Visible);
 	}
 }
 
@@ -78,7 +79,7 @@ void UW_BuyCoinSlotContainer::CloseSlotBuyPopupBorder()
 	{
 		SlotBuyButtonText->SetText(FText::FromString(TEXT("슬롯 구매")));
 		IsPopupOpen = false;
-		SlotBuyBorder->SetVisibility(ESlateVisibility::Hidden);
+		USoundManagerWSubsystem::SetPopupVisibility(SlotBuyBorder, ESlateVisibility::Hidden);
 	}
 }
 

@@ -3,11 +3,68 @@
 
 #include "Subsystem/GameSettingGISubsystem.h"
 
+#include "AudioDevice.h"
+#include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundClass.h"
+#include "Sound/SoundMix.h"
+#include "Subsystem/FlipSideDevloperSettings.h"
+#include "Subsystem/FlipSideGameUserSettings.h"
+
 void UGameSettingGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
 	GameUserSettings = UGameUserSettings::GetGameUserSettings();
+}
+
+void UGameSettingGISubsystem::SetMasterVolume(int32 VolumePercent)
+{
+	if (UFlipSideGameUserSettings* Settings = Cast<UFlipSideGameUserSettings>(GameUserSettings))
+	{
+		Settings->SetMasterVolumePercent(VolumePercent);
+	}
+	ApplyMasterVolume(GetWorld());
+}
+
+void UGameSettingGISubsystem::SaveMasterVolume()
+{
+	if (IsValid(GameUserSettings))
+	{
+		GameUserSettings->SaveSettings();
+	}
+}
+
+int32 UGameSettingGISubsystem::GetMasterVolume() const
+{
+	const UFlipSideGameUserSettings* Settings = Cast<UFlipSideGameUserSettings>(GameUserSettings);
+	return Settings ? Settings->GetMasterVolumePercent() : 100;
+}
+
+void UGameSettingGISubsystem::ApplyMasterVolume(const UWorld* World) const
+{
+	if (!IsValid(World))
+	{
+		return;
+	}
+
+	const float Volume = static_cast<float>(GetMasterVolume()) / 100.f;
+	const UFlipSideDevloperSettings* DevSettings = GetDefault<UFlipSideDevloperSettings>();
+	USoundMix* MasterMix = DevSettings ? DevSettings->MasterSoundMix.LoadSynchronous() : nullptr;
+	USoundClass* MasterClass = DevSettings ? DevSettings->MasterSoundClass.LoadSynchronous() : nullptr;
+	if (MasterMix && MasterClass)
+	{
+		// 사운드 믹스는 레벨이 바뀌어도 오디오 장치에 남습니다. 모든 소리는 프로젝트 기본 사운드 클래스(MasterClass)에 속합니다.
+		UGameplayStatics::SetSoundMixClassOverride(World, MasterMix, MasterClass, Volume, 1.f, 0.f, true);
+		UGameplayStatics::PushSoundMixModifier(World, MasterMix);
+		return;
+	}
+
+	// 믹스 에셋이 설정되지 않았을 때의 대비책입니다. 이 값은 레벨이 바뀌면 엔진이 1로 되돌립니다.
+	if (FAudioDeviceHandle AudioDevice = World->GetAudioDevice())
+	{
+		AudioDevice->SetTransientPrimaryVolume(Volume);
+	}
 }
 
 void UGameSettingGISubsystem::SetScreenResolution(FIntPoint Resolution)

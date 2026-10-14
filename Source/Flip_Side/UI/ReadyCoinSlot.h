@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "CoinDataTypes.h"
+#include "Sound/SlateSound.h"
 #include "ReadyCoinSlot.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnReadyCoinSlotWidgetClicked, int32);
@@ -74,6 +75,9 @@ private:
 	void HandleReadyCoinUnhovered();
 
 	void UpdateCancelStateVisual();
+
+	// 빈 준비 칸은 다른 빈 칸들처럼 마우스 올리기 소리를 내지 않게 합니다. 모양은 그대로 둡니다.
+	void ApplyHoverSoundForCoinState(bool bHasCoin);
 	void UpdateWeaponIconMaterial(
 		class UImage* WeaponIconImage,
 		class UTexture2D* WeaponIconTexture,
@@ -83,6 +87,11 @@ private:
 
 	int32 CoinInstanceID = INDEX_NONE;
 	bool bCanCancel = false;
+
+	// 코인이 든 칸의 마우스 올리기 소리입니다. 빈 칸이 되면 잠시 빼 두었다가 코인이 들어오면 다시 넣습니다.
+	FSlateSound FilledHoveredSound;
+	bool bCachedHoveredSound = false;
+	bool bHoverSoundEnabled = true;
 
 	UPROPERTY()
 	TObjectPtr<class UMaterialInstanceDynamic> CancelStateIconMaterialInstance;

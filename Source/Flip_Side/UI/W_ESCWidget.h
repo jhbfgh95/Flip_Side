@@ -128,6 +128,9 @@ private:
 	UFUNCTION()
 	void CloseCurrentOpenWidget();
 
+	// 하위 창을 닫습니다. 창을 바꾸거나 ESC 메뉴 전체를 닫을 때는 bSilent로 닫기 소리를 막아 소리가 한 번만 나게 합니다.
+	void CloseCurrentOpenWidgetInternal(bool bSilent);
+
 	void OpenWidget(UWidget* WidgetToOpen);
 
 };

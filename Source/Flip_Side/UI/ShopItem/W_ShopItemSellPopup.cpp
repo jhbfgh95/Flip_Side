@@ -6,6 +6,7 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 void UW_ShopItemSellPopup::NativeConstruct()
 {
@@ -38,12 +39,12 @@ void UW_ShopItemSellPopup::Open(int32 InInventoryIndex, const FItemData& InItemD
     ItemNameText->SetText(FText::FromString(CurrentItemData.ItemName));
     OwnedCountText->SetText(FText::AsNumber(MaxSellCount));
     RefreshCountAndPrice();
-    SetVisibility(ESlateVisibility::Visible);
+    USoundManagerWSubsystem::SetPopupVisibility(this, ESlateVisibility::Visible);
 }
 
 void UW_ShopItemSellPopup::Close()
 {
-    SetVisibility(ESlateVisibility::Collapsed);
+    USoundManagerWSubsystem::SetPopupVisibility(this, ESlateVisibility::Collapsed);
 }
 
 void UW_ShopItemSellPopup::SetOnlySellControlsEnabled(bool bInEnabled)

@@ -1,6 +1,9 @@
 #include "UI/W_Battle_Lever.h"
 #include "Animation/WidgetAnimation.h"
 #include "Components/Button.h"
+#include "Engine/World.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
+#include "TimerManager.h"
 
 void UW_Battle_Lever::NativeConstruct()
 {
@@ -45,6 +48,10 @@ void UW_Battle_Lever::NativeDestruct()
     {
         UnbindAllFromAnimationFinished(LeverPull_Boss);
     }
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(LeverReturnSoundTimer);
+    }
     StopAllAnimations();
     bIsLeverAnimationPlaying = false;
     Super::NativeDestruct();
@@ -80,6 +87,21 @@ void UW_Battle_Lever::HandlePhaseProgressButtonClicked()
 		? EUMGSequencePlayMode::PingPong
 		: EUMGSequencePlayMode::Forward;
 	PlayAnimation(LeverPull_Player, 0.f, 1, PlayMode);
+
+	if (UWorld* World = GetWorld())
+	{
+		if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+		{
+			SoundManager->PlayLeverPullSound();
+		}
+
+		if (PlayMode == EUMGSequencePlayMode::PingPong)
+		{
+			const float PullDuration = LeverPull_Player->GetEndTime() - LeverPull_Player->GetStartTime();
+			World->GetTimerManager().SetTimer(LeverReturnSoundTimer, this, &UW_Battle_Lever::PlayLeverReturnSound,
+				FMath::Max(PullDuration, KINDA_SMALL_NUMBER), false);
+		}
+	}
 }
 
 void UW_Battle_Lever::PlayBossPhaseCompletionAnimation()
@@ -93,6 +115,18 @@ void UW_Battle_Lever::PlayBossPhaseCompletionAnimation()
 	bIsLeverAnimationPlaying = true;
 	UpdatePhaseProgressButtonState();
 	PlayAnimation(LeverPull_Boss, 0.f, 1, EUMGSequencePlayMode::Forward);
+	PlayLeverReturnSound();
+}
+
+void UW_Battle_Lever::PlayLeverReturnSound()
+{
+	if (UWorld* World = GetWorld())
+	{
+		if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+		{
+			SoundManager->PlayLeverReturnSound();
+		}
+	}
 }
 
 void UW_Battle_Lever::HandlePlayerLeverAnimationFinished()

@@ -37,6 +37,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Settings|Display")
 	void ApplyAndSaveSettings(bool bCheckForCommandLineOverrides = false);
 
+	/** 전체 볼륨(0~100)을 바로 적용합니다. 저장은 SaveMasterVolume에서 합니다. */
+	UFUNCTION(BlueprintCallable, Category = "Game Settings|Sound")
+	void SetMasterVolume(int32 VolumePercent);
+
+	/** 전체 볼륨을 GameUserSettings.ini에 저장합니다. 슬라이더를 놓거나 값을 입력했을 때 부릅니다. */
+	UFUNCTION(BlueprintCallable, Category = "Game Settings|Sound")
+	void SaveMasterVolume();
+
+	UFUNCTION(BlueprintPure, Category = "Game Settings|Sound")
+	int32 GetMasterVolume() const;
+
+	/** 저장된 전체 볼륨을 이 월드의 오디오에 적용합니다. 사운드 믹스로 걸어서 레벨이 바뀌어도 유지됩니다. */
+	void ApplyMasterVolume(const UWorld* World) const;
+
 private:
 	UPROPERTY()
 	TObjectPtr<UGameUserSettings> GameUserSettings;

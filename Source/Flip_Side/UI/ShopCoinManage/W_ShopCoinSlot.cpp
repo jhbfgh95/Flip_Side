@@ -12,6 +12,7 @@
 #include "Components/Border.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Input/Reply.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 #include "UI/ShopCoinManage/ShopCoinSlotDragDropOperation.h"
 
 void UW_ShopCoinSlot::NativeOnInitialized()
@@ -266,6 +267,17 @@ void UW_ShopCoinSlot::NativeOnMouseEnter(const FGeometry& InGeometry,const FPoin
     }
 
     OnHoveredShopCoinSlot.Broadcast(SlotIndex);
+
+    // 안쪽 버튼(무기 면, +/-)에 바로 들어온 경우에는 그 버튼 소리가 이미 나므로 칸 소리는 내지 않습니다.
+    const bool bInnerButtonHovered =
+        (IsValid(FrontWeaponImageButton) && FrontWeaponImageButton->IsHovered()) ||
+        (IsValid(BackWeaponImageButton) && BackWeaponImageButton->IsHovered()) ||
+        (IsValid(IncreaseButton) && IncreaseButton->IsHovered()) ||
+        (IsValid(DecreaseButton) && DecreaseButton->IsHovered());
+    if (!bInnerButtonHovered)
+    {
+        USoundManagerWSubsystem::PlayHoverSoundFromWidget(this, InMouseEvent);
+    }
 }
 
 void UW_ShopCoinSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)

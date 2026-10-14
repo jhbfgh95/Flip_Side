@@ -6,6 +6,7 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 void UW_ShopItemPurchasePopup::NativeConstruct()
 {
@@ -33,12 +34,12 @@ void UW_ShopItemPurchasePopup::Open(const FItemData& InItemData)
 	ItemNameText->SetText(FText::FromString(CurrentItemData.ItemName));
 	ItemCountText->SetText(FText::AsNumber(CurrentCount));
 	TotalPriceText->SetText(FText::AsNumber(CurrentItemData.Price * CurrentCount));
-	SetVisibility(ESlateVisibility::Visible);
+	USoundManagerWSubsystem::SetPopupVisibility(this, ESlateVisibility::Visible);
 }
 
 void UW_ShopItemPurchasePopup::Close()
 {
-	SetVisibility(ESlateVisibility::Collapsed);
+	USoundManagerWSubsystem::SetPopupVisibility(this, ESlateVisibility::Collapsed);
 }
 
 void UW_ShopItemPurchasePopup::SetOnlyPurchaseControlsEnabled(bool bInEnabled)

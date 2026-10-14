@@ -7,6 +7,7 @@
 #include "Components/Image.h"
 #include "Components/Border.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 #include "UI/ShopItem/ItemSlotDragDropOperation.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -88,6 +89,12 @@ void UW_ShopPlayerItemSlot::NativeOnMouseEnter(const FGeometry& InGeometry,const
     }
 
     OnHoveredSlot.Broadcast(PlayerInvenIndex);
+
+    // 빈 보유 칸은 전투의 빈 칸처럼 소리를 내지 않습니다.
+    if (WidgetItemData.ItemID != -1)
+    {
+        USoundManagerWSubsystem::PlayHoverSoundFromWidget(this, InMouseEvent);
+    }
 }
 
 void UW_ShopPlayerItemSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)

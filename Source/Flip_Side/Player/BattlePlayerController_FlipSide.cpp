@@ -26,6 +26,7 @@
 #include "Subsystem/BattleLevel/UseableItemWSubsystem.h"
 #include "Subsystem/BattleLevel/BattleLevelActingWSubsystem.h"
 #include "Subsystem/BattleLevel/BossManagerSubsystem.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 #include "Subsystem/StageCardWSubsystem.h"
 #include "Subsystem/CursorGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
@@ -375,6 +376,10 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
 
 void ABattlePlayerController_FlipSide::CheckMouseHover()
 {
+    // 커서가 실제로 움직였을 때만 3D 오브젝트 호버 소리를 냅니다(코인 착지·카메라 이동으로 대상이 바뀐 경우 제외).
+    USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>();
+    const bool bHoverCursorMoved = SoundManager && SoundManager->PollCursorMoved();
+
     if (bIsUIOnly)
     {
         if (LastHoveredActor)
@@ -459,6 +464,22 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
                 IsValid(CurrentCoin) && CurrentCoin->GetCoinOnBattle())
             {
                 BeginBattleCoinActorHover(CurrentCoin);
+            }
+
+            // 전투 코인과 포탑은 버튼처럼 마우스를 올리면 소리를 냅니다. 바닥 칸은 너무 자주 지나가서 뺍니다.
+            bool bPlayHoverSound = false;
+            if (ACoinActor* HoverCoin = Cast<ACoinActor>(CurrentActor))
+            {
+                bPlayHoverSound = HoverCoin->GetCoinOnBattle();
+            }
+            else if (ATurret_OtherActor* HoverTurret = Cast<ATurret_OtherActor>(CurrentActor))
+            {
+                UCoinActionManagementWSubsystem* ActionManager = GetWorld()->GetSubsystem<UCoinActionManagementWSubsystem>();
+                bPlayHoverSound = HoverTurret->GetHP() > 0 && !(IsValid(ActionManager) && ActionManager->IsActionSequenceActive());
+            }
+            if (bPlayHoverSound && bHoverCursorMoved)
+            {
+                SoundManager->PlayHoverSound();
             }
         }
         LastHoveredActor = CurrentActor;

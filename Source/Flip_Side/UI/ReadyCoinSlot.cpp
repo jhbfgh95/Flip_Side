@@ -30,12 +30,36 @@ void UReadyCoinSlot::NativeConstruct()
 		ReadyCoinButton->OnHovered.AddDynamic(this, &UReadyCoinSlot::HandleReadyCoinHovered);
 		ReadyCoinButton->OnUnhovered.AddDynamic(this, &UReadyCoinSlot::HandleReadyCoinUnhovered);
 	}
+	ApplyHoverSoundForCoinState(CoinInstanceID != INDEX_NONE);
+}
+
+void UReadyCoinSlot::ApplyHoverSoundForCoinState(bool bHasCoin)
+{
+	if (!IsValid(ReadyCoinButton))
+	{
+		return;
+	}
+	if (!bCachedHoveredSound)
+	{
+		FilledHoveredSound = ReadyCoinButton->GetStyle().HoveredSlateSound;
+		bCachedHoveredSound = true;
+	}
+	else if (bHoverSoundEnabled == bHasCoin)
+	{
+		// 상태가 같으면 스타일을 다시 쓰지 않습니다(준비 칸은 매 갱신마다 불립니다).
+		return;
+	}
+	FButtonStyle Style = ReadyCoinButton->GetStyle();
+	Style.HoveredSlateSound = bHasCoin ? FilledHoveredSound : FSlateSound();
+	ReadyCoinButton->SetStyle(Style);
+	bHoverSoundEnabled = bHasCoin;
 }
 
 void UReadyCoinSlot::SetReadyCoinData(const FBattleReadyCoinViewData& InData)
 {
 	CoinInstanceID = InData.CoinInstanceID;
 	bCanCancel = InData.bCanCancel;
+	ApplyHoverSoundForCoinState(CoinInstanceID != INDEX_NONE);
 
 	if (IsValid(FrontWeaponIcon))
 	{
@@ -107,6 +131,7 @@ void UReadyCoinSlot::ClearReadyCoinData()
 	}
 	CoinInstanceID = INDEX_NONE;
 	bCanCancel = false;
+	ApplyHoverSoundForCoinState(false);
 
 	// 빈 슬롯도 Horizontal Box의 고정 폭을 유지해야 하므로 슬롯 위젯 자체는 숨기지 않습니다.
 	if (IsValid(FrontWeaponIcon))

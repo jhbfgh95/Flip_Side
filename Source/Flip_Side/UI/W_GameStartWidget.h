@@ -87,5 +87,12 @@ private:
 	UFUNCTION()
 	void HandleIntroMediaEndReached();
 
+	// 인트로 영상을 열지 못했을 때도 메뉴와 BGM이 나오게 합니다.
+	UFUNCTION()
+	void HandleIntroMediaOpenFailed(FString FailedUrl);
+
+	// 인트로 영상이 끝났거나 건너뛴 뒤 시작 메뉴 BGM을 재생합니다.
+	void StartMenuBGM();
+
 	void UpdateIntroVideoVisibility();
 };

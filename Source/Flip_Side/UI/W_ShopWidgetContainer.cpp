@@ -9,6 +9,7 @@
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponWidget.h"
 #include "UI/W_ShopCheckStartGame.h"
 #include "Player/GameMode_Shop.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 void UW_ShopWidgetContainer::NativeOnInitialized()
 {
@@ -61,6 +62,11 @@ void UW_ShopWidgetContainer::ShowShopPage(EShopPage Page)
 		const bool bHasCoin = IsValid(ShopGameMode) && ShopGameMode->CheckHaveCoin();
 		ShopCheckStartGameWidget->SetCheckStartGameText(bHasCoin);
 		ShopContentSwitcher->SetActiveWidget(ShopCheckStartGameWidget);
+		// 전투 시작 확인창이 뜰 때 팝업 소리를 냅니다.
+		if (USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>())
+		{
+			SoundManager->PlayPopupOpenSound();
+		}
 		break;
 	}
 	default:

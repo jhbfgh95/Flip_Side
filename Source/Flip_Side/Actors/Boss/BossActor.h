@@ -173,6 +173,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
 	class USceneComponent* BossSelfEffectLoc;
 
+	// HUD 체력바의 둥근 창에 보스 얼굴을 실시간으로 보여주는 초상화 카메라입니다.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Portrait")
+	TObjectPtr<class UBossPortraitComponent> PortraitComponent;
+
+	// 체력바 둥근 창에 보내는 보스 문양(boss_def.boss_icon_path)입니다. 보드 위 보스 코인과 같은 그림입니다.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Portrait")
+	TObjectPtr<class UTexture2D> BossIcon;
+
 /*Functions*/
 public:
 	UFUNCTION(BlueprintCallable, Category = "Boss")

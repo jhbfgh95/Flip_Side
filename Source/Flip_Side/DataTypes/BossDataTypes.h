@@ -253,6 +253,10 @@ struct FBossHUDData
     FText PatternDescription;
     int32 PatternDamage = 0;
     TObjectPtr<UTexture2D> PatternIcon = nullptr;
+
+    // 체력바의 둥근 창에 쓰는 보스 문양과 실시간 초상화입니다. 둘 다 없으면 창을 비워 둡니다.
+    TObjectPtr<UTexture2D> BossIcon = nullptr;
+    TObjectPtr<class UTextureRenderTarget2D> PortraitTexture = nullptr;
 };
 
 // 배틀용 보스 전체 데이터

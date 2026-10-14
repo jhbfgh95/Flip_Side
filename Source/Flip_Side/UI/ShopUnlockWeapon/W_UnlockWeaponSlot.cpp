@@ -8,6 +8,7 @@
 #include "Input/Reply.h"
 #include "InputCoreTypes.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 #include "TimerManager.h"
 
 void UW_UnlockWeaponSlot::NativeConstruct()
@@ -63,6 +64,7 @@ void UW_UnlockWeaponSlot::NativeOnMouseEnter(
 {
     Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
     HoverSlot();
+    USoundManagerWSubsystem::PlayHoverSoundFromWidget(this, InMouseEvent);
 }
 
 void UW_UnlockWeaponSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)

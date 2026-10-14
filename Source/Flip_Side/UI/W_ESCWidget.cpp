@@ -6,15 +6,14 @@
 #include "Components/Button.h"
 #include "Components/CanvasPanel.h"
 #include "Components/Overlay.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 
 bool UW_ESCWidget::CloseESCWidget()
 {
-	CloseCurrentOpenWidget();
-	if (IsValid(EscWidget))
-	{
-		EscWidget->SetVisibility(ESlateVisibility::Collapsed);
-	}
+	// 하위 창은 소리 없이 닫고, ESC 메뉴가 열려 있었다면 닫기 소리가 한 번만 납니다.
+	CloseCurrentOpenWidgetInternal(true);
+	USoundManagerWSubsystem::SetPopupVisibility(EscWidget, ESlateVisibility::Collapsed);
 	return true;
 }
 
@@ -26,10 +25,7 @@ void UW_ESCWidget::ToggleESCWidget()
 		return;
 	}
 
-	if (IsValid(EscWidget))
-	{
-		EscWidget->SetVisibility(ESlateVisibility::Visible);
-	}
+	USoundManagerWSubsystem::SetPopupVisibility(EscWidget, ESlateVisibility::Visible);
 }
 
 bool UW_ESCWidget::IsESCWidgetOpen() const
@@ -164,6 +160,11 @@ void UW_ESCWidget::HandleMainMenuCancelButtonClicked()
 
 void UW_ESCWidget::CloseCurrentOpenWidget()
 {
+	CloseCurrentOpenWidgetInternal(false);
+}
+
+void UW_ESCWidget::CloseCurrentOpenWidgetInternal(bool bSilent)
+{
 	if (!IsValid(CurrentOpenWidget))
 	{
 		return;
@@ -172,7 +173,7 @@ void UW_ESCWidget::CloseCurrentOpenWidget()
 	{
 		SettingWidget->CloseSettingWidget();
 	}
-	CurrentOpenWidget->SetVisibility(ESlateVisibility::Collapsed);
+	USoundManagerWSubsystem::SetPopupVisibility(CurrentOpenWidget, ESlateVisibility::Collapsed, bSilent);
 	CurrentOpenWidget = nullptr;
 }
 
@@ -186,9 +187,10 @@ void UW_ESCWidget::OpenWidget(UWidget* WidgetToOpen)
 	// 하나의 팝업만 표시한다. 이미 표시 중인 팝업이면 닫았다가 다시 열지 않는다.
 	if (CurrentOpenWidget != WidgetToOpen)
 	{
-		CloseCurrentOpenWidget();
+		CloseCurrentOpenWidgetInternal(true);
 		CurrentOpenWidget = WidgetToOpen;
 	}
 
-	CurrentOpenWidget->SetVisibility(ESlateVisibility::Visible);
+	// 이미 보이는 창이면 열기 소리가 나지 않습니다.
+	USoundManagerWSubsystem::SetPopupVisibility(CurrentOpenWidget, ESlateVisibility::Visible);
 }
