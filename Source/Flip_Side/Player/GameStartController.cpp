@@ -9,6 +9,7 @@
 #include "Subsystem/LevelGISubsystem.h"
 #include "Subsystem/MoneyGISubsystem.h"
 #include "Subsystem/SaveGISubsystem.h"
+#include "Subsystem/CrossingLevelGISubsystem.h"
 #include "UI/W_GameStartWidget.h"
 #include "UI/W_SettingWidget.h"
 
@@ -65,6 +66,11 @@ void AGameStartController::HandleGameStartRequested()
 		MoneySubsystem->InitMoney();
 	}
 
+	if (UCrossingLevelGISubsystem* CrossingSubsystem = GetGameInstance()->GetSubsystem<UCrossingLevelGISubsystem>())
+	{
+		CrossingSubsystem->ResetCrossingData();
+	}
+
 	if (ULevelGISubsystem* LevelSubsystem = GetGameInstance()->GetSubsystem<ULevelGISubsystem>())
 	{
 		LevelSubsystem->SetBattleLevelIndex(0);
@@ -96,6 +102,10 @@ void AGameStartController::HandleGameSettingRequested()
 
 void AGameStartController::HandleGameTutorialRequested()
 {
+	if (UCrossingLevelGISubsystem* CrossingSubsystem = GetGameInstance()->GetSubsystem<UCrossingLevelGISubsystem>())
+	{
+		CrossingSubsystem->ResetCrossingData();
+	}
 	if (ULevelGISubsystem* LevelSubsystem = GetGameInstance()->GetSubsystem<ULevelGISubsystem>())
 	{
 		LevelSubsystem->MovingTutorialLevel(0);

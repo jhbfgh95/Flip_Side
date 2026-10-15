@@ -195,7 +195,7 @@ void UW_ShopSlotCoinDes::SetPageButtonSelected(UButton* Button, const FButtonSty
 
     FButtonStyle Style = DefaultStyle;
     FLinearColor NormalTint = Style.Normal.TintColor.GetSpecifiedColor();
-    NormalTint.A = bSelected ? 1.0f : 0.75f;
+    NormalTint.A = bSelected ? 1.0f : 0.85f;
     Style.Normal.TintColor = FSlateColor(NormalTint);
     Button->SetStyle(Style);
 }

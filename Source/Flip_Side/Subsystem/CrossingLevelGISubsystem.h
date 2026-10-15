@@ -42,6 +42,10 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 public:
+	// 새 게임 시작 시 레벨 간 전달 데이터와 상태를 초기값으로 되돌립니다.
+	UFUNCTION(BlueprintCallable)
+	void ResetCrossingData();
+
 	void SetBattleEntryGold(int32 Gold) { PendingBattleEntryGold = FMath::Max(0, Gold); }
 	int32 ConsumeBattleEntryGold(int32 FallbackGold)
 	{

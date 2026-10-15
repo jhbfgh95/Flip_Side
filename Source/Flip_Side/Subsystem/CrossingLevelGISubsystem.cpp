@@ -11,9 +11,22 @@ void UCrossingLevelGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
-    InitSlots();
+    ResetCrossingData();
 
     //GenerateTestCoin();
+}
+
+void UCrossingLevelGISubsystem::ResetCrossingData()
+{
+    SlotCoinArray.Reset();
+    CardIDArray.Reset();
+    SelectedUseableItemArray.Reset();
+
+    DefaultCoin = FCoinTypeStructure();
+    DefaultItem = FSelectItem();
+    IsCoinEmpty = false;
+    ResetBattleEntryGold();
+    InitSlots();
 }
 
 //코인 초기화
