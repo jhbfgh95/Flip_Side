@@ -11,6 +11,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraComponent.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 ABossActor::ABossActor()
 {
@@ -123,6 +124,7 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 
 	FinalDamage = FMath::Max(0, FinalDamage);
 	int32 ActualDamageToHP = FinalDamage;
+	const bool bHadShield = CurrentShield > 0;
 
 	if(CurrentShield > 0)
 	{
@@ -138,6 +140,7 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 		if(ActualDamageToHP <= 0)
 		{
 			PlayHitAnimation();
+			PlayDamageSound(CurrentShield <= 0, false);
 			UpdateShieldEffect();
 			BroadcastBossHUDDataChanged();
 			return 0;
@@ -164,6 +167,7 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 	else if(CurrentHP > 0)
 	{
 		PlayHitAnimation();
+		PlayDamageSound(bHadShield && CurrentShield <= 0, true);
 	}
 	UpdateShieldEffect();
 	BroadcastBossHUDDataChanged();
@@ -181,10 +185,32 @@ int32 ABossActor::ApplyShieldOnlyDamage(int32 Damage, AActor* DamageCauser)
 	CurrentShield -= ShieldDamage;
 
 	PlayHitAnimation();
+	PlayDamageSound(CurrentShield <= 0, false);
 	UpdateShieldEffect();
 	BroadcastBossHUDDataChanged();
 
 	return ShieldDamage;
+}
+
+void ABossActor::PlayDamageSound(bool bShieldBroken, bool bHPDamaged) const
+{
+	UWorld* World = GetWorld();
+	USoundManagerWSubsystem* SoundManager = IsValid(World) ? World->GetSubsystem<USoundManagerWSubsystem>() : nullptr;
+	if (!IsValid(SoundManager)) return;
+
+	// 한 번 맞을 때 소리는 하나만 냅니다. 실드가 깨진 순간이 가장 우선이고, 그다음 HP 피격, 실드만 깎였을 때 순입니다.
+	if (bShieldBroken)
+	{
+		SoundManager->PlayBossShieldBreakSound();
+	}
+	else if (bHPDamaged)
+	{
+		SoundManager->PlayBossHitSound();
+	}
+	else
+	{
+		SoundManager->PlayBossShieldHitSound();
+	}
 }
 
 void ABossActor::AddGimmick(UBossGimmickBase* InGimmick)

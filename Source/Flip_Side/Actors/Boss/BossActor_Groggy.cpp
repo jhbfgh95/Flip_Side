@@ -58,6 +58,7 @@ void ABossActor_Groggy::PlayHitAnimation()
 
 int32 ABossActor_Groggy::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCauser)
 {
+    const int32 RequestedDamage = Damage;
     for (UBossGimmickBase* G : GimmickList)
     {
         if (UBossGimmick_Groggy* GroggyGimmick = Cast<UBossGimmick_Groggy>(G))
@@ -65,6 +66,12 @@ int32 ABossActor_Groggy::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* Dama
             GroggyGimmick->OnDamageCalculate(this, Damage);
             break;
         }
+    }
+
+    // 그로기 전에는 피해가 20%로 줄어 0이 되기도 합니다. 피격 모션은 없지만 공격이 막혔다는 소리(실드 피격)는 냅니다.
+    if (RequestedDamage > 0 && Damage <= 0 && IsValid(DamageCauser) && !bIsDying && CurrentHP > 0)
+    {
+        PlayDamageSound(false, false);
     }
     return Super::ApplyDamageAndReturnHPDamage(Damage, DamageCauser);
 }

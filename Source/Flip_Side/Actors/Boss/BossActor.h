@@ -162,6 +162,9 @@ protected:
 	void UpdateShieldEffect();
 	void BroadcastBossHUDDataChanged();
 
+	// 맞은 결과에 맞는 소리를 냅니다(실드 파괴 > 보스 피격 > 실드 피격 중 하나). 쓰러짐 소리는 전투 매니저가 냅니다.
+	void PlayDamageSound(bool bShieldBroken, bool bHPDamaged) const;
+
 /* Can Custom */
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")

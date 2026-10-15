@@ -61,6 +61,10 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Battle | Tutorial")
 	float BattleTutorialInitDelay = 0.2f;
 
+	// 보스 공격 모션이 끝난 뒤 이 시간(초)만큼 멈췄다가 다음 턴으로 넘어갑니다. 코인이 부서지는 연출이 잘려 보이지 않게 합니다. 0이면 바로 넘어갑니다.
+	UPROPERTY(EditAnywhere, config, Category = "Battle | Pacing", meta = (ClampMin = "0.0"))
+	float BossAttackEndHoldSeconds = 0.5f;
+
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(Config, EditAnywhere, Category = "Debug | Tutorial", meta = (DisplayName = "PIE에서 전투 튜토리얼 바로 시작", ToolTip = "L_Stage_BattleTutorial을 직접 PIE로 실행하면 영상 없이 설명 모드와 튜토리얼 보스를 준비합니다. PIE를 시작한 맵에만 적용됩니다."))
 	bool bStartBattleTutorialInPIE = false;
@@ -125,6 +129,68 @@ public:
 	// 레버 UI가 원래 자리로 올라올 때 소리입니다. 비워 두면 소리가 나지 않습니다.
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
 	TSoftObjectPtr<USoundBase> LeverReturnSFX;
+
+	// 내 코인이 피해를 받고 살아남았을 때(마지막 일격 제외)와 쓰러질 때 소리입니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> CoinHitSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> CoinDeathSFX;
+
+	// 내 코인이 회복(ApplyHeal)으로 HP가 실제로 올랐을 때 소리입니다. 여러 코인이 한꺼번에 회복돼도 겹치지 않게 사운드 쪽에서 막습니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> CoinHealSFX;
+
+	// 보스 차례가 끝나고 내 차례(코인 준비 페이즈)가 돌아올 때 소리입니다. 첫 턴에는 나지 않습니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> TurnStartSFX;
+
+	// 보스 공통 소리입니다. 한 번 맞을 때는 실드 파괴 > 보스 피격 > 실드 피격 중 하나만 납니다. 그로기 보스가 피해 0으로 막을 때도 실드 피격 소리가 납니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Boss")
+	TSoftObjectPtr<USoundBase> BossPhaseStartSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Boss")
+	TSoftObjectPtr<USoundBase> BossHitSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Boss")
+	TSoftObjectPtr<USoundBase> BossShieldHitSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Boss")
+	TSoftObjectPtr<USoundBase> BossShieldBreakSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Boss")
+	TSoftObjectPtr<USoundBase> BossDeathSFX;
+
+	// 보스 기믹 소리입니다. 그로기 게이지가 가득 찰 때, 역할 타겟 보스가 표적 역할을 정할 때 납니다. 패턴 공격 소리는 DB boss_pattern_def.sfx_path에 있습니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Boss")
+	TSoftObjectPtr<USoundBase> GroggyBreakSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Boss")
+	TSoftObjectPtr<USoundBase> RoleMarkSFX;
+
+	// 스테이지 결과 창이 뜰 때 신호음입니다. 이때 전투 BGM은 서서히 줄어듭니다. 게임 클리어도 스테이지 클리어 소리를 씁니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Stinger")
+	TSoftObjectPtr<USoundBase> StageClearSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Stinger")
+	TSoftObjectPtr<USoundBase> GameOverSFX;
+
+	// 상점 소리입니다. 골드 지불·부족은 모든 구매(코인 슬롯·코인 개수·아이템·카드·무기 해금)에 공통으로 납니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Shop")
+	TSoftObjectPtr<USoundBase> ShopPageMoveSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Shop")
+	TSoftObjectPtr<USoundBase> GoldSpendSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Shop")
+	TSoftObjectPtr<USoundBase> GoldShortSFX;
+
+	// 무기 해금 버튼을 누르고 있는 동안 나는 소리(손을 떼면 멈춤)와 해금이 끝났을 때 소리입니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Shop")
+	TSoftObjectPtr<USoundBase> UnlockHoldSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Shop")
+	TSoftObjectPtr<USoundBase> UnlockCompleteSFX;
 
 	// 공통 UI 소리입니다. 버튼의 마우스 올리기·클릭 소리는 각 버튼 스타일에 들어 있고, 여기는 코드에서 재생하는 소리입니다.
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | UI")

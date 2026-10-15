@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "FlipSide_Enum.h"
 #include "NiagaraSystem.h"
+#include "Sound/SoundBase.h"
 #include "ItemDataTypes.generated.h"
 
 // 무기(10000), 보스(20000), 카드(30000) 버프와 구분하는 아이템 상태효과 ID입니다.
@@ -67,6 +68,10 @@ struct FItemData
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EItemVFXTarget ItemVFXTarget = EItemVFXTarget::None;
+
+    // 물약을 쓰는 데 성공했을 때 소리입니다(item.sfx_path). 비어 있으면 소리가 없습니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<USoundBase> ItemSFX = nullptr;
 };
 
 /**

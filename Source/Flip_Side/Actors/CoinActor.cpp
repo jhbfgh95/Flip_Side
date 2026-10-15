@@ -15,6 +15,7 @@
 #include "Materials/MaterialParameterCollection.h"
 #include "Materials/MaterialParameterCollectionInstance.h"
 #include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 ACoinActor::ACoinActor()
 {
@@ -112,6 +113,8 @@ void ACoinActor::BeginPlay()
 	{
 		StatComponent->OnDead.AddDynamic(this, &ACoinActor::CoinDead);
 		StatComponent->OnHpChanged.AddUObject(this, &ACoinActor::OnCoinHpChanged);
+		StatComponent->OnHpDamaged.AddUObject(this, &ACoinActor::OnCoinDamaged);
+		StatComponent->OnHpHealed.AddUObject(this, &ACoinActor::OnCoinHealed);
 		StatComponent->OnCCActived.AddDynamic(this, &ACoinActor::OnCCApplied);
 		StatComponent->OnCCRemove.AddDynamic(this, &ACoinActor::OnCCRemoved);
 		StatComponent->OnStatusEffectsChanged.AddUObject(this, &ACoinActor::HandleStatusEffectsChanged);
@@ -148,6 +151,8 @@ void ACoinActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		StatComponent->OnStatusEffectsChanged.RemoveAll(this);
 		StatComponent->OnWeaponStatsChanged.RemoveAll(this);
+		StatComponent->OnHpDamaged.RemoveAll(this);
+		StatComponent->OnHpHealed.RemoveAll(this);
 	}
 	Super::EndPlay(EndPlayReason);
 }
@@ -660,6 +665,14 @@ void ACoinActor::CoinDead()
 	CompleteLandingCallback();
 	OnCoinDeathStarted.Broadcast(this);
 
+	if (UWorld* World = GetWorld())
+	{
+		if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+		{
+			SoundManager->PlayCoinDeathSound();
+		}
+	}
+
 	if (CoinMesh && FracturedCoin)
     {
         CoinMesh->SetVisibility(false);
@@ -699,6 +712,39 @@ void ACoinActor::OnCoinHpChanged(int32 DeltaHP)
         // 0.15초 뒤에 ResetFlash 함수를 호출하여 원래 상태로 복구
         GetWorld()->GetTimerManager().SetTimer(FlashTimerHandle, this, &ACoinActor::ResetFlash, 0.15f, false);
     }
+}
+
+void ACoinActor::OnCoinDamaged(int32 Damage)
+{
+	// 마지막 일격은 쓰러짐 소리가 대신 나므로, 살아남은 피격에만 소리를 냅니다.
+	if (bDeathStarted || !IsValid(StatComponent) || StatComponent->GetHP() <= 0)
+	{
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+		{
+			SoundManager->PlayCoinHitSound();
+		}
+	}
+}
+
+void ACoinActor::OnCoinHealed(int32 Heal)
+{
+	if (bDeathStarted)
+	{
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+		{
+			SoundManager->PlayCoinHealSound();
+		}
+	}
 }
 
 void ACoinActor::ResetFlash()

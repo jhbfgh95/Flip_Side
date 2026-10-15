@@ -684,7 +684,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             "area_pattern, anchor_dx, anchor_dy, anchor_mode, param_a, param_b, side, "
             "montage_path, effect_path, effect_scale_x, effect_scale_y, effect_scale_z, "
             "visual_actor_path, pattern_icon_path, pattern_range_image_path, no_damage, gimmick_type, shield_heal, "
-            "effect_target "
+            "effect_target, sfx_path "
             "FROM boss_pattern_def WHERE boss_id = ? ORDER BY pattern_order;"
         );
 
@@ -729,6 +729,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
             P.bIsGimmick         = P.GimmickType != EBossGimmickType::None;
             P.ShieldHeal         = GetColInt(Stmt, 21);
             P.PatternEffectTarget = static_cast<EBossPatternTarget>(GetColInt(Stmt, 22));
+            P.PatternSound       = TSoftObjectPtr<USoundBase>(FSoftObjectPath(GetColText(Stmt, 23)));
 
             Out.PatternList.Add(P);
         }
@@ -779,7 +780,7 @@ static EItemVFXTarget ItemVFXTargetFromString(const FString& S)
 bool UDataManagerSubsystem::LoadItems()
 {
     const TCHAR* Sql =
-        TEXT("SELECT i.item_id, i.item_range, i.item_effect_value, i.icon_path, i.item_description AS item_des, i.item_type_id, i.behavior, t.item_type_color, i.item_name, IFNULL(i.price, 0), i.vfx_path, i.VFXTarget FROM item i JOIN item_type t ON i.item_type_id = t.item_type_id;");
+        TEXT("SELECT i.item_id, i.item_range, i.item_effect_value, i.icon_path, i.item_description AS item_des, i.item_type_id, i.behavior, t.item_type_color, i.item_name, IFNULL(i.price, 0), i.vfx_path, i.VFXTarget, i.sfx_path FROM item i JOIN item_type t ON i.item_type_id = t.item_type_id;");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
@@ -819,6 +820,12 @@ bool UDataManagerSubsystem::LoadItems()
             Item.ItemVFX = LoadObject<UNiagaraSystem>(nullptr, *VfxPath);
         }
         Item.ItemVFXTarget = ItemVFXTargetFromString(GetColText(Stmt, 11));
+
+        const FString SfxPath = GetColText(Stmt, 12);
+        if (!SfxPath.IsEmpty())
+        {
+            Item.ItemSFX = LoadObject<USoundBase>(nullptr, *SfxPath);
+        }
 
         ItemByID.Add(Item.ItemID, Item);
         Items.Add(Item);

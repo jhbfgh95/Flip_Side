@@ -161,6 +161,10 @@ public:
 	void DecreaseCCDuration(int32 WantToDecreaseCCDuration);
 
 	FOnHPChanged OnHpChanged;
+	// 피해(보스 공격·낙인·아군 능력 등 ApplyDamage)로 HP가 실제로 줄었을 때만 알립니다(값은 줄어든 양). 최대 HP 재계산이나 SetHP로 줄어드는 경우는 포함하지 않습니다.
+	FOnHPChanged OnHpDamaged;
+	// 회복(ApplyHeal)으로 HP가 실제로 올랐을 때만 알립니다(값은 오른 양). 최대 HP 증가나 SetHP로 오르는 경우는 포함하지 않습니다.
+	FOnHPChanged OnHpHealed;
 	FOnMaxHPChanged OnMaxHPChanged;
 	FOnShieldChanged OnShieldChanged;
 	FOnCCRemoved OnCCRemove;

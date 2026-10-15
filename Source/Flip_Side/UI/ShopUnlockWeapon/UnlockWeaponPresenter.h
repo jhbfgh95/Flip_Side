@@ -84,12 +84,16 @@ private:
 
 	void HideUnlockControls();
 
+	// 해금 누르기·완료 소리를 낼 사운드 관리자입니다.
+	class USoundManagerWSubsystem* GetSoundManager() const;
+
 protected:
 	void UpdateWeaponDescription(int32 WeaponID);
 
 	void HideWeaponDescription();
 
-	void TryUnlockWeapon(int32 WeaponID);
+	// 해금에 성공하면 true입니다(골드 부족이면 false).
+	bool TryUnlockWeapon(int32 WeaponID);
 
 
 protected:

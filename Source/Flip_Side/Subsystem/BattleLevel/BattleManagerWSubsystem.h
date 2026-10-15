@@ -68,6 +68,9 @@ protected:
 
 	float LeverLockTime = 0.0f;
 
+	// 보스 공격 모션이 끝난 뒤 다음 턴으로 넘어가기 전에 잠깐 멈추는 타이머입니다.
+	FTimerHandle BossPhaseHoldTimer;
+
 	/*FUNCTION*/
 	void LockLever(EBattleLeverLockReason Reason);
 
@@ -126,6 +129,8 @@ protected:
 
 	UFUNCTION()
 	void HandleBossPhaseCompleted();
+	// 보스 턴 뒤의 대기가 끝나면 실제로 턴을 넘깁니다.
+	void FinishBossPhase();
 	/* BossPhase*/
 	void DoBossPhase();
 

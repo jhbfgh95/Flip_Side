@@ -195,6 +195,10 @@ struct FBossPatternBattleData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TSoftObjectPtr<class UNiagaraSystem> PatternEffect;
 
+    // 패턴 공격 소리입니다(boss_pattern_def.sfx_path). 이펙트(BossVFX 노티파이)와 같은 순간에 나고, 비어 있으면 소리가 없습니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<class USoundBase> PatternSound;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     EBossPatternTarget PatternEffectTarget = EBossPatternTarget::BossLocation;
 

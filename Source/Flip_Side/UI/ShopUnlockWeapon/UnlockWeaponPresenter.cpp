@@ -10,6 +10,7 @@
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/UnlockGISubsystem.h"
 #include "Actors/ShopWeaponRangePreviewActor.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 void UUnlockWeaponPresenter::InitPresenter(UW_UnlockWeaponWidget* InUnlockWeaponWidget,
 	UShopUnlockWeaponWSubsystem* InUnlockWeaponSubsystem,
@@ -86,6 +87,8 @@ void UUnlockWeaponPresenter::StartHoldWeapon(int32 WeaponID)
 
 	CurrentSelectedWeaponID = WeaponID;
 	ShopUnlockWeaponUIActor->StartHoldShake();
+	if (USoundManagerWSubsystem* SoundManager = GetSoundManager())
+		SoundManager->StartUnlockHoldSound();
 }
 
 void UUnlockWeaponPresenter::CancelHoldWeapon(int32 WeaponID)
@@ -96,6 +99,8 @@ void UUnlockWeaponPresenter::CancelHoldWeapon(int32 WeaponID)
 	// Keep the hovered selection so repeated presses can still cancel or complete.
 	if (IsValid(ShopUnlockWeaponUIActor))
 		ShopUnlockWeaponUIActor->StopHoldShake();
+	if (USoundManagerWSubsystem* SoundManager = GetSoundManager())
+		SoundManager->StopUnlockHoldSound();
 }
 
 void UUnlockWeaponPresenter::CompleteHoldWeapon(int32 WeaponID)
@@ -103,26 +108,39 @@ void UUnlockWeaponPresenter::CompleteHoldWeapon(int32 WeaponID)
 	if (CurrentSelectedWeaponID != WeaponID)
 		return;
 
+	if (USoundManagerWSubsystem* SoundManager = GetSoundManager())
+		SoundManager->StopUnlockHoldSound();
+
+	// 구매를 먼저 해 보고, 골드가 모자라면 해금 연출 없이 흔들림만 멈추고 슬롯을 그대로 둡니다(골드 부족 소리는 SpendMoney에서 납니다).
+	if (!TryUnlockWeapon(WeaponID))
+	{
+		if (IsValid(ShopUnlockWeaponUIActor))
+			ShopUnlockWeaponUIActor->StopHoldShake();
+		return;
+	}
+
 	if (IsValid(ShopUnlockWeaponUIActor))
 		ShopUnlockWeaponUIActor->CompleteHoldShake();
-
-	TryUnlockWeapon(WeaponID);
 }
 
-void UUnlockWeaponPresenter::TryUnlockWeapon(int32 WeaponID)
+bool UUnlockWeaponPresenter::TryUnlockWeapon(int32 WeaponID)
 {
 	if (WeaponID == -1 || !IsValid(UnlockWeaponSubsystem))
-		return;
+		return false;
 
 	if (UnlockWeaponSubsystem->UnlockWeapon(WeaponID))
 	{
+		if (USoundManagerWSubsystem* SoundManager = GetSoundManager())
+			SoundManager->PlayUnlockCompleteSound();
 		OnWeaponUnlocked.Broadcast(WeaponID);
 		if (!IsValid(ShopUnlockWeaponUIActor) || !ShopUnlockWeaponUIActor->PlayBuyWeaponAnim())
 		{
 			FinishedUnlockWeapon();
 		}
 		UpdateUnlockControls(WeaponID);
+		return true;
 	}
+	return false;
 }
 
 void UUnlockWeaponPresenter::FinishedUnlockWeapon()
@@ -232,4 +250,10 @@ void UUnlockWeaponPresenter::HideUnlockControls()
 {
 	if(UW_PriceWidget* PriceWidget = UnlockWeaponWidget->GetWeaponPriceWidget())
 		PriceWidget->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+USoundManagerWSubsystem* UUnlockWeaponPresenter::GetSoundManager() const
+{
+	UWorld* World = GetWorld();
+	return IsValid(World) ? World->GetSubsystem<USoundManagerWSubsystem>() : nullptr;
 }

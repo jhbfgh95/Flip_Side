@@ -18,6 +18,7 @@
 #include "Item_Action.h"
 #include "LevelGISubsystem.h"
 #include "Subsystem/BattleLevel/BattleTutorialWSubsystem.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 namespace
 {
@@ -263,7 +264,11 @@ void UUseableItemWSubsystem::PlayItemFailedFeedback()
         ActingManager->PlayUseableItemFailedVFX(PreviewItemActor);
     }
 
-    //SoundManager에 아이템 실패 사운드 API가 추가되면 여기서 호출.
+    // 쓸 수 없는 대상이면 코인 행동 실패와 같은 소리를 냅니다.
+    if (USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>())
+    {
+        SoundManager->PlayCoinActionFailedSound();
+    }
 }
 
 void UUseableItemWSubsystem::PlaySelectedItemSuccessVFX(AGridActor* TargetGrid, ACoinActor* TargetCoin, AActor* TargetOther)
@@ -277,7 +282,11 @@ void UUseableItemWSubsystem::PlaySelectedItemSuccessVFX(AGridActor* TargetGrid, 
         ActingManager->PlayPhaseChangePotionAct(TargetCoin);
     }
 
-    //SoundManager에 아이템 성공 사운드 API가 추가되면 여기서 호출.
+    // 물약마다 DB(item.sfx_path)에 있는 사용 소리를 냅니다. 이펙트가 없는 물약도 소리는 납니다.
+    if (USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>())
+    {
+        SoundManager->PlayItemUseSound(SelectedItemData.ItemSFX);
+    }
 }
 
 void UUseableItemWSubsystem::StartItemCursorPreview(const FItemData& SourceItemData)

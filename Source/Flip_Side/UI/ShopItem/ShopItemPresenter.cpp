@@ -15,6 +15,7 @@
 #include "UI/ShopItem/W_ShopItemPurchasePopup.h"
 #include "UI/ShopItem/W_ShopItemSellPopup.h"
 #include "UI/ShopItem/ShopItemUIActor.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 
 void UShopItemPresenter::InitPresenter(UW_ShopItemWidget* InShopItemWidget, UShopItemWSubsystem* InItemSubsystem,
@@ -187,7 +188,17 @@ void UShopItemPresenter::RequestPurchaseFromPopup(int32 ItemID, int32 Count)
 {
     const FItemData ItemData = GetItemData(ItemID);
     if (!ItemSubsystem->CanBuyItem(ItemData.Price, Count))
+    {
+        // 아이템은 돈을 쓰기 전에 미리 막히므로 여기서 골드 부족 소리를 냅니다(다른 구매는 SpendMoney에서 냅니다).
+        if (UWorld* World = GetWorld())
+        {
+            if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+            {
+                SoundManager->PlayGoldShortSound();
+            }
+        }
         return;
+    }
 
 	if (BuyItem(ItemID, Count))
 	{

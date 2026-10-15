@@ -131,7 +131,15 @@ USoundBase* USoundManagerWSubsystem::ChooseLevelBGM() const
 
 void USoundManagerWSubsystem::OnPhaseChanged(EPhaseState NewPhase)
 {
-    // TODO: ReadyCoinWidget 전용 사운드 연출이 확정되면 구현합니다.
+    // 보스 차례가 끝나고 내 차례가 돌아올 때 턴 시작 소리를 냅니다. 첫 턴은 전투 시작 연출과 겹치므로 내지 않습니다.
+    if (NewPhase != EPhaseState::CoinReadyPhase) return;
+
+    UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
+    if (!IsValid(BattleManager) || BattleManager->GetTurnCount() <= 1) return;
+
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->TurnStartSFX.LoadSynchronous());
 }
 
 void USoundManagerWSubsystem::OnCoinAddedToReady()
@@ -278,6 +286,148 @@ void USoundManagerWSubsystem::PlayCoinClickSound()
     const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
     if (!Settings) return;
     PlaySFX(Settings->CoinClickSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayCoinHitSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->CoinHitSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayCoinDeathSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->CoinDeathSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayCoinHealSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->CoinHealSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayItemUseSound(USoundBase* Sound)
+{
+    PlaySFX(Sound);
+}
+
+void USoundManagerWSubsystem::PlayBossPhaseStartSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->BossPhaseStartSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayBossHitSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->BossHitSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayBossShieldHitSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->BossShieldHitSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayBossShieldBreakSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->BossShieldBreakSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayBossDeathSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->BossDeathSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayBossPatternSound(USoundBase* Sound)
+{
+    PlaySFX(Sound);
+}
+
+void USoundManagerWSubsystem::PlayGroggyBreakSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->GroggyBreakSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayRoleMarkSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->RoleMarkSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayStageClearSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->StageClearSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayGameOverSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->GameOverSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayShopPageMoveSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->ShopPageMoveSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayGoldSpendSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->GoldSpendSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayGoldShortSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->GoldShortSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayUnlockCompleteSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->UnlockCompleteSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::StartUnlockHoldSound()
+{
+    StopUnlockHoldSound();
+
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    USoundBase* Sound = Settings ? Settings->UnlockHoldSFX.LoadSynchronous() : nullptr;
+    if (!Sound) return;
+    // 끝나면 스스로 사라지는 컴포넌트입니다. 멈출 때를 위해 참조만 들고 있습니다.
+    UnlockHoldAudio = UGameplayStatics::SpawnSound2D(GetWorld(), Sound);
+}
+
+void USoundManagerWSubsystem::StopUnlockHoldSound()
+{
+    if (IsValid(UnlockHoldAudio))
+    {
+        UnlockHoldAudio->FadeOut(0.08f, 0.f);
+    }
+    UnlockHoldAudio = nullptr;
 }
 
 void USoundManagerWSubsystem::PlaySFX(USoundBase* Sound)

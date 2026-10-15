@@ -7,6 +7,8 @@
 #include "GridActor.h"
 #include "NiagaraSystem.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Sound/SoundBase.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 void UAnimNotify_BossVFX::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
@@ -32,6 +34,15 @@ void UAnimNotify_BossVFX::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
 	ABossActor* Boss = BossMgr->GetCurrentBoss();
 	if (!IsValid(Boss) || MeshComp->GetOwner() != Boss || MeshComp != Boss->BossMesh || Boss->IsStunned() ||
 		!Boss->GetPatternData(PatternIndex, PatternData)) return;
+
+	// 패턴 공격 소리(boss_pattern_def.sfx_path)는 이펙트와 같은 순간에 냅니다. 이펙트가 없는 패턴(역할 집중 공격)도 소리는 납니다.
+	if (!PatternData.PatternSound.IsNull())
+	{
+		if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+		{
+			SoundManager->PlayBossPatternSound(PatternData.PatternSound.LoadSynchronous());
+		}
+	}
 
 
 	// Effect: OverrideEffect 우선, 없으면 패턴 데이터 사용

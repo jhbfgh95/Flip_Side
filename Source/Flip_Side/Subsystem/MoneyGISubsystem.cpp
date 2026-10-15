@@ -6,6 +6,7 @@
 #include "Subsystem/FlipSideDevloperSettings.h"
 #include "UI/W_MoneyDisplay.h"
 #include "Blueprint/UserWidget.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 void UMoneyGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -44,13 +45,36 @@ bool UMoneyGISubsystem::SpendMoney(EMoneyRecordType RecordType, int32 Cost, int3
 {
     if (Cost <= 0) { return false; }
     if (Count <= 0) { return false; }
-    if(!HasEnoughMoney(Cost)) { return false; }
+    if(!HasEnoughMoney(Cost))
+    {
+        PlayMoneySound(false);
+        return false;
+    }
 
     CurrentMoney = FMath::Clamp(CurrentMoney - Cost, 0, 9999999);
     AddSpendToSummary(LastStageMoneySummary, RecordType, Cost, Count);
     AddSpendToSummary(RunMoneySummary, RecordType, Cost, Count);
     UpdateMoneyDisplayWidget();
+    PlayMoneySound(true);
     return true;
+}
+
+void UMoneyGISubsystem::PlayMoneySound(bool bSpent) const
+{
+    if (UWorld* World = GetWorld())
+    {
+        if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+        {
+            if (bSpent)
+            {
+                SoundManager->PlayGoldSpendSound();
+            }
+            else
+            {
+                SoundManager->PlayGoldShortSound();
+            }
+        }
+    }
 }
 
 void UMoneyGISubsystem::AddSaleMoney(EMoneyRecordType RecordType, int32 Amount, int32 Count)

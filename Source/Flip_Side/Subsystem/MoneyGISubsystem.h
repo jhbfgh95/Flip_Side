@@ -176,6 +176,8 @@ public:
 	void UpdateMoneyDisplayWidget();
 private:
 	void EnsureMoneyDisplayWidget();
+	// 구매가 끝났을 때(골드 지불) 또는 골드가 모자라 막혔을 때(골드 부족) 소리를 냅니다. 아이템은 SpendMoney 전에 CanBuyItem으로 막히므로, 아이템의 골드 부족 소리만 UShopItemPresenter::RequestPurchaseFromPopup에서 따로 냅니다.
+	void PlayMoneySound(bool bSpent) const;
 	//돈 쓰면 타입 맞게 Summary에 넣어줌
 	void AddSpendToSummary(FStageMoneySummary& Summary, EMoneyRecordType RecordType, int32 Amount, int32 Count);
 	//판거 타입 맞게 Summary에서 빼줌

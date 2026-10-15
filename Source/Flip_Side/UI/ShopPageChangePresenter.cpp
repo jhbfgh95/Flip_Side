@@ -8,6 +8,17 @@
 #include "Engine/SpotLight.h"
 #include "Components/LightComponent.h"
 #include "TimerManager.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
+
+namespace
+{
+	// 게임 시작 팝업은 메인과 같은 카메라 자리입니다(AShopPlayerPawn_FlipSide::MoveToShopPage).
+	EShopPage GetShopCameraSpot(EShopPage Page)
+	{
+		return Page == EShopPage::GameStart ? EShopPage::Main : Page;
+	}
+}
+
 void UShopPageChangePresenter::InitPresenter(AShopUISelectRegistry* InShopUISelectRegistry, 
 	UW_ShopWidgetContainer* InWidgetContainer,
 	AShopPlayerPawn_FlipSide* InShopPawn)
@@ -49,8 +60,20 @@ void UShopPageChangePresenter::HandlePageRequested(EShopPage Page)
 		return;
 	}
 	
+	// 카메라가 실제로 다른 자리로 갈 때만 소리를 냅니다(상점 입장, 같은 페이지 다시 누르기, 두 번 클릭은 조용히).
+	const bool bCameraMoves = GetShopCameraSpot(Page) != GetShopCameraSpot(PendingPage);
 	PendingPage = Page;
 	bIsTransitioning = true;
+	if (bCameraMoves)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+			{
+				SoundManager->PlayShopPageMoveSound();
+			}
+		}
+	}
 	if (UW_ShopNavigationBar* NavigationBar = WidgetContainer->GetShopNavigationBar())
 	{
 		NavigationBar->SetSelectedPageButton(Page);

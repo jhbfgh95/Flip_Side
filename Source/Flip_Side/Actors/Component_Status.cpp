@@ -863,6 +863,7 @@ void UComponent_Status::HPChanged(int32 Damage)
 	if (ActualDamage > 0)
 	{
 		OnHpChanged.Broadcast(-ActualDamage);
+		OnHpDamaged.Broadcast(ActualDamage);
 	}
 	HandleDeathIfNeeded();
 }
@@ -893,6 +894,7 @@ void UComponent_Status::ApplyHeal(int32 Heal, AActor* HealCauser)
 	if (ActualHeal > 0)
 	{
 		OnHpChanged.Broadcast(ActualHeal);
+		OnHpHealed.Broadcast(ActualHeal);
 	}
 }
 

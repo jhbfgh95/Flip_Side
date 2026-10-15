@@ -1,5 +1,6 @@
 #include "BossGimmick_Groggy.h"
 #include "BossActor_Groggy.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 void UBossGimmick_Groggy::OnBattleStart(ABossActor* Boss)
 {
@@ -37,5 +38,12 @@ void UBossGimmick_Groggy::AddGroggyValue(int32 Amount, ABossActor* Boss)
     if (CurrentGroggy >= MaxGroggy)
     {
         bGroggy = true;
+
+        // 게이지가 가득 차 그로기(피해 2배)에 들어가는 순간의 소리입니다.
+        UWorld* World = Boss ? Boss->GetWorld() : nullptr;
+        if (USoundManagerWSubsystem* SoundManager = World ? World->GetSubsystem<USoundManagerWSubsystem>() : nullptr)
+        {
+            SoundManager->PlayGroggyBreakSound();
+        }
     }
 }

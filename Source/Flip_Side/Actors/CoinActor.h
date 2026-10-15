@@ -372,6 +372,12 @@ protected:
 	UFUNCTION()
     void OnCoinHpChanged(int32 DeltaHP);
 
+	// 피해로 HP가 줄었을 때(출처 무관) 피격 소리를 냅니다.
+	void OnCoinDamaged(int32 Damage);
+
+	// 회복으로 HP가 올랐을 때(출처 무관) 회복 소리를 냅니다.
+	void OnCoinHealed(int32 Heal);
+
 	UFUNCTION()
 	void OnCCApplied();
 

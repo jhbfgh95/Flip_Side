@@ -1,6 +1,7 @@
 #include "BossGimmick_RoleTarget.h"
 #include "BossActor_RoleTarget.h"
 #include "BossManagerSubsystem.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 void UBossGimmick_RoleTarget::OnPlayerPhaseStart(ABossActor* Boss)
 {
@@ -42,6 +43,12 @@ void UBossGimmick_RoleTarget::OnCoinLanded(ABossActor* Boss, FBossPhaseContext& 
 
     RoleTargetBoss->StopRoleRouletteAndLock();
     BossMgr->RecalculateTelegraphForRoleTarget();
+
+    // 표적 역할(딜러·탱커·힐러)이 정해지는 순간의 소리입니다.
+    if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+    {
+        SoundManager->PlayRoleMarkSound();
+    }
 }
 
 void UBossGimmick_RoleTarget::OnDamageCalculate(ABossActor* Boss, int32& InOutDamage)

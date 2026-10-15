@@ -141,6 +141,12 @@ bool UBattleManagerWSubsystem::RequestPhaseProgress(float TransitionLockTime)
         return false;
     }
 
+    // 보스가 쓰러지는 중(사망 모션 ~ 결과 창)에는 레버로 다음 차례를 시작하지 않습니다. 보스 공격이 사망 모션을 끊으면 스테이지가 끝나지 않습니다.
+    if (const ABossActor* Boss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr; IsValid(Boss) && Boss->GetCurrentHP() <= 0)
+    {
+        return false;
+    }
+
     if (LeverGateState != EBattleLeverGateState::WaitingForLever)
     {
         return false;
@@ -453,6 +459,15 @@ void UBattleManagerWSubsystem::DoBossPhase()
         ItemManager->SetPhase(false);
     }
 
+    // 낙인 피해로 마지막 코인이 쓰러져 게임 오버가 됐으면 보스 차례를 시작하지 않습니다.
+    if (bIsStageEnded) return;
+
+    // 보스 차례가 시작됐다는 경고음입니다.
+    if (IsValid(SoundManager))
+    {
+        SoundManager->PlayBossPhaseStartSound();
+    }
+
     const ULevelGISubsystem* Level = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
     bTutorialBossPatternDeferred = IsValid(Level) && Level->IsBattleTutorialActive();
     if (bTutorialBossPatternDeferred) return;
@@ -552,6 +567,33 @@ void UBattleManagerWSubsystem::HandleBossPhaseCompleted()
 		return;
 	}
 
+	// 보스 공격 모션이 끝나자마자 판을 정리하면 코인이 부서지는 연출이 잘려 보이므로, 설정한 시간만큼 멈췄다가 넘어갑니다.
+	const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+	const float HoldSeconds = Settings ? Settings->BossAttackEndHoldSeconds : 0.f;
+	UWorld* World = GetWorld();
+	if (HoldSeconds <= 0.f || !IsValid(World))
+	{
+		FinishBossPhase();
+		return;
+	}
+
+	World->GetTimerManager().ClearTimer(BossPhaseHoldTimer);
+	World->GetTimerManager().SetTimer(
+		BossPhaseHoldTimer,
+		this,
+		&UBattleManagerWSubsystem::FinishBossPhase,
+		HoldSeconds,
+		false
+	);
+}
+
+void UBattleManagerWSubsystem::FinishBossPhase()
+{
+	if (bIsStageEnded)
+	{
+		return;
+	}
+
 	OnBossPhaseCompleted.Broadcast();
 	PhaseStackInit();
 	DoSettingPhase();
@@ -577,6 +619,11 @@ void UBattleManagerWSubsystem::StageEnded()
 
 void UBattleManagerWSubsystem::BossDeathStarted()
 {
+    if (IsValid(SoundManager))
+    {
+        SoundManager->PlayBossDeathSound();
+    }
+
     if (CoinActionManager)
     {
         CoinActionManager->StopActionSequenceForStageEnd();
@@ -684,4 +731,18 @@ void UBattleManagerWSubsystem::ShowStageEndWidget(int32 StageEndFlag)
 
     StageEndWidgetInstance->SetStageEndFlag(StageEndFlag);
     StageEndWidgetInstance->AddToViewport(100);
+
+    // 결과 신호음을 틀고 전투 BGM은 서서히 줄입니다. 게임 클리어는 전용 소리가 생기기 전까지 스테이지 클리어 소리를 씁니다.
+    if (IsValid(SoundManager))
+    {
+        SoundManager->FadeOutLevelBGM();
+        if (StageEndFlag == GameOverFlag)
+        {
+            SoundManager->PlayGameOverSound();
+        }
+        else
+        {
+            SoundManager->PlayStageClearSound();
+        }
+    }
 }
