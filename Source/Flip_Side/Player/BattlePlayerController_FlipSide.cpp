@@ -532,7 +532,20 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
     }
 }
 
-// 우클릭: 디폴트 카메라 시점으로 복귀
+bool ABattlePlayerController_FlipSide::TryCancelSelectedItem()
+{
+    if (bIsUIOnly || !IsValid(GetWorld()) || !IsValid(GetGameInstance())) return false;
+    const ULevelGISubsystem* Level = GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+    if (IsValid(Level) && Level->IsBattleTutorialActive()) return false;
+
+    UUseableItemWSubsystem* ItemManager = GetWorld()->GetSubsystem<UUseableItemWSubsystem>();
+    if (!IsValid(ItemManager) || ItemManager->GetSelectedItemID() == INDEX_NONE) return false;
+
+    ItemManager->CancelWantUseItem();
+    return true;
+}
+
+// 우클릭: 선택 중인 아이템을 먼저 취소하고, 선택이 없으면 코인 행동을 취소합니다.
 void ABattlePlayerController_FlipSide::OnRightClick()
 {
 	if (const ULevelGISubsystem* Level = GetGameInstance()->GetSubsystem<ULevelGISubsystem>(); IsValid(Level) && Level->IsBattleTutorialActive()) return;
@@ -550,6 +563,8 @@ void ABattlePlayerController_FlipSide::OnRightClick()
                 CS->SetCursorState(0);
         }, 0.15f, false);
     }
+
+    if (TryCancelSelectedItem()) return;
 
     if (UCoinActionManagementWSubsystem* CoinActionManager = GetWorld()->GetSubsystem<UCoinActionManagementWSubsystem>())
     {
@@ -697,7 +712,7 @@ void ABattlePlayerController_FlipSide::RefreshBattleItemHUD()
 		ItemSlotViews.Add(BuildItemSlotViewData(ItemSlotData, bCanUse));
 	}
 
-	BattleHUDWidget->SetItemSlots(ItemSlotViews);
+	BattleHUDWidget->SetItemSlots(ItemSlotViews, ItemManager->GetSelectedItemID());
 }
 
 void ABattlePlayerController_FlipSide::TargetCardChange(int32 CardID, int32 CardSlot)

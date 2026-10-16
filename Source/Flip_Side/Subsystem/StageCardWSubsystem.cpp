@@ -333,6 +333,17 @@ void UStageCardWSubsystem::GetBattleCardSlots(TArray<FBattleCardSlotViewData>& O
         }
 
         SlotView.bIsActive = Runtime[SlotIndex].bActive;
+        if (SlotView.bOccupied && SlotView.CardData.CardID == 4 && SlotView.bIsActive)
+        {
+            for (const auto& Pair : Runtime[SlotIndex].Applied)
+            {
+                const ACoinActor* Coin = Pair.Key.Get();
+                if (!IsValid(Coin) || !IsValid(Coin->StatComponent) || Coin->StatComponent->IsDead()) continue;
+                SlotView.AppliedModifiers = Pair.Value;
+                SlotView.bHasAppliedModifiers = true;
+                break;
+            }
+        }
     }
 }
 
@@ -526,6 +537,8 @@ void UStageCardWSubsystem::SyncCardModifiers(int32 Slot, const TMap<TWeakObjectP
     FStageCardRuntimeState& State = Runtime[Slot];
     const int32 CardID = bHasCard.IsValidIndex(Slot) && bHasCard[Slot] ? HandCards[Slot].CardID : INDEX_NONE;
     const int32 BuffType = CardBuffTypeBase + Slot;
+    const bool bGoldCard = State.CardID == 4 || CardID == 4;
+    bool bAppliedChanged = false;
     for (auto It = State.Applied.CreateIterator(); It; ++It)
     {
         ACoinActor* Coin = It.Key().Get();
@@ -535,10 +548,15 @@ void UStageCardWSubsystem::SyncCardModifiers(int32 Slot, const TMap<TWeakObjectP
             if (IsValid(Coin) && IsValid(Coin->StatComponent))
                 Coin->StatComponent->RemoveStatusEffectsByTypeAndSource(BuffType, EStatusEffectSourceType::Card, State.CardID);
             It.RemoveCurrent();
+            bAppliedChanged = true;
         }
     }
     State.CardID = CardID;
-    if (CardID == INDEX_NONE) return;
+    if (CardID == INDEX_NONE)
+    {
+        if (bGoldCard && bAppliedChanged) OnBattleCardDataChanged.Broadcast();
+        return;
+    }
     for (const auto& Pair : Desired)
     {
         ACoinActor* Coin = Pair.Key.Get();
@@ -557,8 +575,15 @@ void UStageCardWSubsystem::SyncCardModifiers(int32 Slot, const TMap<TWeakObjectP
         Effect.Modifier.AttackRange = Pair.Value.RangeAdd;
         Effect.Modifier.AbilityRange = Pair.Value.AbilityRangeAdd;
         Effect.ReactiveBehavior = Pair.Value.bLifeSteal ? EStatusReactiveBehavior::LifeSteal : EStatusReactiveBehavior::None;
-        if (Coin->StatComponent->SetCardStatusEffect(Effect)) State.Applied.Add(Pair.Key, Pair.Value);
+        const bool bModifiersChanged = !Previous || !(*Previous == Pair.Value);
+        if (Coin->StatComponent->SetCardStatusEffect(Effect))
+        {
+            State.Applied.Add(Pair.Key, Pair.Value);
+            bAppliedChanged |= bModifiersChanged;
+        }
     }
+    // 실제 적용/해제 이후에도 알림을 보내 호버 중인 추가 정보가 이전 턴의 값을 남기지 않게 합니다.
+    if (bGoldCard && bAppliedChanged) OnBattleCardDataChanged.Broadcast();
 }
 
 void UStageCardWSubsystem::SetCardActive(int32 Slot, bool bActive)

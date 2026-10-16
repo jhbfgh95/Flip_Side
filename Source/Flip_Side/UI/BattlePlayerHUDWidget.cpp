@@ -328,8 +328,10 @@ void UBattlePlayerHUDWidget::SetBossHUDData(const FBossHUDData& InData)
 	}
 }
 
-void UBattlePlayerHUDWidget::SetItemSlots(const TArray<FBattleItemSlotViewData>& InItemSlots)
+void UBattlePlayerHUDWidget::SetItemSlots(const TArray<FBattleItemSlotViewData>& InItemSlots, int32 InSelectedItemID)
 {
+	SelectedUseItemID = InSelectedItemID;
+	if (SelectedUseItemID != INDEX_NONE && DisplayedItemID != SelectedUseItemID) DismissItemInfo();
 	ItemSlotViewDataByID.Reset();
 
 	for (int32 SlotIndex = 0; SlotIndex < ItemSlotWidgets.Num(); ++SlotIndex)
@@ -344,6 +346,7 @@ void UBattlePlayerHUDWidget::SetItemSlots(const TArray<FBattleItemSlotViewData>&
 		{
 			const FBattleItemSlotViewData& ItemSlotData = InItemSlots[SlotIndex];
 			ItemSlotWidget->SetItemData(ItemSlotData);
+			ItemSlotWidget->SetInteractionEnabled(SelectedUseItemID == INDEX_NONE || ItemSlotData.ItemData.ItemID == SelectedUseItemID);
 			ItemSlotViewDataByID.Add(ItemSlotData.ItemData.ItemID, ItemSlotData);
 		}
 		else
@@ -376,6 +379,19 @@ void UBattlePlayerHUDWidget::SetCardSlots(const TArray<FBattleCardSlotViewData>&
 		else
 		{
 			CardSlotWidget->ClearCardData();
+		}
+	}
+	// 이미 호버 중인 카드도 적용/해제 알림을 받으면 추가 정보를 갱신합니다.
+	if (DisplayedCardSlotNumber != INDEX_NONE && IsValid(CardInfoWidget) && CardInfoWidget->IsVisible())
+	{
+		const FBattleCardSlotViewData* DisplayedCard = CardSlotViewDataByNumber.Find(DisplayedCardSlotNumber);
+		if (DisplayedCard && DisplayedCard->bOccupied)
+			CardInfoWidget->InitBattleCard(*DisplayedCard);
+		else
+		{
+			CardInfoWidget->HideAdditionalInfo();
+			CardInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
+			DisplayedCardSlotNumber = INDEX_NONE;
 		}
 	}
 }
@@ -576,6 +592,7 @@ void UBattlePlayerHUDWidget::HandlePhaseProgressRequested()
 
 void UBattlePlayerHUDWidget::HandleItemSlotClicked(int32 ItemID)
 {
+	if (SelectedUseItemID != INDEX_NONE && SelectedUseItemID != ItemID) return;
 	DismissCoinSlotInfo();
 	DismissItemInfo();
 	OnItemSlotClicked.Broadcast(ItemID);
@@ -583,6 +600,7 @@ void UBattlePlayerHUDWidget::HandleItemSlotClicked(int32 ItemID)
 
 void UBattlePlayerHUDWidget::HandleItemSlotHovered(int32 ItemID)
 {
+	if (SelectedUseItemID != INDEX_NONE && SelectedUseItemID != ItemID) return;
 	DismissCoinSlotInfo();
 	// 같은 슬롯 재호버 시 키워드 사전/스크롤 등 사용자가 보던 상태를 유지합니다.
 	if (IsItemInfoOpen() && DisplayedItemID == ItemID) return;
@@ -642,7 +660,7 @@ void UBattlePlayerHUDWidget::HandleCardSlotHovered(int32 SlotNumber)
 	if (IsValid(CardInfoWidget))
 	{
 		DisplayedCardSlotNumber = SlotNumber;
-		CardInfoWidget->InitCard(CardSlotData->CardData);
+		CardInfoWidget->InitBattleCard(*CardSlotData);
 		CardInfoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 		ApplyPopupAnchorLayout(CardInfoWidget, CardPopupAnchor);
 	}
@@ -655,6 +673,7 @@ void UBattlePlayerHUDWidget::HandleCardSlotUnhovered(int32 SlotNumber)
 	DisplayedCardSlotNumber = INDEX_NONE;
 	if (IsValid(CardInfoWidget))
 	{
+		CardInfoWidget->HideAdditionalInfo();
 		CardInfoWidget->SetVisibility(ESlateVisibility::Hidden);
 	}
 }

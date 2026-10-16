@@ -35,6 +35,14 @@ class FLIP_SIDE_API UW_CardWidget : public UUserWidget
 	UPROPERTY(meta = (BindWidget))
 	class URichTextBlock* CardDescription;
 
+	// 배틀 카드 설명 WBP 내부에 배치하는 추가 정보 전용 레이어입니다.
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UPanelWidget> AdditonalInfoLayer;
+	UPROPERTY(EditDefaultsOnly, Category = "Card Description|Additional Info")
+	TSubclassOf<class UCardGoldAppliedInfoWidget> GoldAppliedInfoWidgetClass;
+	UPROPERTY(Transient)
+	TObjectPtr<class UCardGoldAppliedInfoWidget> GoldAppliedInfoWidget;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Card Description", meta = (ClampMin = "1.0"))
 	FVector2D KeywordIconSize = FVector2D(24.0f, 24.0f);
 	UPROPERTY(EditDefaultsOnly, Category = "Card Description", meta = (ClampMin = "0.0"))
@@ -49,5 +57,7 @@ class FLIP_SIDE_API UW_CardWidget : public UUserWidget
 	//void SetCardIcon(UImage* Image);
 	//void InitCard(UTexture2D* IconImage, FString Title,FString Description);
 	void InitCard(FCardData CardData);
+	void InitBattleCard(const FBattleCardSlotViewData& InData);
+	void HideAdditionalInfo();
 	TSharedPtr<SWidget> CreateKeywordDisplay(FName Code, const FTextBlockStyle& Style);
 };

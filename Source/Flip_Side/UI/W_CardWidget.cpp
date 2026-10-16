@@ -5,11 +5,14 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/RichTextBlock.h"
+#include "Components/PanelWidget.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Engine/GameInstance.h"
 #include "Engine/Texture2D.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "UI/ItemDescriptionFormatter.h"
 #include "UI/ItemDescriptionRichTextDecorator.h"
+#include "UI/CardGoldAppliedInfoWidget.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SBox.h"
@@ -33,6 +36,7 @@ void UW_CardWidget::NativeConstruct()
 
 void UW_CardWidget::InitCard(FCardData CardData)
 {
+    HideAdditionalInfo();
     if (IsValid(CardIconImage) && IsValid(CardData.Icon))
     {
         // CardIconImage의 BP Brush에 지정한 공용 UI 머티리얼을 유지하고 파라미터만 갱신합니다.
@@ -77,6 +81,32 @@ void UW_CardWidget::InitCard(FCardData CardData)
         CardDescription->SetText(FText::FromString(Description));
         CardDescription->RefreshTextLayout();
     }
+}
+
+void UW_CardWidget::InitBattleCard(const FBattleCardSlotViewData& InData)
+{
+    InitCard(InData.CardData);
+    if (!InData.bOccupied || InData.CardData.CardID != 4 || !IsValid(AdditonalInfoLayer)) return;
+    if (!IsValid(GoldAppliedInfoWidget))
+    {
+        UClass* WidgetClass = GoldAppliedInfoWidgetClass
+            ? GoldAppliedInfoWidgetClass.Get() : UCardGoldAppliedInfoWidget::StaticClass();
+        if (!IsValid(WidgetClass) || WidgetClass->HasAnyClassFlags(CLASS_Abstract)) return;
+        GoldAppliedInfoWidget = CreateWidget<UCardGoldAppliedInfoWidget>(this, WidgetClass);
+        if (!IsValid(GoldAppliedInfoWidget)) return;
+        AdditonalInfoLayer->AddChild(GoldAppliedInfoWidget);
+        if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(GoldAppliedInfoWidget->Slot); IsValid(CanvasSlot))
+            CanvasSlot->SetAutoSize(true);
+    }
+    GoldAppliedInfoWidget->SetAppliedEffects(InData.AppliedModifiers, InData.bHasAppliedModifiers);
+    AdditonalInfoLayer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+    GoldAppliedInfoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
+void UW_CardWidget::HideAdditionalInfo()
+{
+    if (IsValid(GoldAppliedInfoWidget)) GoldAppliedInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
+    if (IsValid(AdditonalInfoLayer)) AdditonalInfoLayer->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 TSharedPtr<SWidget> UW_CardWidget::CreateKeywordDisplay(FName Code, const FTextBlockStyle& Style)

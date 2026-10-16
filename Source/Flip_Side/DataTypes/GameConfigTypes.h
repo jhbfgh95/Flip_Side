@@ -39,7 +39,7 @@ struct FGameConfigData
     GENERATED_BODY()
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    int32 InitialGold = 800;
+    int32 InitialGold = 3000;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 CoinSlotUnlockCost = 100;

@@ -225,6 +225,7 @@ public:
 	virtual void PlayerTick(float DeltaTime) override; // 매 프레임 마우스 호버 감지용
 
 	bool GetCursorWorldLocationOnPlane(float PlaneZ, FVector& OutWorldLocation) const;
+	bool TryCancelSelectedItem();
 
 	/** 기존 ReadyCoin을 DB 무기 ID로 만든 초기 상태의 디버그 코인으로 교체합니다. */
 	UFUNCTION(Exec)

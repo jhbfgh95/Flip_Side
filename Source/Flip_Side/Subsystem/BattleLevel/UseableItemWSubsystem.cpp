@@ -361,18 +361,17 @@ void UUseableItemWSubsystem::StopItemCursorPreview()
 
 void UUseableItemWSubsystem::InitSelectedItem()
 {
-    if(!IsValid(SelectedItemAction))
+    if(IsValid(SelectedItemAction))
     {
-        return;
+        SelectedItemAction->SetActionRange(DefaultItemRange);
+        SelectedItemAction->SetLogicID(-1);
+        SelectedItemAction->SetTargetGrid(nullptr);
+        SelectedItemAction->SetItemEffectValue(-1);
+        SelectedItemAction->SetInRangeCoins(nullptr);
+        SelectedItemAction->SetInRangeOthers(nullptr);
+        SelectedItemAction->SetInRangeBoss(nullptr);
     }
 
-    SelectedItemAction->SetActionRange(DefaultItemRange);
-    SelectedItemAction->SetLogicID(-1);
-    SelectedItemAction->SetTargetGrid(nullptr);
-    SelectedItemAction->SetItemEffectValue(-1);
-    SelectedItemAction->SetInRangeCoins(nullptr);
-    SelectedItemAction->SetInRangeOthers(nullptr);
-    SelectedItemAction->SetInRangeBoss(nullptr);
     CurrentTargetMode = EUseableItemTargetMode::None;
     SelectedItemID = INDEX_NONE;
     SelectedItemData = FItemData();
@@ -433,11 +432,16 @@ void UUseableItemWSubsystem::ApplyRangedThings()
 
 void UUseableItemWSubsystem::CancelWantUseItem()
 {
+    const bool bHadSelectedItem = bHasSelectedItemData;
     StopItemCursorPreview();
     InitSelectedItem();
     if(CoinActionManager)
     {
         CoinActionManager->SetPhase(bIsCoinBehaviorPhase);
+    }
+    if(bHadSelectedItem)
+    {
+        OnBattleItemDataChanged.Broadcast();
     }
 }
 
@@ -640,6 +644,7 @@ bool UUseableItemWSubsystem::TrySelectItem(int32 ItemID)
         }
     }
 
+    OnBattleItemDataChanged.Broadcast();
     OnTutorialItemSelected.Broadcast(ItemID);
     return true;
 }

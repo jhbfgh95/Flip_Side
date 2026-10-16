@@ -28,12 +28,11 @@ void UBossSetupGISubsystem::AssignBossesToStages()
 {
     StageBossAssignment.Reset();
 
-    // BossID 2~5를 Stage 1~4로 랜덤 배정 (튜토리얼 보스 BossID 1은 L_Stage_Battle_Tutorial 전용)
+    // 포이즌(2), 늪(3), 그로기(4)를 Stage 1~3에 한 번씩 랜덤 배정합니다.
     TArray<int32> BossIDs;
     for (const FBossDisplayData& Data : AllBossData)
     {
-        //임시수정
-        if (Data.BossID == 2 || Data.BossID == 4)
+        if (Data.BossID == 2 || Data.BossID == 3 || Data.BossID == 4)
             BossIDs.Add(Data.BossID);
     }
 
@@ -139,6 +138,12 @@ bool UBossSetupGISubsystem::SetStageBossAssignments(const TMap<int32, int32>& In
     }
 
     StageBossAssignment = InAssignments;
+    // 포이즌/그로기만 있던 기존 2스테이지 저장도 마지막에 늪 보스를 만날 수 있게 합니다.
+    if (StageBossAssignment.Num() == 2 && StageBossAssignment.Contains(1) && StageBossAssignment.Contains(2) &&
+        StageBossAssignment.FindKey(2) && StageBossAssignment.FindKey(4))
+    {
+        StageBossAssignment.Add(3, 3);
+    }
     ClearPreparedBoss();
     return true;
 }

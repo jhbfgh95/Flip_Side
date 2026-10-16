@@ -49,6 +49,14 @@ void UBattleItemSlotWidget::SetInfoSelected(bool bSelected)
 	OnInfoSelectionChanged(bIsInfoSelected);
 }
 
+void UBattleItemSlotWidget::SetInteractionEnabled(bool bEnabled)
+{
+	bInteractionEnabled = bEnabled;
+	SetVisibility(AvailableCount > 0
+		? (bInteractionEnabled ? ESlateVisibility::Visible : ESlateVisibility::HitTestInvisible)
+		: ESlateVisibility::Collapsed);
+}
+
 void UBattleItemSlotWidget::RefreshInfoSelectionStyle()
 {
 	if (!IsValid(ItemButton) || !bUseHoveredStyleForInfoSelection) return;
@@ -98,7 +106,7 @@ void UBattleItemSlotWidget::SetItemData(const FBattleItemSlotViewData& InData)
 	}
 
 	// ReadyPhase에서도 호버 정보가 필요하므로 버튼은 비활성화하지 않습니다.
-	SetVisibility(AvailableCount > 0 ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	SetInteractionEnabled(bInteractionEnabled);
 }
 
 void UBattleItemSlotWidget::ClearItemData()
@@ -112,7 +120,7 @@ void UBattleItemSlotWidget::ClearItemData()
 
 void UBattleItemSlotWidget::HandleItemButtonClicked()
 {
-	if (ItemID != INDEX_NONE && AvailableCount > 0 && bCanUse)
+	if (bInteractionEnabled && ItemID != INDEX_NONE && AvailableCount > 0 && bCanUse)
 	{
 		OnBattleItemSlotClicked.Broadcast(ItemID);
 	}
@@ -120,7 +128,7 @@ void UBattleItemSlotWidget::HandleItemButtonClicked()
 
 void UBattleItemSlotWidget::HandleItemButtonHovered()
 {
-	if (ItemID != INDEX_NONE && AvailableCount > 0)
+	if (bInteractionEnabled && ItemID != INDEX_NONE && AvailableCount > 0)
 	{
 		OnBattleItemSlotHovered.Broadcast(ItemID);
 	}

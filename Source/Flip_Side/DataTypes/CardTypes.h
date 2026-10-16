@@ -110,4 +110,11 @@ struct FBattleCardSlotViewData
     // 위젯 구현과 별개로 카드 관리자가 실제 조건 충족 상태를 제공합니다.
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     bool bIsActive = false;
+
+    // 더 많은 황금이 실제 코인에 적용한 증가량입니다. 다른 카드의 효과와 합산하지 않습니다.
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    FCoinCardModifiers AppliedModifiers;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    bool bHasAppliedModifiers = false;
 };

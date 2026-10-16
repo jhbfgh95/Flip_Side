@@ -36,7 +36,7 @@ namespace
     constexpr int32 StageClearFlag = 0;
     constexpr int32 GameOverFlag = 1;
     constexpr int32 GameClearFlag = 2;
-    constexpr int32 GameClearBattleLevelIndex = 2;
+    constexpr int32 GameClearBattleLevelIndex = 3;
     constexpr int32 TutorialBossBattleTurnLimit = 10;
 }
 
@@ -643,10 +643,6 @@ void UBattleManagerWSubsystem::BossDeathStarted()
 
 void UBattleManagerWSubsystem::GameOver()
 {
-    UGameInstance* Instance = IsValid(GetWorld()) ? GetWorld()->GetGameInstance() : nullptr;
-    const ULevelGISubsystem* Level = IsValid(Instance) ? Instance->GetSubsystem<ULevelGISubsystem>() : nullptr;
-    // 실제 튜토리얼 보스전은 코인 전멸로 조기 패배하지 않고 10턴 완료 시에만 실패합니다.
-    if (IsValid(Level) && Level->IsTutorialBossBattleActive()) return;
     if (!TryEndStage(GameOverFlag)) return;
 
     ShowStageEndWidget(GameOverFlag);

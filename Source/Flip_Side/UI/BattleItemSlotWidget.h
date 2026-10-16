@@ -21,6 +21,7 @@ public:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 	void SetInfoSelected(bool bSelected);
+	void SetInteractionEnabled(bool bEnabled);
 	int32 GetItemID() const { return ItemID; }
 
 	void SetItemData(const FBattleItemSlotViewData& InData);
@@ -67,6 +68,7 @@ private:
 	int32 ItemID = INDEX_NONE;
 	int32 AvailableCount = 0;
 	bool bCanUse = false;
+	bool bInteractionEnabled = true;
 
 	UPROPERTY()
 	TObjectPtr<class UMaterialInstanceDynamic> ItemIconMaterialInstance;

@@ -66,7 +66,7 @@ public:
 	void SetCoinSlots(const TArray<FBattleCoinSlotViewData>& InCoinSlots);
 	void SetReadyCoins(const TArray<FBattleReadyCoinViewData>& InReadyCoins);
 	void SetBossHUDData(const FBossHUDData& InData);
-	void SetItemSlots(const TArray<FBattleItemSlotViewData>& InItemSlots);
+	void SetItemSlots(const TArray<FBattleItemSlotViewData>& InItemSlots, int32 InSelectedItemID = INDEX_NONE);
 	void SetCardSlots(const TArray<FBattleCardSlotViewData>& InCardSlots);
 	void SetPhaseDisplay(EPhaseState CurrentPhase, int32 TurnCount);
 	void PlayBossPhaseCompletionAnimation();
@@ -166,6 +166,7 @@ private:
 	TSharedPtr<class FCoinSlotPopupInputProcessor> CoinPopupInputProcessor;
 	int32 DisplayedCoinSlotNumber = INDEX_NONE;
 	int32 DisplayedItemID = INDEX_NONE;
+	int32 SelectedUseItemID = INDEX_NONE;
 	int32 DisplayedCardSlotNumber = INDEX_NONE;
 	int32 HoveredCardSlotNumber = INDEX_NONE;
 	void EnsureCoinSlotWidgets(int32 RequiredCount);

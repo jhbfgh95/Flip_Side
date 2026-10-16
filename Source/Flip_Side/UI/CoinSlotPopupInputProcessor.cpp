@@ -1,5 +1,6 @@
 #include "UI/CoinSlotPopupInputProcessor.h"
 #include "UI/BattlePlayerHUDWidget.h"
+#include "Player/BattlePlayerController_FlipSide.h"
 #include "Framework/Application/SlateApplication.h"
 #include "InputCoreTypes.h"
 
@@ -27,10 +28,22 @@ void FCoinSlotPopupInputProcessor::Tick(float DeltaTime, FSlateApplication& Slat
 
 bool FCoinSlotPopupInputProcessor::HandleMouseButtonDownEvent(FSlateApplication& SlateApp, const FPointerEvent& Event)
 {
-	if (!HUD.IsValid() || HUD->IsTutorialInfoPinned() || (!HUD->IsCoinSlotInfoOpen() && !HUD->IsItemInfoOpen())) return false;
+	if (!HUD.IsValid() || HUD->IsTutorialInfoPinned()) return false;
 	const ECoinPopupPointerRegion Region = HUD->GetCoinPopupPointerRegion(Event.GetScreenSpacePosition());
 	if (Region == ECoinPopupPointerRegion::OutsideGame) return false;
 	const FKey Button = Event.GetEffectingButton();
+	if (Button == EKeys::RightMouseButton)
+	{
+		ABattlePlayerController_FlipSide* Controller = Cast<ABattlePlayerController_FlipSide>(HUD->GetOwningPlayer());
+		if (IsValid(Controller) && Controller->TryCancelSelectedItem())
+		{
+			HUD->DismissCoinSlotInfo();
+			HUD->DismissItemInfo();
+			ConsumedButtons.Add(Button);
+			return true;
+		}
+	}
+	if (!HUD->IsCoinSlotInfoOpen() && !HUD->IsItemInfoOpen()) return false;
 	if (ShouldConsumeDismissClick(Region, Button))
 	{
 		HUD->DismissCoinSlotInfo();

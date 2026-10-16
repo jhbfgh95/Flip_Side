@@ -136,6 +136,7 @@ public:
 	bool TestItemGenerate();
 
 	bool IsItemUseAvailable() const;
+	int32 GetSelectedItemID() const { return bHasSelectedItemData ? SelectedItemData.ItemID : INDEX_NONE; }
 
 	bool TrySelectItem(int32 ItemID);
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnTutorialItemSelected, int32);
