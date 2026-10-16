@@ -162,6 +162,7 @@ void ACoinActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	// Spawn/연출 코드의 Hidden 전환만 가볍게 확인합니다. 스탯 계산은 변경 이벤트에서 합니다.
 	if (IsOutlineEligible() != bOutlineWasEligible) RefreshOutline();
+	if (bDeathFractureImpulsePending) ApplyDeathFractureImpulse();
 }
 
 bool ACoinActor::IsOutlineEligible() const
@@ -658,6 +659,7 @@ void ACoinActor::CoinDead()
 	SetReadySlotHighlighted(false);
 	if (IsValid(DebuffComponent)) DebuffComponent->DisableForDeath();
 	SetAttackRangeBracketVisible(false);
+	SetCover(FLinearColor::Black, false);
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(JumpTimerHandle);
@@ -673,7 +675,7 @@ void ACoinActor::CoinDead()
 		}
 	}
 
-	if (CoinMesh && FracturedCoin)
+	if (IsValid(CoinMesh) && IsValid(FracturedCoin))
     {
         CoinMesh->SetVisibility(false);
         CoinMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -682,11 +684,9 @@ void ACoinActor::CoinDead()
         FracturedCoin->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
         FracturedCoin->SetSimulatePhysics(true);
 
-		FVector CenterLoc = GetActorLocation();
-		float Radius = 50.f;
-		float Strength = 100.f;
-
-		FracturedCoin->AddRadialImpulse(CenterLoc, Radius, Strength, ERadialImpulseFalloff::RIF_Constant, true);
+		// Chaos의 비동기 분리가 끝나기 전에는 덩어리 전체에 속도를 주지 않습니다.
+		bDeathFractureImpulsePending = true;
+		FracturedCoin->CrumbleActiveClusters();
     }
 
     if (CoinHPUI)
@@ -694,7 +694,30 @@ void ACoinActor::CoinDead()
         CoinHPUI->SetVisibility(false);
     }
 
-	SetLifeSpan(0.6f);
+	SetLifeSpan(1.0f);
+}
+
+void ACoinActor::ApplyDeathFractureImpulse()
+{
+	if (!IsValid(FracturedCoin))
+	{
+		bDeathFractureImpulsePending = false;
+		return;
+	}
+
+	if (!FracturedCoin->IsRootBroken())
+	{
+		return;
+	}
+
+	bDeathFractureImpulsePending = false;
+	// 액터 원점 대신 원래 클러스터의 질량 중심을 기준으로 파편을 퍼뜨립니다.
+	const FTransform RootTransform = FracturedCoin->GetRootInitialTransform();
+	const FVector CenterLoc = RootTransform.TransformPosition(
+		FracturedCoin->GetRootParticleMassOffset().GetLocation());
+	const float Radius = 1000.f;
+	const float Strength = 1000.f;
+	FracturedCoin->AddRadialImpulse(CenterLoc, Radius, Strength, ERadialImpulseFalloff::RIF_Constant, true);
 }
 
 void ACoinActor::OnCoinHpChanged(int32 DeltaHP)

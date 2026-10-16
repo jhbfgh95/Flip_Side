@@ -641,10 +641,22 @@ void UBattleManagerWSubsystem::BossDeathStarted()
     }
 }
 
-void UBattleManagerWSubsystem::GameOver()
+void UBattleManagerWSubsystem::GameOver(ACoinActor* LastCoin)
 {
     if (!TryEndStage(GameOverFlag)) return;
 
+    // 전투 진행은 즉시 막되, 마지막 코인의 Fracture 수명이 끝난 뒤 결과 창을 띄웁니다.
+    if (IsValid(LastCoin))
+    {
+        LastCoin->OnDestroyed.AddUniqueDynamic(this, &UBattleManagerWSubsystem::HandleLastCoinDestroyed);
+        return;
+    }
+
+    ShowStageEndWidget(GameOverFlag);
+}
+
+void UBattleManagerWSubsystem::HandleLastCoinDestroyed(AActor* DestroyedActor)
+{
     ShowStageEndWidget(GameOverFlag);
 }
 
