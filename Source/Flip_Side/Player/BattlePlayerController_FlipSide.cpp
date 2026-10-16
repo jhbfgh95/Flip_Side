@@ -1798,6 +1798,37 @@ void ABattlePlayerController_FlipSide::CreateSampleCoin(
 	RefreshHoveredBattleCoinInfo();
 }
 
+void ABattlePlayerController_FlipSide::DoCoinDeath(int32 CoinReadySlotNum)
+{
+	UWorld* World = GetWorld();
+	UCoinManagementWSubsystem* CoinManager = IsValid(World)
+		? World->GetSubsystem<UCoinManagementWSubsystem>()
+		: nullptr;
+	if (!IsValid(CoinManager))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BattlePlayerController] DoCoinDeath 실패: CoinManager가 유효하지 않습니다."));
+		return;
+	}
+
+	const int32 ReadySlotCount = CoinManager->GetReadyCoinData().Num();
+	if (CoinReadySlotNum <= 0 || CoinReadySlotNum > ReadySlotCount)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BattlePlayerController] DoCoinDeath 실패: 준비 슬롯 번호는 1~%d이어야 합니다."), ReadySlotCount);
+		return;
+	}
+
+	ACoinActor* Coin = CoinManager->GetRuntimeCoinAtReadySlot(CoinReadySlotNum - 1);
+	UComponent_Status* Status = IsValid(Coin) ? Coin->StatComponent : nullptr;
+	if (!IsValid(Status) || Status->IsDead())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BattlePlayerController] DoCoinDeath 실패: 준비 슬롯 %d에 살아 있는 필드 코인이 없습니다."), CoinReadySlotNum);
+		return;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[BattlePlayerController] DoCoinDeath: 준비 슬롯 %d의 코인을 죽입니다."), CoinReadySlotNum);
+	Status->SetHP(0, false);
+}
+
 FBattleItemSlotViewData ABattlePlayerController_FlipSide::BuildItemSlotViewData(const FBattleItemSlotData& ItemSlotData, bool bCanUse) const
 {
 	FBattleItemSlotViewData ViewData;

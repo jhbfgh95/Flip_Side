@@ -31,6 +31,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBossPhaseCompleted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStageEnded, int32, StageEndFlag);
 DECLARE_MULTICAST_DELEGATE(FOnBattleTutorialLeverTriggered);
 
+class AActor;
 class ACoinActor;
 class UW_StageEnd;
 
@@ -149,7 +150,10 @@ protected:
 	void BossDeathStarted();
 
 	UFUNCTION()
-	void GameOver();
+	void GameOver(ACoinActor* LastCoin);
+
+	UFUNCTION()
+	void HandleLastCoinDestroyed(AActor* DestroyedActor);
 
 	bool TryEndStage(int32 StageEndFlag);
 

@@ -334,6 +334,7 @@ protected:
 	FSimpleDelegate PendingLandingDelegate;
 	bool bLandingCallbackPending = false;
 	bool bDeathStarted = false;
+	bool bDeathFractureImpulsePending = false;
 	// 등장/뒤집기와 피격은 행동 상태와 독립적으로 유지하여 겹친 연출이 모두 끝나야 복구합니다.
 	bool bOutlineJumpActive = false;
 	bool bOutlineHitActive = false;
@@ -368,6 +369,8 @@ protected:
 
 	UFUNCTION()
 	void CoinDead();
+
+	void ApplyDeathFractureImpulse();
 
 	UFUNCTION()
     void OnCoinHpChanged(int32 DeltaHP);

@@ -16,7 +16,8 @@ struct FFaceData;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRangeWanted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCoinAddedToReady);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBattleCoinDataChanged);
-DECLARE_DELEGATE(FOnAllCoinDead);
+// 보유 슬롯과 준비/필드 코인이 모두 소진되면 마지막으로 사망한 코인을 전달합니다.
+DECLARE_DELEGATE_OneParam(FOnAllCoinDead, ACoinActor*);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBattleTutorialCoinSlotClicked, ACoinActor*);
 
 UCLASS()

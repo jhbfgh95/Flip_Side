@@ -966,9 +966,10 @@ void UCoinManagementWSubsystem::HandleRuntimeCoinDeathStarted(ACoinActor* DeadCo
 	}
 
 	BroadcastCoinDataChanged();
-	if (GetReadyCoinCount() == 0)
+	// 필드가 전멸해도 보유 슬롯에서 코인을 더 꺼낼 수 있으면 전투를 계속합니다.
+	if (CalculateCoinCount() == 0)
 	{
-		OnAllCoinDead.ExecuteIfBound();
+		OnAllCoinDead.ExecuteIfBound(DeadCoin);
 	}
 }
 
