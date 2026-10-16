@@ -80,6 +80,12 @@ protected:
 	void UnhoveredCard();
 
 	UFUNCTION()
+	void HandleDetailButtonHovered();
+
+	UFUNCTION()
+	void HandleDetailButtonUnhovered();
+
+	UFUNCTION()
 	void AddCard(int32 CardId);
 protected:
 	FCardData GetCardData(int32 GetCardID);

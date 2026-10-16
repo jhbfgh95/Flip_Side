@@ -19,11 +19,36 @@ class UTextBlock;
 class UBorder;
 class UShopCardWSubsystem;
 class UMaterialInstanceDynamic;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShopCardSlotDetailButtonHovered);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShopCardSlotDetailButtonUnhovered);
+
 UCLASS()
 class FLIP_SIDE_API UW_ShopCardSlot : public UW_ShopCardBase
 {
 	GENERATED_BODY()
 protected:
+	virtual void NativeOnInitialized() override;
+	virtual void NativeDestruct() override;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UButton> DetailButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBorder> DetailBorder;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<class UWidgetAnimation> DetailButtonHighlightAnimation;
+
+	void UpdateDetailButton(int32 CardID);
+
+	UFUNCTION()
+	void HandleDetailButtonHovered();
+
+	UFUNCTION()
+	void HandleDetailButtonUnhovered();
+
+	bool bHasCardDetails = false;
+	bool bDetailButtonHovered = false;
 	virtual void NativeConstruct() override;
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
@@ -44,6 +69,12 @@ protected:
 	TObjectPtr<UBorder> HoverBorder;
 
 public:
+	UPROPERTY(BlueprintAssignable, Category = "Card|Detail")
+	FOnShopCardSlotDetailButtonHovered OnDetailButtonHovered;
+
+	UPROPERTY(BlueprintAssignable, Category = "Card|Detail")
+	FOnShopCardSlotDetailButtonUnhovered OnDetailButtonUnhovered;
+
 	FOnBuyCard OnBuyCard;
 
 protected:

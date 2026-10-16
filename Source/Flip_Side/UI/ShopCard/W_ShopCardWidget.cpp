@@ -5,10 +5,20 @@
 
 #include "Components/Image.h"
 #include "Components/CanvasPanel.h"
+#include "Components/WidgetSwitcher.h"
 #include "Animation/WidgetAnimation.h"
 void UW_ShopCardWidget::NativeConstruct()
 {
     Super::NativeConstruct();
+    SetDescriptionPage(0);
+}
+
+void UW_ShopCardWidget::SetDescriptionPage(int32 PageIndex)
+{
+    if (IsValid(DescriptionSwitcher) && PageIndex >= 0 && PageIndex < DescriptionSwitcher->GetNumWidgets())
+    {
+        DescriptionSwitcher->SetActiveWidgetIndex(PageIndex);
+    }
 }
 
 void UW_ShopCardWidget::NativeDestruct()
@@ -75,11 +85,13 @@ void UW_ShopCardWidget::LeftClickCard()
 	
 void UW_ShopCardWidget::SetCardData(FCardData CardData)
 {
+    SetDescriptionPage(0);
     SetVisibility(ESlateVisibility::Visible);
     InitCard(CardData);
 }
 	
 void UW_ShopCardWidget::UnsetCardData()
 {
+    SetDescriptionPage(0);
     SetVisibility(ESlateVisibility::Collapsed);
 }

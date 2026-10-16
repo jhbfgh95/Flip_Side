@@ -49,6 +49,8 @@ void UShopCardPresenter::AddCard(int32 CardID)
         AddSlot->OnUnselectShopPlayerCard.AddDynamic(this, &UShopCardPresenter::UnselectedPlayerCard);
         AddSlot->OnHoveredShopCardSlot.AddDynamic(this, &UShopCardPresenter::HoveredCard);
         AddSlot->OnUnhoveredShopCardSlot.AddDynamic(this, &UShopCardPresenter::UnhoveredCard);
+        AddSlot->OnDetailButtonHovered.AddUniqueDynamic(this, &ThisClass::HandleDetailButtonHovered);
+        AddSlot->OnDetailButtonUnhovered.AddUniqueDynamic(this, &ThisClass::HandleDetailButtonUnhovered);
         ShopPlayerCardSlotViews.Add(AddSlot);
     }
     
@@ -113,6 +115,28 @@ void UShopCardPresenter::UnhoveredCard()
 
 
 
+void UShopCardPresenter::HandleDetailButtonHovered()
+{
+    if (IsValid(ShopCardMainWidget))
+    {
+        if (UW_ShopCardWidget* CardWidget = ShopCardMainWidget->GetShopCardWidget(); IsValid(CardWidget))
+        {
+            CardWidget->SetDescriptionPage(1);
+        }
+    }
+}
+
+void UShopCardPresenter::HandleDetailButtonUnhovered()
+{
+    if (IsValid(ShopCardMainWidget))
+    {
+        if (UW_ShopCardWidget* CardWidget = ShopCardMainWidget->GetShopCardWidget(); IsValid(CardWidget))
+        {
+            CardWidget->SetDescriptionPage(0);
+        }
+    }
+}
+
 void UShopCardPresenter::InitShopCardSlot()
 {
     TArray<FCardData> ShopCardData = CardSubsystem->GetCardListArray();
@@ -124,6 +148,8 @@ void UShopCardPresenter::InitShopCardSlot()
         ShopCardSlotViews[i]->OnBuyCard.AddDynamic(this, &UShopCardPresenter::BuyCard);
         ShopCardSlotViews[i]->OnHoveredShopCardSlot.AddDynamic(this, &UShopCardPresenter::HoveredCard);
         ShopCardSlotViews[i]->OnUnhoveredShopCardSlot.AddDynamic(this, &UShopCardPresenter::UnhoveredCard);
+        ShopCardSlotViews[i]->OnDetailButtonHovered.AddUniqueDynamic(this, &ThisClass::HandleDetailButtonHovered);
+        ShopCardSlotViews[i]->OnDetailButtonUnhovered.AddUniqueDynamic(this, &ThisClass::HandleDetailButtonUnhovered);
     }
 }
 
@@ -150,12 +176,16 @@ void UShopCardPresenter::InitShopPlayerCardSlot()
         ShopPlayerCardSlotViews[i]->OnUnselectShopPlayerCard.AddDynamic(this, &UShopCardPresenter::UnselectedPlayerCard);
         ShopPlayerCardSlotViews[i]->OnHoveredShopCardSlot.AddDynamic(this, &UShopCardPresenter::HoveredCard);
         ShopPlayerCardSlotViews[i]->OnUnhoveredShopCardSlot.AddDynamic(this, &UShopCardPresenter::UnhoveredCard);
+        ShopPlayerCardSlotViews[i]->OnDetailButtonHovered.AddUniqueDynamic(this, &ThisClass::HandleDetailButtonHovered);
+        ShopPlayerCardSlotViews[i]->OnDetailButtonUnhovered.AddUniqueDynamic(this, &ThisClass::HandleDetailButtonUnhovered);
     }
     for(int i =0; i<ShopPlayerSelectedCardSlotViews.Num();i++)
     {
         ShopPlayerSelectedCardSlotViews[i]->OnUnselectedPlayerCard.AddDynamic(this,  &UShopCardPresenter::UnselectedPlayerSelectedCard);
         ShopPlayerSelectedCardSlotViews[i]->OnHoveredShopCardSlot.AddDynamic(this, &UShopCardPresenter::HoveredCard);
         ShopPlayerSelectedCardSlotViews[i]->OnUnhoveredShopCardSlot.AddDynamic(this, &UShopCardPresenter::UnhoveredCard);
+        ShopPlayerSelectedCardSlotViews[i]->OnDetailButtonHovered.AddUniqueDynamic(this, &ThisClass::HandleDetailButtonHovered);
+        ShopPlayerSelectedCardSlotViews[i]->OnDetailButtonUnhovered.AddUniqueDynamic(this, &ThisClass::HandleDetailButtonUnhovered);
     }
 
 }

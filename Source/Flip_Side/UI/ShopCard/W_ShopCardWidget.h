@@ -17,6 +17,9 @@ class FLIP_SIDE_API UW_ShopCardWidget : public UW_CardWidget
 	GENERATED_BODY()
 	
 protected:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UWidgetSwitcher> DescriptionSwitcher;
+
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
@@ -43,6 +46,10 @@ private:
 	void UnlockCard(int32 UnlockCardID);
 
 public:
+	// 0: 기본 설명, 1: 상세 설명
+	UFUNCTION(BlueprintCallable)
+	void SetDescriptionPage(int32 PageIndex);
+
 	UFUNCTION(BlueprintCallable)
 	void HideLockIamge();
 
