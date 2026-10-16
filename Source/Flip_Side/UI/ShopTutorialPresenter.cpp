@@ -30,6 +30,7 @@
 #include "UI/ShopUISelectActor.h"
 #include "UI/W_ShopBossInfo.h"
 #include "UI/W_ShopBossPatternButton.h"
+#include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 
 void UShopTutorialPresenter::InitShopActors(AShopUISelectRegistry* InShopUISelectRegistry, AShopCoinUIActor* InCoinUIActor)
 {
@@ -541,7 +542,19 @@ void UShopTutorialPresenter::HandleCoinSideChanged(bool bIsFrontSide)
 
 void UShopTutorialPresenter::HandleCoinCountIncreased(int32 SlotIndex, int32 Count)
 {
-	ReportAction(EShopTutorialAction::CoinCountIncreased);
+	UWorld* World = IsValid(TutorialWidget) ? TutorialWidget->GetWorld() : nullptr;
+	UShopCoinWSubsystem* CoinSubsystem = IsValid(World) ? World->GetSubsystem<UShopCoinWSubsystem>() : nullptr;
+	if (!IsValid(CoinSubsystem) || !CoinSubsystem->GetIsCoinSlotUnlockByIndex(SlotIndex))
+	{
+		return;
+	}
+
+	// Count는 이번에 증가한 수량이므로, 슬롯에 저장된 현재 총수량을 검사합니다.
+	const int32 CurrentCount = CoinSubsystem->GetCoinSlotCoinType(SlotIndex).SameTypeCoinNum;
+	if (CurrentCount >= 5)
+	{
+		ReportAction(EShopTutorialAction::CoinCountIncreased);
+	}
 }
 
 void UShopTutorialPresenter::HandlePageChangeStart(EShopPage TargetPage)

@@ -134,7 +134,7 @@ void UShopTutorialFlow::ConfigureTutorial()
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 29
-	TutorialDialogueList.Add(FText::FromString(TEXT("코인의 앞뒤에 무기를 장착했다면\n슬롯의 위쪽 화살표 버튼을 눌러 코인 개수를 늘려 보세요.")));
+	TutorialDialogueList.Add(FText::FromString(TEXT("코인의 앞뒤에 무기를 장착했다면\n슬롯의 위쪽 화살표 버튼을 눌러 코인 개수를 5개로 늘려 보세요.")));
 	TutorialActionSequence.Add(EShopTutorialAction::CoinCountIncreased);
 
 	// 30
