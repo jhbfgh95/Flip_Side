@@ -3,6 +3,7 @@
 
 #include "UI/W_BossHP.h"
 #include "Blueprint/WidgetTree.h"
+#include "Components/Border.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
@@ -23,6 +24,7 @@ void UW_BossHP::NativeConstruct()
         EmblemMaterial = Cast<UMaterialInterface>(BossEmblemImage->GetBrush().GetResourceObject());
     }
 
+    ApplyLabelStyle();
     RefreshHpBar();
     RefreshShieldBar();
     SnapHpBarToTarget();
@@ -397,6 +399,35 @@ void UW_BossHP::UpdateLabelPosition(UWidget* LabelBox, const UProgressBar* Bar, 
 
     InOutLabelX = (InOutLabelX < 0.f) ? TargetX : FMath::FInterpTo(InOutLabelX, TargetX, InDeltaTime, LabelFollowSpeed);
     LabelSlot->SetPosition(FVector2D(InOutLabelX, BarPos.Y + (BarSize.Y - LabelSize.Y) * 0.5f));
+}
+
+void UW_BossHP::ApplyLabelStyle()
+{
+    // 숫자 판의 어두운 바탕을 숨깁니다. 바탕이 게이지 끝을 가렸다가 빈 칸으로 비켜나면, 가려져 있던 게이지가 드러나며 다시 차는 것처럼 보였습니다.
+    if (bHideLabelBackground)
+    {
+        for (UWidget* LabelBox : { HpLabelBox, ShieldLabelBox })
+        {
+            if (UBorder* Border = Cast<UBorder>(LabelBox))
+            {
+                Border->SetBrushColor(FLinearColor::Transparent);
+            }
+        }
+    }
+
+    // 바탕 대신 글자 테두리로, 눈금선이나 게이지 위에서도 숫자가 읽히게 합니다.
+    for (UTextBlock* Text : { HpText, HpTotalText, ShieldText, ShieldTotalText })
+    {
+        if (!IsValid(Text))
+        {
+            continue;
+        }
+
+        FSlateFontInfo Font = Text->GetFont();
+        Font.OutlineSettings.OutlineSize = LabelOutlineSize;
+        Font.OutlineSettings.OutlineColor = LabelOutlineColor;
+        Text->SetFont(Font);
+    }
 }
 
 void UW_BossHP::UpdateBossWindow(const FBossHUDData& InData)

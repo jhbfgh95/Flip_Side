@@ -100,6 +100,17 @@ private:
 	UPROPERTY(EditAnywhere, Category = "BossHP|Label", meta = (AllowPrivateAccess))
 	float LabelFollowSpeed = 12.f;
 
+	// 숫자 판의 어두운 바탕을 숨깁니다. 바탕이 게이지 끝을 가렸다가 비켜나면 게이지가 다시 차는 것처럼 보이기 때문입니다.
+	UPROPERTY(EditAnywhere, Category = "BossHP|Label", meta = (AllowPrivateAccess))
+	bool bHideLabelBackground = true;
+
+	// 바탕 대신 숫자에 두르는 테두리 굵기입니다. 눈금선과 게이지 위에서도 글자가 읽히게 합니다. 0이면 테두리가 없습니다.
+	UPROPERTY(EditAnywhere, Category = "BossHP|Label", meta = (AllowPrivateAccess, ClampMin = "0"))
+	int32 LabelOutlineSize = 3;
+
+	UPROPERTY(EditAnywhere, Category = "BossHP|Label", meta = (AllowPrivateAccess))
+	FLinearColor LabelOutlineColor = FLinearColor(0.07f, 0.03f, 0.02f, 1.f);
+
 	// 문양 색입니다. 문양 그림(검은 바탕에 흰 실루엣)은 MI_WCoinIcon 머티리얼이 바탕을 지우고 이 색으로 칠합니다.
 	UPROPERTY(EditAnywhere, Category = "BossHP|Emblem", meta = (AllowPrivateAccess))
 	FLinearColor EmblemTint = FLinearColor(0.95f, 0.88f, 0.70f, 1.f);
@@ -161,6 +172,8 @@ private:
 	// 새 틀 전용: 눈금, 따라가는 숫자 판, 보스 문양
 	void RebuildTicks(class UCanvasPanel* TickPanel, int32 MaxValue);
 	void UpdateLabelPosition(class UWidget* LabelBox, const class UProgressBar* Bar, float Percent, float& InOutLabelX, float InDeltaTime);
+	// 숫자 판 모양: 바탕을 숨기고 글자에 테두리를 넣습니다.
+	void ApplyLabelStyle();
 	// 둥근 창: HUD 데이터에 초상화가 있으면 초상화를, 아니면 문양을 그립니다.
 	void UpdateBossWindow(const FBossHUDData& InData);
 	void ApplyBossPortrait(class UTextureRenderTarget2D* Portrait);
