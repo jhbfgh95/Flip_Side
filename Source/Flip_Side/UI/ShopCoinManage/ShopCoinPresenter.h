@@ -17,6 +17,7 @@ class UW_ShopCoinWidget;
 class UUnlockGISubsystem;
 class AShopCoinUIActor;
 class AShopWeaponRangePreviewActor;
+class ASpotLight;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopCoinSlotPurchased, int32, Level);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShopCoinWeaponClicked, int32, WeaponID);
@@ -32,10 +33,22 @@ public:
 	void InitPresenter(UW_ShopCoinWidget* InShopCoinWidget,
 		UShopCoinWSubsystem* InCoinSubsystem, UDataManagerSubsystem* InDataManager, 
 		UUnlockGISubsystem* InUnlockSubsystem, AShopCoinUIActor* InShopCoinUIActor
-		,AShopWeaponRangePreviewActor* InRangePreviewActor );
+		,AShopWeaponRangePreviewActor* InRangePreviewActor, ASpotLight* InCoinUILight);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop Coin|Light")
+	FLinearColor FrontLightColor = FLinearColor(0.328, 0.133f, 0.041, 1.f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shop Coin|Light")
+	FLinearColor BackLightColor = FLinearColor(0.328, 0.117, 0, 1.f);
 
 	UW_ShopCoinWidget* GetShopCoinWidget() const { return ShopCoinWidget; }
 	AShopCoinUIActor* GetShopCoinUIActor() const { return ShopCoinUIActor; }
+
+	UFUNCTION()
+	void RemoveCurrentCoinSideWeapon();
+
+	UFUNCTION()
+	void RemoveAllCoinWeapons();
 
 	UPROPERTY(BlueprintAssignable)
 	FOnShopCoinSlotPurchased OnCoinSlotPurchased;
@@ -65,6 +78,10 @@ private:
 	TObjectPtr<AShopCoinUIActor> ShopCoinUIActor;
 	UPROPERTY()
 	TObjectPtr<AShopWeaponRangePreviewActor> RangePreviewActor;
+	UPROPERTY()
+	TObjectPtr<ASpotLight> CoinUILight;
+
+	void UpdateCoinLightColor();
 
 	UPROPERTY()
 	TArray<TObjectPtr<UW_ShopCoinSlot>> CoinSlotViews;
@@ -77,6 +94,9 @@ protected:
 	void InitWeaponSlotWidget();
 	void InitSlotBuyButtonWidget();
 	void InitShopCoinUIActor();
+
+	UFUNCTION()
+	void HandleCoinWarning(int32 WarningCode);
 
 protected:
 	int32 CurrentSelectedSlotIndex = -1;
@@ -132,6 +152,7 @@ protected:
 	
 	FFaceData GetWeaponData(int32 WeaponID);
 	void RefreshCoinSlots();
+	void RefreshAfterWeaponRemoval();
 	void RefreshCoinSlotInfo();
 	void SetCoinSlotSelection(int32 SelectedSlotIndex);
 	void RestoreSelectedCoinSideWeaponDescription();
@@ -143,7 +164,7 @@ protected:
 	void SetSlectCoinSideData(int32 SlotIndex);
 protected:
 
-	bool IsCurrentCoinSideFront;
+	bool IsCurrentCoinSideFront = true;
 	
 	void SetCoinSideFront(bool SetFront);
 

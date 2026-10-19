@@ -17,10 +17,7 @@ class FLIP_SIDE_API UW_ShopCoinWarning : public UW_WarningWidget
 	
 
 	virtual void NativeConstruct() override;
-	virtual void NativeDestruct() override;
-private:
-
-	class UShopCoinWSubsystem* CoinSubsystem;
+public:
 
 	UFUNCTION()
 	void SetWarning(int32 WarningCode);

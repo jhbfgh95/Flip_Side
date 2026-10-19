@@ -63,19 +63,19 @@ bool UShopCoinWSubsystem::CanIncreaseCoin(int32 SlotIndex,int32 Amount)
 
     if(ShopCoinSlotArray[SlotIndex].CoinData.FrontWeaponID == -1 ||ShopCoinSlotArray[SlotIndex].CoinData.BackWeaponID == -1)
     {
-        OnWarningCreate.Broadcast(3);
+        OnWarningCreate.Broadcast(2);
         return false;
     }
 
     if(MAX_TOTAL_COIN < ShopCoinSlotArray[SlotIndex].CoinData.SameTypeCoinNum + Amount)
     {
-        OnWarningCreate.Broadcast(4);
+        OnWarningCreate.Broadcast(3);
         return false;
     }
 
     if(MAX_TOTAL_COIN < TotalCoinCount + Amount)
     {
-        OnWarningCreate.Broadcast(4);
+        OnWarningCreate.Broadcast(3);
         return false;
     }
 
@@ -89,7 +89,7 @@ bool UShopCoinWSubsystem::CanDecreaseCoin(int32 SlotIndex, int32 Amount)
 
     if(ShopCoinSlotArray[SlotIndex].CoinData.FrontWeaponID == -1 ||ShopCoinSlotArray[SlotIndex].CoinData.BackWeaponID == -1)
     {
-        OnWarningCreate.Broadcast(3);
+        OnWarningCreate.Broadcast(2);
         return false;
     }
 
@@ -105,7 +105,10 @@ bool UShopCoinWSubsystem::CanDecreaseCoin(int32 SlotIndex, int32 Amount)
 bool UShopCoinWSubsystem::BuyCoinSlot(int32 BuySlotLevel)
 {
     if(!ShopCoinSlotArray.IsValidIndex(LastUnlockCoinSlotIndex+1))
+    {
+        ExecuteWarning(4);
         return false;
+    }
 
     FCoinTypeStructure CoinType;
     CoinType.Level = BuySlotLevel;
@@ -290,10 +293,29 @@ void UShopCoinWSubsystem::ResetCoinSlot(int32 SlotIndex)
     TotalCoinCount -= CoinCount;
     ShopCoinSlotArray[SlotIndex].CoinData.SameTypeCoinNum = 0;
 
-    MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 50, CoinCount);
+    if (CoinCount > 0 && IsValid(MoneySubsystem))
+    {
+        MoneySubsystem->AddSaleMoney(EMoneyRecordType::Coin, 50 * CoinCount, CoinCount);
+    }
 
 }
 	
+
+bool UShopCoinWSubsystem::RemoveCoinSlotWeapon(int32 SlotIndex, bool bFrontSide)
+{
+    if (!GetCoinSlotUnlock(SlotIndex)) return false;
+
+    const FCoinTypeStructure CoinData = ShopCoinSlotArray[SlotIndex].CoinData;
+    if ((bFrontSide ? CoinData.FrontWeaponID : CoinData.BackWeaponID) == INDEX_NONE)
+        return false;
+
+    ResetCoinSlot(SlotIndex);
+    if (bFrontSide)
+        ShopCoinSlotArray[SlotIndex].CoinData.BackWeaponID = CoinData.BackWeaponID;
+    else
+        ShopCoinSlotArray[SlotIndex].CoinData.FrontWeaponID = CoinData.FrontWeaponID;
+    return true;
+}
 
 bool UShopCoinWSubsystem::TrySetCoinSlotFrontWeapon(int32 SlotIndex, int32 WeaponID)
 {

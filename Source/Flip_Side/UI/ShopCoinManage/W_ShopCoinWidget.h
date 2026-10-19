@@ -13,12 +13,31 @@ class UW_ShopWeaponSlotContainer;
 class UW_ShopCoinSlotContainer;
 class UW_BuyCoinSlotContainer;
 class UW_ShopSlotCoinDes;
+class UW_ShopCoinWarning;
+class UButton;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRemoveCurrentCoinWeaponRequested);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRemoveAllCoinWeaponsRequested);
 UCLASS()
 class FLIP_SIDE_API UW_ShopCoinWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
 protected:
+	virtual void NativeOnInitialized() override;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> RemoveCurrentWeaponButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> RemoveAllWeaponsButton;
+
+	UFUNCTION()
+	void HandleRemoveCurrentWeaponClicked();
+
+	UFUNCTION()
+	void HandleRemoveAllWeaponsClicked();
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UW_ShopWeaponSlotContainer> ShopWeaponSlotContainer;
 
@@ -30,9 +49,20 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UW_ShopSlotCoinDes> WeaponDes;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UW_ShopCoinWarning> ShopCoinWarning;
 	
 	
 public:
+	UPROPERTY(BlueprintAssignable)
+	FOnRemoveCurrentCoinWeaponRequested OnRemoveCurrentWeaponRequested;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnRemoveAllCoinWeaponsRequested OnRemoveAllWeaponsRequested;
+
+	UW_ShopCoinWarning* GetShopCoinWarning() const { return ShopCoinWarning.Get(); }
+
 	UFUNCTION()
 	UW_ShopWeaponSlotContainer* GetShopWeaponSlotContainer() const;
 

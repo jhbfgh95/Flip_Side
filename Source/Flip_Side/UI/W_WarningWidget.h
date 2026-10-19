@@ -16,7 +16,7 @@ class FLIP_SIDE_API UW_WarningWidget : public UUserWidget
 
 protected:
 
-	void ActiveWarning(FString Text);
+	void ActiveWarning(FString Text, bool bPlayWarningSound = true);
 
 	UPROPERTY(meta = (BindWidget))
 	class UImage* WarningImage;

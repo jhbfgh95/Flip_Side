@@ -89,7 +89,7 @@ void AShopController_FlipSide::BeginPlay()
     CoinPresenter = NewObject<UShopCoinPresenter>(this);
         CoinPresenter->InitPresenter(ShopWidgetContainer->GetShopCoinWidget(), 
         CoinSubsystem, DataManager, UnlockSubsystem, ShopCoinUIActor,
-        ShopUISelectRegistry->GetRangePreviewActor());
+        ShopUISelectRegistry->GetRangePreviewActor(), ShopUISelectRegistry->GetCoinUILight());
 
     UnlockWeaponPresenter = NewObject<UUnlockWeaponPresenter>(this);
 	UnlockWeaponPresenter->InitPresenter(

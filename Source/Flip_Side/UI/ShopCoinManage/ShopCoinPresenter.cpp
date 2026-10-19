@@ -15,9 +15,12 @@
 #include "UI/ShopCoinManage/ShopCoinUIActor.h"
 #include "UI/ShopCoinManage/W_ShopSlotCoinDes.h"
 #include "Actors/ShopWeaponRangePreviewActor.h"
+#include "UI/ShopCoinManage/W_ShopCoinWarning.h"
+#include "Engine/SpotLight.h"
+#include "Components/LightComponent.h"
 void UShopCoinPresenter::InitPresenter(UW_ShopCoinWidget* InShopCoinWidget, UShopCoinWSubsystem* InCoinSubsystem
 	,UDataManagerSubsystem* InDataManager, UUnlockGISubsystem* InUnlockSubsystem, AShopCoinUIActor* InShopCoinUIActor
-	,AShopWeaponRangePreviewActor* InRangePreviewActor)
+	,AShopWeaponRangePreviewActor* InRangePreviewActor, ASpotLight* InCoinUILight)
 {
 	ShopCoinWidget = InShopCoinWidget;
 	CoinSubsystem = InCoinSubsystem;
@@ -25,6 +28,16 @@ void UShopCoinPresenter::InitPresenter(UW_ShopCoinWidget* InShopCoinWidget, USho
 	UnlockSubsystem = InUnlockSubsystem;
 	ShopCoinUIActor = InShopCoinUIActor;
 	RangePreviewActor = InRangePreviewActor;
+	CoinUILight = InCoinUILight;
+	if (IsValid(ShopCoinWidget))
+	{
+		ShopCoinWidget->OnRemoveCurrentWeaponRequested.AddUniqueDynamic(this, &ThisClass::RemoveCurrentCoinSideWeapon);
+		ShopCoinWidget->OnRemoveAllWeaponsRequested.AddUniqueDynamic(this, &ThisClass::RemoveAllCoinWeapons);
+	}
+	if (IsValid(CoinSubsystem))
+	{
+		CoinSubsystem->OnWarningCreate.AddUniqueDynamic(this, &ThisClass::HandleCoinWarning);
+	}
 
 	UnlockSubsystem->OnWeaponUnlock.AddDynamic(this,&UShopCoinPresenter::AddWeaponSlot );
 	InitSlotWidget();
@@ -40,6 +53,18 @@ void UShopCoinPresenter::InitPresenter(UW_ShopCoinWidget* InShopCoinWidget, USho
 			this, &ThisClass::HandleWeaponDescriptionHideFinished);
 	}
 	IsCurrentCoinSideFront = true;
+	UpdateCoinLightColor();
+}
+
+void UShopCoinPresenter::HandleCoinWarning(int32 WarningCode)
+{
+	if (IsValid(ShopCoinWidget))
+	{
+		if (UW_ShopCoinWarning* WarningWidget = ShopCoinWidget->GetShopCoinWarning(); IsValid(WarningWidget))
+		{
+			WarningWidget->SetWarning(WarningCode);
+		}
+	}
 }
 
 void UShopCoinPresenter::InitSlotWidget()
@@ -186,7 +211,16 @@ void UShopCoinPresenter::SelectWeapon(UW_ShopCoinWeaponSlot* ClickedWeaponSlot)
 		return;
 
 	const int32 WeaponID = ClickedWeaponSlot->GetWeaponSlotID();
-	OnCoinWeaponClicked.Broadcast(WeaponID);
+	if (!IsValid(CoinSubsystem) || !CoinSubsystem->GetIsCoinSlotUnlockByIndex(CurrentSelectedSlotIndex) || WeaponID == INDEX_NONE)
+		return;
+
+	const FCoinTypeStructure CoinData = CoinSubsystem->GetCoinSlotCoinType(CurrentSelectedSlotIndex);
+	const int32 EquippedWeaponID = IsCurrentCoinSideFront ? CoinData.FrontWeaponID : CoinData.BackWeaponID;
+	if (EquippedWeaponID == WeaponID)
+	{
+		RemoveCurrentCoinSideWeapon();
+		return;
+	}
 
 	const FFaceData WeaponData = GetWeaponData(WeaponID);
 	UpdateWeaponDescription(WeaponData);
@@ -195,7 +229,41 @@ void UShopCoinPresenter::SelectWeapon(UW_ShopCoinWeaponSlot* ClickedWeaponSlot)
 	{
 		ShopCoinWidget->GetShopWeaponSlotContainer()->SelectWeaponSlot(
 			IsCurrentCoinSideFront, ClickedWeaponSlot);
+		OnCoinWeaponClicked.Broadcast(WeaponID);
 	}
+}
+
+void UShopCoinPresenter::RemoveCurrentCoinSideWeapon()
+{
+	if (!IsValid(CoinSubsystem)) return;
+	if (CoinSubsystem->RemoveCoinSlotWeapon(CurrentSelectedSlotIndex, IsCurrentCoinSideFront))
+	{
+		RefreshAfterWeaponRemoval();
+	}
+}
+
+void UShopCoinPresenter::RemoveAllCoinWeapons()
+{
+	if (!IsValid(CoinSubsystem) || !CoinSubsystem->GetIsCoinSlotUnlockByIndex(CurrentSelectedSlotIndex)) return;
+	CoinSubsystem->ResetCoinSlot(CurrentSelectedSlotIndex);
+	RefreshAfterWeaponRemoval();
+}
+
+void UShopCoinPresenter::RefreshAfterWeaponRemoval()
+{
+	bRestoreSelectedWeaponDescriptionAfterHide = false;
+	bDescriptionHovered = false;
+	RefreshCoinSlots();
+	const FCoinTypeStructure CoinData = CoinSubsystem->GetCoinSlotCoinType(CurrentSelectedSlotIndex);
+	if (IsValid(ShopCoinWidget))
+	{
+		if (UW_ShopWeaponSlotContainer* Container = ShopCoinWidget->GetShopWeaponSlotContainer(); IsValid(Container))
+		{
+			Container->SelectWeaponSlots(CoinData.FrontWeaponID, CoinData.BackWeaponID);
+		}
+	}
+	RestoreSelectedCoinSideWeaponDescription();
+	if (IsValid(RangePreviewActor)) RangePreviewActor->ClearPreview();
 }
 
 bool UShopCoinPresenter::TryEquipWeaponToSelectedCoinSide(int32 WeaponID)
@@ -551,12 +619,24 @@ void UShopCoinPresenter::HideWeaponDescription()
 	}
 }
 	
+void UShopCoinPresenter::UpdateCoinLightColor()
+{
+	if (IsValid(CoinUILight))
+	{
+		if (ULightComponent* Light = CoinUILight->GetLightComponent(); IsValid(Light))
+		{
+			Light->SetLightColor(IsCurrentCoinSideFront ? FrontLightColor : BackLightColor);
+		}
+	}
+}
+
 void UShopCoinPresenter::SetCoinSideFront(bool SetFront)
 {
 	if(IsCurrentCoinSideFront == SetFront)
 		return;
 
 	IsCurrentCoinSideFront = SetFront;
+	UpdateCoinLightColor();
 	if (IsValid(ShopCoinUIActor))
 	{
 		ShopCoinUIActor->SwapMeshPositions();

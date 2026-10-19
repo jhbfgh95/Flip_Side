@@ -30,7 +30,7 @@ struct FShopCoinSlotData
     FCoinTypeStructure CoinData;
 };
 
-// WarningNum == 0 같은 무기 앞뒤 / == 1 같은 코인이 슬롯에 존재 / == 2 슬롯 잠김 / ==3 양면에 무기 없음 / == 4 전체 개수 꽉참 / == 5 슬롯 개수 꽉참
+// WarningNum: 0 양면 동일 무기 / 1 중복 코인 / 2 양면 무기 미장착 / 3 코인 30개 초과 / 4 슬롯 10개 초과
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWarningCreate, int32, WarningNum);
 
 class UDataManagerSubsystem;
@@ -78,6 +78,9 @@ public:
 	void DecreaseCoinSlotCoin(int32 SlotIndex, int32 Amount);
 
 	void ResetCoinSlot(int32 SlotIndex);
+
+	// 현재 면의 무기를 제거합니다. 코인은 환불하고 반대 면과 슬롯은 유지합니다.
+	bool RemoveCoinSlotWeapon(int32 SlotIndex, bool bFrontSide);
 
 /*Get*/
 	FCoinTypeStructure GetCoinSlotCoinType(int32 SlotIndex);

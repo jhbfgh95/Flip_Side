@@ -2,25 +2,17 @@
 
 
 #include "UI/ShopCoinManage/W_ShopCoinWarning.h"
-#include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
+#include "Engine/World.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 void UW_ShopCoinWarning::NativeConstruct()
 {
     Super::NativeConstruct();
-    CoinSubsystem = GetWorld()->GetSubsystem<UShopCoinWSubsystem>();
-    CoinSubsystem->OnWarningCreate.AddDynamic(this,&UW_ShopCoinWarning::SetWarning);
-    
 }
 
-void UW_ShopCoinWarning::NativeDestruct()
-{
-    CoinSubsystem->OnWarningCreate.RemoveAll(this);
-    Super::NativeDestruct();
-}
 	
 
 void UW_ShopCoinWarning::SetWarning(int32 WarningCode)
 {
-    /*
     FString text;
 
     switch (WarningCode)
@@ -30,26 +22,32 @@ void UW_ShopCoinWarning::SetWarning(int32 WarningCode)
         break;
 
     case 1:
-        text = TEXT("이미 같은 동전이 존재합니다.");
+        text = TEXT("이미 같은 무기가 장착된 코인이 존재합니다.");
         break;
 
     case 2:
-        text = "슬롯이 잠겨있습니다.";
-        break;
-        
-    case 3:
         text = TEXT("양면에 무기가 장착되어 있지 않습니다.");
         break;
-    case 4:
+
+    case 3:
         text = TEXT("최대 30개의 코인만 보유할 수 있습니다.");
         break;
-    case 5:
+
+    case 4:
         text = TEXT("최대 10개의 코인슬롯만 보유할 수 있습니다.");
         break;
     
     
     default:
-        break;
+        return;
     }
-    ActiveWarning(text);*/
+    ActiveWarning(text, false);
+
+    if (UWorld* World = GetWorld())
+    {
+        if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+        {
+            SoundManager->PlayWarningSound();
+        }
+    }
 }
