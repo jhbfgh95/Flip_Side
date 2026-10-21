@@ -871,7 +871,8 @@ bool UDataManagerSubsystem::LoadCards()
     const TCHAR* Sql =
         TEXT("SELECT CardID, icon_path, CardName, Card_Description,")
         TEXT("       trigger_count, attack_add, behavior_add, range_add, extra_actions, b_lifesteal,")
-        TEXT("       IFNULL(price, 0), count_add, ability_range_add, trigger_range, required_weapon_id ")
+        TEXT("       IFNULL(price, 0), count_add, ability_range_add, trigger_range, required_weapon_id, ")
+        TEXT("       condition_requires_field_coins ")
         TEXT("FROM Card;");
 
     FSQLitePreparedStatement Stmt;
@@ -900,6 +901,7 @@ bool UDataManagerSubsystem::LoadCards()
         Card.AbilityRangeAdd  = GetColInt(Stmt, 12);
         Card.TriggerRange     = GetColInt(Stmt, 13);
         Card.RequiredWeaponID = GetColInt(Stmt, 14);
+        Card.bConditionRequiresFieldCoins = GetColInt(Stmt, 15) != 0;
 
         if (!IconPath.IsEmpty())
         {

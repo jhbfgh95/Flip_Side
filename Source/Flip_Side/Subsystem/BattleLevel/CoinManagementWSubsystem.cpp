@@ -281,7 +281,8 @@ bool UCoinManagementWSubsystem::BuildTutorialCoinStates(TArray<FRandomState>& Ou
 	const int32 Slots[] = {PipeSlots[0], PipeSlots[1], OtherSlots[0], OtherSlots[1]};
 	for (int32 Index = 0; Index < 4; ++Index)
 	{
-		OutStates[Slots[Index]].RandomFace = Index == 3 ? EFaceState::Back : EFaceState::Front;
+		// 프로모션 칸은 뒷면으로 시작하고 위상변화 물약으로 앞면이 되면 카드가 활성화됩니다.
+		OutStates[Slots[Index]].RandomFace = Index == 0 || Index == 3 ? EFaceState::Back : EFaceState::Front;
 		OutStates[Slots[Index]].RandomGrid = Cells[Index];
 		ReadyCoins[Slots[Index]].bCanCancel = false;
 	}

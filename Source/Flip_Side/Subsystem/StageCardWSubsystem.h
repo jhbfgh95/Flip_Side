@@ -55,7 +55,7 @@ public:
     // BattleManager가 코인 생성/면/좌표 확정 후 턴당 한 번 호출합니다.
     void BeginCardTurn();
     void SetTutorialPromotionCell(const FGridPoint& Cell) { TutorialPromotionCell = Cell; }
-    void StopCardEvaluation() { bTurnInitialized = false; }
+    void StopCardEvaluation() { bTurnInitialized = false; bEvaluationStopped = true; }
     // Tick 및 클릭 직전 동기화. 추가 클릭 지급이나 무작위 칸 선정은 반복하지 않습니다.
     void ExecuteCardsEffect();
     void ClearPromotionHighlight();
@@ -72,6 +72,7 @@ private:
     UPROPERTY() TArray<bool> bHasCard;
     FStageCardRuntimeState Runtime[HandCount];
     bool bTurnInitialized = false;
+    bool bEvaluationStopped = false;
     int32 BattleEntryGold = 0;
     bool bRefreshingEffects = false;
 

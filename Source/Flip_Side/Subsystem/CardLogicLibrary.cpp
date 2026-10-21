@@ -6,6 +6,14 @@
 #include "DataTypes/WeaponDataTypes.h"
 #include "Subsystem/DataManagerSubsystem.h"
 
+const FCardGoldTierData* FCardLogicLibrary::FindGoldTier(const FCardData& Card, int32 BattleEntryGold)
+{
+    const FCardGoldTierData* Best = nullptr;
+    for (const FCardGoldTierData& Tier : Card.GoldTiers)
+        if (BattleEntryGold >= Tier.MinimumGold && (!Best || Tier.MinimumGold > Best->MinimumGold)) Best = &Tier;
+    return Best;
+}
+
 bool FCardLogicLibrary::Evaluate(
     const FCardData& Card,
     const TArray<FCoinOnGridInfo>& FieldCoins,
@@ -22,7 +30,7 @@ bool FCardLogicLibrary::Evaluate(
         if (IsValid(Info.CoinActor) && IsValid(Info.CoinActor->StatComponent) && !Info.CoinActor->StatComponent->IsDead())
             Coins.AddUnique(Info.CoinActor);
     }
-    if (Coins.IsEmpty()) return false;
+    if (Card.bConditionRequiresFieldCoins && Coins.IsEmpty()) return false;
 
     FCoinCardModifiers Base;
     Base.AttackAdd = Card.AttackAdd;
@@ -70,12 +78,11 @@ bool FCardLogicLibrary::Evaluate(
         break;
     case 4:
     {
-        const FCardGoldTierData* Best = nullptr;
-        for (const FCardGoldTierData& Tier : Card.GoldTiers)
-            if (BattleEntryGold >= Tier.MinimumGold && (!Best || Tier.MinimumGold > Best->MinimumGold)) Best = &Tier;
+        const FCardGoldTierData* Best = FindGoldTier(Card, BattleEntryGold);
         if (!Best) return false;
         for (ACoinActor* Coin : Coins) OutModifiers.Add(Coin, Best->Modifiers);
-        break;
+        // 골드 조건은 코인 없이도 충족됩니다. 실제 보정 대상은 코인 생성 후 채웁니다.
+        return true;
     }
     case 5:
         if (Coins.Num() != Card.TriggerCount) return false;

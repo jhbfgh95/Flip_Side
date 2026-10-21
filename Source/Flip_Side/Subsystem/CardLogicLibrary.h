@@ -11,6 +11,8 @@ class UDataManagerSubsystem;
 class FLIP_SIDE_API FCardLogicLibrary
 {
 public:
+    static const FCardGoldTierData* FindGoldTier(const FCardData& Card, int32 BattleEntryGold);
+
     static bool Evaluate(
         const FCardData& Card,
         const TArray<FCoinOnGridInfo>& FieldCoins,

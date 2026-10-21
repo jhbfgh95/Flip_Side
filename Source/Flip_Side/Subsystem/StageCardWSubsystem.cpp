@@ -258,7 +258,7 @@ bool UStageCardWSubsystem::ChangeHandCard(int32 CardID, int32 CardSlot)
 
     if (bTurnInitialized)
     {
-        if (CardID == 1 || CardID == 4)
+        if (CardID == 1)
         {
             TArray<FCoinOnGridInfo> FieldCoins;
             CollectCoinsOnField(FieldCoins);
@@ -267,9 +267,8 @@ bool UStageCardWSubsystem::ChangeHandCard(int32 CardID, int32 CardSlot)
             const bool bActive = FCardLogicLibrary::Evaluate(Card, FieldCoins, SourceSlots,
                 BattleEntryGold, PromotionHighlightedGrid, DM, Runtime[CardSlot].EntryModifiers);
             SetCardActive(CardSlot, bActive);
-            if (CardID == 1)
-                for (const auto& Pair : Runtime[CardSlot].EntryModifiers)
-                    if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin)) Coin->GrantAdditionalActions(Pair.Value.ExtraActions);
+            for (const auto& Pair : Runtime[CardSlot].EntryModifiers)
+                if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin)) Coin->GrantAdditionalActions(Pair.Value.ExtraActions);
         }
         const int32 CoinAreaHeight = IsValid(GridSubsys) ? GridSubsys->GetBossAreaStartY() : 0;
         if (CardID == 3 && PromotionHighlightedGrid.GridX < 0 && IsValid(GridSubsys) &&
@@ -335,13 +334,10 @@ void UStageCardWSubsystem::GetBattleCardSlots(TArray<FBattleCardSlotViewData>& O
         SlotView.bIsActive = Runtime[SlotIndex].bActive;
         if (SlotView.bOccupied && SlotView.CardData.CardID == 4 && SlotView.bIsActive)
         {
-            for (const auto& Pair : Runtime[SlotIndex].Applied)
+            if (const FCardGoldTierData* Tier = FCardLogicLibrary::FindGoldTier(SlotView.CardData, BattleEntryGold))
             {
-                const ACoinActor* Coin = Pair.Key.Get();
-                if (!IsValid(Coin) || !IsValid(Coin->StatComponent) || Coin->StatComponent->IsDead()) continue;
-                SlotView.AppliedModifiers = Pair.Value;
+                SlotView.AppliedModifiers = Tier->Modifiers;
                 SlotView.bHasAppliedModifiers = true;
-                break;
             }
         }
     }
@@ -444,7 +440,7 @@ void UStageCardWSubsystem::BuildSourceSlots(TMap<int32, int32>& OutSlots) const
 
 void UStageCardWSubsystem::BeginCardTurn()
 {
-    if (bTurnInitialized) return;
+    if (bTurnInitialized || bEvaluationStopped) return;
     ClearAllModifiers();
     ClearPromotionHighlight();
     bTurnInitialized = true;
@@ -459,14 +455,13 @@ void UStageCardWSubsystem::BeginCardTurn()
         const FCardData& Card = HandCards[Slot];
         Runtime[Slot].CardID = Card.CardID;
         bHasPromotion |= Card.CardID == 3;
-        if (Card.CardID == 1 || Card.CardID == 4)
+        if (Card.CardID == 1)
         {
             const bool bActive = FCardLogicLibrary::Evaluate(Card, FieldCoins, SourceSlots,
                 BattleEntryGold, PromotionHighlightedGrid, DM, Runtime[Slot].EntryModifiers);
             SetCardActive(Slot, bActive);
-            if (Card.CardID == 1)
-                for (const auto& Pair : Runtime[Slot].EntryModifiers)
-                    if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin)) Coin->GrantAdditionalActions(Pair.Value.ExtraActions);
+            for (const auto& Pair : Runtime[Slot].EntryModifiers)
+                if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin)) Coin->GrantAdditionalActions(Pair.Value.ExtraActions);
         }
     }
     const int32 CoinAreaHeight = IsValid(GridSubsys) ? GridSubsys->GetBossAreaStartY() : 0;
@@ -497,16 +492,20 @@ TStatId UStageCardWSubsystem::GetStatId() const
 
 void UStageCardWSubsystem::ExecuteCardsEffect()
 {
-    if (!bTurnInitialized || bRefreshingEffects || !IsValid(GetWorld())) return;
+    if (bEvaluationStopped || bRefreshingEffects || !IsValid(GetWorld())) return;
     const UBattleManagerWSubsystem* Battle = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
     if (!IsValid(Battle)) return;
     const EPhaseState Phase = Battle->GetCurrentPhase();
-    if (Phase != EPhaseState::CoinBehaviorPhase && Phase != EPhaseState::BossPhase) return;
+    if (Phase != EPhaseState::CoinReadyPhase && Phase != EPhaseState::CoinBehaviorPhase && Phase != EPhaseState::BossPhase) return;
+    if (Phase != EPhaseState::CoinReadyPhase && !bTurnInitialized) return;
     TGuardValue<bool> Guard(bRefreshingEffects, true);
     TArray<FCoinOnGridInfo> FieldCoins;
-    CollectCoinsOnField(FieldCoins);
     TMap<int32, int32> SourceSlots;
-    BuildSourceSlots(SourceSlots);
+    if (bTurnInitialized)
+    {
+        CollectCoinsOnField(FieldCoins);
+        BuildSourceSlots(SourceSlots);
+    }
     for (int32 Slot = 0; Slot < HandCount; ++Slot)
     {
         if (!bHasCard[Slot])
@@ -516,7 +515,13 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
             continue;
         }
         const FCardData& Card = HandCards[Slot];
-        if (Card.CardID == 1 || Card.CardID == 4)
+        if (!bTurnInitialized && Card.bConditionRequiresFieldCoins)
+        {
+            SyncCardModifiers(Slot, {});
+            SetCardActive(Slot, false);
+            continue;
+        }
+        if (Card.CardID == 1 && bTurnInitialized)
         {
             // 진입 시 판정과 대상은 고정합니다. 사망한 액터는 Sync에서 제외합니다.
             SyncCardModifiers(Slot, Runtime[Slot].EntryModifiers);

@@ -79,6 +79,10 @@ struct FCardData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 RequiredWeaponID = INDEX_NONE;
 
+    // false이면 필드 코인 생성 전인 ReadyPhase에서도 활성 조건을 판정합니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    bool bConditionRequiresFieldCoins = true;
+
     UPROPERTY(BlueprintReadOnly)
     TArray<FCardGoldTierData> GoldTiers;
 
@@ -111,7 +115,7 @@ struct FBattleCardSlotViewData
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     bool bIsActive = false;
 
-    // 더 많은 황금이 실제 코인에 적용한 증가량입니다. 다른 카드의 효과와 합산하지 않습니다.
+    // 더 많은 황금의 현재 골드 구간 증가량입니다. 코인 생성 전에도 표시하며 다른 카드와 합산하지 않습니다.
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     FCoinCardModifiers AppliedModifiers;
 
