@@ -6,6 +6,8 @@
 #include "Components/TextBlock.h"
 #include "Components/Widget.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Player/BattlePlayerController_FlipSide.h"
+#include "UI/BattlePlayerHUDWidget.h"
 
 namespace
 {
@@ -45,6 +47,7 @@ void UBattleBuffIconWidget::SetBuffData(const FBattleStatusEffectViewData& InDat
 		ClearBuffData();
 		return;
 	}
+	CurrentData = InData;
 
 	// 컨트롤러가 전달한 DB 아이콘만 사용하며, 누락 시 아래 이름 표시로 대체합니다.
 	UTexture2D* Icon = InData.Icon;
@@ -131,11 +134,15 @@ void UBattleBuffIconWidget::SetBuffData(const FBattleStatusEffectViewData& InDat
 			bShowStack ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 
-	SetVisibility(ESlateVisibility::HitTestInvisible);
+	SetVisibility(ESlateVisibility::Visible);
+	if (IsHovered())
+		if (UBattlePlayerHUDWidget* HUD = GetBattleHUD()) HUD->ShowBuffsInfo(CurrentData, this);
 }
 
 void UBattleBuffIconWidget::ClearBuffData()
 {
+	if (UBattlePlayerHUDWidget* HUD = GetBattleHUD()) HUD->HideBuffsInfo(this);
+	CurrentData = FBattleStatusEffectViewData();
 	if (IsValid(SourceImage))
 	{
 		// Brush를 비우면 WBP 머테리얼까지 사라지므로 파라미터만 초기화합니다.
@@ -152,6 +159,32 @@ void UBattleBuffIconWidget::ClearBuffData()
 		StackCountContainer->SetVisibility(ESlateVisibility::Collapsed);
 	}
 	SetVisibility(ESlateVisibility::Collapsed);
+}
+
+UBattlePlayerHUDWidget* UBattleBuffIconWidget::GetBattleHUD() const
+{
+	const ABattlePlayerController_FlipSide* Controller = Cast<ABattlePlayerController_FlipSide>(GetOwningPlayer());
+	UBattlePlayerHUDWidget* HUD = IsValid(Controller) ? Controller->GetBattleHUDWidget() : nullptr;
+	return IsValid(HUD) ? HUD : nullptr;
+}
+
+void UBattleBuffIconWidget::NativeDestruct()
+{
+	if (UBattlePlayerHUDWidget* HUD = GetBattleHUD()) HUD->HideBuffsInfo(this);
+	Super::NativeDestruct();
+}
+
+void UBattleBuffIconWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
+	if (CurrentData.BuffTypeID != INDEX_NONE)
+		if (UBattlePlayerHUDWidget* HUD = GetBattleHUD()) HUD->ShowBuffsInfo(CurrentData, this);
+}
+
+void UBattleBuffIconWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseLeave(InMouseEvent);
+	if (UBattlePlayerHUDWidget* HUD = GetBattleHUD()) HUD->HideBuffsInfo(this);
 }
 
 bool UBattleBuffIconWidget::ResolveSourceStyle(

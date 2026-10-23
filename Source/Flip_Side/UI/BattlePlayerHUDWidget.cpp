@@ -3,8 +3,11 @@
 
 #include "UI/BattlePlayerHUDWidget.h"
 #include "UI/BattleCoinInfoWidget.h"
+#include "UI/BattleBuffIconWidget.h"
+#include "UI/BuffsInfoPopup.h"
 
 #include "Components/CanvasPanelSlot.h"
+#include "Components/OverlaySlot.h"
 #include "Components/PanelWidget.h"
 #include "UI/BattleCoinSlotWidget.h"
 #include "UI/BattleCardSlotWidget.h"
@@ -74,6 +77,7 @@ void UBattlePlayerHUDWidget::NativeConstruct()
 
 void UBattlePlayerHUDWidget::NativeDestruct()
 {
+	HideBuffsInfo();
 	HandleBossPatternUnhovered();
 	if (IsValid(BossPatternWidget))
 	{
@@ -426,7 +430,60 @@ void UBattlePlayerHUDWidget::ShowBattleCoinInfo(
 
 void UBattlePlayerHUDWidget::HideBattleCoinInfo()
 {
+	HideBuffsInfo();
 	if (IsValid(BattleReadyCoinWidget)) BattleReadyCoinWidget->ClearBattleCoinInfo();
+}
+
+void UBattlePlayerHUDWidget::ShowBuffsInfo(const FBattleStatusEffectViewData& InData, UBattleBuffIconWidget* SourceIcon)
+{
+	if (!IsVisible() || !IsValid(PopupLayer) || !IsValid(SourceIcon) || InData.BuffTypeID == INDEX_NONE) return;
+	if (!IsValid(BuffsInfoPopup))
+	{
+		TSubclassOf<UBuffsInfoPopup> PopupClass = BuffsInfoPopupClass;
+		if (!PopupClass) PopupClass = UBuffsInfoPopup::StaticClass();
+		if (PopupClass->HasAnyClassFlags(CLASS_Abstract)) return;
+		BuffsInfoPopup = CreateWidget<UBuffsInfoPopup>(this, PopupClass);
+		if (IsValid(BuffsInfoPopup)) PopupLayer->AddChild(BuffsInfoPopup);
+	}
+	if (!IsValid(BuffsInfoPopup)) return;
+	HoveredBuffIcon = SourceIcon;
+	BuffsInfoPopup->SetBuffInfo(InData);
+	if (IsValid(BuffsInfoPopupAnchor) && Cast<UCanvasPanelSlot>(BuffsInfoPopup->Slot) && Cast<UCanvasPanelSlot>(BuffsInfoPopupAnchor->Slot))
+	{
+		ApplyPopupAnchorLayout(BuffsInfoPopup, BuffsInfoPopupAnchor);
+		return;
+	}
+	// 기존 HUD BP에 앵커가 없어도 아이콘 옆에 표시합니다. Canvas/Overlay 모두 지원합니다.
+	BuffsInfoPopup->ForceLayoutPrepass();
+	const FGeometry& LayerGeometry = PopupLayer->GetCachedGeometry();
+	const FVector2D PopupSize = BuffsInfoPopup->GetDesiredSize();
+	const UWidget* Anchor = IsValid(BuffsInfoPopupAnchor) ? BuffsInfoPopupAnchor.Get() : SourceIcon;
+	FVector2D Position = LayerGeometry.AbsoluteToLocal(Anchor->GetCachedGeometry().LocalToAbsolute(FVector2D::ZeroVector));
+	if (Anchor == SourceIcon) Position.X -= PopupSize.X + 12.f;
+	const FVector2D LayerSize = LayerGeometry.GetLocalSize();
+	Position.X = FMath::Clamp(Position.X, 0.0, FMath::Max(0.0, LayerSize.X - PopupSize.X));
+	Position.Y = FMath::Clamp(Position.Y, 0.0, FMath::Max(0.0, LayerSize.Y - PopupSize.Y));
+	if (UCanvasPanelSlot* PopupCanvasSlot = Cast<UCanvasPanelSlot>(BuffsInfoPopup->Slot))
+	{
+		PopupCanvasSlot->SetAnchors(FAnchors(0.f, 0.f));
+		PopupCanvasSlot->SetAlignment(FVector2D::ZeroVector);
+		PopupCanvasSlot->SetAutoSize(true);
+		PopupCanvasSlot->SetPosition(Position);
+		PopupCanvasSlot->SetZOrder(100);
+	}
+	else if (UOverlaySlot* PopupOverlaySlot = Cast<UOverlaySlot>(BuffsInfoPopup->Slot))
+	{
+		PopupOverlaySlot->SetHorizontalAlignment(HAlign_Left);
+		PopupOverlaySlot->SetVerticalAlignment(VAlign_Top);
+		PopupOverlaySlot->SetPadding(FMargin(Position.X, Position.Y, 0.f, 0.f));
+	}
+}
+
+void UBattlePlayerHUDWidget::HideBuffsInfo(const UBattleBuffIconWidget* SourceIcon)
+{
+	if (SourceIcon && HoveredBuffIcon.Get() != SourceIcon) return;
+	HoveredBuffIcon.Reset();
+	if (IsValid(BuffsInfoPopup)) BuffsInfoPopup->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UBattlePlayerHUDWidget::HandleBattleInfoSelectionReset()

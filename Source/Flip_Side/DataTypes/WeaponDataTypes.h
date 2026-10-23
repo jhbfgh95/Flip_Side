@@ -211,6 +211,10 @@ struct FFaceData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString ENG_DES;
 
+    // coin_weapon_def.BuffInfo. 수치는 부여된 상태효과 한 번의 값으로 치환합니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FString BuffInfo;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UNiagaraSystem* WeaponVFX = nullptr;
 

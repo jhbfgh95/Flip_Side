@@ -15,11 +15,14 @@ class FLIP_SIDE_API UBattleBuffIconWidget : public UUserWidget
 
 public:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	void SetBuffData(const FBattleStatusEffectViewData& InData);
 	void ClearBuffData();
 
 protected:
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	// 출처와 무관하게 버프/디버프 구분만으로 아이콘 색을 선택합니다.
 	UPROPERTY(EditDefaultsOnly, Category = "Battle Buff Icon|Color")
 	FLinearColor BuffIconColor = FLinearColor::White;
@@ -73,6 +76,9 @@ protected:
 	FLinearColor BossSourceColor = FLinearColor::White;
 
 private:
+	class UBattlePlayerHUDWidget* GetBattleHUD() const;
+	UPROPERTY(Transient)
+	FBattleStatusEffectViewData CurrentData;
 	bool ResolveSourceStyle(
 		EStatusEffectSourceType SourceType,
 		class UTexture2D*& OutBorderTexture,

@@ -48,6 +48,9 @@ struct FItemData
     FString Item_DES;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FString BuffInfo;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UTexture2D* ItemIcon=nullptr;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly)

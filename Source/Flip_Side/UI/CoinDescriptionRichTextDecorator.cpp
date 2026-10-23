@@ -2,9 +2,14 @@
 #include "UI/CoinDescriptionSectionWidget.h"
 #include "UI/CardGoldTierTableWidget.h"
 #include "UI/CardGoldAppliedInfoWidget.h"
+#include "UI/BuffsInfoPopup.h"
 #include "Components/RichTextBlock.h"
 #include "Engine/GameInstance.h"
 #include "Engine/Texture2D.h"
+#include "Fonts/FontMeasure.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Framework/Text/SlateTextRun.h"
+#include "Framework/Text/SlateWidgetRun.h"
 #include "Misc/Base64.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Widgets/Images/SImage.h"
@@ -14,6 +19,52 @@
 
 namespace CoinDescriptionRichTextPrivate
 {
+	// FRichTextDecorator의 기본 기준선은 삽입 위젯과 글자의 높이가 같다고 가정합니다.
+	// 버프 설명은 더 큰 아이콘을 포함하므로 내부 글자가 본문과 같은 기준선에 놓이도록 보정합니다.
+	class FBuffStatDecorator : public ITextDecorator
+	{
+	public:
+		FBuffStatDecorator(URichTextBlock* InOwner, UBuffsInfoPopup* InPopup) : Owner(InOwner), Popup(InPopup) {}
+		virtual bool Supports(const FTextRunParseResults& Run, const FString& Text) const override
+		{
+			return Run.Name == TEXT("coin") && Run.MetaData.Contains(TEXT("key"));
+		}
+		virtual TSharedRef<ISlateRun> Create(const TSharedRef<FTextLayout>& TextLayout,
+			const FTextRunParseResults& ParsedRun, const FString& OriginalText,
+			const TSharedRef<FString>& ModelText, const ISlateStyle* Style) override
+		{
+			const int32 BeginIndex = ModelText->Len();
+			FTextRunInfo RunInfo(ParsedRun.Name, FText::FromString(OriginalText.Mid(
+				ParsedRun.ContentRange.BeginIndex, ParsedRun.ContentRange.EndIndex - ParsedRun.ContentRange.BeginIndex)));
+			for (const TPair<FString, FTextRange>& Pair : ParsedRun.MetaData)
+				RunInfo.MetaData.Add(Pair.Key, OriginalText.Mid(Pair.Value.BeginIndex, Pair.Value.EndIndex - Pair.Value.BeginIndex));
+			const FTextBlockStyle TextStyle = Owner.IsValid() ? Owner->GetCurrentDefaultTextStyle() : FTextBlockStyle();
+			const TSharedPtr<SWidget> Display = Popup.IsValid() ? Popup->CreateStatDisplay(RunInfo, TextStyle) : nullptr;
+			if (!Display.IsValid())
+			{
+				*ModelText += RunInfo.Content.ToString();
+				return FSlateTextRun::Create(RunInfo, ModelText, TextStyle, FTextRange(BeginIndex, ModelText->Len()));
+			}
+			*ModelText += TEXT('\u200B');
+			const FSlateFontInfo Font = TextStyle.Font;
+			const FVector2D ShadowOffset = TextStyle.ShadowOffset;
+			const TAttribute<int16> Baseline = TAttribute<int16>::CreateLambda([Display, Font, ShadowOffset]()
+			{
+				const TSharedRef<FSlateFontMeasure> Measure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+				const float TextHeight = Measure->GetMaxCharacterHeight(Font, 1.f) +
+					FMath::Abs(ShadowOffset.Y) + Font.OutlineSettings.OutlineSize;
+				const float CenterOffset = FMath::Max(0.f, static_cast<float>(Display->GetDesiredSize().Y) - TextHeight) * 0.5f;
+				return static_cast<int16>(FMath::RoundToInt(Measure->GetBaseline(Font) -
+					FMath::Min(0.0, ShadowOffset.Y) - Font.OutlineSettings.OutlineSize - CenterOffset));
+			});
+			return FSlateWidgetRun::Create(TextLayout, RunInfo, ModelText,
+				FSlateWidgetRun::FWidgetRunInfo(Display.ToSharedRef(), Baseline), FTextRange(BeginIndex, ModelText->Len()));
+		}
+	private:
+		TWeakObjectPtr<URichTextBlock> Owner;
+		TWeakObjectPtr<UBuffsInfoPopup> Popup;
+	};
+
 	class FInlineDecorator : public FRichTextDecorator
 	{
 	public:
@@ -48,6 +99,8 @@ namespace CoinDescriptionRichTextPrivate
 }
 TSharedPtr<ITextDecorator> UCoinDescriptionRichTextDecorator::CreateDecorator(URichTextBlock* InOwner)
 {
+	if (UBuffsInfoPopup* Popup = InOwner ? InOwner->GetTypedOuter<UBuffsInfoPopup>() : nullptr)
+		return MakeShared<CoinDescriptionRichTextPrivate::FBuffStatDecorator>(InOwner, Popup);
 	return MakeShared<CoinDescriptionRichTextPrivate::FInlineDecorator>(InOwner);
 }
 

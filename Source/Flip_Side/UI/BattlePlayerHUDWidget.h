@@ -72,6 +72,8 @@ public:
 	void PlayBossPhaseCompletionAnimation();
 	void ShowBattleCoinInfo(const FBattleCoinInfoViewData& InData);
 	void HideBattleCoinInfo();
+	void ShowBuffsInfo(const FBattleStatusEffectViewData& InData, class UBattleBuffIconWidget* SourceIcon);
+	void HideBuffsInfo(const class UBattleBuffIconWidget* SourceIcon = nullptr);
 	FSimpleMulticastDelegate OnBattleInfoSelectionReset;
 	FSimpleMulticastDelegate OnReadySlotHighlightClearRequested;
 
@@ -87,6 +89,10 @@ public:
 	FOnBattleHUDPhaseProgressClicked OnPhaseProgressClicked;
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Buff Info")
+	TSubclassOf<class UBuffsInfoPopup> BuffsInfoPopupClass;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UWidget> BuffsInfoPopupAnchor;
 	UPROPERTY(EditDefaultsOnly, Category = "Battle HUD|Boss Pattern")
 	TSubclassOf<class UBossPatternPopupWidget> BossPatternPopupWidgetClass;
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -152,6 +158,9 @@ protected:
 	TSubclassOf<class UW_CardWidget> CardInfoWidgetClass;
 
 private:
+	UPROPERTY(Transient)
+	TObjectPtr<class UBuffsInfoPopup> BuffsInfoPopup;
+	TWeakObjectPtr<class UBattleBuffIconWidget> HoveredBuffIcon;
 	bool bTutorialInfoPinned = false;
 	bool bShowingReadySlotInfo = false;
 	void HandleBossPatternHovered();

@@ -845,6 +845,8 @@ void UComponent_Status::ApplyDamageInternal(int32 Damage, AActor* DamageCauser, 
 			// 현재 BossPhase 종료와 다음 턴 종료를 통과한 뒤 제거됩니다.
 			AttackBuff.RemainingTurns = 2;
 			AttackBuff.Modifier.AttackPoint = NextTurnAttack;
+			// 같은 무기의 BuffInfo에서 최초 피해 감소량도 표시합니다. 반응 동작은 부여하지 않습니다.
+			AttackBuff.ReactiveMagnitude = ArmorEffect.ReactiveMagnitude;
 			AddStatusEffect(AttackBuff);
 		}
 	}

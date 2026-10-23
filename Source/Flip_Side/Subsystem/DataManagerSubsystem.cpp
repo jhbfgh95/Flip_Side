@@ -265,7 +265,8 @@ bool UDataManagerSubsystem::LoadWeapons()
             IFNULL(b.param_a,      1) AS ability_param_a,
             IFNULL(b.param_b,      1) AS ability_param_b,
             IFNULL(b.side,         0) AS ability_side,
-            IFNULL(b.flags,        0) AS ability_flags
+            IFNULL(b.flags,        0) AS ability_flags,
+            IFNULL(c.BuffInfo, '')
 
         FROM coin_weapon_def AS c
         JOIN weapon_type AS w
@@ -382,6 +383,7 @@ bool UDataManagerSubsystem::LoadWeapons()
             Data.AbilityAreaSpec.Flags = AbilityFlags;
         }
 
+        Data.BuffInfo = GetColTextUTF8(Stmt, Col++);
         WeaponByID.Add(Data.WeaponID, Data);
         WeaponByTypeID.FindOrAdd(Data.TypeID).Add(Data);
         WeaponIDsByClass.FindOrAdd(Data.WeaponType).WeaponIDs.Add(Data.WeaponID);
@@ -780,7 +782,7 @@ static EItemVFXTarget ItemVFXTargetFromString(const FString& S)
 bool UDataManagerSubsystem::LoadItems()
 {
     const TCHAR* Sql =
-        TEXT("SELECT i.item_id, i.item_range, i.item_effect_value, i.icon_path, i.item_description AS item_des, i.item_type_id, i.behavior, t.item_type_color, i.item_name, IFNULL(i.price, 0), i.vfx_path, i.VFXTarget, i.sfx_path FROM item i JOIN item_type t ON i.item_type_id = t.item_type_id;");
+        TEXT("SELECT i.item_id, i.item_range, i.item_effect_value, i.icon_path, i.item_description AS item_des, i.item_type_id, i.behavior, t.item_type_color, i.item_name, IFNULL(i.price, 0), i.vfx_path, i.VFXTarget, i.sfx_path, IFNULL(i.BuffInfo, '') FROM item i JOIN item_type t ON i.item_type_id = t.item_type_id;");
 
     FSQLitePreparedStatement Stmt;
     if (!PrepareStmt(Db, Sql, Stmt))
@@ -812,6 +814,7 @@ bool UDataManagerSubsystem::LoadItems()
             Item.TypeColor = FLinearColor::White;
         }
         Item.ItemName = GetColTextUTF8(Stmt, 8);
+        Item.BuffInfo = GetColTextUTF8(Stmt, 13);
         Item.Price = GetColInt(Stmt, 9);
 
         const FString VfxPath = GetColText(Stmt, 10);

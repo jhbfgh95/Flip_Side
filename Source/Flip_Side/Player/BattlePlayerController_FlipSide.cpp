@@ -31,6 +31,7 @@
 #include "Subsystem/CursorGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "UI/BattlePlayerHUDWidget.h"
+#include "UI/CoinInfoPinHintWidget.h"
 #include "UI/CoinDescriptionFormatter.h"
 #include "WeaponDataTypes.h"
 #include "ItemDataTypes.h"
@@ -82,6 +83,7 @@ void ABattlePlayerController_FlipSide::SetupInputComponent()
 
     InputComponent->BindKey(EKeys::LeftMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnLeftClick);
     InputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnRightClick);
+    InputComponent->BindKey(EKeys::MiddleMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnMiddleClick);
 
     UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
     if (IsValid(EnhancedInputComponent) && IsValid(ShowAdditionalBuffsInputAction))
@@ -117,6 +119,34 @@ void ABattlePlayerController_FlipSide::PlayerTick(float DeltaTime)
 {
     Super::PlayerTick(DeltaTime);
     CheckMouseHover();
+    // UI 위에서도 고정한 코인의 위치/면 변화와 행동 종료를 범위에 반영합니다.
+    if (ACoinActor* PreviewCoin = TutorialRangePreviewCoin.IsValid() ? TutorialRangePreviewCoin.Get() : HoveredBattleCoin.Get(); !bIsUIOnly && IsValid(PreviewCoin))
+    {
+        UWorld* World = GetWorld();
+        UCoinActionManagementWSubsystem* ActionManager = IsValid(World)
+            ? World->GetSubsystem<UCoinActionManagementWSubsystem>() : nullptr;
+        UBossManagerSubsystem* BossManager = IsValid(World)
+            ? World->GetSubsystem<UBossManagerSubsystem>() : nullptr;
+        ABossActor* Boss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
+        if (bBattleCoinInfoPinned && IsValid(ActionManager) && ActionManager->IsActionSequenceActive())
+        {
+            // 행동 중에는 실제 선택 대상의 범위를 우선하고, 종료 후 고정한 범위를 복원합니다.
+            if (RangePreviewCoinCell.GridX >= 0) HideBattleCoinRangePreviews(PreviewCoin, true);
+        }
+        else if (!(RangePreviewCoinCell == PreviewCoin->GetDecidedGrid()) ||
+            RangePreviewCoinFace != PreviewCoin->GetCoinDecidedFace() ||
+            bRangePreviewHasBoss != IsValid(Boss) || RangePreviewBoss.Get() != Boss ||
+            !PreviewCoin->GetCoinOnBattle())
+        {
+            if (bBattleCoinInfoPinned && RangePreviewCoinCell.GridX < 0)
+            {
+                // 행동 종료로 사라진 코인/보스 강조도 고정한 코인의 호버 상태로 복원합니다.
+                IBattleHoverInterface::Execute_OnHover(PreviewCoin);
+            }
+            RefreshBattleCoinRangePreviews();
+        }
+    }
+    UpdateCoinInfoPinHint();
     UpdateTurretRangePreview();
     UpdateActionAbilityRangePreview();
 }
@@ -215,6 +245,11 @@ void ABattlePlayerController_FlipSide::EndPlay(const EEndPlayReason::Type EndPla
 {
     ClearReadySlotHighlight();
     ResetBattleInfoSelection();
+    if (IsValid(CoinInfoPinHintWidget))
+    {
+        CoinInfoPinHintWidget->RemoveFromParent();
+        CoinInfoPinHintWidget = nullptr;
+    }
     if (IsValid(BattleHUDWidget))
     {
         BattleHUDWidget->OnCoinSlotHovered.RemoveAll(this);
@@ -376,18 +411,25 @@ void ABattlePlayerController_FlipSide::OnLeftClick()
 
 void ABattlePlayerController_FlipSide::CheckMouseHover()
 {
+    if (bBattleCoinInfoPinned)
+    {
+        ACoinActor* PinnedCoin = HoveredBattleCoin.Get();
+        if (!IsValid(PinnedCoin) || !PinnedCoin->GetCoinOnBattle() ||
+            !IsValid(PinnedCoin->StatComponent) || PinnedCoin->StatComponent->GetHP() <= 0)
+        {
+            ClearBattleCoinInfoPin();
+        }
+    }
     // 커서가 실제로 움직였을 때만 3D 오브젝트 호버 소리를 냅니다(코인 착지·카메라 이동으로 대상이 바뀐 경우 제외).
     USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>();
     const bool bHoverCursorMoved = SoundManager && SoundManager->PollCursorMoved();
 
     if (bIsUIOnly)
     {
-        if (LastHoveredActor)
+        ClearBattleCoinInfoPin();
+        if (IsValid(LastHoveredActor))
         {
-            if (IBattleHoverInterface* PrevHover = Cast<IBattleHoverInterface>(LastHoveredActor))
-            {
-                PrevHover->Execute_OnUnhover(LastHoveredActor);
-            }
+            NotifyBattleActorHover(LastHoveredActor, false);
             LastHoveredActor = nullptr;
         }
 
@@ -410,10 +452,7 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
     {
         if (IsValid(LastHoveredActor))
         {
-            if (IBattleHoverInterface* PreviousHover = Cast<IBattleHoverInterface>(LastHoveredActor))
-            {
-                PreviousHover->Execute_OnUnhover(LastHoveredActor);
-            }
+            NotifyBattleActorHover(LastHoveredActor, false);
             LastHoveredActor = nullptr;
         }
         EndBattleCoinActorHover();
@@ -442,24 +481,18 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
 		}
     if (LastHoveredActor != CurrentActor)
     {
-        if (LastHoveredActor)
+        if (IsValid(LastHoveredActor))
         {
             if (ACoinActor* PreviousCoin = Cast<ACoinActor>(LastHoveredActor))
             {
                 EndBattleCoinActorHover(PreviousCoin);
             }
-            if (IBattleHoverInterface* PrevHover = Cast<IBattleHoverInterface>(LastHoveredActor))
-            {
-                PrevHover->Execute_OnUnhover(LastHoveredActor);
-            }
+            NotifyBattleActorHover(LastHoveredActor, false);
         }
 
-        if (CurrentActor)
+        if (IsValid(CurrentActor))
         {
-            if (IBattleHoverInterface* NewHover = Cast<IBattleHoverInterface>(CurrentActor))
-            {
-                NewHover->Execute_OnHover(CurrentActor);
-            }
+            NotifyBattleActorHover(CurrentActor, true);
             if (ACoinActor* CurrentCoin = Cast<ACoinActor>(CurrentActor);
                 IsValid(CurrentCoin) && CurrentCoin->GetCoinOnBattle())
             {
@@ -470,7 +503,7 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
             bool bPlayHoverSound = false;
             if (ACoinActor* HoverCoin = Cast<ACoinActor>(CurrentActor))
             {
-                bPlayHoverSound = HoverCoin->GetCoinOnBattle();
+                bPlayHoverSound = !bBattleCoinInfoPinned && HoverCoin->GetCoinOnBattle();
             }
             else if (ATurret_OtherActor* HoverTurret = Cast<ATurret_OtherActor>(CurrentActor))
             {
@@ -483,22 +516,6 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
             }
         }
         LastHoveredActor = CurrentActor;
-    }
-
-    // 스탯 이벤트 없이 코인 위치/면 또는 현재 보스가 변경된 경우에도 표시를 갱신합니다.
-    if (ACoinActor* PreviewCoin = TutorialRangePreviewCoin.IsValid() ? TutorialRangePreviewCoin.Get() : HoveredBattleCoin.Get(); IsValid(PreviewCoin))
-    {
-        UWorld* World = GetWorld();
-        UBossManagerSubsystem* BossManager = IsValid(World)
-            ? World->GetSubsystem<UBossManagerSubsystem>() : nullptr;
-        ABossActor* Boss = IsValid(BossManager) ? BossManager->GetCurrentBoss() : nullptr;
-        if (!(RangePreviewCoinCell == PreviewCoin->GetDecidedGrid()) ||
-            RangePreviewCoinFace != PreviewCoin->GetCoinDecidedFace() ||
-            bRangePreviewHasBoss != IsValid(Boss) || RangePreviewBoss.Get() != Boss ||
-            !PreviewCoin->GetCoinOnBattle())
-        {
-            RefreshBattleCoinRangePreviews();
-        }
     }
 
     // 커서 상태 업데이트 (클릭 애니메이션 중엔 덮어쓰지 않음)
@@ -572,6 +589,78 @@ void ABattlePlayerController_FlipSide::OnRightClick()
     }
 }
 
+ACoinActor* ABattlePlayerController_FlipSide::GetPinnableBattleCoinUnderCursor(int32& OutReadySlot) const
+{
+    OutReadySlot = INDEX_NONE;
+    if (bIsUIOnly || !IsValid(GetWorld()) || !IsValid(GetGameInstance()) || !IsValid(BattleHUDWidget) ||
+        !BattleHUDWidget->IsVisible() || !FSlateApplication::IsInitialized()) return nullptr;
+    const ULevelGISubsystem* Level = GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+    if (IsValid(Level) && Level->IsBattleTutorialActive()) return nullptr;
+    if (BattleHUDWidget->GetCoinPopupPointerRegion(FSlateApplication::Get().GetCursorPos()) != ECoinPopupPointerRegion::World)
+        return nullptr;
+
+    const UBattleManagerWSubsystem* BattleManager = GetWorld()->GetSubsystem<UBattleManagerWSubsystem>();
+    const UCoinManagementWSubsystem* CoinManager = GetWorld()->GetSubsystem<UCoinManagementWSubsystem>();
+    if (!IsValid(BattleManager) || BattleManager->GetCurrentPhase() != EPhaseState::CoinBehaviorPhase ||
+        !IsValid(CoinManager)) return nullptr;
+
+    FHitResult Hit;
+    if (!GetHitResultUnderCursor(ECC_Camera, true, Hit)) return nullptr;
+    ACoinActor* Coin = Cast<ACoinActor>(Hit.GetActor());
+    if (!IsValid(Coin) || !Coin->GetCoinOnBattle() || Coin->GetCoinIsActing() || Coin->IsHidden() ||
+        !IsValid(Coin->StatComponent) || Coin->StatComponent->GetHP() <= 0) return nullptr;
+    const int32 SlotIndex = CoinManager->GetReadyCoinData().IndexOfByPredicate([Coin](const FReadyCoinData& Data)
+    { return Data.CoinInstanceID == Coin->GetCoinID(); });
+    if (SlotIndex == INDEX_NONE || CoinManager->GetRuntimeCoinAtReadySlot(SlotIndex) != Coin) return nullptr;
+    OutReadySlot = SlotIndex;
+    return Coin;
+}
+
+void ABattlePlayerController_FlipSide::OnMiddleClick()
+{
+    if (bIsUIOnly || !IsValid(GetGameInstance()) || !IsValid(BattleHUDWidget) || !FSlateApplication::IsInitialized()) return;
+    const ULevelGISubsystem* Level = GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
+    if (IsValid(Level) && Level->IsBattleTutorialActive()) return;
+    // 정보창 등 UI에서 누른 휠 클릭은 월드의 고정 해제로 처리하지 않습니다.
+    if (BattleHUDWidget->GetCoinPopupPointerRegion(FSlateApplication::Get().GetCursorPos()) != ECoinPopupPointerRegion::World) return;
+
+    int32 ReadySlot = INDEX_NONE;
+    ACoinActor* Coin = GetPinnableBattleCoinUnderCursor(ReadySlot);
+    if (!IsValid(Coin) || (bBattleCoinInfoPinned && SelectedInfoCoinInstanceID == Coin->GetCoinID()))
+    {
+        ClearBattleCoinInfoPin();
+        CheckMouseHover();
+        return;
+    }
+
+    ClearBattleCoinInfoPin();
+    CheckMouseHover();
+    SelectedInfoCoinInstanceID = Coin->GetCoinID();
+    SelectedInfoReadySlot = ReadySlot;
+    SelectedInfoUpperFace = Coin->GetCoinDecidedFace();
+    bInfoUsesStoredFront = false;
+    bBattleCoinInfoPinned = true;
+    ObserveBattleInfoCoin(Coin);
+    RefreshHoveredBattleCoinInfo();
+}
+
+void ABattlePlayerController_FlipSide::UpdateCoinInfoPinHint()
+{
+    int32 ReadySlot = INDEX_NONE;
+    if (!IsValid(GetPinnableBattleCoinUnderCursor(ReadySlot)))
+    {
+        if (IsValid(CoinInfoPinHintWidget)) CoinInfoPinHintWidget->SetVisibility(ESlateVisibility::Collapsed);
+        return;
+    }
+    if (!IsValid(CoinInfoPinHintWidget))
+    {
+        if (!IsValid(CoinInfoPinHintWidgetClass.Get()) || CoinInfoPinHintWidgetClass->HasAnyClassFlags(CLASS_Abstract)) return;
+        CoinInfoPinHintWidget = CreateWidget<UCoinInfoPinHintWidget>(this, CoinInfoPinHintWidgetClass);
+        if (IsValid(CoinInfoPinHintWidget)) CoinInfoPinHintWidget->AddToViewport(1000);
+    }
+    if (IsValid(CoinInfoPinHintWidget)) CoinInfoPinHintWidget->UpdatePositionAtCursor();
+}
+
 void ABattlePlayerController_FlipSide::OnPossess(APawn *InPawn)
 {
     Super::OnPossess(InPawn);
@@ -589,6 +678,7 @@ void ABattlePlayerController_FlipSide::MoveCameraForBossDead()
 void ABattlePlayerController_FlipSide::OnPhaseChanged(EPhaseState NewPhase)
 {
 	RefreshBattlePhaseHUD();
+    if (NewPhase != PreviousPhase) ClearBattleCoinInfoPin();
     ClearReadySlotHighlight();
     // 행동 페이즈에서 보스 페이즈로 넘어갈 때 정보 페이지와 선택을 함께 해제합니다.
     if (NewPhase == EPhaseState::BossPhase &&
@@ -613,6 +703,8 @@ void ABattlePlayerController_FlipSide::SetInputForTutorial(bool bEnable)
 
     if (bEnable)
     {
+        ClearBattleCoinInfoPin();
+        if (IsValid(CoinInfoPinHintWidget)) CoinInfoPinHintWidget->SetVisibility(ESlateVisibility::Collapsed);
         SetInputMode(FInputModeUIOnly());
     }
     else
@@ -851,10 +943,7 @@ void ABattlePlayerController_FlipSide::HandleReadyCoinHovered(int32 CoinInstance
 
     if (IsValid(LastHoveredActor))
     {
-        if (IBattleHoverInterface* PreviousHover = Cast<IBattleHoverInterface>(LastHoveredActor))
-        {
-            PreviousHover->Execute_OnUnhover(LastHoveredActor);
-        }
+        NotifyBattleActorHover(LastHoveredActor, false);
         LastHoveredActor = nullptr;
     }
     EndBattleCoinActorHover();
@@ -907,6 +996,7 @@ void ABattlePlayerController_FlipSide::ClearReadySlotHighlight()
 
 void ABattlePlayerController_FlipSide::ResetBattleInfoSelection()
 {
+    ClearBattleCoinInfoPin();
     // 사망 시 이 ID를 해제하므로 이후 같은 1~10 ID가 재사용되어도 다른 코인을 표시하지 않습니다.
     SelectedInfoCoinInstanceID = INDEX_NONE;
     SelectedInfoReadySlot = INDEX_NONE;
@@ -914,6 +1004,39 @@ void ABattlePlayerController_FlipSide::ResetBattleInfoSelection()
     bInfoUsesStoredFront = false;
     StopObservingBattleInfoCoin();
     if (IsValid(BattleHUDWidget)) BattleHUDWidget->HideBattleCoinInfo();
+}
+
+void ABattlePlayerController_FlipSide::ClearBattleCoinInfoPin()
+{
+    if (!bBattleCoinInfoPinned) return;
+    bBattleCoinInfoPinned = false;
+    ACoinActor* PinnedCoin = HoveredBattleCoin.Get();
+    if (IsValid(PinnedCoin)) NotifyBattleActorHover(PinnedCoin, false);
+    EndBattleCoinActorHover(PinnedCoin);
+    // 고정 중 생략했던 코인 호버를 다음 판정에서 실제 커서 위치로 다시 시작합니다.
+    if (IsValid(LastHoveredActor) && LastHoveredActor->IsA<ACoinActor>()) LastHoveredActor = nullptr;
+}
+
+void ABattlePlayerController_FlipSide::NotifyBattleActorHover(AActor* Actor, bool bHovered)
+{
+    if (!IsValid(Actor)) return;
+    if (ACoinActor* Coin = Cast<ACoinActor>(Actor); IsValid(Coin) && bBattleCoinInfoPinned)
+    {
+        // 호버 연출은 고정하되, 능력의 대상 선택은 실제 포인터 아래 코인을 사용합니다.
+        UCoinActionManagementWSubsystem* ActionManager = IsValid(GetWorld())
+            ? GetWorld()->GetSubsystem<UCoinActionManagementWSubsystem>() : nullptr;
+        if (IsValid(ActionManager) && ActionManager->IsActionSequenceActive())
+        {
+            if (bHovered) ActionManager->SetSelectedWeapon(Coin);
+            else ActionManager->HandleCoinUnHovered();
+        }
+        return;
+    }
+    if (Actor->Implements<UBattleHoverInterface>())
+    {
+        if (bHovered) IBattleHoverInterface::Execute_OnHover(Actor);
+        else IBattleHoverInterface::Execute_OnUnhover(Actor);
+    }
 }
 
 void ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsStarted(
@@ -933,7 +1056,7 @@ void ABattlePlayerController_FlipSide::HandleShowAdditionalBuffsCompleted(
 
 void ABattlePlayerController_FlipSide::BeginBattleCoinActorHover(ACoinActor* CoinActor)
 {
-    if (!IsValid(CoinActor) || !CoinActor->GetCoinOnBattle())
+    if (bBattleCoinInfoPinned || !IsValid(CoinActor) || !CoinActor->GetCoinOnBattle())
     {
         return;
     }
@@ -961,6 +1084,7 @@ void ABattlePlayerController_FlipSide::BeginBattleCoinActorHover(ACoinActor* Coi
 
 void ABattlePlayerController_FlipSide::EndBattleCoinActorHover(ACoinActor* ExpectedCoin)
 {
+    if (bBattleCoinInfoPinned) return;
     ACoinActor* CurrentHoveredCoin = HoveredBattleCoin.Get();
     if (IsValid(ExpectedCoin) && CurrentHoveredCoin != ExpectedCoin)
     {
@@ -1173,7 +1297,7 @@ void ABattlePlayerController_FlipSide::UpdateTurretRangePreview()
 	UWorld* World = GetWorld();
 	UCoinActionManagementWSubsystem* ActionManager = IsValid(World)
 		? World->GetSubsystem<UCoinActionManagementWSubsystem>() : nullptr;
-	ATurret_OtherActor* Turret = !bIsUIOnly && IsValid(LastHoveredActor)
+	ATurret_OtherActor* Turret = !bIsUIOnly && !bBattleCoinInfoPinned && IsValid(LastHoveredActor)
 		? Cast<ATurret_OtherActor>(LastHoveredActor) : nullptr;
 	if (IsValid(ActionManager) && ActionManager->IsActionSequenceActive()) Turret = nullptr;
 	if (IsValid(Turret) && Turret->GetHP() <= 0) Turret = nullptr;
@@ -1209,6 +1333,8 @@ void ABattlePlayerController_FlipSide::HideBattleCoinRangePreviews(ACoinActor* C
 		const auto* Action = IsValid(World) ? World->GetSubsystem<UCoinActionManagementWSubsystem>() : nullptr;
 		if (!IsValid(Action) || !Action->IsActionSequenceActive()) return;
 	}
+	RangePreviewCoinCell = FGridPoint{ -1, -1 };
+	RangePreviewCoinFace = EFaceState::None;
 	if (ATurret_OtherActor* Turret = HoveredRangeTurret.Get(); IsValid(Turret))
 	{
 		Turret->SetAttackRangeBracketVisible(false);
@@ -1268,7 +1394,9 @@ void ABattlePlayerController_FlipSide::UpdateActionAbilityRangePreview()
 		AbilityRangeActor->HideRange();
 		bShowingActionAbilityRange = false;
 		AbilityRangePreviewLocations.Reset();
-		if (bTutorialAbilityRangeOnly && TutorialRangePreviewCoin.IsValid())
+		if (bBattleCoinInfoPinned)
+			RefreshBattleCoinRangePreviews();
+		else if (bTutorialAbilityRangeOnly && TutorialRangePreviewCoin.IsValid())
 			ShowBattleCoinRangePreviews(TutorialRangePreviewCoin.Get());
 	}
 }
@@ -1431,13 +1559,13 @@ void ABattlePlayerController_FlipSide::HandleObservedShieldChanged(int32 DeltaSh
 
 void ABattlePlayerController_FlipSide::HandleObservedCoinDeath(ACoinActor* DeadCoin)
 {
+    if (IsValid(DeadCoin) && DeadCoin->GetCoinID() == SelectedInfoCoinInstanceID) ResetBattleInfoSelection();
 	HideBattleCoinRangePreviews(DeadCoin);
     if (HoveredBattleCoin.Get() == DeadCoin)
     {
         HoveredBattleCoin.Reset();
     }
     if (HighlightedReadySlotCoin.Get() == DeadCoin) ClearReadySlotHighlight();
-    if (IsValid(DeadCoin) && DeadCoin->GetCoinID() == SelectedInfoCoinInstanceID) ResetBattleInfoSelection();
 }
 
 bool ABattlePlayerController_FlipSide::BuildBattleCoinInfoFromActor(
@@ -1565,19 +1693,11 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
         : nullptr;
     const UBattleManagerWSubsystem* BattleManagerForTurn = GetWorld() ? GetWorld()->GetSubsystem<UBattleManagerWSubsystem>() : nullptr;
     const int32 CurrentTurn = IsValid(BattleManagerForTurn) ? BattleManagerForTurn->GetTurnCount() : 0;
-    // 낙인 설명에 "몇 개의 낙인, 합계 몇 턴"을 보여주기 위해 미리 집계합니다.
-    int32 BrandCount = 0;
-    int32 BrandTotalTurns = 0;
-    for (const FStatusEffectInstance& Effect : StatusEffects)
-    {
-        if (Effect.Polarity == EStatusPolarity::Debuff && Effect.BuffTypeID == DebuffTypeID::Poison)
-        {
-            ++BrandCount;
-            BrandTotalTurns += FMath::Max(1, BrandDebuff::ElapsedTurns(Effect, CurrentTurn));
-        }
-    }
     for (const FStatusEffectInstance& StatusEffect : StatusEffects)
     {
+        // 타격은 키워드 내부 값입니다. 카드도 실제 스탯 수정치가 있는 효과만 목록에 표시합니다.
+        if (StatusEffect.Polarity == EStatusPolarity::Buff && StatusEffect.BuffTypeID == WeaponBuffTypeID::Strike) continue;
+        if (StatusEffect.SourceType == EStatusEffectSourceType::Card && StatusEffect.Modifier.IsZero()) continue;
         // 낙인(독)은 남은 턴이 아니라 "몇 턴째인지(찍힌 뒤 지난 턴 수)"를 표시합니다.
         const bool bIsBrand = StatusEffect.Polarity == EStatusPolarity::Debuff && StatusEffect.BuffTypeID == DebuffTypeID::Poison;
         // 낙인은 "그림 x N"으로 표시합니다. N은 다음 보스 페이즈에 곱해질 지난 턴 수이며 찍힌 직후에도 x1부터 시작합니다.
@@ -1602,6 +1722,8 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
         }
 
         UTexture2D* SourceIcon = nullptr;
+        FText SourceName;
+        FString Description;
         FDebuffDefinitionData DebuffDefinition;
         const bool bHasDebuffDefinition = StatusEffect.Polarity == EStatusPolarity::Debuff &&
             IsValid(DataManager) && DataManager->TryGetDebuff(StatusEffect.BuffTypeID, DebuffDefinition);
@@ -1613,6 +1735,8 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
             if (IsValid(DataManager) && DataManager->TryGetWeapon(StatusEffect.SourceDataID, WeaponData))
             {
                 SourceIcon = WeaponData.WeaponIcon;
+                SourceName = FText::FromString(WeaponData.WeaponName);
+                Description = WeaponData.BuffInfo;
             }
             break;
         }
@@ -1622,7 +1746,29 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
             if (IsValid(DataManager) && DataManager->TryGetItem(StatusEffect.SourceDataID, ItemData))
             {
                 SourceIcon = ItemData.ItemIcon;
+                SourceName = FText::FromString(ItemData.ItemName);
+                Description = ItemData.BuffInfo;
             }
+            break;
+        }
+        case EStatusEffectSourceType::Card:
+        {
+            FCardData CardData;
+            if (IsValid(DataManager) && DataManager->TryGetCard(StatusEffect.SourceDataID, CardData))
+            {
+                SourceIcon = CardData.Icon;
+                SourceName = FText::FromString(CardData.CardName);
+            }
+            // 카드 조건/추가 행동/흡혈은 섞지 않고 이 코인에 적용된 스탯만 표시합니다.
+            const FWeaponStatModifier& Modifier = StatusEffect.Modifier;
+            const TCHAR* Keys[] = { TEXT("AttackPower"), TEXT("WeaponPower"), TEXT("Count"),
+                TEXT("AttackRange"), TEXT("AbilityRange") };
+            const int32 Values[] = { Modifier.AttackPoint, Modifier.WeaponPoint, Modifier.WeaponCnt,
+                Modifier.AttackRange, Modifier.AbilityRange };
+            TArray<FString> Lines;
+            for (int32 Index = 0; Index < UE_ARRAY_COUNT(Keys); ++Index)
+                if (Values[Index] != 0) Lines.Add(FString::Printf(TEXT("[STAT:%s] %+d"), Keys[Index], Values[Index]));
+            Description = FString::Join(Lines, TEXT("\n"));
             break;
         }
         case EStatusEffectSourceType::Boss:
@@ -1639,23 +1785,33 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
         NewViewData.SourceDataID = StatusEffect.SourceDataID;
         NewViewData.SourcePatternIndex = StatusEffect.SourcePatternIndex;
         NewViewData.Polarity = StatusEffect.Polarity;
-        // 독은 부여 당시 보스 패턴 아이콘을 사용합니다.
         NewViewData.Icon = StatusEffect.Polarity == EStatusPolarity::Debuff ? DebuffDefinition.Icon.Get() : SourceIcon;
-        if (StatusEffect.Polarity == EStatusPolarity::Debuff && StatusEffect.BuffTypeID == DebuffTypeID::Poison)
-        {
-            NewViewData.Icon = SourceIcon;
-            NewViewData.DisplayName = NSLOCTEXT("Debuff", "Brand", "낙인");
-            NewViewData.Description = FText::Format(
-                NSLOCTEXT("Debuff", "BrandDescriptionFmt",
-                    "x{0}: 찍힌 뒤 지난 턴입니다. 이 코인에 낙인 {1}개(합계 x{2})가 있으며, 합계만큼 보스 페이즈마다 피해를 받습니다. 다시 맞으면 새 낙인이 x1부터 따로 쌓이고, 정화 물약으로 해제할 수 있습니다."),
-                FText::AsNumber(DisplayTurns), FText::AsNumber(BrandCount), FText::AsNumber(BrandTotalTurns));
-            NewViewData.bIsElapsedCounter = true;
-            NewViewData.StackCount = DisplayTurns; // 그림 옆 "x N" 칸에 지난 턴 수를 표시
-        }
-        else if (bHasDebuffDefinition)
+        NewViewData.DisplayName = SourceName;
+        if (bHasDebuffDefinition)
         {
             NewViewData.DisplayName = DebuffDefinition.DisplayName;
-            NewViewData.Description = DebuffDefinition.Description;
+            Description = DebuffDefinition.Description.ToString();
+        }
+        // 중첩 수를 곱하지 않습니다. 이 아이콘에 묶인 첫 번째 적용의 실제 값을 사용합니다.
+        const FWeaponStatModifier& Modifier = StatusEffect.Modifier;
+        const TCHAR* ValueKeys[] = { TEXT("{AttackPower}"), TEXT("{WeaponPower}"), TEXT("{Count}"),
+            TEXT("{AttackRange}"), TEXT("{AbilityRange}"), TEXT("{Shield}"),
+            TEXT("{Magnitude}"), TEXT("{DamageReduction}"), TEXT("{AttackPowerReduction}"), TEXT("{WeaponPowerReduction}") };
+        const int32 Values[] = { Modifier.AttackPoint, Modifier.WeaponPoint, Modifier.WeaponCnt,
+            Modifier.AttackRange + Modifier.AttackAreaSpec.ParamB, Modifier.AbilityRange + Modifier.AbilityAreaSpec.ParamB,
+            StatusEffect.RuntimeValue, StatusEffect.ReactiveMagnitude, StatusEffect.ReactiveMagnitude,
+            FMath::Abs(Modifier.AttackPoint), FMath::Abs(Modifier.WeaponPoint) };
+        for (int32 Index = 0; Index < UE_ARRAY_COUNT(ValueKeys); ++Index)
+            Description.ReplaceInline(ValueKeys[Index], *FText::AsNumber(Values[Index]).ToString(), ESearchCase::CaseSensitive);
+        // 피격 전에는 증가량이 아직 정해지지 않았으므로 실제 계산식을 표시합니다.
+        const FString NextTurnAttack = StatusEffect.BuffTypeID == WeaponBuffTypeID::ArmorNextTurnAttack
+            ? FText::AsNumber(Modifier.AttackPoint).ToString() : TEXT("받은 공격 피해의 50%");
+        Description.ReplaceInline(TEXT("{NextTurnAttack}"), *NextTurnAttack, ESearchCase::CaseSensitive);
+        NewViewData.Description = FText::FromString(Description);
+        if (bIsBrand)
+        {
+            NewViewData.bIsElapsedCounter = true;
+            NewViewData.StackCount = DisplayTurns; // 그림 옆 "x N" 칸에 지난 턴 수를 표시
         }
         if (!bIsBrand) NewViewData.StackCount = 1;
         NewViewData.RemainingTurns = bIsBrand ? 0 : DisplayTurns;

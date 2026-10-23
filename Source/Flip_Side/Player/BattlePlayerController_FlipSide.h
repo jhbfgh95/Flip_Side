@@ -17,6 +17,7 @@ class ABattleArea;
 class IBattleHoverInterface;
 class IBattleClickInterface;
 class UBattlePlayerHUDWidget;
+class UCoinInfoPinHintWidget;
 class ABossActor;
 class ABossCoinActor;
 class ACoinActor;
@@ -100,6 +101,10 @@ private:
     void HandleReadyCoinUnhovered(int32 CoinInstanceID);
     void ClearReadySlotHighlight();
     void ResetBattleInfoSelection();
+    void ClearBattleCoinInfoPin();
+    void NotifyBattleActorHover(AActor* Actor, bool bHovered);
+    ACoinActor* GetPinnableBattleCoinUnderCursor(int32& OutReadySlot) const;
+    void UpdateCoinInfoPinHint();
 	void HandleBattleItemSlotClicked(int32 ItemID);
 	void HandleBattlePhaseProgressClicked();
     void HandleShowAdditionalBuffsStarted(const FInputActionValue& InputActionValue);
@@ -154,8 +159,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UBattlePlayerHUDWidget> BattleHUDWidgetClass;
 
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<UCoinInfoPinHintWidget> CoinInfoPinHintWidgetClass;
+
 	UPROPERTY()
 	TObjectPtr<UBattlePlayerHUDWidget> BattleHUDWidget;
+
+    UPROPERTY(Transient)
+    TObjectPtr<UCoinInfoPinHintWidget> CoinInfoPinHintWidget;
 
 	/** BP_PlayerController에서 직선 몸통·끝 메시를 설정한 자식 클래스를 지정합니다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Range Preview")
@@ -183,6 +194,8 @@ protected:
 
 	void OnRightClick();
 
+    void OnMiddleClick();
+
     void CheckMouseHover();
 
     UPROPERTY()
@@ -209,6 +222,7 @@ protected:
     int32 SelectedInfoReadySlot = INDEX_NONE;
     EFaceState SelectedInfoUpperFace = EFaceState::Front;
     bool bInfoUsesStoredFront = false;
+    bool bBattleCoinInfoPinned = false;
 
 	bool bIsUIOnly = false;
 
