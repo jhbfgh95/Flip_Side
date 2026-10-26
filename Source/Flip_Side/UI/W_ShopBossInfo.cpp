@@ -222,13 +222,14 @@ void UW_ShopBossInfo::RefreshBossTexts()
 {
 	if(BossImage)
 	{
-		if(CurrentBossData.BossIcon)
+		if(IsValid(CurrentBossData.BossIcon))
 		{
 			BossImage->SetBrushFromTexture(CurrentBossData.BossIcon);
 			BossImage->SetVisibility(ESlateVisibility::HitTestInvisible);
 		}
 		else
 		{
+			BossImage->SetBrushFromTexture(nullptr);
 			BossImage->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
@@ -284,6 +285,7 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 			}
 			else
 			{
+				PatternIconImage->SetBrushFromTexture(nullptr);
 				PatternIconImage->SetVisibility(ESlateVisibility::Hidden);
 			}
 		}
@@ -322,13 +324,14 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 
 	if(PatternIconImage)
 	{
-		if(PatternData.PatternIcon)
+		if(IsValid(PatternData.PatternIcon))
 		{
 			PatternIconImage->SetBrushFromTexture(PatternData.PatternIcon);
 			PatternIconImage->SetVisibility(ESlateVisibility::HitTestInvisible);
 		}
 		else
 		{
+			PatternIconImage->SetBrushFromTexture(nullptr);
 			PatternIconImage->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}

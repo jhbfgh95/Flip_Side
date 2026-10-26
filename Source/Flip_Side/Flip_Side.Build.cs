@@ -7,6 +7,9 @@ public class Flip_Side : ModuleRules
 	public Flip_Side(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
+		// SQLite needs a loose database file in the packaged Content directory.
+		RuntimeDependencies.Add("$(ProjectDir)/Content/DB.db", StagedFileType.NonUFS);
 	
 		PublicDependencyModuleNames.AddRange(new string[] { 
 			"Core", 
