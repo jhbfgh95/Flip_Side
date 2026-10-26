@@ -63,7 +63,7 @@ bool UShopUnlockWeaponWSubsystem::UnlockWeapon(int32 WeaponID)
         if(!DM->TryGetWeapon(WeaponID,WeaponFaceData))
             return false;
 
-        if(MoneySubsystem->SpendMoney(EMoneyRecordType::Weapon, WeaponFaceData.Price))
+        if(WeaponFaceData.Price == 0 || MoneySubsystem->SpendMoney(EMoneyRecordType::Weapon, WeaponFaceData.Price))
         {
             UnlockSubsystem->UnlockWeapon(WeaponID);
             return true;

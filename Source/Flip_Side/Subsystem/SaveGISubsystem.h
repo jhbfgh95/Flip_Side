@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "DataTypes/CoinDataTypes.h"
+#include "DataTypes/ItemDataTypes.h"
 #include "SaveGISubsystem.generated.h"
 
 /**
@@ -19,9 +21,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Save Game")
 	bool SaveCurrentGame();
 
-	// 현재 단계에서는 해금 무기·카드 목록만 GI Subsystem에 복원합니다.
+	// GI 데이터는 즉시, 상점 슬롯은 다음 상점 월드 초기화 시 복원합니다.
 	UFUNCTION(BlueprintCallable, Category = "Save Game")
 	bool LoadCurrentGame();
+
+	bool ConsumeLoadedShopCoinSlots(TArray<FCoinTypeStructure>& OutSlots);
+	bool ConsumeLoadedShopItemSlots(TArray<FSelectItem>& OutSlots);
 
 	// 단일 저장 슬롯 파일을 삭제해 저장된 진행 데이터를 초기화합니다.
 	UFUNCTION(BlueprintCallable, Category = "Save Game")
@@ -38,6 +43,15 @@ public:
 	bool HasReturnedToStartMenu() const;
 
 private:
+	UPROPERTY(Transient)
+	TArray<FCoinTypeStructure> LoadedShopCoinSlots;
+
+	UPROPERTY(Transient)
+	TArray<FSelectItem> LoadedShopItemSlots;
+
+	bool bHasLoadedShopCoinSlots = false;
+	bool bHasLoadedShopItemSlots = false;
+
 	static const FString SaveSlotName;
 	static constexpr int32 SaveUserIndex = 0;
 

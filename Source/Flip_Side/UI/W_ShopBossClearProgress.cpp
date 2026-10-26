@@ -4,10 +4,20 @@
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include "UI/W_ShopBossProgressSlot.h"
+#include "Player/ShopController_FlipSide.h"
 
 void UW_ShopBossClearProgress::NativeConstruct()
 {
 	Super::NativeConstruct();
+	if (APlayerController* Controller = GetOwningPlayer(); IsValid(Controller))
+	{
+		Controller->SetInputMode(FInputModeUIOnly());
+		Controller->bShowMouseCursor = true;
+		if (AShopController_FlipSide* ShopController = Cast<AShopController_FlipSide>(Controller))
+		{
+			ShopController->SetLockMouse(true);
+		}
+	}
 }
 
 void UW_ShopBossClearProgress::SetBossProgress(const TArray<FBossDisplayData>& InBossDataList, int32 CurrentStage)
@@ -70,6 +80,10 @@ void UW_ShopBossClearProgress::HandleBackgroundWidget()
 {
 	if(IsCheckNextBoss)
 	{
+		if (AShopController_FlipSide* ShopController = Cast<AShopController_FlipSide>(GetOwningPlayer()); IsValid(ShopController))
+		{
+			ShopController->RestoreShopActorInput();
+		}
 		RemoveFromParent();
 	}
 	else

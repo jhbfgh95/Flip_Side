@@ -28,6 +28,10 @@ void UW_ShopPlayerItemSlot::NativeConstruct()
 void UW_ShopPlayerItemSlot::InitItemWidget(int32 ItemIndex, FItemData InItemData, FSelectItem InSelectItemData)
 {
     PlayerInvenIndex = ItemIndex;
+    if (IsValid(ItemImage))
+    {
+        ItemIconMI = ItemImage->GetDynamicMaterial();
+    }
     SetItemWidget(InItemData, InSelectItemData);
 
     if (HoverBorder)
@@ -35,9 +39,6 @@ void UW_ShopPlayerItemSlot::InitItemWidget(int32 ItemIndex, FItemData InItemData
         HoverBorder->SetVisibility(ESlateVisibility::Hidden);
     }
     
-    ItemIconMI = ItemImage->GetDynamicMaterial();
-    
-    DeleteItemWidget();
 }
 
 void UW_ShopPlayerItemSlot::SetItemWidget(FItemData InItemData, FSelectItem InSelectItemData)
@@ -45,12 +46,16 @@ void UW_ShopPlayerItemSlot::SetItemWidget(FItemData InItemData, FSelectItem InSe
     WidgetItemData = InItemData;
     WidgetSelectItemData = InSelectItemData;
 
-    if(WidgetItemData.ItemID == -1)
+    if(WidgetItemData.ItemID < 0 || WidgetSelectItemData.ItemID < 0 || WidgetSelectItemData.SameItemNum <= 0)
     { 
         DeleteItemWidget();
         return;
     }
 
+    if (!IsValid(ItemIconMI) && IsValid(ItemImage))
+    {
+        ItemIconMI = ItemImage->GetDynamicMaterial();
+    }
     if (ItemIconMI)
     {
         ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), WidgetItemData.ItemIcon);

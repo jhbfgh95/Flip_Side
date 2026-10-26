@@ -80,6 +80,13 @@ void AGameMode_Shop::ChangeBattleLevel()
             CrossSubsystem->SetBattleUseItemID(PlayerItem.ItemID,i, PlayerItem.SameItemNum);
         }
     }
+    if (USaveGISubsystem* SaveSubsystem = GetGameInstance()->GetSubsystem<USaveGISubsystem>())
+    {
+        if (!SaveSubsystem->SaveCurrentGame())
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[Shop] Failed to save before entering battle."));
+        }
+    }
     LevelSubsystem->MoveBattleLevel();
 }
 

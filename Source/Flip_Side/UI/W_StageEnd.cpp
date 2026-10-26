@@ -1,5 +1,7 @@
 #include "UI/W_StageEnd.h"
 #include "LevelGISubsystem.h"
+#include "Subsystem/SaveGISubsystem.h"
+#include "Engine/GameInstance.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/Widget.h"
@@ -167,6 +169,13 @@ void UW_StageEnd::StageClearedClicked()
 void UW_StageEnd::GameOverClicked()
 {
     UGameInstance* GameInstance = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
+    if (USaveGISubsystem* SaveSubsystem = GameInstance ? GameInstance->GetSubsystem<USaveGISubsystem>() : nullptr)
+    {
+        if (!SaveSubsystem->ResetSavedGame())
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[StageEnd] Failed to delete save data after game over."));
+        }
+    }
     ULevelGISubsystem* LevelMan = GameInstance ? GameInstance->GetSubsystem<ULevelGISubsystem>() : nullptr;
     if (!LevelMan) return;
 
@@ -176,6 +185,13 @@ void UW_StageEnd::GameOverClicked()
 void UW_StageEnd::GameClearClicked()
 {
     UGameInstance* GameInstance = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
+    if (USaveGISubsystem* SaveSubsystem = GameInstance ? GameInstance->GetSubsystem<USaveGISubsystem>() : nullptr)
+    {
+        if (!SaveSubsystem->ResetSavedGame())
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[StageEnd] Failed to delete save data after game clear."));
+        }
+    }
     ULevelGISubsystem* LevelMan = GameInstance ? GameInstance->GetSubsystem<ULevelGISubsystem>() : nullptr;
     if (!LevelMan) return;
 

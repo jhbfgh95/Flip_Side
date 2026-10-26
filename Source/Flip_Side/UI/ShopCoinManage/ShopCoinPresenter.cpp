@@ -44,6 +44,7 @@ void UShopCoinPresenter::InitPresenter(UW_ShopCoinWidget* InShopCoinWidget, USho
 	InitWeaponSlotWidget();
 	InitSlotBuyButtonWidget();
 	InitShopCoinUIActor();
+	RefreshCoinSlots();
 	if (UW_ShopSlotCoinDes* DescriptionWidget = IsValid(ShopCoinWidget)
 		? ShopCoinWidget->GetWeaponDescription() : nullptr)
 	{
@@ -528,6 +529,7 @@ void UShopCoinPresenter::RefreshCoinSlots()
 			continue;
 
 		const FCoinTypeStructure CoinData = CoinSubsystem->GetCoinSlotCoinType(Index);
+		SlotView->SetVisibility(ESlateVisibility::Visible);
 		SlotView->InitSlotWidget(Index);
 		SlotView->SetCountText(CoinData.SameTypeCoinNum);
 		SlotView->SetFrontWeaponImage(GetWeaponData(CoinData.FrontWeaponID));

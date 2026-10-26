@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
+#include "DataTypes/CoinDataTypes.h"
+#include "DataTypes/ItemDataTypes.h"
 #include "FlipSideSaveGame.generated.h"
 
 UCLASS()
@@ -25,4 +27,12 @@ public:
 
 	UPROPERTY(SaveGame)
 	TArray<int32> UnlockedCardIDs;
+
+	// 구매한 코인 슬롯 순서입니다. 무기 미장착·수량 0인 슬롯도 보존합니다.
+	UPROPERTY(SaveGame)
+	TArray<FCoinTypeStructure> ShopCoinSlots;
+
+	// 배열 인덱스가 아이템 슬롯 번호입니다. 빈 슬롯도 그대로 저장합니다.
+	UPROPERTY(SaveGame)
+	TArray<FSelectItem> ShopItemSlots;
 };

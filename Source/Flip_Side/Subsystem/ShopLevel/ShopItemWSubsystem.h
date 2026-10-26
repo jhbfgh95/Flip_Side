@@ -71,6 +71,9 @@ public:
 
 	TArray<FSelectItem> GetPlayerItemArray();
 
+	// 배열 인덱스가 슬롯 번호입니다. 구매·차감 없이 복원합니다.
+	void ApplySavedItemSlots(const TArray<FSelectItem>& InSlots);
+
 public:
 	void ShopItemWarning(int32 WarningCode);
 	

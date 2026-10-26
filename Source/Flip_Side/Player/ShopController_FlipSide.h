@@ -129,6 +129,9 @@ public:
 
 	void SetLockMouse(bool IsMouseLock);
 
+	// 보스 진행도 창을 닫은 뒤 게임 입력과 모든 상점 선택 액터를 복원합니다.
+	void RestoreShopActorInput();
+
 protected:
 	void InitShopUISelectActor();
 	

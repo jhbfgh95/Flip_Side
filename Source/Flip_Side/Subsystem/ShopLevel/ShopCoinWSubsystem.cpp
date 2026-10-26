@@ -5,6 +5,9 @@
 #include "Subsystem/MoneyGISubsystem.h"
 #include "Subsystem/CrossingLevelGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Subsystem/SaveGISubsystem.h"
+#include "Engine/GameInstance.h"
+#include "Kismet/GameplayStatics.h"
 bool UShopCoinWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     Super::ShouldCreateSubsystem(Outer);
@@ -46,6 +49,42 @@ void UShopCoinWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         ShopCoinSlotArray[i].CoinData = DefaultCoin;
     }
 
+    if (UGameplayStatics::GetCurrentLevelName(GetWorld(), true) == TEXT("L_ShopLevel"))
+    {
+        if (USaveGISubsystem* SaveSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveGISubsystem>())
+        {
+            TArray<FCoinTypeStructure> SavedSlots;
+            if (SaveSubsystem->ConsumeLoadedShopCoinSlots(SavedSlots))
+            {
+                ApplySavedCoinSlots(SavedSlots);
+            }
+        }
+    }
+
+}
+
+void UShopCoinWSubsystem::ApplySavedCoinSlots(const TArray<FCoinTypeStructure>& InSlots)
+{
+    TotalCoinCount = 0;
+    LastUnlockCoinSlotIndex = INDEX_NONE;
+    for (int32 Index = 0; Index < ShopCoinSlotArray.Num(); ++Index)
+    {
+        FShopCoinSlotData& Slot = ShopCoinSlotArray[Index];
+        Slot = FShopCoinSlotData();
+        Slot.CoinData.FrontWeaponID = INDEX_NONE;
+        Slot.CoinData.BackWeaponID = INDEX_NONE;
+        Slot.CoinData.SlotNum = Index;
+        if (!InSlots.IsValidIndex(Index)) continue;
+
+        Slot.IsUnlock = true;
+        Slot.CoinData = InSlots[Index];
+        Slot.CoinData.SlotNum = Index;
+        Slot.CoinData.SameTypeCoinNum = FMath::Clamp(Slot.CoinData.SameTypeCoinNum, 0, MAX_TOTAL_COIN - TotalCoinCount);
+        if (Slot.CoinData.FrontWeaponID < 0 || Slot.CoinData.BackWeaponID < 0)
+            Slot.CoinData.SameTypeCoinNum = 0;
+        TotalCoinCount += Slot.CoinData.SameTypeCoinNum;
+        LastUnlockCoinSlotIndex = Index;
+    }
 }
 
 

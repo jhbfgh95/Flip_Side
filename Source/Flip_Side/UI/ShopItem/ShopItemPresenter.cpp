@@ -295,6 +295,13 @@ void UShopItemPresenter::CloseSellPopup()
 
 void UShopItemPresenter::SetPlayerSlotItemViews()
 {
+    if (!IsValid(ShopItemWidget) || !IsValid(ItemSubsystem) || !IsValid(DataManager))
+        return;
+
+    UW_ShopPlayerItemSlotContainer* SlotContainer = ShopItemWidget->GetShopPlayerItemSlotContainer();
+    if (!IsValid(SlotContainer)) return;
+
+    // 상점 서브시스템이 복원한 슬롯 순서를 유지하고, 빈 슬롯도 그대로 전달합니다.
     TArray<FSelectItem> PlayerSelectItemArray = ItemSubsystem->GetPlayerItemArray();
     TArray<FItemData> PlayerInvenItemData;
 
@@ -303,11 +310,12 @@ void UShopItemPresenter::SetPlayerSlotItemViews()
         PlayerInvenItemData.Add(GetItemData(PlayerSelectItemArray[i].ItemID));
     }
 
-    ShopItemWidget->GetShopPlayerItemSlotContainer()->InitWidget(PlayerInvenItemData, PlayerSelectItemArray);
-    ShopPlayerItemSlotViews = ShopItemWidget->GetShopPlayerItemSlotContainer()->GetPlayerItemSlots();
+    SlotContainer->InitWidget(PlayerInvenItemData, PlayerSelectItemArray);
+    ShopPlayerItemSlotViews = SlotContainer->GetPlayerItemSlots();
 
     for(int i =0; i < ShopPlayerItemSlotViews.Num(); i++)
     {
+        if (!IsValid(ShopPlayerItemSlotViews[i])) continue;
         ShopPlayerItemSlotViews[i]->OnRequestSellPopup.AddDynamic(this, &UShopItemPresenter::OpenSellPopup);
         ShopPlayerItemSlotViews[i]->OnHoveredSlot.AddDynamic(this, &UShopItemPresenter::HoveredPlayerItemSlot);
         ShopPlayerItemSlotViews[i]->OnUnhoveredSlot.AddDynamic(this, &UShopItemPresenter::UnhoveredPlayerItemSlot);

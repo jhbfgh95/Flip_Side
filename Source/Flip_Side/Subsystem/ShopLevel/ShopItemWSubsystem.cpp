@@ -5,6 +5,8 @@
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/MoneyGISubsystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "Subsystem/SaveGISubsystem.h"
+#include "Engine/GameInstance.h"
 bool UShopItemWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
     Super::ShouldCreateSubsystem(Outer);
@@ -41,28 +43,36 @@ void UShopItemWSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     }
 
     MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
+
+    ApplySavedItemSlots(TArray<FSelectItem>());
+    if (UGameplayStatics::GetCurrentLevelName(GetWorld(), true) == TEXT("L_ShopLevel"))
+    {
+        if (USaveGISubsystem* SaveSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<USaveGISubsystem>())
+        {
+            TArray<FSelectItem> SavedSlots;
+            if (SaveSubsystem->ConsumeLoadedShopItemSlots(SavedSlots))
+            {
+                ApplySavedItemSlots(SavedSlots);
+            }
+        }
+    }
     
 }
 
 void UShopItemWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
     Super::OnWorldBeginPlay(InWorld);
-    
-    FString LevelName = UGameplayStatics::GetCurrentLevelName(&InWorld);
-    PlayerItemArray.Empty();
-    for(int i =0; i <3 ;i++)
-        PlayerItemArray.Add(DefaultSelecttemData);
+    // 기본 슬롯 생성과 로드 적용은 UI 생성 전인 Initialize에서 처리합니다.
+}
 
-    // 레벨 이름으로 조건 검사
-    if(LevelName.Equals(TEXT("L_ShopLevel"), ESearchCase::IgnoreCase))
+void UShopItemWSubsystem::ApplySavedItemSlots(const TArray<FSelectItem>& InSlots)
+{
+    PlayerItemArray.Init(DefaultSelecttemData, 3);
+    for (int32 Index = 0; Index < PlayerItemArray.Num(); ++Index)
     {
-        for(int i =0; i <3 ;i++)
+        if (InSlots.IsValidIndex(Index) && InSlots[Index].ItemID >= 0 && InSlots[Index].SameItemNum > 0)
         {
-            if(PlayerItemArray.IsValidIndex(i))
-            {
-                PlayerItemArray[i].ItemID = -1;
-                PlayerItemArray[i].SameItemNum = 0;
-            }
+            PlayerItemArray[Index] = InSlots[Index];
         }
     }
 }

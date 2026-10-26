@@ -47,6 +47,10 @@ void AShopController_FlipSide::BeginPlay()
     
     this->bShowMouseCursor = true;
     this->bEnableMouseOverEvents = true;
+    FInputModeGameAndUI InputMode;
+    InputMode.SetHideCursorDuringCapture(false);
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+    SetInputMode(InputMode);
     SetLockMouse(false);
 ////////////////////////////
     /*서브시스템*/
@@ -364,6 +368,21 @@ void AShopController_FlipSide::CheckMouseHover()
                 SoundManager->PlayHoverSound();
             }
         }
+    }
+}
+
+void AShopController_FlipSide::RestoreShopActorInput()
+{
+    FInputModeGameAndUI InputMode;
+    InputMode.SetHideCursorDuringCapture(false);
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+    SetInputMode(InputMode);
+    bShowMouseCursor = true;
+    SetLockMouse(false);
+
+    if (IsValid(PageChangePresenter))
+    {
+        PageChangePresenter->SetShopUISelectActorsEnabledForPage(EShopPage::Main);
     }
 }
 

@@ -20,6 +20,7 @@ class FLIP_SIDE_API UW_GameStartWidget : public UUserWidget
 protected:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	// WBP에서 M_IntroVideo 머티리얼을 Brush에 넣어 사용할 전체 화면 Image입니다.
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -30,6 +31,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Game Start|Intro")
 	TObjectPtr<class UMediaSource> IntroMediaSource;
+
+	// 재생 종료 시점을 피해서 마지막 화면을 가져올 시간 간격입니다.
+	UPROPERTY(EditDefaultsOnly, Category = "Game Start|Intro", meta = (ClampMin = "0.01"))
+	float IntroLastFrameOffsetSeconds = 0.1f;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> GameStartButton;
@@ -86,6 +91,12 @@ private:
 
 	UFUNCTION()
 	void HandleIntroMediaEndReached();
+
+	UFUNCTION()
+	void HandleIntroSeekCompleted();
+
+	void SeekIntroLastFrame();
+	bool bShowLastFrameOnly = false;
 
 	// 인트로 영상을 열지 못했을 때도 메뉴와 BGM이 나오게 합니다.
 	UFUNCTION()

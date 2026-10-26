@@ -3,7 +3,6 @@
 
 #include "UI/ShopCoinManage/W_ShopCoinSlotContainer.h"
 #include "Components/TextBlock.h"
-#include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
 
 #include "Components/Button.h"
 #include "Components/ScrollBox.h"
@@ -13,7 +12,6 @@
 
 #include "UI/ShopCoinManage/W_ShopCoinSlot.h"
 #include "UI/ShopCoinManage/ShopCoinSlotDragDropOperation.h"
-#include "UI/ShopCoinManage/ShopCoinPresenter.h"
 
 #define MAX_SLOT_NUM 10
 
@@ -22,10 +20,7 @@ void UW_ShopCoinSlotContainer::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    //SlotAddButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlotContainer::AddCoinSlot);
-    //DecreaseSlotButton->OnClicked.AddDynamic(this, &UW_ShopCoinSlotContainer::DecreaseCoinSlot);
-    SetTotalCoinText(0);
-    SetSlotInfoText(0);
+    // 총 코인 수와 슬롯 수는 Presenter::RefreshCoinSlotInfo에서 전달합니다.
 }
 
 void UW_ShopCoinSlotContainer::NativeDestruct()

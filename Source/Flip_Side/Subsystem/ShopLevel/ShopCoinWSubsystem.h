@@ -82,6 +82,9 @@ public:
 	// 현재 면의 무기를 제거합니다. 코인은 환불하고 반대 면과 슬롯은 유지합니다.
 	bool RemoveCoinSlotWeapon(int32 SlotIndex, bool bFrontSide);
 
+	// 구매 처리 없이 저장된 슬롯과 총 코인 수를 복원합니다.
+	void ApplySavedCoinSlots(const TArray<FCoinTypeStructure>& InSlots);
+
 /*Get*/
 	FCoinTypeStructure GetCoinSlotCoinType(int32 SlotIndex);
 
