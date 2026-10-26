@@ -24,14 +24,22 @@ bool UShopUnlockWeaponWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 void UShopUnlockWeaponWSubsystem::OnWorldBeginPlay(UWorld& World)
 {
     Super::OnWorldBeginPlay(World);
-    MoneySubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UMoneyGISubsystem>();
-    UnlockSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UUnlockGISubsystem>();
-    DM = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();
-    if(DM)
+    UGameInstance* GI = World.GetGameInstance();
+    if (!IsValid(GI)) return;
+
+    MoneySubsystem = GI->GetSubsystem<UMoneyGISubsystem>();
+    UnlockSubsystem = GI->GetSubsystem<UUnlockGISubsystem>();
+    DM = GI->GetSubsystem<UDataManagerSubsystem>();
+    UnlockWeapons.Reset();
+    if(IsValid(DM))
     {
-        DM->TryGetWeaponsByType(1, TankWeapons);
-        DM->TryGetWeaponsByType(2, DealWeapons);
-        DM->TryGetWeaponsByType(3, UtilWeapons);
+        if (!DM->TryGetWeaponsByType(1, TankWeapons) ||
+            !DM->TryGetWeaponsByType(2, DealWeapons) ||
+            !DM->TryGetWeaponsByType(3, UtilWeapons))
+        {
+            UE_LOG(LogTemp, Error, TEXT("[ShopUnlockWeapon] Weapon data is unavailable. Check Content/DB.db and the weapon cache."));
+            return;
+        }
         
         UnlockWeapons.Append(*TankWeapons);
         UnlockWeapons.Append(*DealWeapons);
@@ -49,7 +57,7 @@ void UShopUnlockWeaponWSubsystem::OnWorldBeginPlay(UWorld& World)
 
 bool UShopUnlockWeaponWSubsystem::UnlockWeapon(int32 WeaponID)
 {
-    if(WeaponID != -1)
+    if(WeaponID != -1 && IsValid(DM) && IsValid(MoneySubsystem) && IsValid(UnlockSubsystem))
     {
         FFaceData WeaponFaceData;
         if(!DM->TryGetWeapon(WeaponID,WeaponFaceData))

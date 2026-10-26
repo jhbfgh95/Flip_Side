@@ -90,6 +90,8 @@ public:
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     virtual void Deinitialize() override;
 
+    static void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector);
+
     UFUNCTION(BlueprintCallable)
     bool IsCacheReady() const { return bCacheReady; }
 

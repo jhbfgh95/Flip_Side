@@ -5,6 +5,7 @@
 #include "Engine/Texture2D.h"
 #include "NiagaraSystem.h"
 #include "Sound/SoundBase.h"
+#include "UObject/UObjectGlobals.h"
 
 static bool TryParseHexColor_RRGGBBAA(const FString& InHex, FLinearColor& OutColor);
 
@@ -54,6 +55,23 @@ void UDataManagerSubsystem::Deinitialize()
     CloseDb();
     ClearCache();
     Super::Deinitialize();
+}
+
+void UDataManagerSubsystem::AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector)
+{
+    UDataManagerSubsystem* This = CastChecked<UDataManagerSubsystem>(InThis);
+
+    // The nested map/array cache is not a reflected property, so retain its textures explicitly.
+    for (auto& Pair : This->BossPatternDisplayByBossID)
+    {
+        for (FBossPatternDisplayData& Pattern : Pair.Value)
+        {
+            Collector.AddReferencedObject(Pattern.PatternIcon, This);
+            Collector.AddReferencedObject(Pattern.PatternRangeImage, This);
+        }
+    }
+
+    Super::AddReferencedObjects(InThis, Collector);
 }
 
 bool UDataManagerSubsystem::ReloadCache()
