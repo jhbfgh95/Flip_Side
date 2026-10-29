@@ -381,6 +381,9 @@ protected:
 	// 회복으로 HP가 올랐을 때(출처 무관) 회복 소리를 냅니다.
 	void OnCoinHealed(int32 Heal);
 
+	// 무기 능력으로 능력치가 올랐을 때 강화 소리를 냅니다.
+	void OnCoinStatBuffGained();
+
 	UFUNCTION()
 	void OnCCApplied();
 

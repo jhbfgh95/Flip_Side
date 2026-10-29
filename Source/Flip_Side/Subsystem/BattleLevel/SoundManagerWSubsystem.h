@@ -53,6 +53,10 @@ public:
     void PlayPopupCloseSound();
     void PlayWarningSound();
 
+    // 튜토리얼 설명을 넘길 때(전투 설명창 클릭, 상점 대화 클릭)와 상점 튜토리얼 대화창이 나타날 때 소리입니다.
+    void PlayTutorialNextSound();
+    void PlayTutorialDialogueOpenSound();
+
     // 팝업을 보이거나 숨기면서, 실제로 바뀔 때만 열기/닫기 소리를 냅니다. bSilent면 소리 없이 바꿉니다.
     static void SetPopupVisibility(UWidget* Popup, ESlateVisibility NewVisibility, bool bSilent = false);
 
@@ -81,6 +85,14 @@ public:
     // 내 코인이 회복될 때 소리입니다. 여러 코인이 한꺼번에 회복돼도 한 번만 나게 사운드 쪽에서 막습니다.
     void PlayCoinHealSound();
 
+    // 카드 효과가 코인에 새로 들어갔을 때와 무기 능력으로 코인 능력치가 올랐을 때 소리입니다. 한꺼번에 여러 번 불려도 사운드 쪽에서 한 번만 나게 막습니다.
+    void PlayCardActivateSound();
+    void PlayStatusBuffGainSound();
+
+    // 자동 포탑을 실제로 설치한 순간과 설치된 포탑이 보스를 쏠 때 소리입니다.
+    void PlayTurretDeploySound();
+    void PlayTurretFireSound();
+
     // 물약을 쓰는 데 성공했을 때 소리입니다. 소리는 물약마다 DB(item.sfx_path)에 있습니다. 쓸 수 없는 곳에 누르면 PlayCoinActionFailedSound를 씁니다.
     void PlayItemUseSound(USoundBase* Sound);
 
@@ -101,11 +113,24 @@ public:
     void PlayStageClearSound();
     void PlayGameOverSound();
 
+    // 게임 클리어 창이 뜰 때 신호음입니다. 길어서 시작 화면으로 넘어가도 끊기지 않게 BGM처럼 들고 갑니다. GameClearSFX가 비어 있으면 스테이지 클리어 소리를 냅니다.
+    void PlayGameClearSound();
+
     // 상점 소리입니다. 골드 지불·부족은 MoneyGISubsystem::SpendMoney에서 냅니다(아이템 골드 부족만 UShopItemPresenter::RequestPurchaseFromPopup에서 냅니다).
     void PlayShopPageMoveSound();
     void PlayGoldSpendSound();
     void PlayGoldShortSound();
     void PlayUnlockCompleteSound();
+
+    // 상점 보스 진행 칸이 열리는 애니메이션과 함께 냅니다(W_ShopBossProgressSlot::OpenSlot).
+    void PlayBossProgressOpenSound();
+
+    // 보유 카드를 고를 때와 내려놓을 때 소리입니다. UShopCardPresenter에서 실제로 바뀐 경우에만 부릅니다.
+    void PlayCardSelectSound();
+    void PlayCardUnselectSound();
+
+    // 코인 관리에서 코인 앞뒷면이 자리를 바꿀 때 소리입니다(UShopCoinPresenter::ChangeCoinSide).
+    void PlayCoinSideFlipSound();
 
     // 무기 해금 버튼을 누르고 있는 동안만 나는 소리입니다. 손을 떼거나 해금이 끝나면 멈춥니다.
     void StartUnlockHoldSound();

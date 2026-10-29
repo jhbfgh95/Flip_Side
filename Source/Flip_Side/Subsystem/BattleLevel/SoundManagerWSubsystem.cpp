@@ -184,6 +184,22 @@ void USoundManagerWSubsystem::PlayWarningSound()
     PlaySFX(Settings->WarningSFX.LoadSynchronous());
 }
 
+void USoundManagerWSubsystem::PlayTutorialNextSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    USoundBase* Sound = Settings ? Settings->TutorialNextSFX.LoadSynchronous() : nullptr;
+    if (!Sound) return;
+    // 튜토리얼 마지막 클릭은 바로 레벨을 옮겨서, 보통 소리는 한 프레임 만에 끊깁니다. 짧은 소리라 레벨을 넘어 끝까지 나게 둡니다.
+    UGameplayStatics::SpawnSound2D(GetWorld(), Sound, 1.f, 1.f, 0.f, nullptr, true, true);
+}
+
+void USoundManagerWSubsystem::PlayTutorialDialogueOpenSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->TutorialDialogueOpenSFX.LoadSynchronous());
+}
+
 void USoundManagerWSubsystem::PlayHoverSound()
 {
     const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
@@ -309,6 +325,34 @@ void USoundManagerWSubsystem::PlayCoinHealSound()
     PlaySFX(Settings->CoinHealSFX.LoadSynchronous());
 }
 
+void USoundManagerWSubsystem::PlayCardActivateSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->CardActivateSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayStatusBuffGainSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->StatusBuffGainSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayTurretDeploySound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->TurretDeploySFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayTurretFireSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->TurretFireSFX.LoadSynchronous());
+}
+
 void USoundManagerWSubsystem::PlayItemUseSound(USoundBase* Sound)
 {
     PlaySFX(Sound);
@@ -382,6 +426,27 @@ void USoundManagerWSubsystem::PlayGameOverSound()
     PlaySFX(Settings->GameOverSFX.LoadSynchronous());
 }
 
+void USoundManagerWSubsystem::PlayGameClearSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    USoundBase* Sound = Settings ? Settings->GameClearSFX.LoadSynchronous() : nullptr;
+    if (!Sound)
+    {
+        PlayStageClearSound();
+        return;
+    }
+
+    // 10초 가까운 곡이라 '메인으로'를 바로 눌러도 뚝 끊기지 않게 BGM 자리에 넣어 레벨을 넘어 이어 줍니다.
+    // 시작 화면이 BGM을 줄이거나 바꿀 때 함께 줄어듭니다. 전투 BGM을 먼저 줄인 뒤(FadeOutLevelBGM) 불러야 합니다.
+    UGameInstance* GameInstance = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
+    if (UBGMGISubsystem* BGMSubsystem = GameInstance ? GameInstance->GetSubsystem<UBGMGISubsystem>() : nullptr)
+    {
+        BGMSubsystem->PlayBGM(this, Sound, 0.f, Settings->BGMFadeOutSeconds);
+        return;
+    }
+    PlaySFX(Sound);
+}
+
 void USoundManagerWSubsystem::PlayShopPageMoveSound()
 {
     const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
@@ -408,6 +473,34 @@ void USoundManagerWSubsystem::PlayUnlockCompleteSound()
     const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
     if (!Settings) return;
     PlaySFX(Settings->UnlockCompleteSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayBossProgressOpenSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->BossProgressOpenSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayCardSelectSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->CardSelectSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayCardUnselectSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->CardUnselectSFX.LoadSynchronous());
+}
+
+void USoundManagerWSubsystem::PlayCoinSideFlipSound()
+{
+    const UFlipSideDevloperSettings* Settings = GetDefault<UFlipSideDevloperSettings>();
+    if (!Settings) return;
+    PlaySFX(Settings->CoinSideFlipSFX.LoadSynchronous());
 }
 
 void USoundManagerWSubsystem::StartUnlockHoldSound()

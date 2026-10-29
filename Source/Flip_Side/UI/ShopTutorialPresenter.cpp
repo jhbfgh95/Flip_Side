@@ -31,6 +31,7 @@
 #include "UI/W_ShopBossInfo.h"
 #include "UI/W_ShopBossPatternButton.h"
 #include "Subsystem/ShopLevel/ShopCoinWSubsystem.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 void UShopTutorialPresenter::InitShopActors(AShopUISelectRegistry* InShopUISelectRegistry, AShopCoinUIActor* InCoinUIActor)
 {
@@ -471,7 +472,15 @@ void UShopTutorialPresenter::HandleTutorialCompleted()
 
 void UShopTutorialPresenter::HandleDialogueClicked()
 {
-	ReportAction(EShopTutorialAction::DialogueClicked);
+	// 대화를 넘기는 클릭으로 받아들여진 때만 넘기기 소리를 냅니다.
+	if (!ReportAction(EShopTutorialAction::DialogueClicked)) return;
+	if (UWorld* World = GetWorld())
+	{
+		if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+		{
+			SoundManager->PlayTutorialNextSound();
+		}
+	}
 }
 
 void UShopTutorialPresenter::HandleBossPassiveClicked()

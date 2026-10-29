@@ -3,6 +3,7 @@
 #include "GridManagerSubsystem.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 ATurret_OtherActor::ATurret_OtherActor()
 {
@@ -56,9 +57,15 @@ void ATurret_OtherActor::OnClicked_Implementation()
 	TArray<FGridPoint> AttackCells;
 	ABossActor* Boss = nullptr;
 	GridManager->CollectAttackRangeTargets(TurretSpawnGrid, TurretSpec, AttackCells, Boss);
-	if (IsValid(Boss))
+	// 쓰러지는 중인 보스는 피해를 받지 않으므로, 이때는 쏘지 않고 소리도 내지 않습니다.
+	if (IsValid(Boss) && Boss->GetCurrentHP() > 0)
 	{
 		bIsActed = true;
+		// 포탑 공격 소리입니다. 보스 피격 소리는 ApplyDamage 안에서 따로 납니다.
+		if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+		{
+			SoundManager->PlayTurretFireSound();
+		}
 		Boss->ApplyDamage(AttackPoint, this);
 	}
 }

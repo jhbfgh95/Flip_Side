@@ -11,6 +11,7 @@
 #include "Subsystem/CardLogicLibrary.h"
 #include "Subsystem/BattleLevel/BattleManagerWSubsystem.h"
 #include "Subsystem/BattleLevel/CoinManagementWSubsystem.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 #include "Subsystem/MoneyGISubsystem.h"
 #include "Component_Status.h"
 #include "CoinActor.h"
@@ -506,6 +507,7 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
         CollectCoinsOnField(FieldCoins);
         BuildSourceSlots(SourceSlots);
     }
+    bool bCardApplied = false;
     for (int32 Slot = 0; Slot < HandCount; ++Slot)
     {
         if (!bHasCard[Slot])
@@ -524,26 +526,36 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
         if (Card.CardID == 1 && bTurnInitialized)
         {
             // 진입 시 판정과 대상은 고정합니다. 사망한 액터는 Sync에서 제외합니다.
-            SyncCardModifiers(Slot, Runtime[Slot].EntryModifiers);
+            bCardApplied |= SyncCardModifiers(Slot, Runtime[Slot].EntryModifiers);
         }
         else
         {
             TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers> Desired;
             const bool bActive = FCardLogicLibrary::Evaluate(Card, FieldCoins, SourceSlots,
                 BattleEntryGold, PromotionHighlightedGrid, DM, Desired);
-            SyncCardModifiers(Slot, Desired);
+            bCardApplied |= SyncCardModifiers(Slot, Desired);
             SetCardActive(Slot, bActive);
+        }
+    }
+
+    // 새로 효과를 준 카드가 있으면 여러 장이어도 소리는 한 번만 냅니다. 보스 차례에 켜진 카드는 다음 턴 전에 사라지므로 소리를 내지 않습니다.
+    if (bCardApplied && Phase == EPhaseState::CoinBehaviorPhase)
+    {
+        if (USoundManagerWSubsystem* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>())
+        {
+            SoundManager->PlayCardActivateSound();
         }
     }
 }
 
-void UStageCardWSubsystem::SyncCardModifiers(int32 Slot, const TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Desired)
+bool UStageCardWSubsystem::SyncCardModifiers(int32 Slot, const TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Desired)
 {
     FStageCardRuntimeState& State = Runtime[Slot];
     const int32 CardID = bHasCard.IsValidIndex(Slot) && bHasCard[Slot] ? HandCards[Slot].CardID : INDEX_NONE;
     const int32 BuffType = CardBuffTypeBase + Slot;
     const bool bGoldCard = State.CardID == 4 || CardID == 4;
     bool bAppliedChanged = false;
+    bool bNewlyApplied = false;
     for (auto It = State.Applied.CreateIterator(); It; ++It)
     {
         ACoinActor* Coin = It.Key().Get();
@@ -560,7 +572,7 @@ void UStageCardWSubsystem::SyncCardModifiers(int32 Slot, const TMap<TWeakObjectP
     if (CardID == INDEX_NONE)
     {
         if (bGoldCard && bAppliedChanged) OnBattleCardDataChanged.Broadcast();
-        return;
+        return false;
     }
     for (const auto& Pair : Desired)
     {
@@ -581,14 +593,17 @@ void UStageCardWSubsystem::SyncCardModifiers(int32 Slot, const TMap<TWeakObjectP
         Effect.Modifier.AbilityRange = Pair.Value.AbilityRangeAdd;
         Effect.ReactiveBehavior = Pair.Value.bLifeSteal ? EStatusReactiveBehavior::LifeSteal : EStatusReactiveBehavior::None;
         const bool bModifiersChanged = !Previous || !(*Previous == Pair.Value);
+        const bool bFirstApply = !Previous;
         if (Coin->StatComponent->SetCardStatusEffect(Effect))
         {
             State.Applied.Add(Pair.Key, Pair.Value);
             bAppliedChanged |= bModifiersChanged;
+            bNewlyApplied |= bFirstApply;
         }
     }
     // 실제 적용/해제 이후에도 알림을 보내 호버 중인 추가 정보가 이전 턴의 값을 남기지 않게 합니다.
     if (bGoldCard && bAppliedChanged) OnBattleCardDataChanged.Broadcast();
+    return bNewlyApplied;
 }
 
 void UStageCardWSubsystem::SetCardActive(int32 Slot, bool bActive)

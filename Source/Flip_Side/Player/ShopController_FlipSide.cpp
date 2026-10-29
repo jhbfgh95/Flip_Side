@@ -48,6 +48,11 @@ void AShopController_FlipSide::BeginPlay()
     this->bShowMouseCursor = true;
     this->bEnableMouseOverEvents = true;
     SetLockMouse(false);
+    // 전투 결과 화면이 켠 UI 전용 입력은 게임 창에 남아 레벨을 옮겨도 유지되므로, 테이블 3D 클릭이 다시 들어오도록 되돌립니다.
+    FInputModeGameAndUI InputMode;
+    InputMode.SetHideCursorDuringCapture(false);
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+    SetInputMode(InputMode);
 ////////////////////////////
     /*서브시스템*/
     UDataManagerSubsystem* DataManager = GetWorld()->GetGameInstance()->GetSubsystem<UDataManagerSubsystem>();

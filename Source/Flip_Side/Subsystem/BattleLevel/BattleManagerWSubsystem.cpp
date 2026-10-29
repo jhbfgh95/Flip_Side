@@ -740,13 +740,17 @@ void UBattleManagerWSubsystem::ShowStageEndWidget(int32 StageEndFlag)
     StageEndWidgetInstance->SetStageEndFlag(StageEndFlag);
     StageEndWidgetInstance->AddToViewport(100);
 
-    // 결과 신호음을 틀고 전투 BGM은 서서히 줄입니다. 게임 클리어는 전용 소리가 생기기 전까지 스테이지 클리어 소리를 씁니다.
+    // 결과 신호음을 틀고 전투 BGM은 서서히 줄입니다. 게임 클리어 소리는 BGM 자리를 쓰므로 BGM을 먼저 줄여야 합니다.
     if (IsValid(SoundManager))
     {
         SoundManager->FadeOutLevelBGM();
         if (StageEndFlag == GameOverFlag)
         {
             SoundManager->PlayGameOverSound();
+        }
+        else if (StageEndFlag == GameClearFlag)
+        {
+            SoundManager->PlayGameClearSound();
         }
         else
         {

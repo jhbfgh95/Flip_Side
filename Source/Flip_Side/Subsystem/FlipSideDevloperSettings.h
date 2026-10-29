@@ -145,6 +145,21 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
 	TSoftObjectPtr<USoundBase> TurnStartSFX;
 
+	// 카드 조건이 맞아 카드 효과가 코인에 새로 들어갔을 때 소리입니다. 내 차례(코인 행동 페이즈)에만 나고, 여러 장이 한꺼번에 발동해도 한 번만 납니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> CardActivateSFX;
+
+	// 무기 능력·보스 버프로 코인 능력치가 실제로 올랐을 때 소리입니다. 카드·아이템 버프, 디버프, 버프 만료, 다음 턴 복원에는 나지 않습니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> StatusBuffGainSFX;
+
+	// 자동 포탑 설치 세트가 칸을 골라 포탑을 실제로 놓는 순간과, 설치된 포탑이 보스를 쏠 때 소리입니다. 무기의 공격 소리는 DB sfx_path에 따로 있습니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> TurretDeploySFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | SFX")
+	TSoftObjectPtr<USoundBase> TurretFireSFX;
+
 	// 보스 공통 소리입니다. 한 번 맞을 때는 실드 파괴 > 보스 피격 > 실드 피격 중 하나만 납니다. 그로기 보스가 피해 0으로 막을 때도 실드 피격 소리가 납니다.
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | Boss")
 	TSoftObjectPtr<USoundBase> BossPhaseStartSFX;
@@ -168,12 +183,16 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | Boss")
 	TSoftObjectPtr<USoundBase> RoleMarkSFX;
 
-	// 스테이지 결과 창이 뜰 때 신호음입니다. 이때 전투 BGM은 서서히 줄어듭니다. 게임 클리어도 스테이지 클리어 소리를 씁니다.
+	// 스테이지 결과 창이 뜰 때 신호음입니다. 이때 전투 BGM은 서서히 줄어듭니다.
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | Stinger")
 	TSoftObjectPtr<USoundBase> StageClearSFX;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | Stinger")
 	TSoftObjectPtr<USoundBase> GameOverSFX;
+
+	// 마지막 보스를 이겨 게임 클리어 창이 뜰 때 신호음입니다. 비워 두면 스테이지 클리어 소리를 씁니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Stinger")
+	TSoftObjectPtr<USoundBase> GameClearSFX;
 
 	// 상점 소리입니다. 골드 지불·부족은 모든 구매(코인 슬롯·코인 개수·아이템·카드·무기 해금)에 공통으로 납니다.
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | Shop")
@@ -192,6 +211,21 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | Shop")
 	TSoftObjectPtr<USoundBase> UnlockCompleteSFX;
 
+	// 보스를 이기고 돌아온 상점에서 보스 진행 표시의 다음 칸이 열릴 때 소리입니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Shop")
+	TSoftObjectPtr<USoundBase> BossProgressOpenSFX;
+
+	// 보유 카드를 고르거나 내려놓을 때 소리입니다. 카드 칸은 버튼이 아니라 스타일 소리가 없습니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Shop")
+	TSoftObjectPtr<USoundBase> CardSelectSFX;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Shop")
+	TSoftObjectPtr<USoundBase> CardUnselectSFX;
+
+	// 코인 관리에서 3D 코인을 눌러 앞뒷면 무기가 호를 그리며 자리를 바꿀 때 소리입니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | Shop")
+	TSoftObjectPtr<USoundBase> CoinSideFlipSFX;
+
 	// 공통 UI 소리입니다. 버튼의 마우스 올리기·클릭 소리는 각 버튼 스타일에 들어 있고, 여기는 코드에서 재생하는 소리입니다.
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | UI")
 	TSoftObjectPtr<USoundBase> PopupOpenSFX;
@@ -205,6 +239,14 @@ public:
 	// 버튼이 아닌 것(전투 코인·포탑, 상점 3D 오브젝트, 상점 목록 칸)에 마우스를 올릴 때 소리입니다. 버튼 스타일과 같은 소리를 씁니다.
 	UPROPERTY(Config, EditAnywhere, Category = "Sound | UI")
 	TSoftObjectPtr<USoundBase> HoverSFX;
+
+	// 튜토리얼 설명을 클릭해 다음으로 넘길 때 소리입니다. 전투 튜토리얼 설명창과 상점 튜토리얼 대화창이 함께 씁니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | UI")
+	TSoftObjectPtr<USoundBase> TutorialNextSFX;
+
+	// 상점 튜토리얼 대화창이 숨겨져 있다가 나타날 때 소리입니다. 대사만 바뀔 때는 나지 않습니다.
+	UPROPERTY(Config, EditAnywhere, Category = "Sound | UI")
+	TSoftObjectPtr<USoundBase> TutorialDialogueOpenSFX;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Battle VFX")
 	TSoftObjectPtr<UNiagaraSystem> Boss_Hit_VFX;

@@ -10,6 +10,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "GeometryCollection/GeometryCollectionComponent.h"
 #include "NiagaraComponent.h"
 #include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
@@ -43,6 +44,13 @@ ABossActor::ABossActor()
 	BossMesh->SetRelativeLocation(FVector(0.f, 0.f, 900.f));
 	BossMesh->SetRelativeScale3D(FVector(20.f, 20.f, 20.f));
 
+	// 평소에는 숨기고 물리도 끕니다(코인의 부서짐과 같은 방식).
+	BossFractureComponent = CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("BossFracture"));
+	BossFractureComponent->SetupAttachment(RootComponent);
+	BossFractureComponent->SetVisibility(false);
+	BossFractureComponent->SetSimulatePhysics(false);
+	BossFractureComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	ShieldEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ShieldEffect"));
 	ShieldEffectComponent->SetupAttachment(BossMesh);
 	ShieldEffectComponent->SetAutoActivate(false);
@@ -67,6 +75,20 @@ void ABossActor::BeginPlay()
 	}
 
 	AnimInstance = IsValid(BossMesh) ? BossMesh->GetAnimInstance() : nullptr;
+	if (IsValid(BossFractureComponent) && IsValid(BossMesh))
+	{
+		// 조각 메시를 보스 메시와 같은 자리·크기에 미리 놓아 둡니다. 부서지는 순간 옮기면 파편이 튈 수 있습니다.
+		BossFractureComponent->SetRelativeTransform(BossFracturePoseOffset * BossMesh->GetRelativeTransform());
+
+		if (BossFractureComponent->GetRestCollection())
+		{
+			// 조각 메시는 화면에 처음 올라가는 프레임에 재질이 준비되지 않아 회색으로 그려집니다.
+			// 시작할 때 보이지 않는 바닥 아래에서 잠깐 그려 재질을 준비시킨 뒤 숨겨 둡니다.
+			BossFractureComponent->AddRelativeLocation(FVector(0.f, 0.f, -100000.f));
+			BossFractureComponent->SetVisibility(true);
+			GetWorldTimerManager().SetTimer(BossFracturePrewarmTimerHandle, this, &ABossActor::FinishBossFracturePrewarm, 1.0f, false);
+		}
+	}
 	UpdateShieldEffect();
 	BroadcastBossHUDDataChanged();
 
@@ -162,6 +184,11 @@ int32 ABossActor::ApplyDamageAndReturnHPDamage(int32 Damage, AActor* DamageCause
 			bIsDying = true;
 			if(OnBossDeathStarted.IsBound()) OnBossDeathStarted.Broadcast();
 			AnimInstance->Montage_Play(BossClearAnim);
+
+			if (bFractureOnDeathStart && IsValid(BossFractureComponent) && BossFractureComponent->GetRestCollection())
+			{
+				PlayBossFracture();
+			}
 		}
 	}
 	else if(CurrentHP > 0)
@@ -476,6 +503,11 @@ void ABossActor::FinishBossClearAnimation()
 		BossMesh->bPauseAnims = true;
 	}
 
+	if (!bBossFracturePlayed && IsValid(BossFractureComponent) && BossFractureComponent->GetRestCollection())
+	{
+		PlayBossFracture();
+	}
+
 	BossDeadEffect();
 
 	if(BossDeadEffectDelay <= 0.0f)
@@ -502,6 +534,76 @@ void ABossActor::FinishBossClearAnimation()
 void ABossActor::BroadcastBossDeadAfterEffect()
 {
 	if(OnBossDead.IsBound()) OnBossDead.Broadcast();
+}
+
+void ABossActor::FinishBossFracturePrewarm()
+{
+	GetWorldTimerManager().ClearTimer(BossFracturePrewarmTimerHandle);
+	if (IsValid(BossFractureComponent) && IsValid(BossMesh))
+	{
+		BossFractureComponent->SetVisibility(false);
+		BossFractureComponent->SetRelativeTransform(BossFracturePoseOffset * BossMesh->GetRelativeTransform());
+	}
+}
+
+void ABossActor::PlayBossFracture()
+{
+	bBossFracturePlayed = true;
+
+	// 미리 그려 두는 중에 쓰러졌다면 먼저 제자리로 돌려놓습니다.
+	if (GetWorldTimerManager().IsTimerActive(BossFracturePrewarmTimerHandle))
+	{
+		FinishBossFracturePrewarm();
+	}
+
+	// 초상화 창은 사라진 몸 대신 마지막 얼굴을 그대로 남겨 둡니다.
+	if (IsValid(PortraitComponent))
+	{
+		PortraitComponent->SetComponentTickEnabled(false);
+	}
+
+	if (IsValid(BossMesh))
+	{
+		BossMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		BossMesh->SetVisibility(false, true);
+	}
+
+	if (bFractureFloorCollision && IsValid(BossFloorMesh))
+	{
+		BossFloorMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+
+	BossFractureComponent->SetVisibility(true);
+	BossFractureComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	BossFractureComponent->SetSimulatePhysics(true);
+	BossFractureComponent->CrumbleActiveClusters();
+
+	BossFractureImpulseTries = 0;
+	GetWorldTimerManager().SetTimer(BossFractureImpulseTimerHandle, this, &ABossActor::ApplyBossFractureImpulse, 0.02f, true);
+}
+
+void ABossActor::ApplyBossFractureImpulse()
+{
+	// Chaos의 비동기 분리가 끝나기 전에는 덩어리 전체에 속도를 주지 않습니다. 2초 안에 안 나뉘면 힘 없이 둡니다.
+	if (!IsValid(BossFractureComponent) || ++BossFractureImpulseTries > 100)
+	{
+		GetWorldTimerManager().ClearTimer(BossFractureImpulseTimerHandle);
+		return;
+	}
+
+	if (!BossFractureComponent->IsRootBroken())
+	{
+		return;
+	}
+
+	GetWorldTimerManager().ClearTimer(BossFractureImpulseTimerHandle);
+	// 액터 원점 대신 원래 덩어리의 질량 중심을 기준으로 파편을 퍼뜨립니다.
+	const FTransform RootTransform = BossFractureComponent->GetRootInitialTransform();
+	const FVector CenterLoc = RootTransform.TransformPosition(
+		BossFractureComponent->GetRootParticleMassOffset().GetLocation());
+	// RIF_Constant는 반경을 쓰지 않아 모든 조각이 같은 속도로 퍼집니다.
+	const float Radius = 10000.f;
+	BossFractureComponent->AddRadialImpulse(CenterLoc, Radius, BossFractureImpulseStrength, ERadialImpulseFalloff::RIF_Constant, true);
 }
 
 void ABossActor::UpdateShieldEffect()

@@ -15,6 +15,7 @@
 #include "Subsystem/BattleLevel/CoinActionManagementWSubsystem.h"
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
 #include "Subsystem/BattleLevel/OthersWSubsystem.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 namespace
 {
@@ -160,6 +161,11 @@ bool UAbilityLogicLibrary::InstallAutoTurret(UWeapon_Action* WeaponContext)
 	if (UOthersWSubsystem* OthersManager = World->GetSubsystem<UOthersWSubsystem>())
 	{
 		OthersManager->RegisterOther(Turret);
+	}
+	// 포탑이 실제로 놓인 순간에만 설치 소리를 냅니다. 무기의 공격 소리(sfx_path)는 공격할 때 따로 납니다.
+	if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+	{
+		SoundManager->PlayTurretDeploySound();
 	}
 	return true;
 }

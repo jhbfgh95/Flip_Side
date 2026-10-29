@@ -10,6 +10,7 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/MeshComponent.h"
 #include "GameFramework/Actor.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 void UW_ShopTutorialWidget::NativeConstruct()
 {
@@ -18,6 +19,11 @@ void UW_ShopTutorialWidget::NativeConstruct()
 	if (IsValid(DialogueButton))
 	{
 		DialogueButton->OnClicked.AddUniqueDynamic(this, &ThisClass::HandleDialogueClicked);
+
+		// 대화 넘기기 소리는 코드에서 냅니다(TutorialNextSFX). 버튼 스타일의 클릭 소리는 겹치지 않게 뺍니다.
+		FButtonStyle Style = DialogueButton->GetStyle();
+		Style.PressedSlateSound = FSlateSound();
+		DialogueButton->SetStyle(Style);
 	}
 
 	if (IsValid(DimMaskImage))
@@ -30,11 +36,13 @@ void UW_ShopTutorialWidget::NativeConstruct()
 void UW_ShopTutorialWidget::SetTutorialActive(bool bIsActive)
 {
 	SetVisibility(bIsActive ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	UpdateDialogueOpenSound();
 }
 
 void UW_ShopTutorialWidget::SetTutorialInputEnabled(bool bInEnabled)
 {
 	SetVisibility(bInEnabled ? ESlateVisibility::Visible : ESlateVisibility::HitTestInvisible);
+	UpdateDialogueOpenSound();
 }
 
 void UW_ShopTutorialWidget::SetDialogueText(const FText& InText)
@@ -50,6 +58,7 @@ void UW_ShopTutorialWidget::SetDialogueText(const FText& InText)
 	{
 		DialogueText->SetText(InText);
 	}
+	UpdateDialogueOpenSound();
 }
 
 void UW_ShopTutorialWidget::SetDialogueBorderVisible(bool bInVisible)
@@ -60,6 +69,23 @@ void UW_ShopTutorialWidget::SetDialogueBorderVisible(bool bInVisible)
 			? ESlateVisibility::SelfHitTestInvisible
 			: ESlateVisibility::Collapsed);
 	}
+	UpdateDialogueOpenSound();
+}
+
+void UW_ShopTutorialWidget::UpdateDialogueOpenSound()
+{
+	const bool bShown = IsVisible() && IsValid(DialogueBorder) && DialogueBorder->IsVisible();
+	if (bShown && !bDialogueShown)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+			{
+				SoundManager->PlayTutorialDialogueOpenSound();
+			}
+		}
+	}
+	bDialogueShown = bShown;
 }
 
 void UW_ShopTutorialWidget::SetDimMaskHole(FVector2D InAbsolutePosition, FVector2D InAbsoluteSize)

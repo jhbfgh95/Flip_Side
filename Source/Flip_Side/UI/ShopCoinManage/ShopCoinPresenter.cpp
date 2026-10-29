@@ -16,6 +16,7 @@
 #include "UI/ShopCoinManage/W_ShopSlotCoinDes.h"
 #include "Actors/ShopWeaponRangePreviewActor.h"
 #include "UI/ShopCoinManage/W_ShopCoinWarning.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 #include "Engine/SpotLight.h"
 #include "Components/LightComponent.h"
 void UShopCoinPresenter::InitPresenter(UW_ShopCoinWidget* InShopCoinWidget, UShopCoinWSubsystem* InCoinSubsystem
@@ -645,6 +646,14 @@ void UShopCoinPresenter::SetCoinSideFront(bool SetFront)
 	
 void UShopCoinPresenter::ChangeCoinSide()
 {
+	// 플레이어가 3D 코인을 눌러 앞뒷면이 자리를 바꿀 때만 소리를 냅니다. 코인을 새로 고를 때 앞면으로 되돌리는 경우는 소리가 없습니다.
+	if (UWorld* World = GetWorld())
+	{
+		if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+		{
+			SoundManager->PlayCoinSideFlipSound();
+		}
+	}
 	SetCoinSideFront(!IsCurrentCoinSideFront);
 	RestoreSelectedCoinSideWeaponDescription();
 	OnCoinSideChanged.Broadcast(IsCurrentCoinSideFront);

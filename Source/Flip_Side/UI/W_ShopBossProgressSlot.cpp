@@ -3,6 +3,7 @@
 #include "Animation/WidgetAnimation.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 void UW_ShopBossProgressSlot::NativeConstruct()
 {
@@ -61,6 +62,15 @@ void UW_ShopBossProgressSlot::OpenSlot()
 	if (IsValid(OpenSlotAnimation))
 	{
 		PlayAnimation(OpenSlotAnimation);
+
+		// 칸이 실제로 열리는 애니메이션과 함께 소리를 냅니다. 이미 깬 칸은 소리 없이 열린 모습으로 둡니다.
+		if (UWorld* World = GetWorld())
+		{
+			if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+			{
+				SoundManager->PlayBossProgressOpenSound();
+			}
+		}
 	}
 	else
 	{

@@ -5,6 +5,7 @@
 #include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/UnlockGISubsystem.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
 #include "UI/ShopCard/W_ShopCardMainWidget.h"
 #include "UI/ShopCard/W_ShopCardSlotContainer.h"
@@ -76,6 +77,15 @@ void UShopCardPresenter::SelectedPlayerCard(UW_ShopPlayerCardSlot* SelectedCardS
         ->GetShopPlayerCardSlotContainer()
         ->SetSelectCardCountText(CardSubsystem->GetPlayerSelectCardCount());
 
+    // 카드를 실제로 골랐을 때만 소리를 냅니다. 이 프레젠터는 바깥 객체 없이 만들어져 GetWorld()가 비므로 위젯의 월드를 씁니다.
+    if (UWorld* World = ShopCardMainWidget->GetWorld())
+    {
+        if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+        {
+            SoundManager->PlayCardSelectSound();
+        }
+    }
+
 	OnPlayerCardSelected.Broadcast(CardID);
 
 }
@@ -87,6 +97,15 @@ void UShopCardPresenter::UnselectedPlayerSelectedCard(int32 RemoveSlotIndex)
         ShopCardMainWidget->GetShopPlayerCardSlotContainer()->RemovePlayerSelectCardSlot(RemoveSlotIndex);
         ShopCardMainWidget->GetShopPlayerCardSlotContainer()->SetSelectCardCountText(
             CardSubsystem->GetPlayerSelectCardCount());
+
+        // 카드를 실제로 내려놓았을 때만 소리를 냅니다(목록에서 다시 누르기와 위쪽 선택 칸 누르기 모두 여기로 옵니다).
+        if (UWorld* World = ShopCardMainWidget->GetWorld())
+        {
+            if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+            {
+                SoundManager->PlayCardUnselectSound();
+            }
+        }
     }
 }
 void UShopCardPresenter::UnselectedPlayerCard(int32 CardID)
