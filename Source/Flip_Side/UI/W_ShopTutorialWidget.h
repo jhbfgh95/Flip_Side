@@ -85,6 +85,10 @@ private:
 	bool bHighlightOverlayVisible = false;
 	bool bHasHighlight = false;
 
+	// 대화창(위젯과 DialogueBorder가 모두 보임)이 숨겨져 있다가 보일 때만 열기 소리를 냅니다.
+	void UpdateDialogueOpenSound();
+	bool bDialogueShown = false;
+
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> DimMaskMID;
 

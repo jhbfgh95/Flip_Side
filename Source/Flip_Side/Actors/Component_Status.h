@@ -29,6 +29,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBuffListChanged, bool, bIsBuffOn)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponStatsChanged, const FWeaponStatsChangedEvent&);
 // CoinActor VFX와 추후 버프 UI가 상태효과의 추가·제거를 감지할 때 구독합니다.
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnStatusEffectsChanged, const FStatusEffectsChangedEvent&);
+// 무기 능력·보스 버프로 능력치(공격력·무기력·횟수·사거리·최대 HP)가 실제로 올랐을 때만 알립니다. 카드·아이템 버프, 디버프, 복원, 제거는 포함하지 않습니다.
+DECLARE_MULTICAST_DELEGATE(FOnStatBuffGained);
 
 /** 기존 카드·아이템 로직이 FActionTask 기반으로 동작하는 동안만 유지하는 호환 버프 데이터입니다. */
 USTRUCT(BlueprintType)
@@ -165,6 +167,8 @@ public:
 	FOnHPChanged OnHpDamaged;
 	// 회복(ApplyHeal)으로 HP가 실제로 올랐을 때만 알립니다(값은 오른 양). 최대 HP 증가나 SetHP로 오르는 경우는 포함하지 않습니다.
 	FOnHPChanged OnHpHealed;
+	// AddStatusEffect로 능력치를 올리는 버프가 새로 붙었을 때만 알립니다. 다음 턴 복원과 제거는 포함하지 않습니다.
+	FOnStatBuffGained OnStatBuffGained;
 	FOnMaxHPChanged OnMaxHPChanged;
 	FOnShieldChanged OnShieldChanged;
 	FOnCCRemoved OnCCRemove;

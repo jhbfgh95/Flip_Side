@@ -31,6 +31,15 @@ namespace
 		const int64 Result = static_cast<int64>(Target) + static_cast<int64>(Value) * StackCount;
 		Target = static_cast<int32>(FMath::Clamp<int64>(Result, MIN_int32, MAX_int32));
 	}
+
+	// 능력치를 하나라도 올리는 수정치인지 봅니다. 보호막·회피 같은 반응형 버프는 수치가 0이라 제외됩니다.
+	bool HasStatGain(const FWeaponStatModifier& Modifier)
+	{
+		return Modifier.AttackPoint > 0 || Modifier.WeaponPoint > 0 || Modifier.WeaponCnt > 0 || Modifier.MaxHP > 0 ||
+			Modifier.AttackRange > 0 || Modifier.AbilityRange > 0 ||
+			Modifier.AttackAreaSpec.ParamA > 0 || Modifier.AttackAreaSpec.ParamB > 0 ||
+			Modifier.AbilityAreaSpec.ParamA > 0 || Modifier.AbilityAreaSpec.ParamB > 0;
+	}
 }
 
 UComponent_Status::UComponent_Status()
@@ -305,6 +314,12 @@ bool UComponent_Status::AddStatusEffect(FStatusEffectInstance StatusEffect)
 		MarkWeaponStatsDirty(ChangeFlags);
 	}
 	BroadcastStatusEffectChanged(StatusEffect);
+	// 카드는 카드 발동 소리, 아이템은 아이템 소리가 따로 나므로 그 밖의 출처만 알립니다. 카드 버프는 조건이 다시 맞을 때마다 다시 붙어서 여기서 빼야 합니다.
+	if (StatusEffect.Polarity == EStatusPolarity::Buff && HasStatGain(StatusEffect.Modifier) &&
+		StatusEffect.SourceType != EStatusEffectSourceType::Card && StatusEffect.SourceType != EStatusEffectSourceType::Item)
+	{
+		OnStatBuffGained.Broadcast();
+	}
 	return true;
 }
 

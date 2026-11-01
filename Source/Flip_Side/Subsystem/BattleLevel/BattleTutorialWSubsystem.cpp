@@ -18,6 +18,7 @@
 #include "Subsystem/BattleLevel/GridManagerSubsystem.h"
 #include "Subsystem/BattleLevel/BossManagerSubsystem.h"
 #include "Subsystem/BattleLevel/BattleLevelActingWSubsystem.h"
+#include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 #include "Actors/GridActor.h"
 #include "Actors/Boss/BossActor.h"
 #include "Actors/Boss/BossPillarActor.h"
@@ -397,6 +398,8 @@ void UBattleTutorialWSubsystem::HandleOverlayClicked()
 	if (!bInitialized || bAdvanceQueued || bWaitingForBossPattern || bWaitingForAbilitySelection || bWaitingForItemAnimation) return;
 	const FBattleTutorialStep& Step = TutorialSteps[CurrentStepIndex];
 	if (Step.bRequireHighlightedAction) return;
+	// 설명을 넘기는 클릭으로 받아들여진 때만 넘기기 소리를 냅니다.
+	if (auto* SoundManager = GetWorld()->GetSubsystem<USoundManagerWSubsystem>(); IsValid(SoundManager)) SoundManager->PlayTutorialNextSound();
 	if (Step.bRunBossPatternOnExit)
 	{
 		bWaitingForBossPattern = true; OverlayWidget->SetTransitionBusy(true);

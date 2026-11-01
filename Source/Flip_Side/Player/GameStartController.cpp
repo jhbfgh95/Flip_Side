@@ -18,6 +18,11 @@ void AGameStartController::BeginPlay()
 	Super::BeginPlay();
 
 	bShowMouseCursor = true;
+	// 전투 결과 화면이 켠 UI 전용 입력은 게임 창에 남으므로, 시작 화면에서도 기본 입력으로 되돌립니다.
+	FInputModeGameAndUI InputMode;
+	InputMode.SetHideCursorDuringCapture(false);
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	SetInputMode(InputMode);
 
 	if (GameStartButtonBoxClass)
 	{

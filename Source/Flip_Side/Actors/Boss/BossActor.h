@@ -147,17 +147,52 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Death")
 	float BossDeadEffectDelay = 1.0f;
 
+	// 쓰러진 자세 조각 메시를 보스 메시 기준으로 맞추는 보정값입니다. 보스 메시에서 그 자세를 그대로 떠 왔다면 기본값 그대로 둡니다.
+	UPROPERTY(EditAnywhere, Category = "Boss|Death")
+	FTransform BossFracturePoseOffset;
+
+	// 조각이 흩어지는 속도(cm/s)입니다. 보스가 커서 작으면 그 자리에 무너져 내리기만 합니다.
+	UPROPERTY(EditAnywhere, Category = "Boss|Death", meta = (ClampMin = "0"))
+	float BossFractureImpulseStrength = 1500.f;
+
+	// 보스 발판은 평소 충돌이 없어서, 부서지는 순간 켜야 조각이 발판을 뚫고 떨어지지 않습니다.
+	UPROPERTY(EditAnywhere, Category = "Boss|Death")
+	bool bFractureFloorCollision = true;
+
+	// 쓰러지는 동작이 멈출 때를 기다리지 않고 마지막 공격을 맞는 순간 부서집니다. 조각 메시가 맞을 때의 자세로 만들어진 보스용입니다.
+	UPROPERTY(EditAnywhere, Category = "Boss|Death")
+	bool bFractureOnDeathStart = false;
+
 	bool bIsDying = false;
 
 	bool bBossDeathFinished = false;
 
+	bool bBossFracturePlayed = false;
+
 	FTimerHandle BossDeadEffectTimerHandle;
+
+	FTimerHandle BossFractureImpulseTimerHandle;
+
+	FTimerHandle BossFracturePrewarmTimerHandle;
+
+	int32 BossFractureImpulseTries = 0;
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	void BossMontageEnded(class UAnimMontage* TargetMontage, bool bInterrupted);
 
 	UFUNCTION()
 	void BroadcastBossDeadAfterEffect();
+
+	// 보스 메시를 숨기고 같은 자리의 조각 메시를 부서뜨립니다.
+	void PlayBossFracture();
+
+	// Chaos가 조각을 나눈 뒤에 흩뜨리는 힘을 줍니다. 보스는 틱을 쓰지 않아 타이머로 확인합니다.
+	UFUNCTION()
+	void ApplyBossFractureImpulse();
+
+	// 미리 그려 둔 조각 메시를 숨기고 보스 메시 자리로 되돌립니다.
+	UFUNCTION()
+	void FinishBossFracturePrewarm();
 
 	void UpdateShieldEffect();
 	void BroadcastBossHUDDataChanged();
@@ -172,6 +207,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Background")
 	class UStaticMeshComponent* BossFloorMesh;
+
+	// 쓰러짐 동작이 멈추는 순간 보스 대신 보여 주고 부서뜨리는 조각 메시입니다. Rest Collection이 비어 있으면 지금처럼 멈춘 모습으로 남습니다.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss|Death")
+	TObjectPtr<class UGeometryCollectionComponent> BossFractureComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss")
 	class USceneComponent* BossSelfEffectLoc;

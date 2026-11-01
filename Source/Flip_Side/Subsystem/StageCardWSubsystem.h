@@ -80,7 +80,8 @@ private:
     void ClearSlot(int32 HandIndex, bool bNotify);
     void CollectCoinsOnField(TArray<FCoinOnGridInfo>& OutCoins) const;
     void BuildSourceSlots(TMap<int32, int32>& OutSlots) const;
-    void SyncCardModifiers(int32 Slot, const TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Desired);
+    // 이번 호출에서 이 카드 효과를 처음 받은 코인이 있으면 true입니다(카드 발동 소리용).
+    bool SyncCardModifiers(int32 Slot, const TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers>& Desired);
     void SetCardActive(int32 Slot, bool bActive);
     void UnActiveCardUI();
 

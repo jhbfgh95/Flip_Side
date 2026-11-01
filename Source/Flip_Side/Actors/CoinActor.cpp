@@ -115,6 +115,7 @@ void ACoinActor::BeginPlay()
 		StatComponent->OnHpChanged.AddUObject(this, &ACoinActor::OnCoinHpChanged);
 		StatComponent->OnHpDamaged.AddUObject(this, &ACoinActor::OnCoinDamaged);
 		StatComponent->OnHpHealed.AddUObject(this, &ACoinActor::OnCoinHealed);
+		StatComponent->OnStatBuffGained.AddUObject(this, &ACoinActor::OnCoinStatBuffGained);
 		StatComponent->OnCCActived.AddDynamic(this, &ACoinActor::OnCCApplied);
 		StatComponent->OnCCRemove.AddDynamic(this, &ACoinActor::OnCCRemoved);
 		StatComponent->OnStatusEffectsChanged.AddUObject(this, &ACoinActor::HandleStatusEffectsChanged);
@@ -153,6 +154,7 @@ void ACoinActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		StatComponent->OnWeaponStatsChanged.RemoveAll(this);
 		StatComponent->OnHpDamaged.RemoveAll(this);
 		StatComponent->OnHpHealed.RemoveAll(this);
+		StatComponent->OnStatBuffGained.RemoveAll(this);
 	}
 	Super::EndPlay(EndPlayReason);
 }
@@ -766,6 +768,22 @@ void ACoinActor::OnCoinHealed(int32 Heal)
 		if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
 		{
 			SoundManager->PlayCoinHealSound();
+		}
+	}
+}
+
+void ACoinActor::OnCoinStatBuffGained()
+{
+	if (bDeathStarted)
+	{
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		if (USoundManagerWSubsystem* SoundManager = World->GetSubsystem<USoundManagerWSubsystem>())
+		{
+			SoundManager->PlayStatusBuffGainSound();
 		}
 	}
 }
