@@ -159,6 +159,16 @@ void UShopCardPresenter::HandleDetailButtonUnhovered()
 void UShopCardPresenter::InitShopCardSlot()
 {
     TArray<FCardData> ShopCardData = CardSubsystem->GetCardListArray();
+    if (IsValid(UnlockSubsystem))
+    {
+        for (int32 Index = ShopCardData.Num() - 1; Index >= 0; --Index)
+        {
+            if (UnlockSubsystem->IsCardUnlockByID(ShopCardData[Index].CardID))
+            {
+                ShopCardData.RemoveAt(Index);
+            }
+        }
+    }
     ShopCardMainWidget->GetShopCardSlotContainer()->InitWidget(ShopCardData);
     ShopCardSlotViews = ShopCardMainWidget->GetShopCardSlotContainer()->GetShopCardSlots();
 

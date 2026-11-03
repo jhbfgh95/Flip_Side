@@ -2,6 +2,7 @@
 
 #include "Animation/WidgetAnimation.h"
 #include "Components/Image.h"
+#include "Components/Border.h"
 #include "Components/TextBlock.h"
 #include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
@@ -20,8 +21,15 @@ void UW_ShopBossProgressSlot::InitializeProgressSlot(const FBossDisplayData& InB
 	if (IsValid(BossImage))
 	{
 		BossImage->SetBrushFromTexture(BossData.BossIcon);
-		BossImage->SetColorAndOpacity(
+		BossImage->SetBrushColor(
 			bCleared ? FLinearColor(0.5f, 0.5f, 0.5f, 1.0f) : FLinearColor::White);
+	}
+
+	if (IsValid(BossClearImage))
+	{
+		BossClearImage->SetVisibility(bCleared
+			? ESlateVisibility::HitTestInvisible
+			: ESlateVisibility::Collapsed);
 	}
 
 	if (IsValid(BossNameText))

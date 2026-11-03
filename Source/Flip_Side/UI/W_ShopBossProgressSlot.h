@@ -24,7 +24,10 @@ protected:
 	virtual void NativeConstruct() override;
 
 	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<class UImage> BossImage;
+	TObjectPtr<class UBorder> BossImage;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UImage> BossClearImage;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> BossNameText;
