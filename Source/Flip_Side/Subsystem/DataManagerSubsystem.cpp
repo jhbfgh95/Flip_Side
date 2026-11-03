@@ -131,18 +131,6 @@ bool UDataManagerSubsystem::TryGetWeaponsByType(
 }
 
 
-void UDataManagerSubsystem::BuildWeaponTypeMap(const TArray<FFaceData>& AllWeapons)
-{
-    WeaponByTypeID.Empty();
-
-    for (const FFaceData& Weapon : AllWeapons)
-    {
-        // TypeID �������� �ڵ� �׷���
-        WeaponByTypeID.FindOrAdd(Weapon.TypeID).Add(Weapon);
-    }
-}
-
-
 bool UDataManagerSubsystem::TryGetBossByStage(int32 Stage, FBossDisplayData& Out) const
 {
     const int32* BossIDPtr = BossIDByStage.Find(Stage);
@@ -550,7 +538,8 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
         "p.area_pattern, p.anchor_dx, p.anchor_dy, p.anchor_mode, p.param_a, p.param_b, p.side, "
         "p.pattern_icon_path, p.pattern_range_image_path, p.shield_heal, "
         "p.gimmick_type, p.param_a, p.param_b, "
-        "COALESCE(g.param_int_a, 0) AS gimmick_int_a, COALESCE(g.param_int_b, 0) AS gimmick_int_b, p.no_damage "
+        "COALESCE(g.param_int_a, 0) AS gimmick_int_a, COALESCE(g.param_int_b, 0) AS gimmick_int_b, p.no_damage, "
+        "COALESCE(g.param_float_a, 0) AS gimmick_float_a "
         "FROM boss_pattern_def p "
         "LEFT JOIN boss_gimmick g ON p.boss_id = g.boss_id AND p.gimmick_type = g.gimmick_type "
         "ORDER BY p.boss_id, p.pattern_order;"
@@ -567,6 +556,8 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
     {
         FBossPatternDisplayData Pattern;
         const int32 BossID         = GetColInt(Stmt, 0);
+        TArray<FBossPatternDisplayData>& BossPatterns = BossPatternDisplayByBossID.FindOrAdd(BossID);
+        const int32 PatternIndex = BossPatterns.Num();
         Pattern.PatternName        = GetColTextUTF8(Stmt, 2);
         Pattern.PatternDescription = FText::FromString(GetColTextUTF8(Stmt, 3));
         Pattern.DamageRatio        = (float)GetColDouble(Stmt, 4);
@@ -592,16 +583,31 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
         Pattern.GimmickType  = static_cast<EBossGimmickType>(GetColInt(Stmt, 15));
         Pattern.bIsGimmick   = Pattern.GimmickType != EBossGimmickType::None;
 
-        // 실명(Blind=6): gimmick_int_a(boss_gimmick.param_int_a) = 지속 턴수
-        // 늪(GridDebuff=2): param_a = 지속 턴수, param_b = 공격력 디버프
-        // 독(Poison=5): gimmick_int_a = 독 데미지
+        // 범위 크기(p.param_a/b)와 기믹 효과 수치를 구분합니다.
         const int32 PatternParamA  = GetColInt(Stmt, 16);
         const int32 PatternParamB  = GetColInt(Stmt, 17);
         const int32 GimmickIntA    = GetColInt(Stmt, 18);
+        const int32 GimmickIntB    = GetColInt(Stmt, 19);
+        const float GimmickFloatA  = static_cast<float>(GetColDouble(Stmt, 21));
 
-        if (Pattern.GimmickType == EBossGimmickType::Poison || Pattern.GimmickType == EBossGimmickType::Blind)
+        if (Pattern.GimmickType == EBossGimmickType::Poison)
         {
-            Pattern.GimmickParamA = GimmickIntA;
+            // BossGimmick_Poison의 낙인 피해 계수와 같은 컬럼/기본값을 사용합니다.
+            Pattern.GimmickParamA = GimmickFloatA > 0.f ? static_cast<int32>(GimmickFloatA) : 1;
+        }
+        else if (Pattern.GimmickType == EBossGimmickType::Blind)
+        {
+            Pattern.GimmickParamA = FMath::Clamp(GimmickIntA > 0 ? GimmickIntA : 2, 1, 999);
+        }
+        else if (Pattern.GimmickType == EBossGimmickType::GridDebuff)
+        {
+            // 전투처럼 정렬된 패턴 인덱스 0/1은 약화, 2는 조건부 피해입니다.
+            if (PatternIndex == 0 || PatternIndex == 1)
+            {
+                Pattern.GimmickParamA = FMath::Clamp(GimmickIntA, 0, 999);
+                const int32 StatDelta = PatternIndex == 0 ? GimmickIntB : FMath::RoundToInt(GimmickFloatA);
+                Pattern.GimmickParamB = StatDelta > 0 ? -StatDelta : StatDelta;
+            }
         }
         else
         {
@@ -609,7 +615,7 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
             Pattern.GimmickParamB = PatternParamB;
         }
 
-        BossPatternDisplayByBossID.FindOrAdd(BossID).Add(Pattern);
+        BossPatterns.Add(Pattern);
     }
 
     Stmt.Destroy();

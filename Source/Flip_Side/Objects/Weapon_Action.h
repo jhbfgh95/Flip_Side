@@ -54,7 +54,6 @@ public:
 	void MarkAbilityActorSelected(AActor* Actor);
 
 	const FFaceData& GetWeaponData() const { return WeaponData; }
-	UTexture2D* GetWeaponIcon() const { return WeaponData.WeaponIcon; }
 
 	FWeaponAttackResult ExecuteAttack();
 	bool ExecuteAbility(const FRegisteredAbilityLogic& AbilityLogic);

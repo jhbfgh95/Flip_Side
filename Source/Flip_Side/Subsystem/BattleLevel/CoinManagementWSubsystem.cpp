@@ -16,25 +16,6 @@
 
 namespace
 {
-	struct FDummyCoinWeaponPair
-	{
-		int32 FrontWeaponID;
-		int32 BackWeaponID;
-	};
-
-	constexpr FDummyCoinWeaponPair DummyCoinWeaponPairs[] =
-	{
-		{ 1, 2 },
-		{ 3, 4 },
-		{ 5, 6 },
-		{ 7, 8 },
-		{ 9, 10 },
-		{ 11, 12 },
-		{ 13, 14 },
-		{ 15, 16 },
-		{ 17, -2 },
-		{ -3, 20 }
-	};
 
 	FWeaponStatDisplayData BuildWeaponStatDisplayData(const FWeaponFaceStats& FaceStats)
 	{
@@ -87,14 +68,7 @@ void UCoinManagementWSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		}
 	}
 
-	if (InventoryCoinSlots.IsEmpty() && (!IsValid(Level) || !Level->IsTutorialBossBattleActive()))
-	{
-		CreateDummyCoinSlots();
-	}
-	else
-	{
-		InitializeCoinSlots(InventoryCoinSlots);
-	}
+	InitializeCoinSlots(InventoryCoinSlots);
 }
 
 bool UCoinManagementWSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -173,26 +147,6 @@ void UCoinManagementWSubsystem::InitializeCoinSlots(const TArray<FCoinTypeStruct
 	}
 
 	BroadcastCoinDataChanged();
-}
-
-void UCoinManagementWSubsystem::CreateDummyCoinSlots()
-{
-	TArray<FCoinTypeStructure> DummyCoinSlots;
-	DummyCoinSlots.Reserve(UE_ARRAY_COUNT(DummyCoinWeaponPairs));
-
-	for (int32 SlotIndex = 0; SlotIndex < UE_ARRAY_COUNT(DummyCoinWeaponPairs); ++SlotIndex)
-	{
-		const FDummyCoinWeaponPair& WeaponPair = DummyCoinWeaponPairs[SlotIndex];
-		FCoinTypeStructure& DummySlot = DummyCoinSlots.AddDefaulted_GetRef();
-		DummySlot.SlotNum = SlotIndex;
-		DummySlot.FrontWeaponID = WeaponPair.FrontWeaponID;
-		DummySlot.BackWeaponID = WeaponPair.BackWeaponID;
-		DummySlot.SameTypeCoinNum = 3;
-		DummySlot.Level = 1;
-	}
-
-	// 더미는 ID와 슬롯 기본값만 소유하며, 스탯·HP·아이콘·사거리는 실제 DB 초기화 경로에서 조회합니다.
-	InitializeCoinSlots(DummyCoinSlots);
 }
 
 bool UCoinManagementWSubsystem::TryAddReadyCoinFromSlot(int32 SlotNumber)
@@ -316,179 +270,6 @@ bool UCoinManagementWSubsystem::TryCancelReadyCoin(int32 CoinInstanceID)
 	return true;
 }
 
-bool UCoinManagementWSubsystem::ReplaceReadyCoinWithSample(
-	int32 FrontWeaponID,
-	int32 BackWeaponID,
-	int32 ReadySlotNumber)
-{
-	const int32 ReadySlotIndex = ReadySlotNumber - 1;
-	if (!ReadyCoins.IsValidIndex(ReadySlotIndex))
-	{
-		UE_LOG(LogTemp, Warning,
-			TEXT("[CoinManager] CreateSampleCoin 실패: ReadySlot은 1~10이어야 합니다."));
-		return false;
-	}
-
-	const FReadyCoinData PreviousReadyCoin = ReadyCoins[ReadySlotIndex];
-	if (PreviousReadyCoin.CoinInstanceID == INDEX_NONE || PreviousReadyCoin.BaseMaxHP <= 0)
-	{
-		UE_LOG(LogTemp, Warning,
-			TEXT("[CoinManager] CreateSampleCoin 실패: ReadySlot=%d에 교체할 코인이 없습니다."),
-			ReadySlotNumber);
-		return false;
-	}
-	if (IsValid(CoinActionManager) && CoinActionManager->IsActionSequenceActive())
-	{
-		UE_LOG(LogTemp, Warning,
-			TEXT("[CoinManager] CreateSampleCoin 실패: 코인 행동 진행 중에는 교체할 수 없습니다."));
-		return false;
-	}
-
-	UWorld* World = GetWorld();
-	UGameInstance* GameInstance = IsValid(World) ? World->GetGameInstance() : nullptr;
-	UDataManagerSubsystem* DataManager = IsValid(GameInstance)
-		? GameInstance->GetSubsystem<UDataManagerSubsystem>()
-		: nullptr;
-	FFaceData FrontWeaponData;
-	FFaceData BackWeaponData;
-	if (!IsValid(DataManager) || !DataManager->IsCacheReady() ||
-		!DataManager->TryGetWeapon(FrontWeaponID, FrontWeaponData) ||
-		!DataManager->TryGetWeapon(BackWeaponID, BackWeaponData))
-	{
-		UE_LOG(LogTemp, Warning,
-			TEXT("[CoinManager] CreateSampleCoin 실패: DB 무기 조회 실패. Front=%d Back=%d"),
-			FrontWeaponID, BackWeaponID);
-		return false;
-	}
-	if (FrontWeaponData.WeaponType == EWeaponClass::None ||
-		!IsValid(FrontWeaponData.WeaponIcon) || !IsValid(BackWeaponData.WeaponIcon))
-	{
-		UE_LOG(LogTemp, Warning,
-			TEXT("[CoinManager] CreateSampleCoin 실패: 앞면 무기 클래스 또는 앞/뒷면 아이콘이 유효하지 않습니다."));
-		return false;
-	}
-
-	if (RuntimeCoinsByReadySlot.Num() != MaxReadyCoinCount)
-	{
-		RuntimeCoinsByReadySlot.SetNum(MaxReadyCoinCount);
-	}
-	ACoinActor* PreviousRuntimeCoin = RuntimeCoinsByReadySlot[ReadySlotIndex].Get();
-	if (IsValid(PreviousRuntimeCoin) && !IsValid(GridManager))
-	{
-		UE_LOG(LogTemp, Warning,
-			TEXT("[CoinManager] CreateSampleCoin 실패: 필드 코인 교체에 필요한 GridManager가 유효하지 않습니다."));
-		return false;
-	}
-
-	FReadyCoinData ReplacementCoin;
-	ReplacementCoin.CoinInstanceID = PreviousReadyCoin.CoinInstanceID;
-	ReplacementCoin.SourceSlotNumber = INDEX_NONE;
-	ReplacementCoin.FrontWeaponID = FrontWeaponID;
-	ReplacementCoin.BackWeaponID = BackWeaponID;
-	ReplacementCoin.CurrentHP = PreviousReadyCoin.BaseMaxHP;
-	ReplacementCoin.BaseMaxHP = PreviousReadyCoin.BaseMaxHP;
-	ReplacementCoin.Shield = 0;
-	ReplacementCoin.ShieldGaugeCapacity = 0;
-	ReplacementCoin.PersistentStatusEffects.Reset();
-	ReplacementCoin.bCanCancel = false;
-
-	if (!IsValid(PreviousRuntimeCoin))
-	{
-		ReadyCoins[ReadySlotIndex] = MoveTemp(ReplacementCoin);
-		BroadcastCoinDataChanged();
-		return true;
-	}
-
-	if (IsValid(CoinActionManager))
-	{
-		CoinActionManager->CancelSelectWeapon();
-	}
-
-	const FTransform PreviousTransform = PreviousRuntimeCoin->GetActorTransform();
-	const bool bWasHidden = PreviousRuntimeCoin->IsHidden();
-	const bool bHadCollision = PreviousRuntimeCoin->GetActorEnableCollision();
-	const EFaceState PreviousFace = PreviousRuntimeCoin->GetCoinDecidedFace();
-	const FGridPoint PreviousGrid = PreviousRuntimeCoin->GetDecidedGrid();
-	// BattleManager는 그리드 점유 성공 뒤에만 면을 결정하므로 None 여부로 배치 전/후를 구분합니다.
-	const bool bHadGridOccupation = PreviousFace != EFaceState::None;
-
-	ReadyCoins[ReadySlotIndex] = ReplacementCoin;
-	ACoinActor* ReplacementRuntimeCoin = SpawnRuntimeCoinActor(
-		ReadySlotIndex, PreviousTransform, bWasHidden, false);
-	if (!IsValid(ReplacementRuntimeCoin))
-	{
-		ReadyCoins[ReadySlotIndex] = PreviousReadyCoin;
-		return false;
-	}
-
-	ReplacementRuntimeCoin->SetGridPoint(PreviousGrid);
-	if (PreviousFace != EFaceState::None)
-	{
-		ReplacementRuntimeCoin->SetCoinFace(PreviousFace);
-	}
-	ReplacementRuntimeCoin->SetCoinIsActed(false);
-	ReplacementRuntimeCoin->SetCoinIsActing(false);
-
-	if (bHadGridOccupation)
-	{
-		GridManager->ReleaseCoinCell(PreviousGrid, PreviousRuntimeCoin);
-		if (!GridManager->TryOccupyCoinCell(PreviousGrid, ReplacementRuntimeCoin))
-		{
-			ReplacementRuntimeCoin->Destroy();
-			ReadyCoins[ReadySlotIndex] = PreviousReadyCoin;
-			GridManager->TryOccupyCoinCell(PreviousGrid, PreviousRuntimeCoin);
-			UE_LOG(LogTemp, Error,
-				TEXT("[CoinManager] CreateSampleCoin 실패: ReadySlot=%d의 그리드 점유 교체에 실패했습니다."),
-				ReadySlotNumber);
-			return false;
-		}
-	}
-
-	UnbindRuntimeCoinInteraction(PreviousRuntimeCoin);
-	PreviousRuntimeCoin->OnCoinDeathStarted.RemoveAll(this);
-	PreviousRuntimeCoin->Destroy();
-
-	ReplacementRuntimeCoin->SetActorHiddenInGame(bWasHidden);
-	ReplacementRuntimeCoin->SetActorEnableCollision(bHadCollision);
-	ReplacementRuntimeCoin->OnCoinDeathStarted.AddUObject(
-		this, &UCoinManagementWSubsystem::HandleRuntimeCoinDeathStarted);
-	BindRuntimeCoinInteraction(ReplacementRuntimeCoin);
-	RuntimeCoinsByReadySlot[ReadySlotIndex] = ReplacementRuntimeCoin;
-	BroadcastCoinDataChanged();
-	return true;
-}
-
-bool UCoinManagementWSubsystem::RemoveReadyCoinByInstanceID(int32 CoinInstanceID)
-{
-	const int32 ReadyCoinIndex = ReadyCoins.IndexOfByPredicate([CoinInstanceID](const FReadyCoinData& ReadyCoin)
-	{
-		return ReadyCoin.CoinInstanceID == CoinInstanceID;
-	});
-
-	if (ReadyCoinIndex == INDEX_NONE)
-	{
-		return false;
-	}
-
-	ReleaseAndDestroyRuntimeCoin(ReadyCoinIndex);
-
-	// 사망한 코인만 비우며, 뒤의 레디 코인을 앞으로 당기지 않습니다.
-	ReadyCoins[ReadyCoinIndex] = FReadyCoinData();
-	BroadcastCoinDataChanged();
-	return true;
-}
-
-void UCoinManagementWSubsystem::InitBattleReadyCoin()
-{
-	for (int32 ReadySlotIndex = 0; ReadySlotIndex < RuntimeCoinsByReadySlot.Num(); ++ReadySlotIndex)
-	{
-		ReleaseAndDestroyRuntimeCoin(ReadySlotIndex);
-	}
-
-	ReadyCoins.Init(FReadyCoinData(), MaxReadyCoinCount);
-	BroadcastCoinDataChanged();
-}
-
 int32 UCoinManagementWSubsystem::InstantiateReadyCoinActors()
 {
 	// 생성 자산/DB가 잘못되어 특정 액터를 만들지 못하더라도 BehaviorPhase 진입 사실은 유지합니다.
@@ -609,39 +390,6 @@ void UCoinManagementWSubsystem::SetBattleCoinItemFlags(bool bEnabled)
 		{
 			RuntimeCoin->SetCoinItemFlag(bEnabled);
 		}
-	}
-}
-
-bool UCoinManagementWSubsystem::IsCoinInBattleReady(ACoinActor* InCoin) const
-{
-	return IsValid(InCoin) && RuntimeCoinsByReadySlot.ContainsByPredicate([InCoin](const TObjectPtr<ACoinActor>& RuntimeCoin)
-	{
-		return RuntimeCoin.Get() == InCoin;
-	});
-}
-
-bool UCoinManagementWSubsystem::IsCoinIdInBattleReady(int32 TargetID) const
-{
-	return ReadyCoins.ContainsByPredicate([TargetID](const FReadyCoinData& ReadyCoin)
-	{
-		return ReadyCoin.CoinInstanceID == TargetID;
-	});
-}
-
-void UCoinManagementWSubsystem::LockCoinReady(ACoinActor* TargetCoin)
-{
-	if (!IsValid(TargetCoin))
-	{
-		return;
-	}
-
-	if (FReadyCoinData* ReadyCoin = ReadyCoins.FindByPredicate([TargetCoin](const FReadyCoinData& Data)
-	{
-		return Data.CoinInstanceID == TargetCoin->GetCoinID();
-	}))
-	{
-		ReadyCoin->bCanCancel = false;
-		BroadcastCoinDataChanged();
 	}
 }
 

@@ -900,64 +900,6 @@ void UGridManagerSubsystem::BuildCoinTargetCells(
     }
 }
 
-void UGridManagerSubsystem::PreviewHoveredCoinRange(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, const FGridPoint& finalRange)
-{
-
-	ResetBattleCoinPreview();
-
-	// 사거리 계산 (단일 진실 공급원)
-	TArray<FGridPoint> RangeCells;
-
-	FAttackAreaSpec ResolvedSpec = Spec;
-	// UseAnchorCell 계열은 finalRange(최종 사거리)를 기준으로 상대 오프셋 AnchorCell을 실제 절대 좌표로 바꿔준다.
-	if (ResolvedSpec.AnchorMode == EAreaAnchor::UseAnchorCell)
-	{
-		ResolvedSpec.AnchorCell.GridX = finalRange.GridX + Spec.AnchorCell.GridX;
-		ResolvedSpec.AnchorCell.GridY = finalRange.GridY + Spec.AnchorCell.GridY;
-	}
-
-	if (Spec.Pattern == EAttackAreaPattern::SingleCell)
-	{
-		GetValidGridsForSingleCell(CoinXY, ResolvedSpec, RangeCells);
-	}
-	else
-	{
-		FGridAreaBuilder::BuildCells(ResolvedSpec, GridXSize, GridYSize, RangeCells);
-	}
-
-	// 메인 그리드 하이라이트
-	if (AGridActor* CoinCell = GetGridActorAt(CoinXY.GridX, CoinXY.GridY))
-	{
-        CoinCell->bIsCoinRangePreview = true;
-		CoinCell->CoinRangeSet.Color = FLinearColor(0.f, 1.f, 0.3f, 1.f);
-		CoinCell->CoinRangeSet.Intensity = 0.8f;
-		CoinCell->CoinRangeSet.DoorOpen = 0.f;
-		CoinCell->InitColor();
-	}
-	MainPreviewCoinCell = CoinXY;
-
-	for (const FGridPoint& P : RangeCells)
-	{
-		if (P.GridX == CoinXY.GridX && P.GridY == CoinXY.GridY) continue;
-
-		if (AGridActor* Cell = GetGridActorAt(P.GridX, P.GridY))
-		{
-			Cell->bIsCoinRangePreview = true;
-			Cell->CoinRangeSet.Color = FLinearColor(1.f, 0.5f, 0.f, 1.f);
-			Cell->CoinRangeSet.Intensity = 0.8f;
-			Cell->CoinRangeSet.DoorOpen = 0.f;
-			Cell->InitColor();
-		}
-	}
-	MainPreviewHighlightedCells = RangeCells;
-
-	// PreviewActor에 계산된 RangeCells 전달
-	if (IsValid(PreviewActor))
-	{
-		PreviewActor->ShowPreview(CoinXY, RangeCells);
-	}
-}
-
 void UGridManagerSubsystem::ResetBattleCoinPreview()
 {
 	if (IsValid(PreviewActor))
@@ -1021,11 +963,6 @@ void UGridManagerSubsystem::StopDoorFx(const FGridPoint& Cell, bool bNotifyCompl
 			CompletionDelegate.ExecuteIfBound();
 		}
     }
-}
-
-void UGridManagerSubsystem::PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, float PhaseDuration)
-{
-	StartSingleCellDoorOpenFx(GridX, GridY, PhaseDuration, FSimpleDelegate());
 }
 
 bool UGridManagerSubsystem::PlaySingleCellDoorOpenFxTracked(

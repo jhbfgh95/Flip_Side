@@ -13,7 +13,6 @@ class FLIP_SIDE_API UItemLogicLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	static void Test_Item(UItem_Action* ItemContext);
 
 	//보호막 융해
 	static void MeltShieldPotion_Logic(UItem_Action* ItemContext);

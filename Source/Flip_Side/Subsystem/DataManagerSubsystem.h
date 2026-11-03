@@ -104,8 +104,6 @@ public:
 
     bool TryGetWeaponsByType(int32 TypeID, const TArray<FFaceData>*& OutWeapons) const;
 
-    void BuildWeaponTypeMap(const TArray<FFaceData>& AllWeapons);
-
     UFUNCTION(BlueprintCallable)
     bool TryGetBossByStage(int32 Stage, FBossDisplayData& Out) const;
 

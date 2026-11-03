@@ -8,11 +8,6 @@ void UItem_Action::SetItemEffectValue(const int32 OnItemEffectValue)
     ItemEffectValue = FMath::Max(0, OnItemEffectValue);
 }
 
-int32 UItem_Action::GetItemEffectValue() const
-{
-    return ItemEffectValue;
-}
-
 /*
 void UItem_Action::SetItemType(const EItemType TypeID)
 {

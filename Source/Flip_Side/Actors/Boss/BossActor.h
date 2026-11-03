@@ -249,7 +249,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Boss|Pillars")
 	int32 GetPillarDamageBonus() const { return PillarDamageBonus; }
 
-	// 기믹 배율 계산이 끝난 피해에 더해 누적 한 단계가 항상 피해 +1이 되게 합니다.
+	// 스테이지 배율을 적용한 뒤 기둥 누적 한 단계당 피해 +1을 더합니다.
 	UFUNCTION(BlueprintPure, Category = "Boss|Pillars")
 	int32 GetDamageWithPillarBonus(int32 Damage) const;
 
@@ -315,9 +315,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	UBossPatternBase* GetPattern() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
-	bool GetPatternDataList(TArray<FBossPatternBattleData>& OutPatternDataList) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Pattern")
 	bool GetPatternData(int32 PatternIndex, FBossPatternBattleData& OutPatternData) const;

@@ -188,8 +188,6 @@ protected:
 	virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	void ReturnToDefaultCamera();
-
     void OnLeftClick();
 
 	void OnRightClick();
@@ -240,17 +238,6 @@ public:
 
 	bool GetCursorWorldLocationOnPlane(float PlaneZ, FVector& OutWorldLocation) const;
 	bool TryCancelSelectedItem();
-
-	/** 기존 ReadyCoin을 DB 무기 ID로 만든 초기 상태의 디버그 코인으로 교체합니다. */
-	UFUNCTION(Exec)
-	void CreateSampleCoin(int32 FrontID, int32 BackID, int32 ReadyCoinSlotNum);
-
-	/** 준비 슬롯 번호(1~10)의 필드 코인을 죽여 사망 연출을 확인합니다. */
-	UFUNCTION(Exec)
-	void DoCoinDeath(int32 CoinReadySlotNum);
-
-	UFUNCTION(Exec)
-	void TargetCardChange(int32 CardID, int32 CardSlot);
 
 	UFUNCTION(BlueprintCallable)
 	void SetInputForTutorial(bool bEnable);

@@ -12,7 +12,6 @@
 #include "CoinActor.h"
 #include "GridActor.h"
 #include "UseableItemActor.h"
-#include "LeverActor.h"
 #include "BattleManagerWSubsystem.h"
 #include "BattleHoverInterface.h"
 #include "BattleClickInterface.h"
@@ -347,14 +346,6 @@ void ABattlePlayerController_FlipSide::HandleBossHUDDataChanged(const FBossHUDDa
 		}
 		BattleHUDWidget->SetBossHUDData(DisplayData);
 	}
-}
-
-void ABattlePlayerController_FlipSide::ReturnToDefaultCamera() // 일단 당장은 필요 X
-{
-    if (ControlledPawn)
-    {
-        ControlledPawn->MoveCameraToArea(DefaultCameraLocation, DefaultCameraRotation, DefaultCameraArmLength);
-    }
 }
 
 void ABattlePlayerController_FlipSide::OnLeftClick()
@@ -805,18 +796,6 @@ void ABattlePlayerController_FlipSide::RefreshBattleItemHUD()
 	}
 
 	BattleHUDWidget->SetItemSlots(ItemSlotViews, ItemManager->GetSelectedItemID());
-}
-
-void ABattlePlayerController_FlipSide::TargetCardChange(int32 CardID, int32 CardSlot)
-{
-	UWorld* World = GetWorld();
-	UStageCardWSubsystem* Cards = IsValid(World) ? World->GetSubsystem<UStageCardWSubsystem>() : nullptr;
-	if (!IsValid(Cards))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[TargetCardChange] Battle card subsystem is unavailable."));
-		return;
-	}
-	Cards->ChangeHandCard(CardID, CardSlot);
 }
 
 void ABattlePlayerController_FlipSide::RefreshBattleCardHUD()
@@ -1920,69 +1899,6 @@ FBattleReadyCoinViewData ABattlePlayerController_FlipSide::BuildReadyCoinViewDat
     }
 
     return ViewData;
-}
-
-void ABattlePlayerController_FlipSide::CreateSampleCoin(
-	int32 FrontID,
-	int32 BackID,
-	int32 ReadyCoinSlotNum)
-{
-	UWorld* World = GetWorld();
-	UCoinManagementWSubsystem* CoinManager = IsValid(World)
-		? World->GetSubsystem<UCoinManagementWSubsystem>()
-		: nullptr;
-	if (!IsValid(CoinManager))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[BattlePlayerController] CreateSampleCoin 실패: CoinManager가 유효하지 않습니다."));
-		return;
-	}
-
-	// 교체될 필드 코인을 관찰하던 델리게이트와 사거리 미리보기를 먼저 정리합니다.
-	ClearReadySlotHighlight();
-	ResetBattleInfoSelection();
-	HideBattleCoinRangePreviews();
-	HoveredBattleCoin.Reset();
-	StopObservingBattleInfoCoin();
-
-	if (!CoinManager->ReplaceReadyCoinWithSample(FrontID, BackID, ReadyCoinSlotNum))
-	{
-		RefreshHoveredBattleCoinInfo();
-		return;
-	}
-
-	RefreshBattleCoinHUD();
-	RefreshHoveredBattleCoinInfo();
-}
-
-void ABattlePlayerController_FlipSide::DoCoinDeath(int32 CoinReadySlotNum)
-{
-	UWorld* World = GetWorld();
-	UCoinManagementWSubsystem* CoinManager = IsValid(World)
-		? World->GetSubsystem<UCoinManagementWSubsystem>()
-		: nullptr;
-	if (!IsValid(CoinManager))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[BattlePlayerController] DoCoinDeath 실패: CoinManager가 유효하지 않습니다."));
-		return;
-	}
-
-	const int32 ReadySlotCount = CoinManager->GetReadyCoinData().Num();
-	if (CoinReadySlotNum <= 0 || CoinReadySlotNum > ReadySlotCount)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[BattlePlayerController] DoCoinDeath 실패: 준비 슬롯 번호는 1~%d이어야 합니다."), ReadySlotCount);
-		return;
-	}
-
-	ACoinActor* Coin = CoinManager->GetRuntimeCoinAtReadySlot(CoinReadySlotNum - 1);
-	UComponent_Status* Status = IsValid(Coin) ? Coin->StatComponent : nullptr;
-	if (!IsValid(Status) || Status->IsDead())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[BattlePlayerController] DoCoinDeath 실패: 준비 슬롯 %d에 살아 있는 필드 코인이 없습니다."), CoinReadySlotNum);
-		return;
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("[BattlePlayerController] DoCoinDeath: 준비 슬롯 %d의 코인을 죽입니다."), CoinReadySlotNum);
-	Status->SetHP(0, false);
 }
 
 FBattleItemSlotViewData ABattlePlayerController_FlipSide::BuildItemSlotViewData(const FBattleItemSlotData& ItemSlotData, bool bCanUse) const

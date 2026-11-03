@@ -190,17 +190,7 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Coin | Component")
 	TObjectPtr<class UWidgetComponent> CoinHPUI;
 
-	// 같은 타입 코인들 중에서 몇 번째 코인인지 나타내는 인덱스
-	UPROPERTY(VisibleAnywhere, Category = "Coin | Battle")
-    int32 SameTypeIndex = 0;
-	int32 GetSameTypeIndex() const;
-
 	int32 GetFrontWeaponID() const;
-	void DecrementSameTypeIndex(); // 인덱스 감소를 위한 함수
-
-    // 인덱스 제어 함수들
-    void SetSameTypeIndex(int32 NewIndex);
-    void IncrementSameTypeIndex();
 
 	int32 GetCoinID() const;
 	int32 GetCoinFrontID() const { return FrontWeaponID; }

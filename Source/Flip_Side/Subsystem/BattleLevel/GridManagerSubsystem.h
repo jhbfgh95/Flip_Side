@@ -124,9 +124,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void ClearGrid();
 
-	UFUNCTION(BlueprintCallable)
-	void PlaySingleCellDoorOpenFx(int32 GridX, int32 GridY, float PhaseDuration = 1.5f);
-
 	/** C++ 진입 연출에서 실제 문 닫힘 완료를 집계할 때 사용합니다. */
 	bool PlaySingleCellDoorOpenFxTracked(int32 GridX, int32 GridY, float PhaseDuration, FSimpleDelegate OnFinished);
 
@@ -217,13 +214,7 @@ public:
 	void GetValidGridsForSingleCell(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, TArray<FGridPoint>& VadlidCells) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
-	void PreviewHoveredCoinRange(const FGridPoint& CoinXY, const FAttackAreaSpec& Spec, const FGridPoint& finalRange);
-
-	UFUNCTION(BlueprintCallable, Category = "Grid")
 	void ResetBattleCoinPreview();
-
-	// WeaponRangePreviewActor가 BeginPlay에서 자신을 등록
-	void RegisterPreviewActor(AWeaponRangePreviewActor* Actor) { PreviewActor = Actor; }
 
 	using FCoinPred = TFunctionRef<bool(const FCoinOnGridInfo&)>;
 

@@ -128,19 +128,12 @@ bool UComponent_Status::InitializeCoinStats(const FCoinStatInitializeData& Initi
 	bIsDead = false;
 	bHasRuntimeInitialized = true;
 	CurrentFace = EFaceState::None;
-	CurrentFaceIndex = 0;
 	WeaponStatRevision = 0;
 	NextBuffInstanceSerial = 1;
 	ActiveStatusEffects.Reset();
 	BindDebuffEvents();
 	if (UDebuffComponent* D = GetDebuffComponent(); IsValid(D)) D->Restore(InitializeData.RuntimeState.PersistentStatusEffects);
 
-	SetFaceWeaponStats(
-		FrontWeaponStats.BaseNumericStats.WeaponPoint,
-		FrontWeaponStats.BaseNumericStats.AttackPoint,
-		BackWeaponStats.BaseNumericStats.WeaponPoint,
-		BackWeaponStats.BaseNumericStats.AttackPoint
-	);
 
 	for (FStatusEffectInstance StatusEffect : InitializeData.RuntimeState.PersistentStatusEffects)
 	{
@@ -449,51 +442,6 @@ FCoinRuntimeStateSnapshot UComponent_Status::ExportRuntimeState() const
 	return RuntimeState;
 }
 
-bool UComponent_Status::ImportRuntimeState(const FCoinRuntimeStateSnapshot& RuntimeState)
-{
-	if (bIsDead || RuntimeState.BaseMaxHP <= 0 || RuntimeState.CurrentHP <= 0)
-	{
-		return false;
-	}
-
-	BaseMaxHP = RuntimeState.BaseMaxHP;
-	MaxHP = BaseMaxHP;
-	Shield = FMath::Clamp(RuntimeState.Shield, 0, MAX_SHIELD);
-	ShieldGaugeCapacity = Shield > 0 ? FMath::Clamp(RuntimeState.ShieldGaugeCapacity, Shield, MAX_SHIELD) : 0;
-	ActiveStatusEffects.Reset();
-	NextBuffInstanceSerial = 1;
-
-	EWeaponStatChangeFlags ChangeFlags = EWeaponStatChangeFlags::None;
-	BindDebuffEvents();
-	if (UDebuffComponent* D = GetDebuffComponent(); IsValid(D)) D->Restore(RuntimeState.PersistentStatusEffects);
-	for (FStatusEffectInstance StatusEffect : RuntimeState.PersistentStatusEffects)
-	{
-		if (StatusEffect.Polarity == EStatusPolarity::Debuff) continue;
-		if (StatusEffect.BuffTypeID == INDEX_NONE ||
-			StatusEffect.DurationType != EBuffDurationType::PersistentInBattle)
-		{
-			continue;
-		}
-
-		StatusEffect.BuffInstanceSerial = NextBuffInstanceSerial++;
-		if (StatusEffect.Polarity == EStatusPolarity::Buff)
-		{
-			StatusEffect.StackPolicy = EStatusStackPolicy::Stack;
-		}
-		ChangeFlags |= GetModifierChangeFlags(StatusEffect.Modifier);
-		ActiveStatusEffects.Add(MoveTemp(StatusEffect));
-	}
-
-	RecalculateMaxHPFromEffects(false);
-	HP = FMath::Clamp(RuntimeState.CurrentHP, 1, MaxHP);
-	if (ChangeFlags != EWeaponStatChangeFlags::None)
-	{
-		MarkWeaponStatsDirty(ChangeFlags);
-	}
-	RefreshStatusEffectEvents();
-	return true;
-}
-
 void UComponent_Status::RefreshStatusEffectEvents() const
 {
 	TArray<FStatusEffectInstance> BroadcastedEffects;
@@ -640,20 +588,6 @@ void UComponent_Status::ConsumeTemporaryShieldContribution(int32 AbsorbedDamage)
 	}
 }
 
-FActionTask UComponent_Status::GetModifiedStats()
-{
-	FActionTask FinalTask;
-	FinalTask.ModifiedAttackPoint = 0;
-	FinalTask.ModifiedBehaviorPoint = 0;
-	FinalTask.ModifiedRange = FGridPoint(0, 0);
-
-	if (OnCalculateStats.IsBound())
-	{
-		OnCalculateStats.Broadcast(FinalTask);
-	}
-	return FinalTask;
-}
-
 void UComponent_Status::SetHP(int32 ApplyHP, bool bIsFirst)
 {
 	if (bIsDead)
@@ -683,16 +617,6 @@ void UComponent_Status::SetHP(int32 ApplyHP, bool bIsFirst)
 	HandleDeathIfNeeded();
 }
 
-void UComponent_Status::SetFaceWeaponStats(int32 FrontBP, int32 FrontAP, int32 BackBP, int32 BackAP)
-{
-	BP.SetNum(2);
-	AP.SetNum(2);
-	BP[0] = FrontBP;
-	AP[0] = FrontAP;
-	BP[1] = BackBP;
-	AP[1] = BackAP;
-}
-
 void UComponent_Status::ApplyFaceWeaponStat(EFaceState Face)
 {
 	if (Face != EFaceState::Front && Face != EFaceState::Back)
@@ -702,7 +626,6 @@ void UComponent_Status::ApplyFaceWeaponStat(EFaceState Face)
 
 	const bool bFaceChanged = CurrentFace != Face;
 	CurrentFace = Face;
-	CurrentFaceIndex = Face == EFaceState::Front ? 0 : 1;
 	if (bFaceChanged)
 	{
 		MarkWeaponStatsDirty(EWeaponStatChangeFlags::CurrentFace);
@@ -769,15 +692,6 @@ void UComponent_Status::ApplyDamageInternal(int32 Damage, AActor* DamageCauser, 
 	if (bAllowInterception && TryInterceptBossDamage(Damage, DamageCauser)) return;
 
 	int32 FinalDamage = Damage;
-	bool bIsIgnored = false;
-	if (OnPreTakeDamage.IsBound())
-	{
-		OnPreTakeDamage.Broadcast(Damage, FinalDamage, bIsIgnored);
-	}
-	if (bIsIgnored)
-	{
-		return;
-	}
 
 
 	TArray<FStatusEffectInstance> TriggeredArmorEffects;
@@ -915,76 +829,6 @@ void UComponent_Status::ApplyHeal(int32 Heal, AActor* HealCauser)
 	}
 }
 
-void UComponent_Status::ApplyShield(int32 AddShield, AActor* ShieldCauser)
-{
-	if (bIsDead || AddShield == 0)
-	{
-		return;
-	}
-
-	const int32 PreviousShield = Shield;
-	Shield = FMath::Clamp(Shield + AddShield, 0, MAX_SHIELD);
-	const int32 DeltaShield = Shield - PreviousShield;
-	// 감소 시에는 기준량을 유지하고, 새 획득/완전 소진 때만 변경합니다.
-	if (DeltaShield > 0) ShieldGaugeCapacity = Shield;
-	else if (Shield == 0) ShieldGaugeCapacity = 0;
-	if (DeltaShield != 0)
-	{
-		OnShieldChanged.Broadcast(DeltaShield);
-	}
-}
-
-void UComponent_Status::AddBuffs(const FBuffInfo& Info)
-{
-	FBuffInfo NewBuff = Info;
-	if (Info.StatDelegate.IsBound())
-	{
-		NewBuff.StatHandle = OnCalculateStats.Add(Info.StatDelegate);
-	}
-	if (Info.DamageDelegate.IsBound())
-	{
-		NewBuff.DamageHandle = OnPreTakeDamage.Add(Info.DamageDelegate);
-	}
-	if (Info.PreGiveDelegate.IsBound())
-	{
-		NewBuff.PreGiveHandle = OnPreGiveDamage.Add(Info.PreGiveDelegate);
-	}
-	if (Info.PostGiveDelegate.IsBound())
-	{
-		NewBuff.PostGiveHandle = OnPostGiveDamage.Add(Info.PostGiveDelegate);
-	}
-
-	ActiveBuffs.Add(NewBuff);
-	OnBuffListChanged.Broadcast(true);
-}
-
-void UComponent_Status::RemoveLegacyBuffAt(int32 Index)
-{
-	if (!ActiveBuffs.IsValidIndex(Index))
-	{
-		return;
-	}
-
-	const FBuffInfo& Buff = ActiveBuffs[Index];
-	if (Buff.StatHandle.IsValid())
-	{
-		OnCalculateStats.Remove(Buff.StatHandle);
-	}
-	if (Buff.DamageHandle.IsValid())
-	{
-		OnPreTakeDamage.Remove(Buff.DamageHandle);
-	}
-	if (Buff.PreGiveHandle.IsValid())
-	{
-		OnPreGiveDamage.Remove(Buff.PreGiveHandle);
-	}
-	if (Buff.PostGiveHandle.IsValid())
-	{
-		OnPostGiveDamage.Remove(Buff.PostGiveHandle);
-	}
-	ActiveBuffs.RemoveAt(Index);
-}
-
 void UComponent_Status::ClearDebuffs()
 {
 	if (UDebuffComponent* D = GetDebuffComponent(); IsValid(D)) D->ClearDebuffs();
@@ -997,34 +841,6 @@ void UComponent_Status::ClearDebuffs()
 		RemoveStatusEffectAtIndex(EffectIndex);
 	}
 
-	bool bRemovedLegacyDebuff = false;
-	for (int32 BuffIndex = ActiveBuffs.Num() - 1; BuffIndex >= 0; --BuffIndex)
-	{
-		if (ActiveBuffs[BuffIndex].bIsDebuff)
-		{
-			RemoveLegacyBuffAt(BuffIndex);
-			bRemovedLegacyDebuff = true;
-		}
-	}
-	if (bRemovedLegacyDebuff)
-	{
-		OnBuffListChanged.Broadcast(false);
-	}
-}
-
-void UComponent_Status::ClearTurnBasedBuffs()
-{
-	RemoveTurnOnlyStatusEffects();
-
-	const bool bHadLegacyBuffs = !ActiveBuffs.IsEmpty();
-	for (int32 BuffIndex = ActiveBuffs.Num() - 1; BuffIndex >= 0; --BuffIndex)
-	{
-		RemoveLegacyBuffAt(BuffIndex);
-	}
-	if (bHadLegacyBuffs)
-	{
-		OnBuffListChanged.Broadcast(false);
-	}
 }
 
 int32 UComponent_Status::GetShieldDamageMultiplier() const
@@ -1054,14 +870,6 @@ void UComponent_Status::ApplyOnHitStatusEffects(const FWeaponAttackResult& Attac
 	}
 }
 
-void UComponent_Status::CheckAttackerPreBuff(AActor* Target, int32 InDmg, int32& OutDmg)
-{
-	if (OnPreGiveDamage.IsBound())
-	{
-		OnPreGiveDamage.Broadcast(Target, InDmg, OutDmg);
-	}
-}
-
 void UComponent_Status::CheckAttackerPostBuff(AActor* Target, int32 DealtDmg)
 {
 	if (DealtDmg > 0 && !bIsDead)
@@ -1074,10 +882,6 @@ void UComponent_Status::CheckAttackerPostBuff(AActor* Target, int32 DealtDmg)
 				break;
 			}
 		}
-	}
-	if (OnPostGiveDamage.IsBound())
-	{
-		OnPostGiveDamage.Broadcast(Target, DealtDmg);
 	}
 }
 

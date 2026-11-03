@@ -135,75 +135,7 @@ void UStageCardWSubsystem::RefreshHandFromGI()
         OnHandCardSet.Broadcast(Slot, CardData);
     }
 
-    if (GetCardCount() == 0 && (!IsValid(Level) || !Level->IsTutorialBossBattleActive()))
-    {
-        TestCardGenerate();
-        return;
-    }
-
     OnBattleCardDataChanged.Broadcast();
-}
-
-bool UStageCardWSubsystem::TestCardGenerate()
-{
-    // 실제 장착 카드가 하나라도 있으면 테스트 데이터로 덮어쓰지 않습니다.
-    if (GetCardCount() > 0)
-    {
-        return false;
-    }
-
-    UWorld* World = GetWorld();
-    UGameInstance* GameInstance = IsValid(World) ? World->GetGameInstance() : nullptr;
-    UDataManagerSubsystem* DataManager = IsValid(GameInstance)
-        ? GameInstance->GetSubsystem<UDataManagerSubsystem>()
-        : nullptr;
-    if (!IsValid(DataManager) || !DataManager->IsCacheReady())
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[StageCard] TestCardGenerate failed: DataManager cache is unavailable."));
-        OnBattleCardDataChanged.Broadcast();
-        return false;
-    }
-
-    TArray<FCardData> AllCards;
-    if (!DataManager->TryGetAllCards(AllCards))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[StageCard] TestCardGenerate failed: card DB data could not be loaded."));
-        OnBattleCardDataChanged.Broadcast();
-        return false;
-    }
-
-    AllCards.RemoveAll([](const FCardData& CardData)
-    {
-        return CardData.CardID < 0;
-    });
-    AllCards.Sort([](const FCardData& Left, const FCardData& Right)
-    {
-        return Left.CardID < Right.CardID;
-    });
-
-    const int32 GeneratedCardCount = FMath::Min(HandCount, AllCards.Num());
-    CardPrice = 0;
-    for (int32 SlotIndex = 0; SlotIndex < GeneratedCardCount; ++SlotIndex)
-    {
-        HandCards[SlotIndex] = AllCards[SlotIndex];
-        bHasCard[SlotIndex] = true;
-        CardPrice += HandCards[SlotIndex].Price;
-        OnHandCardSet.Broadcast(SlotIndex, HandCards[SlotIndex]);
-    }
-
-    if (GeneratedCardCount < HandCount)
-    {
-        UE_LOG(
-            LogTemp,
-            Warning,
-            TEXT("[StageCard] TestCardGenerate created %d/%d card types."),
-            GeneratedCardCount,
-            HandCount
-        );
-    }
-
-    OnBattleCardDataChanged.Broadcast();
-    return GeneratedCardCount > 0;
 }
 
 bool UStageCardWSubsystem::TryLoadCardData(int32 CardID, FCardData& Out) const
@@ -218,74 +150,6 @@ bool UStageCardWSubsystem::TryLoadCardData(int32 CardID, FCardData& Out) const
     if (!LocalDM) return false;
 
     return LocalDM->TryGetCard(CardID, Out);
-}
-
-bool UStageCardWSubsystem::ChangeHandCard(int32 CardID, int32 CardSlot)
-{
-    if (!HandCards.IsValidIndex(CardSlot) || !bHasCard.IsValidIndex(CardSlot))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[TargetCardChange] CardSlot must be 0-2. Slot=%d"), CardSlot);
-        return false;
-    }
-    FCardData Card;
-    if (!TryLoadCardData(CardID, Card))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[TargetCardChange] Unknown CardID=%d"), CardID);
-        return false;
-    }
-    if (!IsValid(CrossingGI))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[TargetCardChange] CrossingLevel subsystem is unavailable."));
-        return false;
-    }
-
-    for (const auto& Pair : Runtime[CardSlot].EntryModifiers)
-        if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin) && Pair.Value.ExtraActions > 0)
-            Coin->ClearAdditionalActions();
-    ClearSlot(CardSlot, false);
-    HandCards[CardSlot] = Card;
-    bHasCard[CardSlot] = true;
-    Runtime[CardSlot].CardID = CardID;
-    CrossingGI->SetBattleCardID(CardID, CardSlot);
-    CardPrice = 0;
-    bool bHasPromotion = false;
-    for (int32 Slot = 0; Slot < HandCount; ++Slot)
-    {
-        if (!bHasCard[Slot]) continue;
-        CardPrice += HandCards[Slot].Price;
-        bHasPromotion |= HandCards[Slot].CardID == 3;
-    }
-    if (!bHasPromotion) ClearPromotionHighlight();
-
-    if (bTurnInitialized)
-    {
-        if (CardID == 1)
-        {
-            TArray<FCoinOnGridInfo> FieldCoins;
-            CollectCoinsOnField(FieldCoins);
-            TMap<int32, int32> SourceSlots;
-            BuildSourceSlots(SourceSlots);
-            const bool bActive = FCardLogicLibrary::Evaluate(Card, FieldCoins, SourceSlots,
-                BattleEntryGold, PromotionHighlightedGrid, DM, Runtime[CardSlot].EntryModifiers);
-            SetCardActive(CardSlot, bActive);
-            for (const auto& Pair : Runtime[CardSlot].EntryModifiers)
-                if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin)) Coin->GrantAdditionalActions(Pair.Value.ExtraActions);
-        }
-        const int32 CoinAreaHeight = IsValid(GridSubsys) ? GridSubsys->GetBossAreaStartY() : 0;
-        if (CardID == 3 && PromotionHighlightedGrid.GridX < 0 && IsValid(GridSubsys) &&
-            GridSubsys->GridXSize > 0 && CoinAreaHeight > 0)
-        {
-            PromotionHighlightedGrid = FGridPoint(FMath::RandRange(0, GridSubsys->GridXSize - 1),
-                FMath::RandRange(0, CoinAreaHeight - 1));
-            if (AGridActor* Grid = GridSubsys->GetGridActor(PromotionHighlightedGrid); IsValid(Grid) && IsValid(ActingManager))
-                ActingManager->ShowPromotionVFX(Grid->GetActorLocation());
-        }
-        ExecuteCardsEffect();
-    }
-    OnHandCardSet.Broadcast(CardSlot, Card);
-    OnBattleCardDataChanged.Broadcast();
-    UE_LOG(LogTemp, Log, TEXT("[TargetCardChange] CardID=%d Slot=%d"), CardID, CardSlot);
-    return true;
 }
 
 void UStageCardWSubsystem::RemoveHandCard(int32 HandIndex)
@@ -397,26 +261,6 @@ void UStageCardWSubsystem::ClearPromotionHighlight()
 {
     if (IsValid(ActingManager)) ActingManager->HidePromotionVFX();
     PromotionHighlightedGrid = FGridPoint(-1, -1);
-}
-
-FCoinCardModifiers UStageCardWSubsystem::GetModifiersForCoin(ACoinActor* Coin) const
-{
-    FCoinCardModifiers Result;
-    if (!IsValid(Coin)) return Result;
-    for (const FStageCardRuntimeState& State : Runtime)
-    {
-        if (const FCoinCardModifiers* Mods = State.Applied.Find(Coin))
-        {
-            Result.AttackAdd += Mods->AttackAdd;
-            Result.BehaviorAdd += Mods->BehaviorAdd;
-            Result.CountAdd += Mods->CountAdd;
-            Result.RangeAdd += Mods->RangeAdd;
-            Result.AbilityRangeAdd += Mods->AbilityRangeAdd;
-            Result.ExtraActions += Mods->ExtraActions;
-            Result.bLifeSteal |= Mods->bLifeSteal;
-        }
-    }
-    return Result;
 }
 
 void UStageCardWSubsystem::CollectCoinsOnField(TArray<FCoinOnGridInfo>& OutCoins) const

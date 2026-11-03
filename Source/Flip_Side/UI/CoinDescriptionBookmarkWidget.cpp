@@ -9,6 +9,7 @@
 #include "Components/TextBlock.h"
 #include "Engine/Texture2D.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Rendering/DrawElements.h"
 
 void UCoinDescriptionBookmarkWidget::NativeConstruct()
 {
@@ -24,6 +25,88 @@ void UCoinDescriptionBookmarkWidget::NativeDestruct()
 	if (IsValid(BookmarkButton))
 		BookmarkButton->OnClicked.RemoveDynamic(this, &UCoinDescriptionBookmarkWidget::HandleClicked);
 	Super::NativeDestruct();
+}
+
+int32 UCoinDescriptionBookmarkWidget::NativePaint(const FPaintArgs& Args, const FGeometry& Geometry,
+	const FSlateRect& CullingRect, FSlateWindowElementList& Elements, int32 Layer,
+	const FWidgetStyle& Style, bool bParentEnabled) const
+{
+	const int32 Painted = Super::NativePaint(Args, Geometry, CullingRect, Elements, Layer, Style, bParentEnabled);
+	const bool bPreview = IsDesignTime();
+	if (!bDrawKeywordHierarchy || (!bPreview && BookmarkData.MainKeywordCode.IsNone())) return Painted;
+	auto GetWidgetRect = [&Geometry](const UWidget* Widget, FSlateRect& OutRect)
+	{
+		if (!IsValid(Widget) || !Widget->GetCachedWidget().IsValid()) return false;
+		for (const UWidget* Parent = Widget; IsValid(Parent); Parent = Parent->GetParent())
+			if (!Parent->IsVisible() || Parent->GetRenderOpacity() <= 0.f) return false;
+		// 자식이 그려진 이번 프레임의 좌표를 사용해 DPI, 패딩, 배치 변경을 반영합니다.
+		const FGeometry& WidgetGeometry = Widget->GetPaintSpaceGeometry();
+		const FVector2D Size = WidgetGeometry.GetLocalSize();
+		if (Size.X <= 0.f || Size.Y <= 0.f) return false;
+		const FVector2D Min = Geometry.AbsoluteToLocal(WidgetGeometry.LocalToAbsolute(FVector2D::ZeroVector));
+		const FVector2D Max = Geometry.AbsoluteToLocal(WidgetGeometry.LocalToAbsolute(Size));
+		OutRect = FSlateRect(Min, Max);
+		return OutRect.Right > OutRect.Left && OutRect.Bottom > OutRect.Top;
+	};
+	FSlateRect MainRect;
+	if (!GetWidgetRect(MainKeyWordBorder, MainRect)) return Painted;
+	MainRect = MainRect.ExtendBy(FMargin(FMath::Max(0.f, MainKeywordFramePaddingHorizontal),
+		FMath::Max(0.f, MainKeywordFramePaddingVertical)));
+	const FLinearColor Tint = Style.GetColorAndOpacityTint();
+	const ESlateDrawEffect DrawEffect = bParentEnabled && GetIsEnabled()
+		? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+	auto DrawFrame = [&](const FSlateRect& Rect, const FLinearColor& Color, float Thickness)
+	{
+		if (Thickness <= 0.f || Rect.Right - Rect.Left <= Thickness || Rect.Bottom - Rect.Top <= Thickness) return;
+		// 패딩이 반영된 영역 안쪽에 선 굵기의 절반을 맞춥니다.
+		const FSlateRect Frame = Rect.InsetBy(FMargin(Thickness * 0.5f));
+		const TArray<FVector2D> Points = {FVector2D(Frame.Left, Frame.Top), FVector2D(Frame.Right, Frame.Top),
+			FVector2D(Frame.Right, Frame.Bottom), FVector2D(Frame.Left, Frame.Bottom), FVector2D(Frame.Left, Frame.Top)};
+		FSlateDrawElement::MakeLines(Elements, Painted + 2, Geometry.ToPaintGeometry(), Points,
+			DrawEffect, Color * Tint, true, Thickness);
+	};
+	DrawFrame(MainRect, MainKeywordFrameColor, MainKeywordFrameThickness);
+	if (IsValid(AdditionalKeywordRow) &&
+		(!AdditionalKeywordRow->IsVisible() || AdditionalKeywordRow->GetRenderOpacity() <= 0.f)) return Painted + 2;
+	const UBorder* Borders[] = { AdditionalKeywordBorder0, AdditionalKeywordBorder1, AdditionalKeywordBorder2, AdditionalKeywordBorder3 };
+	TArray<FSlateRect, TInlineAllocator<4>> AdditionalRects;
+	for (int32 Index = 0; Index < UE_ARRAY_COUNT(Borders); ++Index)
+	{
+		if (!bPreview && (!BookmarkData.AdditionalKeywordCodes.IsValidIndex(Index) || BookmarkData.AdditionalKeywordCodes[Index].IsNone())) continue;
+		FSlateRect Rect;
+		if (GetWidgetRect(Borders[Index], Rect)) AdditionalRects.Add(Rect);
+	}
+	if (AdditionalRects.IsEmpty()) return Painted + 2;
+	FSlateRect AdditionalRect = AdditionalRects[0];
+	for (int32 Index = 1; Index < AdditionalRects.Num(); ++Index) AdditionalRect = AdditionalRect.Expand(AdditionalRects[Index]);
+	AdditionalRect = AdditionalRect.ExtendBy(FMargin(FMath::Max(0.f, AdditionalKeywordFramePaddingHorizontal),
+		FMath::Max(0.f, AdditionalKeywordFramePaddingVertical)));
+	DrawFrame(AdditionalRect, AdditionalKeywordFrameColor, AdditionalKeywordFrameThickness);
+	// 서브 여러 개는 하나의 하위 틀에 묶고 칸 사이만 나눕니다.
+	const FSlateRect AdditionalFrame = AdditionalRect.InsetBy(FMargin(FMath::Max(0.f, AdditionalKeywordFrameThickness) * 0.5f));
+	if (AdditionalKeywordFrameThickness > 0.f)
+	{
+		for (int32 Index = 1; Index < AdditionalRects.Num(); ++Index)
+		{
+			const float X = (AdditionalRects[Index - 1].Right + AdditionalRects[Index].Left) * 0.5f;
+			const TArray<FVector2D> Points = {FVector2D(X, AdditionalFrame.Top), FVector2D(X, AdditionalFrame.Bottom)};
+			FSlateDrawElement::MakeLines(Elements, Painted + 2, Geometry.ToPaintGeometry(), Points,
+				DrawEffect, AdditionalKeywordFrameColor * Tint, true, AdditionalKeywordFrameThickness);
+		}
+	}
+	if (KeywordBranchThickness > 0.f)
+	{
+		const FSlateRect MainFrame = MainRect.InsetBy(FMargin(FMath::Max(0.f, MainKeywordFrameThickness) * 0.5f));
+		const float TrunkX = FMath::Max(KeywordBranchThickness * 0.5f,
+			FMath::Min(MainFrame.Left, AdditionalFrame.Left - FMath::Max(0.f, KeywordBranchInset)));
+		const float ChildY = (AdditionalFrame.Top + AdditionalFrame.Bottom) * 0.5f;
+		const TArray<FVector2D> Points = {FVector2D(MainFrame.Left, MainFrame.Bottom), FVector2D(TrunkX, MainFrame.Bottom),
+			FVector2D(TrunkX, ChildY), FVector2D(AdditionalFrame.Left, ChildY)};
+		// 연결선은 테두리 아래 레이어에 두어 접점이 테두리를 덮지 않게 합니다.
+		FSlateDrawElement::MakeLines(Elements, Painted + 1, Geometry.ToPaintGeometry(), Points,
+			DrawEffect, KeywordBranchColor * Tint, true, KeywordBranchThickness);
+	}
+	return Painted + 2;
 }
 
 void UCoinDescriptionBookmarkWidget::SetBookmarkData(const FCoinDescriptionSectionData& InData)

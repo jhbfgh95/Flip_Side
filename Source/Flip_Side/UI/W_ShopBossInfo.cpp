@@ -118,10 +118,7 @@ void UW_ShopBossInfo::SelectPattern(int32 PatternIndex)
 	if(IsValid(PatternPreviewActor))
 	{
 		const FBossPatternDisplayData& PatternData = CurrentPatternDataList[PatternIndex];
-		if (PatternData.GimmickType == EBossGimmickType::RoleTarget)
-			PatternPreviewActor->ClearPreview();
-		else
-			PatternPreviewActor->ShowPatternPreview(PatternData.PatternSpec, PatternData.bNoDamage);
+		PatternPreviewActor->ShowPatternPreview(PatternData.PatternSpec, PatternData.bNoDamage);
 	}
 
 	RefreshPatternTexts();
@@ -239,8 +236,8 @@ void UW_ShopBossInfo::RefreshBossTexts()
 		BossNameText->SetText(FText::FromString(CurrentBossData.BossName));
 	}
 
-	const int32 FinalHP     = static_cast<int32>(CurrentBossData.BossHP * CurrentStatMultiplier);
-	const int32 FinalShield = static_cast<int32>(CurrentBossData.ShieldValue * CurrentStatMultiplier);
+	const int32 FinalHP     = FMath::RoundToInt(CurrentBossData.BossHP * CurrentStatMultiplier);
+	const int32 FinalShield = FMath::RoundToInt(CurrentBossData.ShieldValue * CurrentStatMultiplier);
 
 	if(BossHPText)
 	{
@@ -313,9 +310,36 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 	}
 
 	const FBossPatternDisplayData& PatternData = CurrentPatternDataList[CurrentPatternIndex];
-	const int32 FinalDamage = static_cast<int32>(CurrentBossData.AttackPoint * PatternData.DamageRatio * CurrentStatMultiplier);
-	const int32 FinalShieldHeal = static_cast<int32>(PatternData.ShieldHeal * CurrentGimmickMultiplier);
-	const int32 FinalGimmickParamA = static_cast<int32>(PatternData.GimmickParamA * CurrentGimmickMultiplier);
+	const FBossGimmickData* SwampGimmick = CurrentBossData.GimmickList.FindByPredicate([](const FBossGimmickData& Gimmick)
+	{
+		return Gimmick.GimmickType == EBossGimmickType::GridDebuff;
+	});
+	const bool bIsSwampPattern = PatternData.GimmickType == EBossGimmickType::GridDebuff && SwampGimmick;
+	const bool bHasConditionalDamage = bIsSwampPattern && CurrentPatternIndex == 2;
+
+	// 전투는 DamageRatio를 사용하지 않고, 늪 기믹이 기본 피해를 별도로 결정합니다.
+	int32 BaseDamage = PatternData.bNoDamage ? 0 : CurrentBossData.AttackPoint;
+	int32 ConditionalBaseDamage = 0;
+	if (bIsSwampPattern)
+	{
+		if (CurrentPatternIndex == 0 || CurrentPatternIndex == 1)
+		{
+			BaseDamage = PatternData.bNoDamage ? 0 : 1;
+		}
+		else if (bHasConditionalDamage)
+		{
+			BaseDamage = FMath::RoundToInt(SwampGimmick->ParamFloatB);
+			ConditionalBaseDamage = FMath::RoundToInt(SwampGimmick->ParamFloatC);
+		}
+	}
+	// GetDamageWithPillarBonus와 같은 반올림을 사용하며, 전투 중 누적되는 기둥 보너스는 제외합니다.
+	const int32 FinalDamage = static_cast<int32>(FMath::Clamp<int64>(
+		FMath::RoundToInt64(static_cast<double>(FMath::Max(0, BaseDamage)) * CurrentStatMultiplier), 0, MAX_int32));
+	const int32 ConditionalDamage = static_cast<int32>(FMath::Clamp<int64>(
+		FMath::RoundToInt64(static_cast<double>(FMath::Max(0, ConditionalBaseDamage)) * CurrentStatMultiplier), 0, MAX_int32));
+	const int32 MaxShield = FMath::Max(0, FMath::RoundToInt(CurrentBossData.ShieldValue * CurrentStatMultiplier));
+	const int32 FinalShieldHeal = PatternData.bNoDamage
+		? FMath::Clamp(FMath::RoundToInt(PatternData.ShieldHeal * CurrentStatMultiplier), 0, MaxShield) : 0;
 
 	if(PatternRangeImage)
 	{
@@ -344,39 +368,70 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 
 	if(AttackIconImage)
 	{
-		AttackIconImage->SetVisibility(FinalDamage > 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
+		AttackIconImage->SetVisibility(FinalDamage > 0 || ConditionalDamage > 0
+			? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
+	}
+
+	FText StatText = FinalDamage > 0
+		? FText::Format(NSLOCTEXT("BossInfo", "DmgFmt", "공격력  {0}"), FText::AsNumber(FinalDamage))
+		: FText::GetEmpty();
+	FText DisplayDescription = PatternData.PatternDescription;
+	switch (PatternData.GimmickType)
+	{
+	case EBossGimmickType::Shield:
+		if (PatternData.bNoDamage)
+		{
+			StatText = FText::Format(NSLOCTEXT("BossInfo", "ShieldHealMaxFmt", "쉴드 최대 {0} 회복"), FText::AsNumber(FinalShieldHeal));
+			DisplayDescription = FText::Format(NSLOCTEXT("BossInfo", "ShieldHealDescription", "보스가 쉴드를 최대 {0} 회복합니다. 최대 쉴드를 넘겨 회복하지 않습니다."), FText::AsNumber(FinalShieldHeal));
+		}
+		break;
+	case EBossGimmickType::Blind:
+		StatText = FText::Format(NSLOCTEXT("BossInfo", "BlindDamageFmt", "피해 {0} · 실명 {1}턴"),
+			FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA));
+		DisplayDescription = FText::Format(NSLOCTEXT("BossInfo", "BlindDamageDescription", "범위 내 코인에게 피해 {0}을 주고 {1}턴 동안 실명을 부여합니다.\n<DebuffDesc>•실명 상태에서는 공격이 적중하지 않습니다. 기동 능력은 사용할 수 있습니다.</>"),
+			FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA));
+		break;
+	case EBossGimmickType::GridDebuff:
+		if (bIsSwampPattern && CurrentPatternIndex == 0)
+		{
+			StatText = FText::Format(NSLOCTEXT("BossInfo", "SwampWeaponPowerFmt", "피해 {0} · {1}턴 무기력 {2}"),
+				FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA), FText::AsNumber(PatternData.GimmickParamB));
+			DisplayDescription = FText::Format(NSLOCTEXT("BossInfo", "SwampWeaponPowerDescription", "범위 내 코인에게 피해 {0}을 주고 {1}턴 동안 무기력 {2} 디버프를 부여합니다. 디버프는 중첩되지 않습니다."),
+				FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA), FText::AsNumber(PatternData.GimmickParamB));
+		}
+		else if (bIsSwampPattern && CurrentPatternIndex == 1)
+		{
+			StatText = FText::Format(NSLOCTEXT("BossInfo", "SwampAttackPowerFmt", "피해 {0} · {1}턴 공격력 {2}"),
+				FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA), FText::AsNumber(PatternData.GimmickParamB));
+			DisplayDescription = FText::Format(NSLOCTEXT("BossInfo", "SwampAttackPowerDescription", "범위 내 코인에게 피해 {0}을 주고 {1}턴 동안 공격력 {2} 디버프를 부여합니다. 디버프는 중첩되지 않습니다."),
+				FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA), FText::AsNumber(PatternData.GimmickParamB));
+		}
+		else if (bHasConditionalDamage)
+		{
+			StatText = FText::Format(NSLOCTEXT("BossInfo", "SwampConditionalDamageFmt", "피해 {0} / 디버프 보유 시 {1}"),
+				FText::AsNumber(FinalDamage), FText::AsNumber(ConditionalDamage));
+			DisplayDescription = FText::Format(NSLOCTEXT("BossInfo", "SwampConditionalDamageDescription", "범위 내 코인에게 피해 {0}을 줍니다. 디버프를 가진 코인에게는 대신 피해 {1}을 줍니다."),
+				FText::AsNumber(FinalDamage), FText::AsNumber(ConditionalDamage));
+		}
+		break;
+	case EBossGimmickType::Poison:
+		StatText = FText::Format(NSLOCTEXT("BossInfo", "BrandDamageFmt", "피해 {0} · 낙인 {1} × 경과 턴 합계"),
+			FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA));
+		DisplayDescription = FText::Format(NSLOCTEXT("BossInfo", "BrandDamageDescription", "범위 내 코인에게 피해 {0}을 주고 낙인을 부여합니다.\n<DebuffDesc>•낙인은 정화하기 전까지 유지됩니다.</>\n<DebuffDesc>•보스 페이즈마다 {1} × 모든 낙인의 경과 턴 합계만큼 피해를 줍니다.</>\n<DebuffDesc>•다시 맞으면 새 낙인이 따로 추가됩니다.</>"),
+			FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA));
+		break;
+	default:
+		break;
 	}
 
 	if(PatternAttackText)
 	{
-		FText StatText = FText::GetEmpty();
-
-		switch (PatternData.GimmickType)
-		{
-		case EBossGimmickType::Shield:
-			StatText = FText::Format(NSLOCTEXT("BossInfo", "ShieldFmt", "쉴드 회복  {0}"), FText::AsNumber(FinalShieldHeal));
-			break;
-		case EBossGimmickType::Blind:
-			StatText = FText::Format(NSLOCTEXT("BossInfo", "BlindFmt", "실명  {0}턴"), FText::AsNumber(PatternData.GimmickParamA));
-			break;
-		case EBossGimmickType::GridDebuff:
-			StatText = FText::Format(NSLOCTEXT("BossInfo", "SwampFmt", "{0}턴 지속  공격력 -{1}"), FText::AsNumber(PatternData.GimmickParamA), FText::AsNumber(PatternData.GimmickParamB));
-			break;
-		case EBossGimmickType::Poison:
-			StatText = FText::Format(NSLOCTEXT("BossInfo", "BrandFmt", "공격력  {0}  낙인 피해  {1} x 지난 턴"), FText::AsNumber(FinalDamage), FText::AsNumber(FinalGimmickParamA));
-			break;
-		default:
-			if (FinalDamage > 0)
-				StatText = FText::Format(NSLOCTEXT("BossInfo", "DmgFmt", "공격력  {0}"), FText::AsNumber(FinalDamage));
-			break;
-		}
-
 		PatternAttackText->SetText(StatText);
 	}
 
 	if(PatternDescriptionText)
 	{
-		PatternDescriptionText->SetText(PatternData.PatternDescription);
+		PatternDescriptionText->SetText(DisplayDescription);
 	}
 }
 

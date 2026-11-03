@@ -191,7 +191,8 @@ bool UBossManagerSubsystem::Internal_SpawnBoss(const FBossBattleData& InBossData
 
     if (InBossData.ShieldValue > 0)
     {
-        CurrentBoss->InitShield(InBossData.ShieldValue);
+        const int32 ScaledShield = FMath::RoundToInt(InBossData.ShieldValue * InBossData.StageMultiplierStat);
+        CurrentBoss->InitShield(ScaledShield);
     }
 
     if (InBossData.PatternClass)
@@ -700,15 +701,6 @@ void UBossManagerSubsystem::BroadcastCoinLanded()
         if (IsValid(G))
             G->OnCoinLanded(CurrentBoss, PhaseContext);
     }
-}
-
-void UBossManagerSubsystem::RecalculateTelegraphForRoleTarget()
-{
-    if (!PhaseContext.CurrentPattern) return;
-    ClearTelegraphPreview(PhaseContext.LockedCells);
-    PhaseContext.LockedCells.Reset();
-    PhaseContext.CurrentPattern->BuildTargetCells(CurrentBoss, PhaseContext.LockedCells, PhaseContext.CurrentPatternIndex);
-    ShowTelegraphPreview(PhaseContext.LockedCells, FLinearColor(1.f, 0.f, 0.f, 1.f));
 }
 
 bool UBossManagerSubsystem::IsStillOnLockedCell(const FLockedBossTarget& LockedTarget) const

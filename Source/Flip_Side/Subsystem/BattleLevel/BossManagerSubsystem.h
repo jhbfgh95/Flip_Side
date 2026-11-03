@@ -81,8 +81,6 @@ public:
     const TArray<FGridPoint>& GetCurrentPhaseLockedCells() const { return PhaseContext.LockedCells; }
     const FBossPhaseContext& GetPhaseContext() const { return PhaseContext; }
 
-    void RecalculateTelegraphForRoleTarget();
-
     UFUNCTION(BlueprintCallable, Category = "Boss")
     bool StartBossSetting();
 

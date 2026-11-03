@@ -7,12 +7,6 @@
 #include "Base_OtherActor.h"
 #include "DataTypes/GridTypes.h"
 
-void UActionBase::CreateTestRange()
-{
-    FinalActionRange.GridX = 1;
-    FinalActionRange.GridY = 1;
-}
-
 FGridPoint UActionBase::GetActionRange() const
 {
     return FinalActionRange;
@@ -52,34 +46,9 @@ void UActionBase::SetInRangeOthers(ABase_OtherActor* TargetOthers)
     }
 }
 
-void UActionBase::InitInRangeBoss()
-{
-	if(IsValid(InRangeBoss))
-	{
-		InRangeBoss->SetTargetOutlineEnabled(false);
-	}
-	InRangeBoss = nullptr;
-
-}
-
 TArray<ACoinActor*> UActionBase::GetInRangeCoins()
 {
     return InRangeCoins;
-}
-
-TArray<ABase_OtherActor*> UActionBase::GetInRangeOthers()
-{
-    return InRangeOthers;
-}
-
-bool UActionBase::GetInRangeBoss(ABossActor*& OutBoss) const
-{
-    if(InRangeBoss)
-    {
-        OutBoss = InRangeBoss;
-        return true;
-    }
-    return false;
 }
 
 void UActionBase::SetLogicID(const int32 ID)

@@ -24,11 +24,6 @@ namespace
         return RangedCoins[0];
     }
 }
-
-void UItemLogicLibrary::Test_Item(UItem_Action* ItemContext)
-{
-    UE_LOG(LogTemp, Warning, TEXT("Test Item"));
-}
 //보호막 융해 물약↓
 void UItemLogicLibrary::MeltShieldPotion_Logic(UItem_Action* ItemContext)
 {

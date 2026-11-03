@@ -29,8 +29,6 @@ private:
 	UPROPERTY(VisibleAnywhere,  Category = "Shield")
 	int32 CurrentShield = 0;
 
-	int32 CurrentStage = -1;
-
 	UPROPERTY(EditAnywhere, Category = "BossHP|Animation", meta = (AllowPrivateAccess))
 	float ProgressBarInterpSpeed = 5.f;
 
@@ -143,18 +141,11 @@ private:
 	int32 ShieldTickMax = -1;
 
 public:
-
-	void SetCurrnetStage(const int32 StageNum) { CurrentStage = StageNum;}
 	void SetBossHUDData(const FBossHUDData& InData);
-	void InitBossHp(int32 SetMaxHp);
-	void InitBossShield(int32 SetMaxShield);
 	void SetBossName(const FString& SetBossName);
 
 	void ChangeMaxHp(int32 AddMaxHp);
 	void ChangeCurrentHp(int32 AddHpValue);
-
-	void ChangeMaxShield(int32 AddMaxShield);
-	void ChangeCurrentShield(int32 AddShieldValue);
 
 	void InitGroggyAsShield(int32 SetMaxGroggy);
 	void UpdateGroggyAsShield(int32 NewCurrentGroggy);

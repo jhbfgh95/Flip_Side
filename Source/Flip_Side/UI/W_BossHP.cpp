@@ -68,24 +68,6 @@ void UW_BossHP::SetBossHUDData(const FBossHUDData& InData)
 
 }
 
-void UW_BossHP::InitBossHp(int32 SetMaxHp)
-{
-    MaxHp = FMath::Max(0, SetMaxHp);
-    CurrentHp = MaxHp;
-
-    RefreshHpBar();
-    SnapHpBarToTarget();
-}
-
-void UW_BossHP::InitBossShield(int32 SetMaxShield)
-{
-    MaxShield = FMath::Max(0, SetMaxShield);
-    CurrentShield = MaxShield;
-
-    RefreshShieldBar();
-    SnapShieldBarToTarget();
-}
-
 void UW_BossHP::SetBossName(const FString& SetBossName)
 {
     if(BossNameText)
@@ -146,21 +128,6 @@ void UW_BossHP::UpdateGroggyAsShield(int32 NewCurrentGroggy)
     {
         TargetShieldPercent = MaxShield > 0 ? static_cast<float>(CurrentShield) / static_cast<float>(MaxShield) : 0.f;
     }
-}
-
-void UW_BossHP::ChangeMaxShield(int32 AddMaxShield)
-{
-    MaxShield = FMath::Max(0, MaxShield + AddMaxShield);
-    CurrentShield = FMath::Clamp(CurrentShield, 0, MaxShield);
-
-    RefreshShieldBar();
-}
-
-void UW_BossHP::ChangeCurrentShield(int32 AddShieldValue)
-{
-    CurrentShield = FMath::Clamp(CurrentShield + AddShieldValue, 0, MaxShield);
-
-    RefreshShieldBar();
 }
 
 void UW_BossHP::RefreshHpBar()

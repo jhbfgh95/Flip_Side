@@ -265,32 +265,9 @@ void ACoinActor::SetReadySlotHighlighted(bool bHighlighted)
 	RefreshOutline();
 }
 
-int32 ACoinActor::GetSameTypeIndex() const
-{
-	return SameTypeIndex;
-}
-
 int32 ACoinActor::GetFrontWeaponID() const
 {
 	return FrontWeaponID;
-}
-
-void ACoinActor::DecrementSameTypeIndex()
-{
-	if (SameTypeIndex > 0)
-	{
-		SameTypeIndex--;
-	}
-}
-
-void ACoinActor::SetSameTypeIndex(int32 NewIndex)
-{
-	SameTypeIndex = NewIndex;
-}
-
-void ACoinActor::IncrementSameTypeIndex()
-{
-	SameTypeIndex++;
 }
 
 void ACoinActor::SetCoinIsReady(bool IsReady)

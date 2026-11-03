@@ -25,8 +25,6 @@ class FLIP_SIDE_API UItem_Action : public UActionBase
 
 public:
 	virtual void SetItemEffectValue(const int32 OnItemEffectValue);
-
-	virtual int32 GetItemEffectValue() const;
 	
 	/*
 	virtual void SetItemType(const EItemType TypeID);

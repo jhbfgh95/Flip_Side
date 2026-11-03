@@ -159,11 +159,11 @@ struct FBossPatternDisplayData
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     bool bIsGimmick = false;
 
-    // 실명/늪: 지속 턴수, 독: 독 데미지
+    // 실명/늪 투척: 지속 턴수, 낙인: 경과 턴당 피해 계수(전투와 같은 기본값 적용).
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 GimmickParamA = 0;
 
-    // 늪: 공격력 디버프 수치
+    // 늪 투척: 적용 스탯 변경량(음수). 패턴 인덱스 0은 무기력, 1은 공격력입니다.
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 GimmickParamB = 0;
 };

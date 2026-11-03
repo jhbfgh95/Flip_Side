@@ -281,19 +281,3 @@ struct FWeaponIDArray
     TArray<int32> WeaponIDs;
 };
 
-
-/**
- * �ൿ �Ͽ��� ����� �۾� ����
- */
-USTRUCT(BlueprintType)
-struct FActionTask
-{
-    GENERATED_BODY()
-
-    FGridPoint ModifiedRange;
-
-    int32 ModifiedAttackPoint = 0;
-
-    int32 ModifiedBehaviorPoint = 0;
-};
-

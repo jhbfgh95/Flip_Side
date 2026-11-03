@@ -68,9 +68,6 @@ public:
 	//슬롯에 해당하는 코인을 반환함
 	UFUNCTION(BlueprintCallable)
 	FCoinTypeStructure GetSlotCoin(int SlotNum) const;
-	
-	UFUNCTION(BlueprintCallable)
-	int32 GetMakedCoinNum() const;
 	//카드 아이디를 배열로 반환
 	UFUNCTION(BlueprintCallable)
 	TArray<int32> GetBattleCardIDs();
@@ -80,9 +77,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetMakedItemNum() const;
-
-	//테스트용 코인슬롯에 코인들을 채움 카드 및 소모품도 넣겠음.
-	void GenerateTestCoin();
 
 	bool GetIsCoinEmpty();
 	

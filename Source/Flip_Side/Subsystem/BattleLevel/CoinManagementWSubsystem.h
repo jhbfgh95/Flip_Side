@@ -41,7 +41,6 @@ public:
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnTutorialReadyCoinAdded, int32);
 	FOnTutorialReadyCoinAdded OnTutorialReadyCoinAdded;
 	bool TryCancelReadyCoin(int32 CoinInstanceID);
-	bool ReplaceReadyCoinWithSample(int32 FrontWeaponID, int32 BackWeaponID, int32 ReadySlotNumber);
 
 	const TArray<FBattleCoinSlotData>& GetCoinSlots() const { return CoinSlots; }
 	const TArray<FReadyCoinData>& GetReadyCoinData() const { return ReadyCoins; }
@@ -49,17 +48,9 @@ public:
 	void SetCoinReadyPhase(bool bEnabled) { bIsCoinReadyPhase = bEnabled; }
 	int32 InstantiateReadyCoinActors();
 	ACoinActor* GetRuntimeCoinAtReadySlot(int32 ReadySlotIndex) const;
-
-	// CoinBehaviorPhase에서 Actor가 생성된 뒤 사망 처리와 함께 사용할 예정입니다.
-	bool RemoveReadyCoinByInstanceID(int32 CoinInstanceID);
-
-	void InitBattleReadyCoin();
 	void CheckBattleReadyCoinAlive();
 	TArray<ACoinActor*> GetReadyCoins() const;
 	void SetBattleCoinItemFlags(bool bEnabled);
-	bool IsCoinInBattleReady(ACoinActor* InCoin) const;
-	bool IsCoinIdInBattleReady(int32 TargetID) const;
-	void LockCoinReady(ACoinActor* TargetCoin);
 	int32 CalculateCoinPrice() const;
 	int32 CalculateCoinCount() const;
 
@@ -77,9 +68,6 @@ public:
 
 private:
 	static constexpr int32 MaxReadyCoinCount = 10;
-
-	/** 실제 보유 코인이 없을 때 DB 무기 ID만 지정한 10칸의 테스트 슬롯을 구성합니다. */
-	void CreateDummyCoinSlots();
 	FBattleCoinSlotData* FindCoinSlot(int32 SlotNumber);
 	const FBattleCoinSlotData* FindCoinSlot(int32 SlotNumber) const;
 	int32 FindEmptyReadyCoinSlotIndex() const;

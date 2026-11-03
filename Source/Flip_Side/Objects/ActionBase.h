@@ -45,14 +45,6 @@ public:
 
 	virtual TArray<class ACoinActor*> GetInRangeCoins();
 
-	virtual TArray<class ABase_OtherActor*> GetInRangeOthers();
-
-	virtual bool GetInRangeBoss(ABossActor*& OutBoss) const;
-
-	virtual void InitInRangeBoss();
-
-	void CreateTestRange();
-
 	virtual void ExecuteAction();
 
 };

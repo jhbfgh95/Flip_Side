@@ -49,8 +49,6 @@ public:
 
 	int32 GetItemID() const;
 
-	EItemType GetItemType() const { return ItemType; }
-
 	class UStaticMeshComponent* GetUseableItemMesh() const { return UseableItemMesh; }
 
 	UFUNCTION()

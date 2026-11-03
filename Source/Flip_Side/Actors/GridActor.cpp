@@ -183,53 +183,6 @@ void AGridActor::ClearOccupiedOnly()
 	InitColor();
 }
 
-void AGridActor::SetSwamp(int32 RemainingTurns, int32 DebuffAmount, EWeaponClass TargetClass, const FLinearColor& Color)
-{
-	bHasSwamp = true;
-	SwampRemainingTurns = RemainingTurns;
-	SwampDebuffAmount = DebuffAmount;
-	SwampTargetClass = TargetClass;
-	SwampColor = Color;
-	SwampColorSet.Color = Color;
-	SwampColorSet.Intensity = 0.3f;
-	SwampColorSet.DoorOpen = 0.f;
-	InitColor();
-}
-
-void AGridActor::ClearSwamp()
-{
-	bHasSwamp = false;
-	SwampRemainingTurns = 0;
-	SwampDebuffAmount = 0;
-	SwampTargetClass = EWeaponClass::None;
-	InitColor();
-}
-
-void AGridActor::SetSwampPreviewColor(const FLinearColor& Color)
-{
-	bIsSwampPreview = true;
-	SwampPreviewColorSet.Color = Color;
-	SwampPreviewColorSet.Intensity = 0.3f;
-	SwampPreviewColorSet.DoorOpen = 0.f;
-
-	UMaterialInstanceDynamic* MID = EnsureMID(0);
-	if (!MID) return;
-
-	MID->SetVectorParameterValue(TEXT("Cover_Color"), FLinearColor::White);
-	MID->SetVectorParameterValue(TEXT("Outline_Color"), SwampPreviewColorSet.Color);
-}
-
-void AGridActor::ClearSwampPreviewColor()
-{
-	bIsSwampPreview = false;
-
-	UMaterialInstanceDynamic* MID = EnsureMID(0);
-	if (!MID) return;
-
-	const FLinearColor OutlineColor = bHasSwamp ? SwampColorSet.Color : FLinearColor::White;
-	MID->SetVectorParameterValue(TEXT("Outline_Color"), OutlineColor);
-}
-
 AActor* AGridActor::GetCurrentOccupied() const
 {
 	return CurrentObject;
@@ -333,19 +286,6 @@ void AGridActor::InitColor()
 		MID->SetVectorParameterValue(TEXT("Outline_Color"), FLinearColor::White);
 		MID->SetScalarParameterValue(TEXT("Fill_intensity"), 0.3f);
 	}
-}
-
-//나이아가라로 변경
-void AGridActor::SetPromotionHighlight(bool bOn)
-{
-	bIsPromotionHighlight = bOn;
-	if (bOn)
-	{
-		PromotionColorSet.Color     = FLinearColor(1.f, 0.84f, 0.f, 1.f);
-		PromotionColorSet.Intensity = 0.3f;
-		PromotionColorSet.DoorOpen  = 0.f;
-	}
-	InitColor();
 }
 
 void AGridActor::SetItemTargetHighlight(bool bOn)

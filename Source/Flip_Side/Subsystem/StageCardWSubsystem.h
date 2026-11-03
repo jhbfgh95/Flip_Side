@@ -47,10 +47,8 @@ public:
     int32 CardPrice = 0;
     UFUNCTION(BlueprintCallable) void RefreshHandFromGI();
     UFUNCTION(BlueprintCallable) void RemoveHandCard(int32 HandIndex);
-    bool ChangeHandCard(int32 CardID, int32 CardSlot);
     UFUNCTION(BlueprintCallable) bool TryGetHandCard(int32 HandIndex, FCardData& Out) const;
     void GetBattleCardSlots(TArray<FBattleCardSlotViewData>& OutCardSlots) const;
-    UFUNCTION(BlueprintCallable, Category = "Debug|Stage Card") bool TestCardGenerate();
 
     // BattleManager가 코인 생성/면/좌표 확정 후 턴당 한 번 호출합니다.
     void BeginCardTurn();
@@ -59,10 +57,8 @@ public:
     // Tick 및 클릭 직전 동기화. 추가 클릭 지급이나 무작위 칸 선정은 반복하지 않습니다.
     void ExecuteCardsEffect();
     void ClearPromotionHighlight();
-    UFUNCTION(BlueprintCallable) FCoinCardModifiers GetModifiersForCoin(ACoinActor* Coin) const;
     UFUNCTION(BlueprintCallable) void ClearAllModifiers();
     void SettingDoSettingPhase();
-    int32 GetCardPrice() { return static_cast<int32>(CardPrice / 2); }
     int32 GetCardCount() const;
 
 private:

@@ -300,7 +300,8 @@ void ABossActor::BeginPillarTurn()
 
 int32 ABossActor::GetDamageWithPillarBonus(int32 Damage) const
 {
-	return static_cast<int32>(FMath::Clamp<int64>(static_cast<int64>(FMath::Max(0, Damage)) +
+	const int64 ScaledDamage = FMath::RoundToInt64(static_cast<double>(FMath::Max(0, Damage)) * StageMultiplierStat);
+	return static_cast<int32>(FMath::Clamp<int64>(ScaledDamage +
 		PillarDamageBonus, 0, MAX_int32));
 }
 
@@ -384,19 +385,6 @@ UBossPatternBase* ABossActor::GetPattern() const
 	}
 
 	return Pattern;
-}
-
-bool ABossActor::GetPatternDataList(TArray<FBossPatternBattleData>& OutPatternDataList) const
-{
-	OutPatternDataList.Reset();
-
-	if(!Pattern)
-	{
-		return false;
-	}
-
-	OutPatternDataList = Pattern->PatternData;
-	return OutPatternDataList.Num() > 0;
 }
 
 bool ABossActor::GetPatternData(int32 PatternIndex, FBossPatternBattleData& OutPatternData) const
@@ -692,8 +680,7 @@ FBossHUDData ABossActor::GetBossHUDData() const
 		HUDData.PatternDescription = CachedPatternData.PatternDescription;
 		HUDData.PatternDamage = AttackPoint;
 		HUDData.bPatternNoDamage = CachedPatternData.bNoDamage;
-		HUDData.bShowPatternDamage = CachedPatternData.bNoDamage
-			|| CachedPatternData.GimmickType != EBossGimmickType::RoleTarget;
+		HUDData.bShowPatternDamage = true;
 		// 표시용 조회에서는 실행 훅을 호출하지 않습니다(턴/기믹 상태 변경 방지).
 		if (!CachedPatternData.bNoDamage && HUDData.bShowPatternDamage)
 		{

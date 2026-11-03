@@ -22,15 +22,6 @@ public:
 	// 배틀 시작 시 1회 호출
 	virtual void OnBattleStart(ABossActor* Boss) {}
 
-	// 패턴이 선택된 직후 (텔레그래프 전)
-	virtual void OnPatternSelected(ABossActor* Boss, FBossPhaseContext& Context) {}
-
-	// 텔레그래프 셀 목록이 결정된 직후 (셀 수정 가능)
-	virtual void OnTelegraphBuild(ABossActor* Boss, FBossPhaseContext& Context) {}
-
-	// 텔레그래프가 화면에 표시된 직후 (연출 수정 가능)
-	virtual void OnTelegraphShown(ABossActor* Boss, FBossPhaseContext& Context) {}
-
 	// 패턴 실행 직전 (데미지/스킵 등 Context 수정)
 	virtual void OnBeforePatternExecute(ABossActor* Boss, FBossPhaseContext& Context) {}
 

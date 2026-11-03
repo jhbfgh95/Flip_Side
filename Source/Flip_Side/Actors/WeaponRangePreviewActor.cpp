@@ -140,13 +140,12 @@ void AWeaponRangePreviewActor::BuildPreviewCells(const FAttackAreaSpec& Spec, bo
 			for (int32 X = 0; X < 9; ++X) OutCells.Add(FGridPoint(X, Y));
 		return;
 	}
-	// 창의 적과 같은 후방 직선 Spec은 가로로 회전한 대표 모양으로 표시합니다.
+	// 후방 직선은 코인을 상단에 두고 실제 후방 방향 그대로 표시합니다.
 	if (Spec.Pattern == EAttackAreaPattern::RectFromCell && Spec.Side == EAreaSide::Down && Spec.ParamA == 1)
 	{
-		OutCoin = FGridPoint(8, 2);
+		OutCoin = FGridPoint(4, 4);
 		Resolved.AnchorMode = EAreaAnchor::UseAnchorCell;
 		Resolved.AnchorCell = OutCoin;
-		Resolved.Side = EAreaSide::Left;
 		FGridAreaBuilder::BuildCells(Resolved, 9, 5, OutCells);
 		return;
 	}
@@ -241,11 +240,6 @@ void AWeaponRangePreviewActor::RebuildGrid()
 {
 	ConfigureCells();
 	ClearPreview();
-}
-
-void AWeaponRangePreviewActor::ShowBothFacePreview(const FAttackAreaSpec& FrontSpec, const FAttackAreaSpec& BackSpec)
-{
-	ShowDefinitionPreview(FrontSpec, FAttackAreaSpec(), false, BackSpec, FAttackAreaSpec(), false);
 }
 
 void AWeaponRangePreviewActor::ShowPreview(const FGridPoint& CoinXY, const TArray<FGridPoint>& RangeCells)

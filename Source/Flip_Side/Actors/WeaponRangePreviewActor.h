@@ -70,9 +70,6 @@ public:
 	void ClearPreview();
 	UFUNCTION(BlueprintCallable, CallInEditor, Category="Preview")
 	void RebuildGrid();
-	// 기존 BP/C++ 참조 보존용. 새 슬롯 경로에서는 호출하지 않습니다.
-	UFUNCTION(BlueprintCallable, Category="Preview", meta=(DeprecatedFunction, DeprecationMessage="Use definition-only slot preview"))
-	void ShowBothFacePreview(const FAttackAreaSpec& FrontSpec, const FAttackAreaSpec& BackSpec);
 	UFUNCTION(BlueprintCallable, Category="Preview", meta=(DeprecatedFunction, DeprecationMessage="World-cell preview is no longer supported"))
 	void ShowPreview(const FGridPoint& CoinXY, const TArray<FGridPoint>& RangeCells);
 

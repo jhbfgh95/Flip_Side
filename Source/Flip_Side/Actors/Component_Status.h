@@ -19,11 +19,6 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnHPChanged, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMaxHPChanged, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnShieldChanged, int32);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDead);
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnPreTakeDamage, int32, int32&, bool&);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnCalculateStats, FActionTask&);
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnPreGiveDamage, AActor*, int32, int32&);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnPostGiveDamage, AActor*, int32);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBuffListChanged, bool, bIsBuffOn);
 
 // PlayerController의 호버 캐시와 범위 미리보기가 최신 스탯을 다시 계산할 때 구독합니다.
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponStatsChanged, const FWeaponStatsChangedEvent&);
@@ -31,31 +26,6 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeaponStatsChanged, const FWeaponStatsCha
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnStatusEffectsChanged, const FStatusEffectsChangedEvent&);
 // 무기 능력·보스 버프로 능력치(공격력·무기력·횟수·사거리·최대 HP)가 실제로 올랐을 때만 알립니다. 카드·아이템 버프, 디버프, 복원, 제거는 포함하지 않습니다.
 DECLARE_MULTICAST_DELEGATE(FOnStatBuffGained);
-
-/** 기존 카드·아이템 로직이 FActionTask 기반으로 동작하는 동안만 유지하는 호환 버프 데이터입니다. */
-USTRUCT(BlueprintType)
-struct FBuffInfo
-{
-	GENERATED_BODY()
-
-	bool bIsDebuff = false;
-
-	UPROPERTY(BlueprintReadOnly)
-	FString BuffName;
-
-	UPROPERTY(BlueprintReadOnly)
-	UTexture2D* BuffIcon = nullptr;
-
-	FOnCalculateStats::FDelegate StatDelegate = FOnCalculateStats::FDelegate();
-	FOnPreTakeDamage::FDelegate DamageDelegate = FOnPreTakeDamage::FDelegate();
-	FOnPreGiveDamage::FDelegate PreGiveDelegate = FOnPreGiveDamage::FDelegate();
-	FOnPostGiveDamage::FDelegate PostGiveDelegate = FOnPostGiveDamage::FDelegate();
-
-	FDelegateHandle StatHandle;
-	FDelegateHandle DamageHandle;
-	FDelegateHandle PreGiveHandle;
-	FDelegateHandle PostGiveHandle;
-};
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class FLIP_SIDE_API UComponent_Status : public UActorComponent
@@ -73,7 +43,6 @@ public:
 	int32 GetShieldGaugeCapacity() const { return ShieldGaugeCapacity; }
 	bool IsDead() const { return bIsDead; }
 	int32 GetWeaponStatRevision() const { return WeaponStatRevision; }
-	EFaceState GetCurrentFace() const { return CurrentFace; }
 	TArray<FStatusEffectInstance> GetStatusEffects() const;
 	class UDebuffComponent* GetDebuffComponent() const;
 	bool IsStunned() const;
@@ -132,30 +101,15 @@ public:
 	// CoinManager가 Actor 파괴 전에 HP·보호막·전투 지속 효과만 가져갑니다.
 	FCoinRuntimeStateSnapshot ExportRuntimeState() const;
 
-	// CoinManager가 다음 CoinBehaviorPhase Actor에 저장된 전투 상태를 복원합니다.
-	bool ImportRuntimeState(const FCoinRuntimeStateSnapshot& RuntimeState);
-
 	// Deferred Spawn 뒤 BeginPlay한 CoinActor가 현재 상태 VFX를 한 번 동기화할 때 사용합니다.
 	void RefreshStatusEffectEvents() const;
-
-	// 기존 WeaponLogic/Card/Item을 새 스냅숏 경로로 이관할 때까지 유지하는 호환 API입니다.
-	FActionTask GetModifiedStats();
-	void SetFaceWeaponStats(int32 FrontBP, int32 FrontAP, int32 BackBP, int32 BackAP);
-	int32 GetWeaponBP() const { return BP.IsValidIndex(CurrentFaceIndex) ? BP[CurrentFaceIndex] : 0; }
-	int32 GetWeaponAP() const { return AP.IsValidIndex(CurrentFaceIndex) ? AP[CurrentFaceIndex] : 0; }
 
 	// 초기화 이외의 호출은 죽은 코인을 되살리지 않으며 현재 HP만 안전하게 변경합니다.
 	void SetHP(int32 ApplyHP, bool bIsFirst);
 	void ApplyFaceWeaponStat(EFaceState Face);
 	void ApplyDamage(int32 Damage, AActor* DamageCauser);
 	void ApplyHeal(int32 Heal, AActor* HealCauser);
-	void ApplyShield(int32 AddShield, AActor* ShieldCauser);
-
-	// 기존 델리게이트 버프 호출부를 새 상태효과 API로 이관할 때까지 유지합니다.
-	void AddBuffs(const FBuffInfo& Info);
 	void ClearDebuffs();
-	void ClearTurnBasedBuffs();
-	void CheckAttackerPreBuff(AActor* Target, int32 InDmg, int32& OutDmg);
 	void CheckAttackerPostBuff(AActor* Target, int32 DealtDmg);
 
 	void ApplyCC(FCCStructure CC);
@@ -172,20 +126,10 @@ public:
 	FOnMaxHPChanged OnMaxHPChanged;
 	FOnShieldChanged OnShieldChanged;
 	FOnCCRemoved OnCCRemove;
-	FOnPreTakeDamage OnPreTakeDamage;
-	FOnCalculateStats OnCalculateStats;
-	FOnPreGiveDamage OnPreGiveDamage;
-	FOnPostGiveDamage OnPostGiveDamage;
 	FOnDead OnDead;
 	FOnCCActived OnCCActived;
 	FOnWeaponStatsChanged OnWeaponStatsChanged;
 	FOnStatusEffectsChanged OnStatusEffectsChanged;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Status|Buff")
-	TArray<FBuffInfo> ActiveBuffs;
-
-	UPROPERTY(BlueprintAssignable, Category = "Status|Event")
-	FOnBuffListChanged OnBuffListChanged;
 
 protected:
 	virtual void BeginPlay() override;
@@ -202,7 +146,6 @@ private:
 	void RecalculateMaxHPFromEffects(bool bIncreaseCurrentHPForPositiveDelta);
 	bool RemoveStatusEffectAtIndex(int32 EffectIndex);
 	void ConsumeTemporaryShieldContribution(int32 AbsorbedDamage);
-	void RemoveLegacyBuffAt(int32 Index);
 	void HandleDeathIfNeeded();
 	bool TryInterceptBossDamage(int32 Damage, AActor* DamageCauser);
 	void ApplyDamageInternal(int32 Damage, AActor* DamageCauser, bool bAllowInterception);
@@ -247,13 +190,4 @@ private:
 
 	int32 NextBuffInstanceSerial = 1;
 
-	// 앞면 BP[0], 뒷면 BP[1]인 기존 행동 코드 호환 배열입니다.
-	UPROPERTY(VisibleAnywhere, Category = "Weapon|Legacy")
-	TArray<int32> BP = {0, 0};
-
-	// 앞면 AP[0], 뒷면 AP[1]인 기존 행동 코드 호환 배열입니다.
-	UPROPERTY(VisibleAnywhere, Category = "Weapon|Legacy")
-	TArray<int32> AP = {0, 0};
-
-	int32 CurrentFaceIndex = 0;
 };
