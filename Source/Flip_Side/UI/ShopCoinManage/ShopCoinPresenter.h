@@ -43,6 +43,7 @@ public:
 
 	UW_ShopCoinWidget* GetShopCoinWidget() const { return ShopCoinWidget; }
 	AShopCoinUIActor* GetShopCoinUIActor() const { return ShopCoinUIActor; }
+	void ToggleDescriptionDetails();
 
 	UFUNCTION()
 	void RemoveCurrentCoinSideWeapon();

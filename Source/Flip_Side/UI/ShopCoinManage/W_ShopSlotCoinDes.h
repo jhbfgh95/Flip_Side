@@ -48,6 +48,10 @@ protected:
 	TObjectPtr<class UButton> AbilityButton;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> RangeButton;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> DetailedDescriptionToggleButton;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> DetailedDescriptionToggleText;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UWidgetSwitcher> ContentSwitcher;
 	UPROPERTY(meta = (BindWidget))
@@ -84,6 +88,8 @@ protected:
 	void SetWeaponDescription(const struct FFaceData& Weapon, const TArray<struct FKeywordDefinitionData>& Keywords);
 	UFUNCTION(BlueprintCallable, Category = "Weapon Description")
 	void SetDetailed(bool bInDetailed);
+	UFUNCTION(BlueprintCallable, Category = "Weapon Description")
+	void ToggleDetailedDescriptions();
 	void RequestHide();
 	void SetExplainTextEmpty();
 

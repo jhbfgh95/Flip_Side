@@ -3,6 +3,7 @@
 
 #include "UI/W_WeaponDescription.h"
 #include "Components/TextBlock.h"
+#include "Components/Button.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Engine/Texture2D.h"
@@ -18,6 +19,9 @@
 void UW_WeaponDescription::NativeConstruct()
 {
     Super::NativeConstruct();
+    if (IsValid(DetailedDescriptionToggleButton))
+        DetailedDescriptionToggleButton->OnClicked.AddUniqueDynamic(this, &ThisClass::ToggleDetailedDescriptions);
+    SetDetailed(bDetailed);
 	// 명시적으로 바인딩한 스탯 이미지만 DB에서 갱신합니다. 하위 위젯 탐색은 하지 않습니다.
 	UDataManagerSubsystem* IconDB = IsValid(GetGameInstance()) ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>() : nullptr;
 	if (IsValid(IconDB))
@@ -158,10 +162,21 @@ void UW_WeaponDescription::SetDetailed(bool bInDetailed)
 {
     bDetailed = bInDetailed;
     if (IsValid(DescriptionSection)) DescriptionSection->SetDetailed(bDetailed);
+    if (IsValid(DetailedDescriptionToggleText))
+        DetailedDescriptionToggleText->SetText(bDetailed
+            ? NSLOCTEXT("CoinDescription", "DetailOn", "상세 표시: 켜짐")
+            : NSLOCTEXT("CoinDescription", "DetailOff", "상세 표시: 꺼짐"));
+}
+
+void UW_WeaponDescription::ToggleDetailedDescriptions()
+{
+    SetDetailed(!bDetailed);
 }
 
 void UW_WeaponDescription::NativeDestruct()
 {
+    if (IsValid(DetailedDescriptionToggleButton))
+        DetailedDescriptionToggleButton->OnClicked.RemoveDynamic(this, &ThisClass::ToggleDetailedDescriptions);
     SetExplainTextEmpty();
     Super::NativeDestruct();
 }

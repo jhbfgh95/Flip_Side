@@ -31,6 +31,7 @@ public:
 	FOnShopWeaponUnlocked OnWeaponUnlocked;
 
 	UW_UnlockWeaponWidget* GetShopUnlockWidget() const { return UnlockWeaponWidget; }
+	void ToggleDescriptionDetails();
 
 private:
 	UPROPERTY()

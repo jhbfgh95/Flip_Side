@@ -41,6 +41,10 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* CountText;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> DetailedDescriptionToggleButton;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UTextBlock> DetailedDescriptionToggleText;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UCoinDescriptionSectionWidget> DescriptionSection;
@@ -75,6 +79,8 @@ protected:
 	
 	UFUNCTION(BlueprintCallable, Category = "Weapon Description")
 	void SetDetailed(bool bInDetailed);
+	UFUNCTION(BlueprintCallable, Category = "Weapon Description")
+	void ToggleDetailedDescriptions();
 
 	void SetExplainTextEmpty();
 

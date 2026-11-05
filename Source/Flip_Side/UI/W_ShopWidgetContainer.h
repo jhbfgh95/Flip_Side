@@ -67,6 +67,7 @@ public:
 	
 	void HideShopContent();
 	void ShowShopPage(EShopPage Page);
+	EShopPage GetVisibleShopPage() const;
 
 	UW_ShopItemWidget* GetShopItemWidget();
 	

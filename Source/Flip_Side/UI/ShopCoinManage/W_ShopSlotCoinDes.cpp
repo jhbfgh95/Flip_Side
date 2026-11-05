@@ -54,6 +54,9 @@ void UW_ShopSlotCoinDes::NativeConstruct()
 
     if (IsValid(AbilityButton)) AbilityButton->OnClicked.AddUniqueDynamic(this, &ThisClass::HandleAbilityButtonClicked);
     if (IsValid(RangeButton)) RangeButton->OnClicked.AddUniqueDynamic(this, &ThisClass::HandleRangeButtonClicked);
+    if (IsValid(DetailedDescriptionToggleButton))
+        DetailedDescriptionToggleButton->OnClicked.AddUniqueDynamic(this, &ThisClass::ToggleDetailedDescriptions);
+    SetDetailed(bDetailed);
 
     if (IsValid(AbilityButton) && IsValid(RangeButton))
     {
@@ -169,6 +172,15 @@ void UW_ShopSlotCoinDes::SetDetailed(bool bInDetailed)
 {
     bDetailed = bInDetailed;
     if (IsValid(DescriptionSection)) DescriptionSection->SetDetailed(bDetailed);
+    if (IsValid(DetailedDescriptionToggleText))
+        DetailedDescriptionToggleText->SetText(bDetailed
+            ? NSLOCTEXT("CoinDescription", "DetailOn", "상세 표시: 켜짐")
+            : NSLOCTEXT("CoinDescription", "DetailOff", "상세 표시: 꺼짐"));
+}
+
+void UW_ShopSlotCoinDes::ToggleDetailedDescriptions()
+{
+    SetDetailed(!bDetailed);
 }
 
 void UW_ShopSlotCoinDes::SetActivePage(int32 PageIndex)
@@ -242,6 +254,8 @@ void UW_ShopSlotCoinDes::NativeDestruct()
 {
     if (IsValid(AbilityButton)) AbilityButton->OnClicked.RemoveDynamic(this, &ThisClass::HandleAbilityButtonClicked);
     if (IsValid(RangeButton)) RangeButton->OnClicked.RemoveDynamic(this, &ThisClass::HandleRangeButtonClicked);
+    if (IsValid(DetailedDescriptionToggleButton))
+        DetailedDescriptionToggleButton->OnClicked.RemoveDynamic(this, &ThisClass::ToggleDetailedDescriptions);
     SetExplainTextEmpty();
     Super::NativeDestruct();
 }

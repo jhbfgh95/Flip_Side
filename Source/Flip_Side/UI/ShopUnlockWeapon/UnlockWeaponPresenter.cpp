@@ -178,6 +178,14 @@ void UUnlockWeaponPresenter::UpdateWeaponUIActor(int32 WeaponID)
 	ShopUnlockWeaponUIActor->SetWeaponIcon(WeaponData);
 }
 
+void UUnlockWeaponPresenter::ToggleDescriptionDetails()
+{
+	if (!IsValid(UnlockWeaponWidget) || !UnlockWeaponWidget->IsVisible()) return;
+	UW_WeaponDescription* DescriptionWidget = UnlockWeaponWidget->GetWeaponDescription();
+	if (IsValid(DescriptionWidget) && DescriptionWidget->IsVisible())
+		DescriptionWidget->ToggleDetailedDescriptions();
+}
+
 void UUnlockWeaponPresenter::UpdateWeaponDescription(int32 WeaponID)
 {
 	if(!IsValid(UnlockWeaponWidget) || !IsValid(DataManager) || WeaponID == -1)

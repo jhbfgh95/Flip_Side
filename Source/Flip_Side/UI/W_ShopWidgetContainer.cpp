@@ -76,6 +76,22 @@ void UW_ShopWidgetContainer::ShowShopPage(EShopPage Page)
 	ShopContentSwitcher->SetVisibility(ESlateVisibility::Visible);
 }
 
+EShopPage UW_ShopWidgetContainer::GetVisibleShopPage() const
+{
+	if (!IsVisible() || !IsValid(ShopContentSwitcher) || !ShopContentSwitcher->IsVisible())
+		return EShopPage::None;
+	const UWidget* ActiveWidget = ShopContentSwitcher->GetActiveWidget();
+	if (!IsValid(ActiveWidget)) return EShopPage::None;
+	if (ActiveWidget == ShopMainWidget) return EShopPage::Main;
+	if (ActiveWidget == ShopCoinWidget) return EShopPage::Coin;
+	if (ActiveWidget == ShopItemWidget) return EShopPage::Item;
+	if (ActiveWidget == ShopCardWidget) return EShopPage::Card;
+	if (ActiveWidget == ShopUnlockWeaponWidget) return EShopPage::UnlockWeapon;
+	if (ActiveWidget == ShopBossWidget) return EShopPage::Boss;
+	if (ActiveWidget == ShopCheckStartGameWidget) return EShopPage::GameStart;
+	return EShopPage::None;
+}
+
 void UW_ShopWidgetContainer::HandleStartGameConfirmed()
 {
 	if (AGameMode_Shop* ShopGameMode = GetWorld()->GetAuthGameMode<AGameMode_Shop>())

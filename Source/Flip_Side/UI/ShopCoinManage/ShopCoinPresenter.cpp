@@ -586,6 +586,14 @@ FFaceData UShopCoinPresenter::GetWeaponData(int32 WeaponID)
 	return ReturnData;
 }
 
+void UShopCoinPresenter::ToggleDescriptionDetails()
+{
+	if (!IsValid(ShopCoinWidget) || !ShopCoinWidget->IsVisible()) return;
+	UW_ShopSlotCoinDes* DescriptionWidget = ShopCoinWidget->GetWeaponDescription();
+	if (IsValid(DescriptionWidget) && DescriptionWidget->IsVisible())
+		DescriptionWidget->ToggleDetailedDescriptions();
+}
+
 void UShopCoinPresenter::UpdateWeaponDescription(const FFaceData& WeaponData)
 {
 	if(!IsValid(ShopCoinWidget) || WeaponData.WeaponID == -1)

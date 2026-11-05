@@ -174,10 +174,28 @@ void AShopController_FlipSide::SetupInputComponent()
     }
 
     InputComponent->BindKey(EKeys::LeftMouseButton, IE_Pressed, this, &AShopController_FlipSide::OnLeftClick);
+    InputComponent->BindKey(EKeys::LeftShift, IE_Pressed, this, &AShopController_FlipSide::ToggleShopDescriptionDetails);
+    InputComponent->BindKey(EKeys::RightShift, IE_Pressed, this, &AShopController_FlipSide::ToggleShopDescriptionDetails);
     //InputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &ABattlePlayerController_FlipSide::OnRightClick);
 }
 
 //폰하고 연결
+void AShopController_FlipSide::ToggleShopDescriptionDetails()
+{
+    if (!IsValid(ShopWidgetContainer)) return;
+    switch (ShopWidgetContainer->GetVisibleShopPage())
+    {
+    case EShopPage::Coin:
+        if (IsValid(CoinPresenter)) CoinPresenter->ToggleDescriptionDetails();
+        break;
+    case EShopPage::UnlockWeapon:
+        if (IsValid(UnlockWeaponPresenter)) UnlockWeaponPresenter->ToggleDescriptionDetails();
+        break;
+    default:
+        break;
+    }
+}
+
 void AShopController_FlipSide::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);

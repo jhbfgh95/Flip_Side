@@ -147,6 +147,7 @@ private:
 protected:
 
     void OnLeftClick();
+	void ToggleShopDescriptionDetails();
 
 	void OnRightClick();
 
