@@ -528,19 +528,39 @@ bool UAbilityLogicLibrary::EmergencyDeviceAfterAttack(UWeapon_Action* WeaponCont
 	return bAppliedAny;
 }
 
-bool UAbilityLogicLibrary::CrushingDrillAfterAttack(UWeapon_Action* WeaponContext)
+bool UAbilityLogicLibrary::CrushingDrillAbsorb(UWeapon_Action* WeaponContext)
 {
-	ABase_OtherActor* TargetOther = WeaponContext ? WeaponContext->GetTargetOther() : nullptr;
 	ACoinActor* CasterCoin = WeaponContext ? WeaponContext->GetCasterCoin() : nullptr;
-	if (!IsValid(TargetOther) || TargetOther->GetOtherType() != EOthersType::Wall ||
-		!IsValid(CasterCoin) || !IsValid(CasterCoin->StatComponent))
+	if (!IsValid(CasterCoin) || !IsValid(CasterCoin->StatComponent))
 	{
 		return false;
 	}
 
-	const int32 PreviousHP = TargetOther->GetHP();
-	TargetOther->ApplyDamage(WeaponContext->GetFinalBehaviorPoint(), CasterCoin);
-	const int32 AbsorbedAmount = FMath::Max(0, PreviousHP - TargetOther->GetHP());
+	const int32 AbsorbPerObstacle = FMath::Max(0, WeaponContext->GetFinalBehaviorPoint() + 2);
+	if (AbsorbPerObstacle <= 0)
+	{
+		return true;
+	}
+
+	int32 AbsorbedAmount = 0;
+	for (ABase_OtherActor* Other : WeaponContext->GetInRangeOthers())
+	{
+		if (!IsValid(Other) || Other->GetHP() <= 0 ||
+			(Other->GetOtherType() != EOthersType::Wall && Other->GetOtherType() != EOthersType::Turret))
+		{
+			continue;
+		}
+
+		const int32 PreviousHP = Other->GetHP();
+		Other->ApplyDamage(AbsorbPerObstacle, CasterCoin);
+		if (!IsValid(Other) || Other->GetHP() < PreviousHP)
+		{
+			// HP가 1인 장애물도 하나당 무기력 + 2만큼 흡수합니다.
+			AbsorbedAmount += AbsorbPerObstacle;
+		}
+	}
+
+	WeaponContext->GetExecutionState().AbsorbedAmount += AbsorbedAmount;
 	if (AbsorbedAmount <= 0)
 	{
 		return true;

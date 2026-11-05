@@ -38,7 +38,7 @@ class FLIP_SIDE_API ABase_OtherActor : public AActor, public IBattleClickInterfa
 	EOthersType MyType = EOthersType::None;
 
 	UPROPERTY(EditAnywhere, Category = "Others | Stat", meta = (AllowPrivateAccess = "true"))
-	int32 OtherActorMaxHP = 5;
+	int32 OtherActorMaxHP = 1;
 
 	UPROPERTY(VisibleAnywhere, Category = "Others | Stat")
 	int32 CurrentHP = 0;

@@ -21,6 +21,11 @@ void ABase_OtherActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	// 기존 블루프린트에 저장된 HP도 벽과 포탑은 1로 통일합니다.
+	if (MyType == EOthersType::Wall || MyType == EOthersType::Turret)
+	{
+		OtherActorMaxHP = 1;
+	}
 	CurrentHP = OtherActorMaxHP;
 	RemainingDurationTurns = FMath::Max(-1, InitialDurationTurns);
 }

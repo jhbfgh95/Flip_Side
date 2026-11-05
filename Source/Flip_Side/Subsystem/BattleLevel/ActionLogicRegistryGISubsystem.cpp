@@ -76,7 +76,7 @@ void UActionLogicRegistryGISubsystem::RegisterAllWeaponLogic()
 	RegisterAttackLogic(1, UAttackLogicLibrary::SteelPipeAttack);
 	RegisterAttackLogic(2, UAttackLogicLibrary::BasicAttack, ERepeatCountSource::WeaponPoint);
 	RegisterAttackLogic(3, UAttackLogicLibrary::BasicAttack);
-	RegisterAttackLogic(4, UAttackLogicLibrary::BloodCannonAttack);
+	RegisterAttackLogic(4, UAttackLogicLibrary::AbsorbAttack);
 	RegisterAttackLogic(5, UAttackLogicLibrary::BasicAttack);
 	RegisterAttackLogic(6, UAttackLogicLibrary::BasicAttack);
 	RegisterAttackLogic(7, UAttackLogicLibrary::BasicAttack);
@@ -91,7 +91,7 @@ void UActionLogicRegistryGISubsystem::RegisterAllWeaponLogic()
 	RegisterAttackLogic(14, UAttackLogicLibrary::BasicAttack);
 	RegisterAttackLogic(15, UAttackLogicLibrary::BasicAttack);
 	RegisterAttackLogic(16, UAttackLogicLibrary::BasicAttack);
-	RegisterAttackLogic(17, UAttackLogicLibrary::BasicAttack);
+	RegisterAttackLogic(17, UAttackLogicLibrary::AbsorbAttack);
 	// WeaponID 18 수리 키트와 19 증기 피스톤은 폐기된 레거시 기획이므로 등록하지 않습니다.
 	RegisterAttackLogic(20, UAttackLogicLibrary::BasicAttack);
 
@@ -161,10 +161,9 @@ void UActionLogicRegistryGISubsystem::RegisterAllWeaponLogic()
 		MakeTargetRule(EAbilityTargetFlags::Coin, EAbilitySelectionMode::AllInRange),
 		UAbilityLogicLibrary::EmergencyDeviceAfterAttack, TEXT("EmergencyDeviceAfterAttack"));
 
-	RegisterAbilityLogic(17, EAbilityTiming::AfterAttackAlways,
-		MakeTargetRule(EAbilityTargetFlags::Obstacle, EAbilitySelectionMode::UpToRepeatCount,
-			ERepeatCountSource::WeaponCount),
-		UAbilityLogicLibrary::CrushingDrillAfterAttack, TEXT("CrushingDrillAfterAttack"));
+	RegisterAbilityLogic(17, EAbilityTiming::BeforeAttack,
+		MakeTargetRule(EAbilityTargetFlags::Obstacle, EAbilitySelectionMode::AllInRange),
+		UAbilityLogicLibrary::CrushingDrillAbsorb, TEXT("CrushingDrillAbsorb"));
 
 	RegisterAbilityLogic(20, EAbilityTiming::OnHit, NoTargetRule(),
 		UAbilityLogicLibrary::GrantStrikeBuff, TEXT("CortisolStrike"));

@@ -22,7 +22,7 @@ void UTutorialClickHintWidget::NativeOnInitialized()
 	{
 		UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>();
 		MouseIcon = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("MouseIcon"));
-		MouseIcon->SetDesiredSizeOverride(FVector2D(32.f, 32.f));
+		MouseIcon->SetDesiredSizeOverride(FVector2D(24.f, 24.f));
 		ClickPrompt = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("ClickPrompt"));
 		Row->AddChildToHorizontalBox(MouseIcon);
 		Row->AddChildToHorizontalBox(ClickPrompt);

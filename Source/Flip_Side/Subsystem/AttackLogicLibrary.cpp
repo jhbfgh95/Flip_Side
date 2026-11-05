@@ -21,7 +21,7 @@ FWeaponAttackResult UAttackLogicLibrary::SteelPipeAttack(UWeapon_Action* WeaponC
 	return ApplyBossDamage(WeaponContext, Stats.AttackPoint + Stats.WeaponPoint);
 }
 
-FWeaponAttackResult UAttackLogicLibrary::BloodCannonAttack(UWeapon_Action* WeaponContext)
+FWeaponAttackResult UAttackLogicLibrary::AbsorbAttack(UWeapon_Action* WeaponContext)
 {
 	if (!WeaponContext)
 	{

@@ -49,6 +49,7 @@ public:
 	ABossActor* GetAttackBoss() const { return AttackBoss; }
 	AGridActor* GetTargetGrid() const { return TargetGrid; }
 	ABase_OtherActor* GetTargetOther() const { return TargetOther; }
+	const TArray<ABase_OtherActor*>& GetInRangeOthers() const { return InRangeOthers; }
 
 	bool WasAbilityActorSelected(const AActor* Actor) const;
 	void MarkAbilityActorSelected(AActor* Actor);

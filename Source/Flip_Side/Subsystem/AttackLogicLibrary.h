@@ -14,7 +14,7 @@ class FLIP_SIDE_API UAttackLogicLibrary : public UBlueprintFunctionLibrary
 public:
 	static FWeaponAttackResult BasicAttack(class UWeapon_Action* WeaponContext);
 	static FWeaponAttackResult SteelPipeAttack(UWeapon_Action* WeaponContext);
-	static FWeaponAttackResult BloodCannonAttack(UWeapon_Action* WeaponContext);
+	static FWeaponAttackResult AbsorbAttack(UWeapon_Action* WeaponContext);
 
 	/** 적중 후 추가 피해 능력도 동일한 보호막·HP 결과 규약을 사용합니다. */
 	static FWeaponAttackResult ApplyBossDamage(UWeapon_Action* WeaponContext, int32 Damage);

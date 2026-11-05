@@ -765,7 +765,7 @@ bool UCoinActionManagementWSubsystem::IsValidOtherTarget(
 	const ABase_OtherActor* Other,
 	const FAbilityTargetRule& Rule) const
 {
-	if (!IsValid(Other) || !IsValid(SelectedAction) ||
+	if (!IsValid(Other) || Other->GetHP() <= 0 || !IsValid(SelectedAction) ||
 		SelectedAction->WasAbilityActorSelected(Other))
 	{
 		return false;
@@ -776,7 +776,8 @@ bool UCoinActionManagementWSubsystem::IsValidOtherTarget(
 		return false;
 	}
 
-	return (Rule.HasTarget(EAbilityTargetFlags::Obstacle) && Other->GetOtherType() == EOthersType::Wall) ||
+	return (Rule.HasTarget(EAbilityTargetFlags::Obstacle) &&
+		(Other->GetOtherType() == EOthersType::Wall || Other->GetOtherType() == EOthersType::Turret)) ||
 		(Rule.HasTarget(EAbilityTargetFlags::Installation) && Other->GetOtherType() == EOthersType::Turret);
 }
 

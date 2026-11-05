@@ -31,6 +31,6 @@ public:
 	static bool AdrenalineOnHit(UWeapon_Action* WeaponContext);
 	static bool AmplificationLensOnHit(UWeapon_Action* WeaponContext);
 	static bool EmergencyDeviceAfterAttack(UWeapon_Action* WeaponContext);
-	static bool CrushingDrillAfterAttack(UWeapon_Action* WeaponContext);
+	static bool CrushingDrillAbsorb(UWeapon_Action* WeaponContext);
 	static bool CortisolOnHit(UWeapon_Action* WeaponContext);
 };
