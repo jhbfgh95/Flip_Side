@@ -61,6 +61,7 @@ public:
 	UFUNCTION()
 	void CancelSingleCellAction(ACoinActor* ClickedCoin);
 
+	bool CanCancelCurrentAction() const;
 	void TryCancelCurrentAction();
 	void CancelSelectWeapon();
 

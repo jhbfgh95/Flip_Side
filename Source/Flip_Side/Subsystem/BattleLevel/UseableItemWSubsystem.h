@@ -65,7 +65,7 @@ class FLIP_SIDE_API UUseableItemWSubsystem : public UWorldSubsystem
 	float ItemPreviewPlaneZ = -80.0f;
 
 	UPROPERTY(EditAnywhere, Category = "UseableItem | Preview")
-	float ItemPreviewScaleMultiplier = 0.6f;
+	float ItemPreviewScaleMultiplier = 0.72f;
 
 /* Dependency post - managers */
 protected:

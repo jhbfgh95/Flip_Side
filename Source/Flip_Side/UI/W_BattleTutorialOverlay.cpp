@@ -1,4 +1,5 @@
 #include "UI/W_BattleTutorialOverlay.h"
+#include "Actors/CoinActor.h"
 #include "UI/TutorialClickHintWidget.h"
 #include "UI/TutorialDescriptionWidget.h"
 #include "Blueprint/WidgetTree.h"
@@ -7,10 +8,20 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Border.h"
 #include "Components/MeshComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Engine/DataTable.h"
 #include "GameFramework/Actor.h"
 #include "Rendering/DrawElements.h"
 #include "UObject/ConstructorHelpers.h"
+
+namespace
+{
+	const FVector2D ExplanationReferenceViewport(1920.0, 1009.0);
+	// 기존 BP 값에 적용되던 최대화 화면의 배율을 기준 배치에 포함합니다.
+	const double ExplanationReferenceScale = ExplanationReferenceViewport.Y / 1080.0;
+	constexpr float CoinClickHintPeriod = 0.9f;
+	constexpr float CoinClickHintVisibleTime = 0.6f;
+}
 
 UW_BattleTutorialOverlay::UW_BattleTutorialOverlay(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -68,6 +79,7 @@ void UW_BattleTutorialOverlay::NativeOnInitialized()
 		UCanvasPanelSlot* TextSlot = TutorialCanvas->AddChildToCanvas(ExplanationWidget);
 		TextSlot->SetAnchors(FAnchors(0.5f, 0.5f));
 		TextSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+		ExplanationWidget->SetRenderTransformPivot(TextSlot->GetAlignment());
 		TextSlot->SetAutoSize(true);
 		TextSlot->SetZOrder(10);
 	}
@@ -91,18 +103,21 @@ void UW_BattleTutorialOverlay::ShowStep(const FBattleTutorialStep& Step)
 	WidgetTarget.Reset();
 	ActorTarget.Reset();
 	AreaTargets.Reset();
+	CoinClickHintTarget.Reset();
+	bUseCoinClickHintTarget = false;
+	CoinClickHintTime = 0.f;
 	bTransitionBusy = false;
 	bAdvancePending = false;
 	bHasHighlight = false;
 	const int32 Index = ExplanationLayouts.IsValidIndex(Step.ExplanationPositionIndex) ? Step.ExplanationPositionIndex : 0;
 	const FBattleTutorialExplanationLayout Layout = ExplanationLayouts.IsValidIndex(Index)
 		? ExplanationLayouts[Index] : FBattleTutorialExplanationLayout();
+	ExplanationPosition = Layout.Position;
 	if (IsValid(ExplanationWidget))
 	{
 		ExplanationWidget->SetDescriptionText(Step.Text);
 		ExplanationWidget->SetDescriptionSize(Layout.Size);
-		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(ExplanationWidget->Slot))
-			CanvasSlot->SetPosition(Layout.Position);
+		UpdateExplanationTransform(GetCachedGeometry().GetLocalSize());
 	}
 	if (IsValid(ClickHint))
 		ClickHint->SetVisibility(Step.bRequireHighlightedAction && !Step.ActionId.ToString().StartsWith(TEXT("Hover"))
@@ -129,6 +144,12 @@ void UW_BattleTutorialOverlay::SetActorTargets(const TArray<AActor*>& Actors)
 {
 	WidgetTarget.Reset(); ActorTarget.Reset(); AreaTargets.Reset();
 	for (AActor* Actor : Actors) if (IsValid(Actor)) AreaTargets.Add(Actor);
+}
+
+void UW_BattleTutorialOverlay::SetCoinClickHintTarget(ACoinActor* Coin)
+{
+	bUseCoinClickHintTarget = true;
+	CoinClickHintTarget = Coin;
 }
 
 void UW_BattleTutorialOverlay::SetTransitionBusy(bool bBusy)
@@ -158,10 +179,29 @@ void UW_BattleTutorialOverlay::Place(UWidget* Widget, const FVector2D& Position,
 	}
 }
 
+void UW_BattleTutorialOverlay::UpdateExplanationTransform(const FVector2D& View)
+{
+	if (!IsValid(ExplanationWidget) || View.X <= 0.0 || View.Y <= 0.0) return;
+	UCanvasPanelSlot* TextSlot = Cast<UCanvasPanelSlot>(ExplanationWidget->Slot);
+	if (!IsValid(TextSlot)) return;
+
+	// View는 DPI가 반영된 UMG 좌표입니다. 좌우와 상하에 각 축의 비율을 적용합니다.
+	const FVector2D BoxScale = View / ExplanationReferenceViewport * ExplanationReferenceScale;
+	const FVector2D Position = ExplanationPosition * BoxScale;
+	if (!TextSlot->GetPosition().Equals(Position)) TextSlot->SetPosition(Position);
+
+	if (!ExplanationWidget->GetRenderTransform().Scale.Equals(BoxScale))
+		ExplanationWidget->SetRenderScale(BoxScale);
+	// 기준 폭의 줄바꿈을 유지하고 부모 배율을 상쇄해 글자와 키워드 아이콘을 균일하게 줄입니다.
+	const FVector2D TextScale(FMath::Min(BoxScale.X, BoxScale.Y));
+	ExplanationWidget->SetDescriptionTextScale(TextScale / BoxScale);
+}
+
 void UW_BattleTutorialOverlay::NativeTick(const FGeometry& Geometry, float DeltaTime)
 {
 	Super::NativeTick(Geometry, DeltaTime);
 	const FVector2D View = Geometry.GetLocalSize();
+	UpdateExplanationTransform(View);
 	FVector2D Min, Max;
 	bHasHighlight = false;
 	if (UWidget* Target = WidgetTarget.Get(); IsValid(Target) && Target->IsVisible())
@@ -239,9 +279,28 @@ void UW_BattleTutorialOverlay::NativeTick(const FGeometry& Geometry, float Delta
 	Place(HoleInput, FVector2D(Left, Top), FVector2D(Right - Left, Bottom - Top));
 	HoleInput->SetVisibility(CurrentStep.bRequireHighlightedAction && !bTransitionBusy && !bAdvancePending && bHasHighlight
 		? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
-	if (IsValid(ClickHint))
-		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(ClickHint->Slot))
-			CanvasSlot->SetPosition(FVector2D((Left + Right) * 0.5f, Top) + ClickHintOffset);
+	UCanvasPanelSlot* HintSlot = IsValid(ClickHint) ? Cast<UCanvasPanelSlot>(ClickHint->Slot) : nullptr;
+	if (!IsValid(HintSlot)) return;
+	if (!bUseCoinClickHintTarget)
+	{
+		HintSlot->SetPosition(FVector2D((Left + Right) * 0.5f, Top) + ClickHintOffset);
+		return;
+	}
+
+	const ACoinActor* Coin = CoinClickHintTarget.Get();
+	const UStaticMeshComponent* Mesh = IsValid(Coin) && !Coin->IsHidden() ? Coin->CoinMesh : nullptr;
+	FVector2D Screen;
+	if (bTransitionBusy || bAdvancePending || !bHasHighlight || !IsValid(Mesh) || !Mesh->IsVisible() ||
+		!UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayer(),
+			Mesh->Bounds.Origin + FVector(0.0, 0.0, Mesh->Bounds.BoxExtent.Z), Screen, false))
+	{
+		ClickHint->SetVisibility(ESlateVisibility::Collapsed);
+		return;
+	}
+	const FGeometry ViewportGeometry = UWidgetLayoutLibrary::GetViewportWidgetGeometry(this);
+	HintSlot->SetPosition(Geometry.AbsoluteToLocal(ViewportGeometry.LocalToAbsolute(Screen)) + ClickHintOffset);
+	CoinClickHintTime = FMath::Fmod(CoinClickHintTime + DeltaTime, CoinClickHintPeriod);
+	ClickHint->SetVisibility(CoinClickHintTime < CoinClickHintVisibleTime ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
 }
 
 FReply UW_BattleTutorialOverlay::NativeOnPreviewMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& Event)

@@ -23,7 +23,6 @@ struct FStageCardRuntimeState
     int32 CardID = INDEX_NONE;
     bool bActive = false;
     TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers> Applied;
-    TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers> EntryModifiers;
 };
 
 UCLASS()
@@ -54,7 +53,7 @@ public:
     void BeginCardTurn();
     void SetTutorialPromotionCell(const FGridPoint& Cell) { TutorialPromotionCell = Cell; }
     void StopCardEvaluation() { bTurnInitialized = false; bEvaluationStopped = true; }
-    // Tick 및 클릭 직전 동기화. 추가 클릭 지급이나 무작위 칸 선정은 반복하지 않습니다.
+    // Tick 및 클릭 직전에 현재 조건과 카드 효과를 동기화합니다.
     void ExecuteCardsEffect();
     void ClearPromotionHighlight();
     UFUNCTION(BlueprintCallable) void ClearAllModifiers();

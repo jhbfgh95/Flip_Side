@@ -1,8 +1,19 @@
 #include "UI/CoinInfoPinHintWidget.h"
 
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/Image.h"
+#include "Components/TextBlock.h"
+#include "Engine/Texture2D.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "UObject/ConstructorHelpers.h"
+
+UCoinInfoPinHintWidget::UCoinInfoPinHintWidget(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	static ConstructorHelpers::FObjectFinder<UTexture2D> Icon(TEXT("/Game/UI/Cursor/T_RightClick_Vector"));
+	RightClickIcon = Icon.Object;
+}
 
 void UCoinInfoPinHintWidget::NativeOnInitialized()
 {
@@ -10,6 +21,35 @@ void UCoinInfoPinHintWidget::NativeOnInitialized()
 	// 안내 전체가 입력을 통과시켜 아래 월드의 호버와 클릭을 유지합니다.
 	SetVisibility(ESlateVisibility::HitTestInvisible);
 	SetAlignmentInViewport(FVector2D::ZeroVector);
+}
+
+bool UCoinInfoPinHintWidget::SetHint(ECoinCursorHint Hint)
+{
+	if (CurrentHint == Hint) return true;
+	UImage* Icon = Cast<UImage>(GetWidgetFromName(TEXT("WheelClickIcon")));
+	UTextBlock* Label = Cast<UTextBlock>(GetWidgetFromName(TEXT("HintText")));
+	const bool bShowCancel = Hint != ECoinCursorHint::PinInfo;
+	if (!IsValid(Icon) || !IsValid(Label) || (bShowCancel && !IsValid(RightClickIcon))) return false;
+
+	if (bShowCancel)
+	{
+		if (CurrentHint == ECoinCursorHint::PinInfo)
+		{
+			PinIconBrush = Icon->GetBrush();
+			PinHintText = Label->GetText();
+			Icon->SetBrushResourceObject(RightClickIcon);
+		}
+		Label->SetText(Hint == ECoinCursorHint::CancelItem
+			? NSLOCTEXT("CoinCursorHint", "CancelItem", " 우클릭 시 아이템 취소")
+			: NSLOCTEXT("CoinCursorHint", "CancelAbility", " 우클릭 시 능력 취소"));
+	}
+	else
+	{
+		Icon->SetBrush(PinIconBrush);
+		Label->SetText(PinHintText);
+	}
+	CurrentHint = Hint;
+	return true;
 }
 
 void UCoinInfoPinHintWidget::UpdatePositionAtCursor()

@@ -208,7 +208,7 @@ void ACoinActor::RefreshOutline()
 			Color = CCColor ? *CCColor : DebuffOutlineColor;
 			Thickness = DebuffOutlineThickness;
 		}
-		else if (bAllMainKeywordsConsumed)
+		else if (bIsActed && bAllMainKeywordsConsumed)
 		{
 			// 공격만 끝난 시점이나 CC 중단을 전체 메인 키워드 소모와 혼동하지 않습니다.
 			OutlineState = ECoinOutlineState::Completed;
@@ -275,10 +275,9 @@ void ACoinActor::SetCoinIsReady(bool IsReady)
 	bIsReady = IsReady;
 }
 
-void ACoinActor::SetCoinIsActed(const bool IsActed)
-{ 
-	bIsActed = IsActed; 
-	if (!IsActed) bAllMainKeywordsConsumed = false;
+void ACoinActor::RefreshActionAvailability()
+{
+	bIsActed = bIsActing || ActionsStartedThisTurn > AdditionalActionLimit;
 	RefreshCover();
 	RefreshOutline();
 }
@@ -289,18 +288,25 @@ void ACoinActor::MarkAllMainKeywordsConsumed()
 	RefreshOutline();
 }
 
-bool ACoinActor::ConsumeAdditionalAction()
+void ACoinActor::BeginCoinAction()
 {
-	if (RemainingAdditionalActions <= 0 || !IsValid(StatComponent) || StatComponent->IsDead()) return false;
-	--RemainingAdditionalActions;
-	SetCoinIsActed(false);
-	return true;
+	++ActionsStartedThisTurn;
+	bAllMainKeywordsConsumed = false;
+	bIsActing = true;
+	RefreshActionAvailability();
 }
 
-void ACoinActor::SetCoinIsActing(const bool IsActing)
+void ACoinActor::EndCoinAction()
 {
-	bIsActing = IsActing;
-	RefreshOutline();
+	bIsActing = false;
+	RefreshActionAvailability();
+}
+
+void ACoinActor::AdjustAdditionalActionLimit(int32 Delta)
+{
+	if (Delta == 0) return;
+	AdditionalActionLimit = FMath::Max(0, AdditionalActionLimit + Delta);
+	RefreshActionAvailability();
 }
 
 bool ACoinActor::GetCoinIsActed() const

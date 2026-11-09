@@ -145,7 +145,7 @@ void ABattlePlayerController_FlipSide::PlayerTick(float DeltaTime)
             RefreshBattleCoinRangePreviews();
         }
     }
-    UpdateCoinInfoPinHint();
+    UpdateCoinCursorHint();
     UpdateTurretRangePreview();
     UpdateActionAbilityRangePreview();
 }
@@ -540,15 +540,22 @@ void ABattlePlayerController_FlipSide::CheckMouseHover()
     }
 }
 
+UUseableItemWSubsystem* ABattlePlayerController_FlipSide::GetCancelableItemManager() const
+{
+    const UWorld* World = GetWorld();
+    const UGameInstance* Instance = GetGameInstance();
+    if (bIsUIOnly || !IsValid(World) || !IsValid(Instance)) return nullptr;
+    const ULevelGISubsystem* Level = Instance->GetSubsystem<ULevelGISubsystem>();
+    if (IsValid(Level) && Level->IsBattleTutorialActive()) return nullptr;
+
+    UUseableItemWSubsystem* ItemManager = World->GetSubsystem<UUseableItemWSubsystem>();
+    return IsValid(ItemManager) && ItemManager->GetSelectedItemID() != INDEX_NONE ? ItemManager : nullptr;
+}
+
 bool ABattlePlayerController_FlipSide::TryCancelSelectedItem()
 {
-    if (bIsUIOnly || !IsValid(GetWorld()) || !IsValid(GetGameInstance())) return false;
-    const ULevelGISubsystem* Level = GetGameInstance()->GetSubsystem<ULevelGISubsystem>();
-    if (IsValid(Level) && Level->IsBattleTutorialActive()) return false;
-
-    UUseableItemWSubsystem* ItemManager = GetWorld()->GetSubsystem<UUseableItemWSubsystem>();
-    if (!IsValid(ItemManager) || ItemManager->GetSelectedItemID() == INDEX_NONE) return false;
-
+    UUseableItemWSubsystem* ItemManager = GetCancelableItemManager();
+    if (!IsValid(ItemManager)) return false;
     ItemManager->CancelWantUseItem();
     return true;
 }
@@ -635,10 +642,25 @@ void ABattlePlayerController_FlipSide::OnMiddleClick()
     RefreshHoveredBattleCoinInfo();
 }
 
-void ABattlePlayerController_FlipSide::UpdateCoinInfoPinHint()
+void ABattlePlayerController_FlipSide::UpdateCoinCursorHint()
 {
+    ECoinCursorHint Hint = ECoinCursorHint::PinInfo;
+    if (IsValid(GetCancelableItemManager()))
+    {
+        Hint = ECoinCursorHint::CancelItem;
+    }
+    else
+    {
+        const UWorld* World = GetWorld();
+        const auto* ActionManager = IsValid(World) ? World->GetSubsystem<UCoinActionManagementWSubsystem>() : nullptr;
+        // 선택한 아이템이 없으면 정보 팝업을 닫는 우클릭이 능력 취소보다 우선합니다.
+        const bool bPopupConsumesRightClick = IsValid(BattleHUDWidget) && !BattleHUDWidget->IsTutorialInfoPinned() &&
+            (BattleHUDWidget->IsCoinSlotInfoOpen() || BattleHUDWidget->IsItemInfoOpen());
+        if (!bIsUIOnly && !bPopupConsumesRightClick && IsValid(ActionManager) && ActionManager->CanCancelCurrentAction())
+            Hint = ECoinCursorHint::CancelAbility;
+    }
     int32 ReadySlot = INDEX_NONE;
-    if (!IsValid(GetPinnableBattleCoinUnderCursor(ReadySlot)))
+    if (Hint == ECoinCursorHint::PinInfo && !IsValid(GetPinnableBattleCoinUnderCursor(ReadySlot)))
     {
         if (IsValid(CoinInfoPinHintWidget)) CoinInfoPinHintWidget->SetVisibility(ESlateVisibility::Collapsed);
         return;
@@ -649,7 +671,13 @@ void ABattlePlayerController_FlipSide::UpdateCoinInfoPinHint()
         CoinInfoPinHintWidget = CreateWidget<UCoinInfoPinHintWidget>(this, CoinInfoPinHintWidgetClass);
         if (IsValid(CoinInfoPinHintWidget)) CoinInfoPinHintWidget->AddToViewport(1000);
     }
-    if (IsValid(CoinInfoPinHintWidget)) CoinInfoPinHintWidget->UpdatePositionAtCursor();
+    if (IsValid(CoinInfoPinHintWidget))
+    {
+        if (CoinInfoPinHintWidget->SetHint(Hint))
+            CoinInfoPinHintWidget->UpdatePositionAtCursor();
+        else
+            CoinInfoPinHintWidget->SetVisibility(ESlateVisibility::Collapsed);
+    }
 }
 
 void ABattlePlayerController_FlipSide::OnPossess(APawn *InPawn)

@@ -18,6 +18,7 @@ class IBattleHoverInterface;
 class IBattleClickInterface;
 class UBattlePlayerHUDWidget;
 class UCoinInfoPinHintWidget;
+class UUseableItemWSubsystem;
 class ABossActor;
 class ABossCoinActor;
 class ACoinActor;
@@ -35,6 +36,7 @@ class ABattlePlayerController_FlipSide : public APlayerController
 {
 	GENERATED_BODY()
 private:
+    UUseableItemWSubsystem* GetCancelableItemManager() const;
     FVector DefaultCameraLocation;
     FRotator DefaultCameraRotation;
     float DefaultCameraArmLength;
@@ -104,7 +106,7 @@ private:
     void ClearBattleCoinInfoPin();
     void NotifyBattleActorHover(AActor* Actor, bool bHovered);
     ACoinActor* GetPinnableBattleCoinUnderCursor(int32& OutReadySlot) const;
-    void UpdateCoinInfoPinHint();
+    void UpdateCoinCursorHint();
 	void HandleBattleItemSlotClicked(int32 ItemID);
 	void HandleBattlePhaseProgressClicked();
     void HandleShowAdditionalBuffsStarted(const FInputActionValue& InputActionValue);

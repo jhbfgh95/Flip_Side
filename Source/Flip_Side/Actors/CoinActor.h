@@ -100,8 +100,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	bool bIsActed = false;
 
-	// 한 턴의 추가 클릭 기회입니다. 무기 내부 반복 횟수와 독립적입니다.
-	int32 RemainingAdditionalActions = 0;
+	// 전투 코인 액터는 턴마다 새로 생성됩니다. 무기 내부 반복 횟수와는 별개입니다.
+	int32 ActionsStartedThisTurn = 0;
+	int32 AdditionalActionLimit = 0;
 	
 	//singleCell 일때만 동작
 	UPROPERTY(VisibleAnywhere)
@@ -200,10 +201,9 @@ public:
 	void SetCoinIsReady(bool IsReady);
 	bool GetCoinIsReady() const;
 
-	void SetCoinIsActed(const bool IsActed);
-	void GrantAdditionalActions(int32 Count) { RemainingAdditionalActions += FMath::Max(0, Count); }
-	void ClearAdditionalActions() { RemainingAdditionalActions = 0; }
-	bool ConsumeAdditionalAction();
+	void BeginCoinAction();
+	void EndCoinAction();
+	void AdjustAdditionalActionLimit(int32 Delta);
 	bool GetCoinIsActed() const;
 	// 입력 잠금 bIsActed와 분리합니다. 모든 메인 키워드 처리 완료 시 ActionManager가 알립니다.
 	void MarkAllMainKeywordsConsumed();
@@ -213,7 +213,6 @@ public:
 	void SetCoinOnBattle(const bool IsOnBattle);
 	bool GetCoinOnBattle() const { return bIsOnBattle; }
 
-	void SetCoinIsActing(const bool IsActing);
 	bool GetCoinIsActing() const { return bIsActing; }
 
 	void SetCoinItemFlag(const bool IsItem ){ ItemFlag = IsItem; }
@@ -337,6 +336,7 @@ protected:
 	void HandleOutlinePhaseChanged(EPhaseState Phase);
 	void HandleOutlineStatsChanged(const FWeaponStatsChangedEvent& ChangedEvent);
 	bool IsOutlineEligible() const;
+	void RefreshActionAvailability();
 
 	UPROPERTY(EditAnywhere, Category = "Jump", meta = (AllowPrivateAccess = "true"))
     float JumpDuration = 0.5f; // 점프 지속 시간

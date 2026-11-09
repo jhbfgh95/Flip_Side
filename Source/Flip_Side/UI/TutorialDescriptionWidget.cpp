@@ -45,6 +45,7 @@ void UTutorialDescriptionWidget::NativeOnInitialized()
 	}
 	if (IsValid(DescriptionText))
 	{
+		DefaultTextRenderScale = DescriptionText->GetRenderTransform().Scale;
 		// UMG에 클래스 배열 getter가 없어 리플렉션으로 읽고, 기존 BP Decorator를 유지합니다.
 		if (const FArrayProperty* Property = FindFProperty<FArrayProperty>(URichTextBlock::StaticClass(), TEXT("DecoratorClasses")))
 		{
@@ -153,6 +154,14 @@ void UTutorialDescriptionWidget::SetDescriptionSize(const FVector2D& Size)
 		}
 	}
 	if (Size.Y > 0.f) DescriptionSizeBox->SetHeightOverride(Size.Y);
+}
+
+void UTutorialDescriptionWidget::SetDescriptionTextScale(const FVector2D& Scale)
+{
+	if (!IsValid(DescriptionText)) return;
+	const FVector2D RenderScale = DefaultTextRenderScale * Scale;
+	if (!DescriptionText->GetRenderTransform().Scale.Equals(RenderScale))
+		DescriptionText->SetRenderScale(RenderScale);
 }
 
 void UTutorialDescriptionWidget::ConfigureFallbackAppearance(float Width, UDataTable* StyleSet)

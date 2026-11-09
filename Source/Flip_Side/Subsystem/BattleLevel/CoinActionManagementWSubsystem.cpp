@@ -7,6 +7,7 @@
 #include "Actors/DebuffComponent.h"
 #include "Actors/GridActor.h"
 #include "Actors/Others/Base_OtherActor.h"
+#include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
@@ -73,7 +74,7 @@ void UCoinActionManagementWSubsystem::StopActionSequenceForStageEnd()
 	}
 	if (IsValid(SelectedAction) && IsValid(SelectedAction->GetCasterCoin()))
 	{
-		SelectedAction->GetCasterCoin()->SetCoinIsActing(false);
+		SelectedAction->GetCasterCoin()->EndCoinAction();
 	}
 	ResetActionState();
 }
@@ -322,8 +323,7 @@ void UCoinActionManagementWSubsystem::StartCoinActionSequence()
 
 	ClearBossOutline();
 	CasterCoin->SetAttackRangeBracketVisible(false);
-	CasterCoin->SetCoinIsActed(true);
-	CasterCoin->SetCoinIsActing(true);
+	CasterCoin->BeginCoinAction();
 	bActionSequenceActive = true;
 	TutorialActionVFX.Reset();
 	OnTutorialCoinActionStarted.Broadcast(CasterCoin);
@@ -872,17 +872,25 @@ void UCoinActionManagementWSubsystem::ExecuteGridAction(AGridActor* TargetGrid)
 	CompleteManualAbilitySelection();
 }
 
-void UCoinActionManagementWSubsystem::TryCancelCurrentAction()
+bool UCoinActionManagementWSubsystem::CanCancelCurrentAction() const
 {
-	if (const ULevelGISubsystem* Level = GetWorld()->GetGameInstance()->GetSubsystem<ULevelGISubsystem>(); IsValid(Level) && Level->IsBattleTutorialActive()) return;
 	if (!bActionSequenceActive ||
 		(CurrentInputState != EActionInputState::WaitingForCoinClick &&
 		 CurrentInputState != EActionInputState::WaitingForGridClick &&
 		 CurrentInputState != EActionInputState::WaitingForOtherClick))
 	{
-		return;
+		return false;
 	}
-	FinishCoinActionSequence();
+	const UWorld* World = GetWorld();
+	const UGameInstance* Instance = IsValid(World) ? World->GetGameInstance() : nullptr;
+	if (!IsValid(Instance)) return false;
+	const ULevelGISubsystem* Level = Instance->GetSubsystem<ULevelGISubsystem>();
+	return !IsValid(Level) || !Level->IsBattleTutorialActive();
+}
+
+void UCoinActionManagementWSubsystem::TryCancelCurrentAction()
+{
+	if (CanCancelCurrentAction()) FinishCoinActionSequence();
 }
 
 bool UCoinActionManagementWSubsystem::GetActiveAbilityPreviewCells(TArray<FGridPoint>& OutCells, AGridActor* HoveredGrid) const
@@ -977,12 +985,7 @@ void UCoinActionManagementWSubsystem::HandleCoinActionLowerFinished()
 {
 	ACoinActor* CompletedCoin = IsValid(SelectedAction) ? SelectedAction->GetCasterCoin() : nullptr;
 	const bool bCompleted = IsValid(CompletedCoin) && bIsCorrectPhase && CompletedCoin->bAllMainKeywordsConsumed;
-	if (IsValid(SelectedAction) && IsValid(SelectedAction->GetCasterCoin()))
-	{
-		ACoinActor* Coin = SelectedAction->GetCasterCoin();
-		Coin->SetCoinIsActing(false);
-		if (bIsCorrectPhase) Coin->ConsumeAdditionalAction();
-	}
+	if (IsValid(CompletedCoin)) CompletedCoin->EndCoinAction();
 	if (bPendingFailedVFX)
 	{
 		PlayFailedVFX();

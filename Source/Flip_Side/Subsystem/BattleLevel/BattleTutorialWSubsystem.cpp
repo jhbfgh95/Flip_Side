@@ -302,6 +302,21 @@ void UBattleTutorialWSubsystem::RefreshTarget()
 	const FBattleTutorialStep& Step = TutorialSteps[CurrentStepIndex];
 	if (Step.TargetType == EBattleTutorialTargetType::Actor)
 	{
+		const bool bSelectTargetCoin = Step.AdvanceType == EBattleTutorialAdvanceType::CoinAction ||
+			Step.AdvanceType == EBattleTutorialAdvanceType::ItemUsed;
+		const bool bStartCoinAction = Step.AdvanceType == EBattleTutorialAdvanceType::CoinActionStarted ||
+			Step.ActionId == TEXT("PipeFailureFinished");
+		if (Step.bRequireHighlightedAction && (bSelectTargetCoin || bStartCoinAction))
+		{
+			const int32 ClickCoinIndex = bStartCoinAction && Step.ActionRuntimeCoinIndex >= 0
+				? Step.ActionRuntimeCoinIndex : Step.RuntimeCoinIndex;
+			ACoinActor* ClickCoin = ResolveRuntimeCoin(ClickCoinIndex);
+			if (bStartCoinAction)
+				if (const auto* Action = GetWorld()->GetSubsystem<UCoinActionManagementWSubsystem>();
+					IsValid(Action) && Action->IsActionSequenceActive()) ClickCoin = nullptr;
+			OverlayWidget->SetCoinClickHintTarget(ClickCoin);
+		}
+
 		const bool bShowFieldAnimation = bWaitingForItemAnimation ||
 			((bWaitingForAbilitySelection || bAdvanceQueued) && Step.FocusId == TEXT("FieldOnAction"));
 		if (Step.FocusId == TEXT("FieldArea") || Step.FocusId == TEXT("BossArea") || bShowFieldAnimation)

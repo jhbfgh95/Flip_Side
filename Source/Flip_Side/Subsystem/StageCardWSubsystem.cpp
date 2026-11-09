@@ -211,7 +211,6 @@ void UStageCardWSubsystem::GetBattleCardSlots(TArray<FBattleCardSlotViewData>& O
 void UStageCardWSubsystem::ClearSlot(int32 HandIndex, bool bNotify)
 {
     SyncCardModifiers(HandIndex, {});
-    Runtime[HandIndex].EntryModifiers.Reset();
     SetCardActive(HandIndex, false);
     bHasCard[HandIndex] = false;
     HandCards[HandIndex] = FCardData();
@@ -240,13 +239,7 @@ int32 UStageCardWSubsystem::GetCardCount() const
 void UStageCardWSubsystem::ClearAllModifiers()
 {
     for (int32 Slot = 0; Slot < HandCount; ++Slot)
-    {
-        for (const auto& Pair : Runtime[Slot].EntryModifiers)
-            if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin) && Pair.Value.ExtraActions > 0)
-                Coin->ClearAdditionalActions();
         SyncCardModifiers(Slot, {});
-        Runtime[Slot].EntryModifiers.Reset();
-    }
     UnActiveCardUI();
 }
 
@@ -289,26 +282,9 @@ void UStageCardWSubsystem::BeginCardTurn()
     ClearAllModifiers();
     ClearPromotionHighlight();
     bTurnInitialized = true;
-    TArray<FCoinOnGridInfo> FieldCoins;
-    CollectCoinsOnField(FieldCoins);
-    TMap<int32, int32> SourceSlots;
-    BuildSourceSlots(SourceSlots);
     bool bHasPromotion = false;
     for (int32 Slot = 0; Slot < HandCount; ++Slot)
-    {
-        if (!bHasCard[Slot]) continue;
-        const FCardData& Card = HandCards[Slot];
-        Runtime[Slot].CardID = Card.CardID;
-        bHasPromotion |= Card.CardID == 3;
-        if (Card.CardID == 1)
-        {
-            const bool bActive = FCardLogicLibrary::Evaluate(Card, FieldCoins, SourceSlots,
-                BattleEntryGold, PromotionHighlightedGrid, DM, Runtime[Slot].EntryModifiers);
-            SetCardActive(Slot, bActive);
-            for (const auto& Pair : Runtime[Slot].EntryModifiers)
-                if (ACoinActor* Coin = Pair.Key.Get(); IsValid(Coin)) Coin->GrantAdditionalActions(Pair.Value.ExtraActions);
-        }
-    }
+        bHasPromotion |= bHasCard[Slot] && HandCards[Slot].CardID == 3;
     const int32 CoinAreaHeight = IsValid(GridSubsys) ? GridSubsys->GetBossAreaStartY() : 0;
     if (bHasPromotion && IsValid(GridSubsys) && GridSubsys->GridXSize > 0 && CoinAreaHeight > 0)
     {
@@ -367,19 +343,11 @@ void UStageCardWSubsystem::ExecuteCardsEffect()
             SetCardActive(Slot, false);
             continue;
         }
-        if (Card.CardID == 1 && bTurnInitialized)
-        {
-            // 진입 시 판정과 대상은 고정합니다. 사망한 액터는 Sync에서 제외합니다.
-            bCardApplied |= SyncCardModifiers(Slot, Runtime[Slot].EntryModifiers);
-        }
-        else
-        {
-            TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers> Desired;
-            const bool bActive = FCardLogicLibrary::Evaluate(Card, FieldCoins, SourceSlots,
-                BattleEntryGold, PromotionHighlightedGrid, DM, Desired);
-            bCardApplied |= SyncCardModifiers(Slot, Desired);
-            SetCardActive(Slot, bActive);
-        }
+        TMap<TWeakObjectPtr<ACoinActor>, FCoinCardModifiers> Desired;
+        const bool bActive = FCardLogicLibrary::Evaluate(Card, FieldCoins, SourceSlots,
+            BattleEntryGold, PromotionHighlightedGrid, DM, Desired);
+        bCardApplied |= SyncCardModifiers(Slot, Desired);
+        SetCardActive(Slot, bActive);
     }
 
     // 새로 효과를 준 카드가 있으면 여러 장이어도 소리는 한 번만 냅니다. 보스 차례에 켜진 카드는 다음 턴 전에 사라지므로 소리를 내지 않습니다.
@@ -406,8 +374,12 @@ bool UStageCardWSubsystem::SyncCardModifiers(int32 Slot, const TMap<TWeakObjectP
         if (State.CardID != CardID || !Desired.Contains(It.Key()) || !IsValid(Coin) ||
             !IsValid(Coin->StatComponent) || Coin->StatComponent->IsDead())
         {
-            if (IsValid(Coin) && IsValid(Coin->StatComponent))
-                Coin->StatComponent->RemoveStatusEffectsByTypeAndSource(BuffType, EStatusEffectSourceType::Card, State.CardID);
+            if (IsValid(Coin))
+            {
+                Coin->AdjustAdditionalActionLimit(-FMath::Max(0, It.Value().ExtraActions));
+                if (IsValid(Coin->StatComponent))
+                    Coin->StatComponent->RemoveStatusEffectsByTypeAndSource(BuffType, EStatusEffectSourceType::Card, State.CardID);
+            }
             It.RemoveCurrent();
             bAppliedChanged = true;
         }
@@ -438,9 +410,11 @@ bool UStageCardWSubsystem::SyncCardModifiers(int32 Slot, const TMap<TWeakObjectP
         Effect.ReactiveBehavior = Pair.Value.bLifeSteal ? EStatusReactiveBehavior::LifeSteal : EStatusReactiveBehavior::None;
         const bool bModifiersChanged = !Previous || !(*Previous == Pair.Value);
         const bool bFirstApply = !Previous;
+        const int32 PreviousExtraActions = Previous ? FMath::Max(0, Previous->ExtraActions) : 0;
         if (Coin->StatComponent->SetCardStatusEffect(Effect))
         {
             State.Applied.Add(Pair.Key, Pair.Value);
+            Coin->AdjustAdditionalActionLimit(FMath::Max(0, Pair.Value.ExtraActions) - PreviousExtraActions);
             bAppliedChanged |= bModifiersChanged;
             bNewlyApplied |= bFirstApply;
         }

@@ -5,6 +5,7 @@
 #include "BattleTutorialSequenceData.h"
 #include "W_BattleTutorialOverlay.generated.h"
 
+class ACoinActor;
 class UCanvasPanel;
 class UBorder;
 class UDataTable;
@@ -19,9 +20,9 @@ struct FBattleTutorialExplanationLayout
 	FBattleTutorialExplanationLayout() = default;
 	explicit FBattleTutorialExplanationLayout(const FVector2D& InPosition) : Position(InPosition) {}
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial|Layout", meta = (ToolTip = "화면 중앙 앵커 기준 설명창 위치입니다. X: 좌우, Y: 상하."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial|Layout", meta = (ToolTip = "기존 BP 단위의 화면 중앙 기준 위치입니다. 런타임에서 1920×1009 최대화 배치를 기준으로 비례 적용합니다."))
 	FVector2D Position = FVector2D::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial|Layout", meta = (ClampMin = "0", ToolTip = "X: 설명창 폭, Y: 높이. 0,0은 설명 위젯 BP의 크기를 유지합니다. X만 지정하면 높이는 내용에 맞춥니다."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial|Layout", meta = (ClampMin = "0", ToolTip = "기존 BP 단위의 폭(X)과 높이(Y)입니다. 0,0은 설명 위젯 BP의 크기를 사용합니다. X만 지정하면 높이는 내용에 맞춥니다."))
 	FVector2D Size = FVector2D::ZeroVector;
 };
 
@@ -38,6 +39,7 @@ public:
 	void SetWidgetTarget(UWidget* Widget);
 	void SetActorTarget(AActor* Actor, const FVector2D& HoleSize);
 	void SetActorTargets(const TArray<AActor*>& Actors);
+	void SetCoinClickHintTarget(ACoinActor* Coin);
 	void SetTransitionBusy(bool bBusy);
 	void SetAdvancePending(bool bPending);
 	FOnBattleTutorialOverlayClicked OnBattleTutorialOverlayClicked;
@@ -78,12 +80,17 @@ private:
 	TWeakObjectPtr<UWidget> WidgetTarget;
 	TWeakObjectPtr<AActor> ActorTarget;
 	TArray<TWeakObjectPtr<AActor>> AreaTargets;
+	TWeakObjectPtr<ACoinActor> CoinClickHintTarget;
+	bool bUseCoinClickHintTarget = false;
+	float CoinClickHintTime = 0.f;
 	bool bTransitionBusy = false;
 	bool bAdvancePending = false;
 	FVector2D ActorHoleSize = FVector2D(0.1f, 0.1f);
 	FBattleTutorialStep CurrentStep;
+	FVector2D ExplanationPosition = FVector2D::ZeroVector;
 	FVector2D HighlightPosition = FVector2D::ZeroVector;
 	FVector2D HighlightSize = FVector2D::ZeroVector;
 	bool bHasHighlight = false;
+	void UpdateExplanationTransform(const FVector2D& View);
 	void Place(UWidget* Widget, const FVector2D& Position, const FVector2D& Size);
 };

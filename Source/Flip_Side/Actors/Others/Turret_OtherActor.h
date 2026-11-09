@@ -9,6 +9,7 @@
 #include "BattleHoverInterface.h"
 #include "Turret_OtherActor.generated.h"
 
+class UMaterialInstanceDynamic;
 
 UCLASS()
 class FLIP_SIDE_API ATurret_OtherActor : public ABase_OtherActor, public IBattleHoverInterface
@@ -30,7 +31,20 @@ class FLIP_SIDE_API ATurret_OtherActor : public ABase_OtherActor, public IBattle
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Others | Range Preview", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UStaticMeshComponent> AttackRangeBracketMesh;
 
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> TurretMaterial;
+
+	FLinearColor DefaultTurretColor = FLinearColor::White;
+	FTimerHandle ClickFlashTimer;
+	int32 ClickFlashPhase = 0;
 	bool bIsActed = false;
+
+	void StartClickFlash();
+	void AdvanceClickFlash();
+
+protected:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 public:
 	ATurret_OtherActor();
 	const FAttackAreaSpec& GetAttackAreaSpec() const { return TurretSpec; }

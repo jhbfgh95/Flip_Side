@@ -89,6 +89,8 @@ protected:
 
 	virtual void OnClicked_Implementation() override;
 
+	UStaticMeshComponent* GetOthersMesh() const { return OthersMesh; }
+
 	bool TryBroadcastOtherClicked();
 
 	void OnDead();

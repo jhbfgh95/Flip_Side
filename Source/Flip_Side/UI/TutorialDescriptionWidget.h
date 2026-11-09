@@ -22,6 +22,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Tutorial")
 	void SetDescriptionSize(const FVector2D& Size);
 
+	void SetDescriptionTextScale(const FVector2D& Scale);
 	void ConfigureFallbackAppearance(float Width, UDataTable* StyleSet);
 	TSharedPtr<SWidget> CreateKeywordDisplay(FName Code, const FTextBlockStyle& Style);
 protected:
@@ -47,4 +48,5 @@ private:
 	FVector2D DefaultSize = FVector2D::ZeroVector;
 	bool bDefaultAutoWrapText = false;
 	float DefaultWrapTextAt = 0.f;
+	FVector2D DefaultTextRenderScale = FVector2D(1.0);
 };
