@@ -87,9 +87,10 @@ void UTutorialDescriptionWidget::SetDescriptionText(const FText& Text)
 TSharedPtr<SWidget> UTutorialDescriptionWidget::CreateKeywordDisplay(FName Code, const FTextBlockStyle& Style)
 {
 	const FKeywordDefinitionData* Definition = KeywordDefinitions.Find(Code);
-	FString Label = Code == TEXT("Attack") ? TEXT("공격") : Code == TEXT("Hit") ? TEXT("적중")
+	const FString SourceLabel = Code == TEXT("Attack") ? TEXT("공격") : Code == TEXT("Hit") ? TEXT("적중")
 		: Code == TEXT("Mobility") ? TEXT("기동") : Code.ToString();
-	if (Definition && !Definition->DisplayName.IsEmpty()) Label = Definition->DisplayName.ToString();
+	const FText Label = Definition && !Definition->DisplayName.IsEmpty()
+		? Definition->DisplayName : UDataManagerSubsystem::GetDisplayText(SourceLabel);
 	const FSlateColor Color = Definition ? FSlateColor(Definition->UIColor) : Style.ColorAndOpacity;
 	UTexture2D* Icon = Definition ? Definition->Icon.Get() : nullptr;
 	FSlateFontInfo Font = Style.Font;
@@ -112,7 +113,7 @@ TSharedPtr<SWidget> UTutorialDescriptionWidget::CreateKeywordDisplay(FName Code,
 	}
 	Row->AddSlot().AutoWidth().VAlign(VAlign_Center)
 		.Padding(IsValid(Icon) ? FMath::Max(0.f, KeywordIconNameSpacing) : 0.f, 0.f, 0.f, 0.f)
-		[SNew(STextBlock).Text(FText::FromString(Label + TEXT("]"))).Font(Font).ColorAndOpacity(Color)];
+		[SNew(STextBlock).Text(FText::Format(INVTEXT("{0}]"), Label)).Font(Font).ColorAndOpacity(Color)];
 	return Row;
 }
 

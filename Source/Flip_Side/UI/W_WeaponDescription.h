@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "DataTypes/CoinDescriptionDataTypes.h"
+#include "DataTypes/KeywordDataTypes.h"
 #include "W_WeaponDescription.generated.h"
 
 /**
@@ -57,6 +58,12 @@ protected:
 
 	UPROPERTY(Transient)
 	TArray<FCoinDescriptionSectionData> Sections;
+
+	void RefreshLocalizedDescription();
+	FString DescriptionSource;
+	FWeaponNumericStats DescriptionStats;
+	UPROPERTY(Transient)
+	TArray<FKeywordDefinitionData> DescriptionKeywords;
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<class UCoinDescriptionBookmarkWidget>> Bookmarks;

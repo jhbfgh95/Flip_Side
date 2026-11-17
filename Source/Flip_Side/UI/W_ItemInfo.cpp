@@ -11,6 +11,7 @@
 #include "Engine/GameInstance.h"
 #include "Engine/Texture2D.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Internationalization/TextLocalizationManager.h"
 #include "UI/KeywordDescriptionWidget.h"
 #include "UI/ItemDescriptionFormatter.h"
 #include "UI/ItemDescriptionRichTextDecorator.h"
@@ -22,6 +23,7 @@
 void UW_ItemInfo::NativeConstruct()
 {
 	Super::NativeConstruct();
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.AddUObject(this, &ThisClass::RefreshLocalizedDescription);
 	if (IsValid(CloseButton)) CloseButton->OnClicked.AddUniqueDynamic(this, &UW_ItemInfo::HandleCloseClicked);
 
 	if (IsValid(HoveredItemIcon))
@@ -39,6 +41,7 @@ void UW_ItemInfo::NativeConstruct()
 
 void UW_ItemInfo::NativeDestruct()
 {
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.RemoveAll(this);
 	if (IsValid(CloseButton)) CloseButton->OnClicked.RemoveDynamic(this, &UW_ItemInfo::HandleCloseClicked);
 	Super::NativeDestruct();
 }
@@ -85,8 +88,8 @@ void UW_ItemInfo::UpdateItemInfo(const FItemData& ItemData)
 {
 	UpdateItemInfo(
 		ItemData.ItemIcon,
-		FText::FromString(ItemData.ItemName),
-		FText::FromString(ItemData.Item_DES),
+		UDataManagerSubsystem::GetDisplayText(ItemData.ItemName),
+		UDataManagerSubsystem::GetDisplayText(ItemData.Item_DES),
 		ItemData.TypeColor
 	);
 }
@@ -94,6 +97,11 @@ void UW_ItemInfo::UpdateItemInfo(const FItemData& ItemData)
 void UW_ItemInfo::SetDescriptionText(const FText& Description)
 {
 	CurrentDescription = Description;
+	RefreshLocalizedDescription();
+}
+
+void UW_ItemInfo::RefreshLocalizedDescription()
+{
 	KeywordDefinitions.Reset();
 	// 기존 읽기 API만 사용합니다. DataManager/상점에는 표시 책임을 추가하지 않습니다.
 	UGameInstance* Instance = GetGameInstance();
@@ -102,7 +110,7 @@ void UW_ItemInfo::SetDescriptionText(const FText& Description)
 	if (IsValid(Manager)) Manager->GetAllEnabledKeywordDefinitions(Definitions);
 	for (const FKeywordDefinitionData& Definition : Definitions)
 		KeywordDefinitions.Add(Definition.KeywordCode, Definition);
-	const FItemDescriptionDisplay Display = FItemDescriptionFormatter::Format(Description.ToString());
+	const FItemDescriptionDisplay Display = FItemDescriptionFormatter::Format(CurrentDescription.ToString());
 	if (IsValid(HeaderBorder))
 	{
 		// 본문 참조 키워드가 아닌 독립 헤더만 배경색을 결정합니다. 아이템 변경 시 항상 갱신합니다.
@@ -113,7 +121,17 @@ void UW_ItemInfo::SetDescriptionText(const FText& Description)
 	if (IsValid(HoveredItemDes))
 	{
 		// BP 이전 중에도 일반 TextBlock에서는 태그 없는 원문을 읽을 수 있습니다.
-		HoveredItemDes->SetText(FText::FromString(Display.PlainText));
+		FString PlainText = Display.PlainText;
+		for (const TCHAR* Code : { TEXT("Attack"), TEXT("Hit"), TEXT("Instant") })
+		{
+			if (const FKeywordDefinitionData* Definition = KeywordDefinitions.Find(FName(Code)))
+			{
+				const FString Token = FString::Printf(TEXT("[KW:%s]"), Code);
+				const FString Name = FString::Printf(TEXT("[%s]"), *Definition->DisplayName.ToString());
+				PlainText.ReplaceInline(*Token, *Name, ESearchCase::CaseSensitive);
+			}
+		}
+		HoveredItemDes->SetText(FText::FromString(PlainText));
 		HoveredItemDes->SetVisibility(IsValid(HoveredItemRichDes) ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
 	}
 	if (IsValid(ItemKeywordHeader))
@@ -135,8 +153,8 @@ TSharedPtr<SWidget> UW_ItemInfo::CreateKeywordDisplay(FName Code, const FTextBlo
 {
 	const FKeywordDefinitionData* Definition = KeywordDefinitions.Find(Code);
 	// DB 누락 시에도 키워드 의미는 남기고, 임의의 아이콘은 대입하지 않습니다.
-	FString Label = Code == TEXT("Attack") ? TEXT("공격") : Code == TEXT("Hit") ? TEXT("적중") : TEXT("즉시");
-	if (Definition && !Definition->DisplayName.IsEmpty()) Label = Definition->DisplayName.ToString();
+	const FText Label = Definition && !Definition->DisplayName.IsEmpty() ? Definition->DisplayName
+		: UDataManagerSubsystem::GetDisplayText(Code == TEXT("Attack") ? TEXT("공격") : Code == TEXT("Hit") ? TEXT("적중") : TEXT("즉시"));
 	// 배경과 글자가 같은 DB 색상이 되지 않도록, Border 안의 헤더 글자색은 WBP 기본 서식을 사용합니다.
 	const FSlateColor Color = bHeader && IsValid(HeaderBorder) ? Style.ColorAndOpacity
 		: FSlateColor(Definition ? Definition->UIColor : FLinearColor::White);
@@ -156,6 +174,6 @@ TSharedPtr<SWidget> UW_ItemInfo::CreateKeywordDisplay(FName Code, const FTextBlo
 	}
 	Row->AddSlot().AutoWidth().VAlign(VAlign_Center)
 		.Padding(IsValid(Icon) ? FMath::Max(0.0f, KeywordIconNameSpacing) : 0.0f, 0.0f, 0.0f, 0.0f)
-		[SNew(STextBlock).Text(FText::FromString(Label)).Font(Style.Font).ColorAndOpacity(Color)];
+		[SNew(STextBlock).Text(Label).Font(Style.Font).ColorAndOpacity(Color)];
 	return Row;
 }

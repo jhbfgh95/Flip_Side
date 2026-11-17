@@ -21,6 +21,7 @@ class FLIP_SIDE_API UW_CardWidget : public UUserWidget
 	
 	protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	protected:
 	UPROPERTY(meta = (BindWidget))
@@ -60,4 +61,8 @@ class FLIP_SIDE_API UW_CardWidget : public UUserWidget
 	void InitBattleCard(const FBattleCardSlotViewData& InData);
 	void HideAdditionalInfo();
 	TSharedPtr<SWidget> CreateKeywordDisplay(FName Code, const FTextBlockStyle& Style);
+
+private:
+	void RefreshLocalizedDescription();
+	FText LocalizedDescription;
 };

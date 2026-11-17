@@ -29,6 +29,7 @@
 #include "Subsystem/StageCardWSubsystem.h"
 #include "Subsystem/CursorGISubsystem.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Internationalization/TextLocalizationManager.h"
 #include "UI/BattlePlayerHUDWidget.h"
 #include "UI/CoinInfoPinHintWidget.h"
 #include "UI/CoinDescriptionFormatter.h"
@@ -153,6 +154,7 @@ void ABattlePlayerController_FlipSide::PlayerTick(float DeltaTime)
 void ABattlePlayerController_FlipSide::BeginPlay()
 {
     Super::BeginPlay();
+    FTextLocalizationManager::Get().OnTextRevisionChangedEvent.AddUObject(this, &ThisClass::RefreshBattleCoinHUD);
 
     bIsUIOnly = false;
     FInputModeGameAndUI InputMode;
@@ -242,6 +244,7 @@ void ABattlePlayerController_FlipSide::BeginPlay()
 
 void ABattlePlayerController_FlipSide::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+    FTextLocalizationManager::Get().OnTextRevisionChangedEvent.RemoveAll(this);
     ClearReadySlotHighlight();
     ResetBattleInfoSelection();
     if (IsValid(CoinInfoPinHintWidget))
@@ -1679,8 +1682,8 @@ bool ABattlePlayerController_FlipSide::BuildWeaponFaceInfo(
 
     OutFaceInfo.WeaponID = WeaponID;
     OutFaceInfo.WeaponIcon = WeaponData.WeaponIcon;
-    OutFaceInfo.WeaponName = FText::FromString(WeaponData.WeaponName);
-    OutFaceInfo.WeaponDescription = FText::FromString(WeaponData.KOR_DES);
+    OutFaceInfo.WeaponName = UDataManagerSubsystem::GetDisplayText(WeaponData.WeaponName);
+    OutFaceInfo.WeaponDescription = UDataManagerSubsystem::GetDisplayText(WeaponData.KOR_DES);
     TArray<FKeywordDefinitionData> Keywords;
     DataManager->GetAllEnabledKeywordDefinitions(Keywords);
     OutFaceInfo.Description = FCoinDescriptionFormatter::Parse(WeaponData.KOR_DES, Keywords, ResolvedStats.FinalNumericStats);
@@ -1742,7 +1745,7 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
             if (IsValid(DataManager) && DataManager->TryGetWeapon(StatusEffect.SourceDataID, WeaponData))
             {
                 SourceIcon = WeaponData.WeaponIcon;
-                SourceName = FText::FromString(WeaponData.WeaponName);
+                SourceName = UDataManagerSubsystem::GetDisplayText(WeaponData.WeaponName);
                 Description = WeaponData.BuffInfo;
             }
             break;
@@ -1753,7 +1756,7 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
             if (IsValid(DataManager) && DataManager->TryGetItem(StatusEffect.SourceDataID, ItemData))
             {
                 SourceIcon = ItemData.ItemIcon;
-                SourceName = FText::FromString(ItemData.ItemName);
+                SourceName = UDataManagerSubsystem::GetDisplayText(ItemData.ItemName);
                 Description = ItemData.BuffInfo;
             }
             break;
@@ -1764,7 +1767,7 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
             if (IsValid(DataManager) && DataManager->TryGetCard(StatusEffect.SourceDataID, CardData))
             {
                 SourceIcon = CardData.Icon;
-                SourceName = FText::FromString(CardData.CardName);
+                SourceName = UDataManagerSubsystem::GetDisplayText(CardData.CardName);
             }
             // 카드 조건/추가 행동/흡혈은 섞지 않고 이 코인에 적용된 스탯만 표시합니다.
             const FWeaponStatModifier& Modifier = StatusEffect.Modifier;
@@ -1794,27 +1797,26 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
         NewViewData.Polarity = StatusEffect.Polarity;
         NewViewData.Icon = StatusEffect.Polarity == EStatusPolarity::Debuff ? DebuffDefinition.Icon.Get() : SourceIcon;
         NewViewData.DisplayName = SourceName;
-        if (bHasDebuffDefinition)
-        {
-            NewViewData.DisplayName = DebuffDefinition.DisplayName;
-            Description = DebuffDefinition.Description.ToString();
-        }
+        if (bHasDebuffDefinition) NewViewData.DisplayName = DebuffDefinition.DisplayName;
+        const FText DescriptionTemplate = bHasDebuffDefinition
+            ? DebuffDefinition.Description : UDataManagerSubsystem::GetDisplayText(Description);
         // 중첩 수를 곱하지 않습니다. 이 아이콘에 묶인 첫 번째 적용의 실제 값을 사용합니다.
         const FWeaponStatModifier& Modifier = StatusEffect.Modifier;
-        const TCHAR* ValueKeys[] = { TEXT("{AttackPower}"), TEXT("{WeaponPower}"), TEXT("{Count}"),
-            TEXT("{AttackRange}"), TEXT("{AbilityRange}"), TEXT("{Shield}"),
-            TEXT("{Magnitude}"), TEXT("{DamageReduction}"), TEXT("{AttackPowerReduction}"), TEXT("{WeaponPowerReduction}") };
+        const TCHAR* ValueKeys[] = { TEXT("AttackPower"), TEXT("WeaponPower"), TEXT("Count"),
+            TEXT("AttackRange"), TEXT("AbilityRange"), TEXT("Shield"),
+            TEXT("Magnitude"), TEXT("DamageReduction"), TEXT("AttackPowerReduction"), TEXT("WeaponPowerReduction") };
         const int32 Values[] = { Modifier.AttackPoint, Modifier.WeaponPoint, Modifier.WeaponCnt,
             Modifier.AttackRange + Modifier.AttackAreaSpec.ParamB, Modifier.AbilityRange + Modifier.AbilityAreaSpec.ParamB,
             StatusEffect.RuntimeValue, StatusEffect.ReactiveMagnitude, StatusEffect.ReactiveMagnitude,
             FMath::Abs(Modifier.AttackPoint), FMath::Abs(Modifier.WeaponPoint) };
+        FFormatNamedArguments Arguments;
         for (int32 Index = 0; Index < UE_ARRAY_COUNT(ValueKeys); ++Index)
-            Description.ReplaceInline(ValueKeys[Index], *FText::AsNumber(Values[Index]).ToString(), ESearchCase::CaseSensitive);
+            Arguments.Add(ValueKeys[Index], FText::AsNumber(Values[Index]));
         // 피격 전에는 증가량이 아직 정해지지 않았으므로 실제 계산식을 표시합니다.
-        const FString NextTurnAttack = StatusEffect.BuffTypeID == WeaponBuffTypeID::ArmorNextTurnAttack
-            ? FText::AsNumber(Modifier.AttackPoint).ToString() : TEXT("받은 공격 피해의 50%");
-        Description.ReplaceInline(TEXT("{NextTurnAttack}"), *NextTurnAttack, ESearchCase::CaseSensitive);
-        NewViewData.Description = FText::FromString(Description);
+        const FText NextTurnAttack = StatusEffect.BuffTypeID == WeaponBuffTypeID::ArmorNextTurnAttack
+            ? FText::AsNumber(Modifier.AttackPoint) : UDataManagerSubsystem::GetDisplayText(TEXT("받은 공격 피해의 50%"));
+        Arguments.Add(TEXT("NextTurnAttack"), NextTurnAttack);
+        NewViewData.Description = FText::Format(FTextFormat(DescriptionTemplate), Arguments);
         if (bIsBrand)
         {
             NewViewData.bIsElapsedCounter = true;
@@ -1876,7 +1878,7 @@ FBattleCoinSlotViewData ABattlePlayerController_FlipSide::BuildCoinSlotViewData(
     if (DataManager->TryGetWeapon(CoinSlotData.FrontWeaponID, FrontWeaponData))
     {
         ViewData.FrontIcon = FrontWeaponData.WeaponIcon;
-        ViewData.FrontWeaponName = FText::FromString(FrontWeaponData.WeaponName);
+        ViewData.FrontWeaponName = UDataManagerSubsystem::GetDisplayText(FrontWeaponData.WeaponName);
 		TArray<FKeywordDefinitionData> Keywords;
 		DataManager->GetAllEnabledKeywordDefinitions(Keywords);
 		// 슬롯 설명은 DB 기본값만 사용하며 CoinActor/StatusComponent를 조회하지 않습니다.
@@ -1889,7 +1891,7 @@ FBattleCoinSlotViewData ABattlePlayerController_FlipSide::BuildCoinSlotViewData(
     if (DataManager->TryGetWeapon(CoinSlotData.BackWeaponID, BackWeaponData))
     {
         ViewData.BackIcon = BackWeaponData.WeaponIcon;
-        ViewData.BackWeaponName = FText::FromString(BackWeaponData.WeaponName);
+        ViewData.BackWeaponName = UDataManagerSubsystem::GetDisplayText(BackWeaponData.WeaponName);
 		TArray<FKeywordDefinitionData> Keywords;
 		DataManager->GetAllEnabledKeywordDefinitions(Keywords);
 		const FWeaponNumericStats BaseStats{BackWeaponData.AttackPoint, BackWeaponData.BehaviorPoint, BackWeaponData.Count};

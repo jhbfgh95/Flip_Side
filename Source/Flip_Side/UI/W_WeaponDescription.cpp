@@ -13,12 +13,14 @@
 #include "DataTypes/WeaponDataTypes.h"
 #include "DataTypes/KeywordDataTypes.h"
 #include "UI/CoinDescriptionFormatter.h"
+#include "Internationalization/TextLocalizationManager.h"
 #include "UI/CoinDescriptionSectionWidget.h"
 #include "UI/CoinDescriptionBookmarkWidget.h"
 
 void UW_WeaponDescription::NativeConstruct()
 {
     Super::NativeConstruct();
+    FTextLocalizationManager::Get().OnTextRevisionChangedEvent.AddUObject(this, &ThisClass::RefreshLocalizedDescription);
     if (IsValid(DetailedDescriptionToggleButton))
         DetailedDescriptionToggleButton->OnClicked.AddUniqueDynamic(this, &ThisClass::ToggleDetailedDescriptions);
     SetDetailed(bDetailed);
@@ -59,6 +61,8 @@ void UW_WeaponDescription::SetExplainTextEmpty()
 {
     ClearBookmarks();
     Sections.Reset();
+    DescriptionSource.Reset();
+    DescriptionKeywords.Reset();
     SelectedSectionIndex = INDEX_NONE;
     if (DescriptionSection)
     {
@@ -81,7 +85,7 @@ void UW_WeaponDescription::SetExplainTextEmpty()
 void UW_WeaponDescription::SetWeaponDescription(const FFaceData& Weapon, const TArray<FKeywordDefinitionData>& Keywords)
 {
     SetExplainTextEmpty();
-    if (WeaponNameText) WeaponNameText->SetText(FText::FromString(Weapon.WeaponName));
+    if (WeaponNameText) WeaponNameText->SetText(UDataManagerSubsystem::GetDisplayText(Weapon.WeaponName));
 
     const FWeaponNumericStats Stats{Weapon.AttackPoint, Weapon.BehaviorPoint, Weapon.Count};
 
@@ -89,7 +93,9 @@ void UW_WeaponDescription::SetWeaponDescription(const FFaceData& Weapon, const T
     if (WeaponPower) WeaponPower->SetText(FText::AsNumber(Stats.WeaponPoint));
     if (CountText) CountText->SetText(FText::AsNumber(Stats.WeaponCnt));
 
-    Sections = FCoinDescriptionFormatter::Parse(Weapon.KOR_DES, Keywords, Stats).Sections;
+    DescriptionSource = Weapon.KOR_DES;
+    DescriptionStats = Stats;
+    DescriptionKeywords = Keywords;
 
     if (!IsValid(DescriptionSection))
     {
@@ -97,11 +103,19 @@ void UW_WeaponDescription::SetWeaponDescription(const FFaceData& Weapon, const T
         return;
     }
 
-    RebuildBookmarks();
-
-    if (!Sections.IsEmpty()) SelectDescription(0);
+    RefreshLocalizedDescription();
 
     SetVisibility(ESlateVisibility::Visible);
+}
+
+void UW_WeaponDescription::RefreshLocalizedDescription()
+{
+    if (DescriptionSource.IsEmpty() || !IsValid(DescriptionSection)) return;
+
+    const int32 PreviousSection = SelectedSectionIndex;
+    Sections = FCoinDescriptionFormatter::Parse(DescriptionSource, DescriptionKeywords, DescriptionStats).Sections;
+    RebuildBookmarks();
+    if (!Sections.IsEmpty()) SelectDescription(Sections.IsValidIndex(PreviousSection) ? PreviousSection : 0);
 }
 
 void UW_WeaponDescription::ClearBookmarks()
@@ -164,8 +178,8 @@ void UW_WeaponDescription::SetDetailed(bool bInDetailed)
     if (IsValid(DescriptionSection)) DescriptionSection->SetDetailed(bDetailed);
     if (IsValid(DetailedDescriptionToggleText))
         DetailedDescriptionToggleText->SetText(bDetailed
-            ? NSLOCTEXT("CoinDescription", "DetailOn", "상세 표시: 켜짐")
-            : NSLOCTEXT("CoinDescription", "DetailOff", "상세 표시: 꺼짐"));
+            ? UDataManagerSubsystem::GetDisplayText(TEXT("상세 표시: 켜짐"))
+            : UDataManagerSubsystem::GetDisplayText(TEXT("상세 표시: 꺼짐")));
 }
 
 void UW_WeaponDescription::ToggleDetailedDescriptions()
@@ -175,6 +189,7 @@ void UW_WeaponDescription::ToggleDetailedDescriptions()
 
 void UW_WeaponDescription::NativeDestruct()
 {
+    FTextLocalizationManager::Get().OnTextRevisionChangedEvent.RemoveAll(this);
     if (IsValid(DetailedDescriptionToggleButton))
         DetailedDescriptionToggleButton->OnClicked.RemoveDynamic(this, &ThisClass::ToggleDetailedDescriptions);
     SetExplainTextEmpty();

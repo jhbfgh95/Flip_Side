@@ -10,6 +10,7 @@
 #include "Engine/GameInstance.h"
 #include "Engine/Texture2D.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Internationalization/TextLocalizationManager.h"
 #include "UI/ItemDescriptionFormatter.h"
 #include "UI/ItemDescriptionRichTextDecorator.h"
 #include "UI/CardGoldAppliedInfoWidget.h"
@@ -30,8 +31,14 @@ namespace
 void UW_CardWidget::NativeConstruct()
 {
     Super::NativeConstruct();
+    FTextLocalizationManager::Get().OnTextRevisionChangedEvent.AddUObject(this, &ThisClass::RefreshLocalizedDescription);
+    RefreshLocalizedDescription();
+}
 
-
+void UW_CardWidget::NativeDestruct()
+{
+    FTextLocalizationManager::Get().OnTextRevisionChangedEvent.RemoveAll(this);
+    Super::NativeDestruct();
 }
 
 void UW_CardWidget::InitCard(FCardData CardData)
@@ -54,9 +61,15 @@ void UW_CardWidget::InitCard(FCardData CardData)
 
     if (IsValid(CardTitle))
     {
-        CardTitle->SetText(FText::FromString(CardData.CardName));
+        CardTitle->SetText(UDataManagerSubsystem::GetDisplayText(CardData.CardName));
     }
-    
+
+    LocalizedDescription = UDataManagerSubsystem::GetDisplayText(CardData.Card_Description);
+    RefreshLocalizedDescription();
+}
+
+void UW_CardWidget::RefreshLocalizedDescription()
+{
     if (IsValid(CardDescription))
     {
         KeywordDefinitions.Reset();
@@ -70,7 +83,7 @@ void UW_CardWidget::InitCard(FCardData CardData)
         }
         CardDescription->SetDecorators({ UItemDescriptionRichTextDecorator::StaticClass() });
         // 카드에는 별도 키워드 헤더를 만들지 않고 원래 행 위치에 표시합니다.
-        FString Description = CardData.Card_Description.Replace(TEXT("\\n"), TEXT("\n"));
+        FString Description = LocalizedDescription.ToString().Replace(TEXT("\\n"), TEXT("\n"));
         for (const FString& Label : { FString(TEXT("공격")), FString(TEXT("적중")), FString(TEXT("즉시")),
             FString(TEXT("KW:Attack")), FString(TEXT("KW:Hit")), FString(TEXT("KW:Instant")) })
         {
@@ -112,8 +125,8 @@ void UW_CardWidget::HideAdditionalInfo()
 TSharedPtr<SWidget> UW_CardWidget::CreateKeywordDisplay(FName Code, const FTextBlockStyle& Style)
 {
     const FKeywordDefinitionData* Definition = KeywordDefinitions.Find(Code);
-    FString Label = Code == TEXT("Attack") ? TEXT("공격") : Code == TEXT("Hit") ? TEXT("적중") : TEXT("즉시");
-    if (Definition && !Definition->DisplayName.IsEmpty()) Label = Definition->DisplayName.ToString();
+    const FText Label = Definition && !Definition->DisplayName.IsEmpty() ? Definition->DisplayName
+        : UDataManagerSubsystem::GetDisplayText(Code == TEXT("Attack") ? TEXT("공격") : Code == TEXT("Hit") ? TEXT("적중") : TEXT("즉시"));
     UTexture2D* Icon = Definition ? Definition->Icon.Get() : nullptr;
     TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox).Visibility(EVisibility::HitTestInvisible);
     if (IsValid(Icon))
@@ -129,7 +142,7 @@ TSharedPtr<SWidget> UW_CardWidget::CreateKeywordDisplay(FName Code, const FTextB
     }
     Row->AddSlot().AutoWidth().VAlign(VAlign_Center)
         .Padding(IsValid(Icon) ? FMath::Max(0.0f, KeywordIconNameSpacing) : 0.0f, 0.0f, 0.0f, 0.0f)
-        [SNew(STextBlock).Text(FText::FromString(Label)).Font(Style.Font)
+        [SNew(STextBlock).Text(Label).Font(Style.Font)
             .ColorAndOpacity(Definition ? FSlateColor(Definition->UIColor) : Style.ColorAndOpacity)];
     return Row;
 }

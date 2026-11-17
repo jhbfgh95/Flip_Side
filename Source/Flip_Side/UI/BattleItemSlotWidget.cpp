@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/BattleItemSlotWidget.h"
+#include "Subsystem/DataManagerSubsystem.h"
 
 #include "Components/Button.h"
 #include "Components/Image.h"
@@ -88,7 +89,7 @@ void UBattleItemSlotWidget::SetItemData(const FBattleItemSlotViewData& InData)
 
 	if (IsValid(ItemNameText))
 	{
-		ItemNameText->SetText(FText::FromString(InData.ItemData.ItemName));
+		ItemNameText->SetText(UDataManagerSubsystem::GetDisplayText(InData.ItemData.ItemName));
 	}
 
 	if (IsValid(ItemIcon) && IsValid(InData.ItemData.ItemIcon))

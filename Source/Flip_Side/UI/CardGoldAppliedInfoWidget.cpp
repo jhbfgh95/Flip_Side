@@ -1,4 +1,5 @@
 #include "UI/CardGoldAppliedInfoWidget.h"
+#include "Subsystem/DataManagerSubsystem.h"
 
 #include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
@@ -23,11 +24,11 @@ void UCardGoldAppliedInfoWidget::SetAppliedEffects(const FCoinCardModifiers& InM
 void UCardGoldAppliedInfoWidget::RefreshText()
 {
 	if (IsValid(AppliedEffectTitle))
-		AppliedEffectTitle->SetText(NSLOCTEXT("CardGoldAppliedInfo", "Title", "현재 적용된 효과"));
+		AppliedEffectTitle->SetText(UDataManagerSubsystem::GetDisplayText(TEXT("현재 적용된 효과")));
 	if (!IsValid(AppliedEffectsText)) return;
 	if (!bHasAppliedEffects)
 	{
-		AppliedEffectsText->SetText(NSLOCTEXT("CardGoldAppliedInfo", "Inactive", "적용 중인 효과가 없습니다."));
+		AppliedEffectsText->SetText(UDataManagerSubsystem::GetDisplayText(TEXT("적용 중인 효과가 없습니다.")));
 		return;
 	}
 	const TCHAR* const Keys[] = { TEXT("STAT:AttackPower"), TEXT("STAT:WeaponPower"), TEXT("STAT:Count"),

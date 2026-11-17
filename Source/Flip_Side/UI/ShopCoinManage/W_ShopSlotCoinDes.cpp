@@ -14,6 +14,7 @@
 #include "DataTypes/WeaponDataTypes.h"
 #include "DataTypes/KeywordDataTypes.h"
 #include "UI/CoinDescriptionFormatter.h"
+#include "Internationalization/TextLocalizationManager.h"
 #include "UI/CoinDescriptionSectionWidget.h"
 #include "UI/CoinDescriptionBookmarkWidget.h"
 #include "Engine/World.h"
@@ -22,6 +23,7 @@
 void UW_ShopSlotCoinDes::NativeConstruct()
 {
     Super::NativeConstruct();
+    FTextLocalizationManager::Get().OnTextRevisionChangedEvent.AddUObject(this, &ThisClass::RefreshLocalizedDescription);
 	// 명시적으로 바인딩한 스탯 이미지만 DB에서 갱신합니다. 하위 위젯 탐색은 하지 않습니다.
 	UDataManagerSubsystem* IconDB = IsValid(GetGameInstance()) ? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>() : nullptr;
 	if (IsValid(IconDB))
@@ -74,6 +76,8 @@ void UW_ShopSlotCoinDes::SetExplainTextEmpty()
     if (UWorld* World = GetWorld()) World->GetTimerManager().ClearTimer(HideTimer);
     ClearBookmarks();
     Sections.Reset();
+    DescriptionSource.Reset();
+    DescriptionKeywords.Reset();
     SelectedSectionIndex = INDEX_NONE;
     bDescriptionHovered = false;
     if (DescriptionSection)
@@ -97,21 +101,32 @@ void UW_ShopSlotCoinDes::SetExplainTextEmpty()
 void UW_ShopSlotCoinDes::SetWeaponDescription(const FFaceData& Weapon, const TArray<FKeywordDefinitionData>& Keywords)
 {
     SetExplainTextEmpty();
-    if (WeaponNameText) WeaponNameText->SetText(FText::FromString(Weapon.WeaponName));
+    if (WeaponNameText) WeaponNameText->SetText(UDataManagerSubsystem::GetDisplayText(Weapon.WeaponName));
     const FWeaponNumericStats Stats{Weapon.AttackPoint, Weapon.BehaviorPoint, Weapon.Count};
     if (AttackPower) AttackPower->SetText(FText::AsNumber(Stats.AttackPoint));
     if (WeaponPower) WeaponPower->SetText(FText::AsNumber(Stats.WeaponPoint));
     if (CountText) CountText->SetText(FText::AsNumber(Stats.WeaponCnt));
-    Sections = FCoinDescriptionFormatter::Parse(Weapon.KOR_DES, Keywords, Stats).Sections;
+    DescriptionSource = Weapon.KOR_DES;
+    DescriptionStats = Stats;
+    DescriptionKeywords = Keywords;
     if (!IsValid(DescriptionSection))
     {
         UE_LOG(LogTemp, Warning, TEXT("W_WeaponDescription: Add a CoinDescriptionSectionWidget named DescriptionSection to the WBP."));
         return;
     }
-    RebuildBookmarks();
-    if (!Sections.IsEmpty()) SelectDescription(0);
+    RefreshLocalizedDescription();
     // The parent must receive mouse enter/leave while its bookmark buttons remain clickable.
     SetVisibility(ESlateVisibility::Visible);
+}
+
+void UW_ShopSlotCoinDes::RefreshLocalizedDescription()
+{
+    if (DescriptionSource.IsEmpty() || !IsValid(DescriptionSection)) return;
+
+    const int32 PreviousSection = SelectedSectionIndex;
+    Sections = FCoinDescriptionFormatter::Parse(DescriptionSource, DescriptionKeywords, DescriptionStats).Sections;
+    RebuildBookmarks();
+    if (!Sections.IsEmpty()) SelectDescription(Sections.IsValidIndex(PreviousSection) ? PreviousSection : 0);
 }
 
 void UW_ShopSlotCoinDes::ClearBookmarks()
@@ -174,8 +189,8 @@ void UW_ShopSlotCoinDes::SetDetailed(bool bInDetailed)
     if (IsValid(DescriptionSection)) DescriptionSection->SetDetailed(bDetailed);
     if (IsValid(DetailedDescriptionToggleText))
         DetailedDescriptionToggleText->SetText(bDetailed
-            ? NSLOCTEXT("CoinDescription", "DetailOn", "상세 표시: 켜짐")
-            : NSLOCTEXT("CoinDescription", "DetailOff", "상세 표시: 꺼짐"));
+            ? UDataManagerSubsystem::GetDisplayText(TEXT("상세 표시: 켜짐"))
+            : UDataManagerSubsystem::GetDisplayText(TEXT("상세 표시: 꺼짐")));
 }
 
 void UW_ShopSlotCoinDes::ToggleDetailedDescriptions()
@@ -252,6 +267,7 @@ void UW_ShopSlotCoinDes::NativeOnMouseLeave(const FPointerEvent& Event)
 
 void UW_ShopSlotCoinDes::NativeDestruct()
 {
+    FTextLocalizationManager::Get().OnTextRevisionChangedEvent.RemoveAll(this);
     if (IsValid(AbilityButton)) AbilityButton->OnClicked.RemoveDynamic(this, &ThisClass::HandleAbilityButtonClicked);
     if (IsValid(RangeButton)) RangeButton->OnClicked.RemoveDynamic(this, &ThisClass::HandleRangeButtonClicked);
     if (IsValid(DetailedDescriptionToggleButton))

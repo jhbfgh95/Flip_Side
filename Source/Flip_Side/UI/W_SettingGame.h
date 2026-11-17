@@ -21,7 +21,6 @@ protected:
 	TObjectPtr<UComboBoxString> LanguageComboBox;
 
 private:
-	/** 언어 선택 UI 이벤트입니다. 실제 언어 변경은 추후 구현합니다. */
 	UFUNCTION()
 	void HandleLanguageSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 

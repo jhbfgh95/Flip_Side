@@ -131,18 +131,19 @@ TSharedPtr<SWidget> UCoinDescriptionRichTextDecorator::CreateDetailedStatDisplay
 	if (IsValid(Manager)) Manager->TryGetUIIcon(Key, Texture);
 	const bool bHasDefinition = IsValid(Manager) && Manager->TryGetKeywordByCode(FName(*KeyText->RightChop(5)), Definition);
 	const FSlateColor Color = bHasDefinition ? FSlateColor(Definition.UIColor) : Style.ColorAndOpacity;
-	const FString Label = bHasDefinition && !Definition.DisplayName.IsEmpty() ? Definition.DisplayName.ToString() : Names[StatIndex];
+	const FText Label = bHasDefinition && !Definition.DisplayName.IsEmpty()
+		? Definition.DisplayName : UDataManagerSubsystem::GetDisplayText(Names[StatIndex]);
 	FSlateFontInfo Font = Style.Font;
 	Font.TypefaceFontName = Typeface;
 	TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox).Visibility(EVisibility::HitTestInvisible);
-	auto AddText = [&Row, &Font, &Color](const FString& Text, float LeftSpacing = 0.f)
+	auto AddText = [&Row, &Font, &Color](const FText& Text, float LeftSpacing = 0.f)
 	{
 		Row->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(LeftSpacing, 0.f, 0.f, 0.f)
-			[SNew(STextBlock).Text(FText::FromString(Text)).Font(Font).ColorAndOpacity(Color)];
+			[SNew(STextBlock).Text(Text).Font(Font).ColorAndOpacity(Color)];
 	};
 	const FString* Value = Run.MetaData.Find(TEXT("value"));
-	if (Value) AddText(*Value);
-	AddText(TEXT("["), Value ? FMath::Max(0.f, ValueSpacing) : 0.f);
+	if (Value) AddText(FText::FromString(*Value));
+	AddText(INVTEXT("["), Value ? FMath::Max(0.f, ValueSpacing) : 0.f);
 	if (IsValid(Texture))
 	{
 		// 원본 Texture는 DataManager가, Brush는 Slate 람다가 보유합니다.
@@ -155,6 +156,6 @@ TSharedPtr<SWidget> UCoinDescriptionRichTextDecorator::CreateDetailedStatDisplay
 			[SNew(SBox).WidthOverride(Size.X).HeightOverride(Size.Y)
 				[SNew(SImage).Image_Lambda([Brush]() -> const FSlateBrush* { return &Brush.Get(); }).ColorAndOpacity(Color)]];
 	}
-	AddText(Label + TEXT("]"), IsValid(Texture) ? FMath::Max(0.f, NameSpacing) : 0.f);
+	AddText(FText::Format(INVTEXT("{0}]"), Label), IsValid(Texture) ? FMath::Max(0.f, NameSpacing) : 0.f);
 	return Row;
 }

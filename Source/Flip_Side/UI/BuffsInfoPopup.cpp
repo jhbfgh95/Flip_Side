@@ -13,6 +13,7 @@
 #include "Styling/CoreStyle.h"
 #include "UI/CoinDescriptionFormatter.h"
 #include "UI/CoinDescriptionRichTextDecorator.h"
+#include "Internationalization/TextLocalizationManager.h"
 
 void UBuffsInfoPopup::NativeOnInitialized()
 {
@@ -59,6 +60,19 @@ void UBuffsInfoPopup::NativeOnInitialized()
 	SetVisibility(ESlateVisibility::Collapsed);
 }
 
+void UBuffsInfoPopup::NativeConstruct()
+{
+	Super::NativeConstruct();
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.AddUObject(this, &ThisClass::RefreshLocalizedDescription);
+	RefreshLocalizedDescription();
+}
+
+void UBuffsInfoPopup::NativeDestruct()
+{
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.RemoveAll(this);
+	Super::NativeDestruct();
+}
+
 void UBuffsInfoPopup::SetBuffInfo(const FBattleStatusEffectViewData& InData)
 {
 	if (IsValid(BuffNameText)) BuffNameText->SetText(InData.DisplayName);
@@ -67,13 +81,19 @@ void UBuffsInfoPopup::SetBuffInfo(const FBattleStatusEffectViewData& InData)
 		BuffIconImage->SetBrushFromTexture(InData.Icon, false);
 		BuffIconImage->SetVisibility(IsValid(InData.Icon) ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
-	if (IsValid(BuffDescriptionText))
-	{
-		BuffDescriptionText->SetText(FText::FromString(FCoinDescriptionFormatter::ToRichText(InData.Description.ToString())));
-		BuffDescriptionText->RefreshTextLayout();
-	}
+	LocalizedDescription = InData.Description;
+	RefreshLocalizedDescription();
 	// 팝업이 원래 아이콘의 호버를 가로채지 않도록 합니다.
 	SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
+void UBuffsInfoPopup::RefreshLocalizedDescription()
+{
+	if (IsValid(BuffDescriptionText))
+	{
+		BuffDescriptionText->SetText(FText::FromString(FCoinDescriptionFormatter::ToRichText(LocalizedDescription.ToString())));
+		BuffDescriptionText->RefreshTextLayout();
+	}
 }
 
 TSharedPtr<SWidget> UBuffsInfoPopup::CreateStatDisplay(const FTextRunInfo& Run, const FTextBlockStyle& Style)

@@ -58,6 +58,7 @@ private:
 
 private:
 	void SetDescriptionText(const FText& Description);
+	void RefreshLocalizedDescription();
 
 public:
 	FOnItemInfoCloseRequested OnCloseRequested;

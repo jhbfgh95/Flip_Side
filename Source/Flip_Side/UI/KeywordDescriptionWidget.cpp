@@ -8,6 +8,7 @@
 #include "Engine/DataTable.h"
 #include "Engine/GameInstance.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "Internationalization/TextLocalizationManager.h"
 #include "UI/CoinDescriptionFormatter.h"
 #include "Styling/CoreStyle.h"
 #include "Framework/Application/SlateApplication.h"
@@ -99,6 +100,7 @@ namespace KeywordDescriptionPrivate
 void UKeywordDescriptionWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.AddUObject(this, &ThisClass::RefreshFromDatabase);
 	if (IsValid(KeywordDropdown))
 		KeywordDropdown->OnSelectionChanged.AddUniqueDynamic(this, &UKeywordDescriptionWidget::HandleSelectionChanged);
 	RefreshFromDatabase();
@@ -106,6 +108,7 @@ void UKeywordDescriptionWidget::NativeConstruct()
 
 void UKeywordDescriptionWidget::NativeDestruct()
 {
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.RemoveAll(this);
 	if (IsValid(KeywordDropdown))
 		KeywordDropdown->OnSelectionChanged.RemoveDynamic(this, &UKeywordDescriptionWidget::HandleSelectionChanged);
 	DropdownArrowImages.Reset();

@@ -2,6 +2,7 @@
 
 
 #include "UI/ShopItem/W_ShopItemSlot.h"
+#include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/ShopLevel/ShopItemWSubsystem.h"
 #include "Subsystem/MoneyGISubsystem.h"
 #include "Components/TextBlock.h"
@@ -35,7 +36,7 @@ void UW_ShopItemSlot::InitItemWidget(FItemData SetItemData)
     ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), SetItemData.ItemIcon);
     ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), WidgetItemData.TypeColor);
 
-    ItemNameTextBlock->SetText(FText::FromString(SetItemData.ItemName));
+    ItemNameTextBlock->SetText(UDataManagerSubsystem::GetDisplayText(SetItemData.ItemName));
     ItemPriceTextBlock->SetText(FText::AsNumber(SetItemData.Price));
 }
 	
@@ -46,7 +47,7 @@ void UW_ShopItemSlot::SetItemSlotImage(FItemData SetItemData)
     ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), SetItemData.ItemIcon);
     ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), SetItemData.TypeColor);
 
-    ItemNameTextBlock->SetText(FText::FromString(SetItemData.ItemName));
+    ItemNameTextBlock->SetText(UDataManagerSubsystem::GetDisplayText(SetItemData.ItemName));
 	ItemPriceTextBlock->SetText(FText::AsNumber(SetItemData.Price));
 }
 

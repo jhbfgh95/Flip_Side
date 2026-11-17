@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/ShopItem/W_ShopItemPurchasePopup.h"
+#include "Subsystem/DataManagerSubsystem.h"
 
 #include "Components/Button.h"
 #include "Components/Image.h"
@@ -31,7 +32,7 @@ void UW_ShopItemPurchasePopup::Open(const FItemData& InItemData)
 		ItemIconMI->SetTextureParameterValue(FName("Weapon_Icon"), CurrentItemData.ItemIcon);
 		ItemIconMI->SetVectorParameterValue(FName("Weapon_Color"), InItemData.TypeColor);
 	}
-	ItemNameText->SetText(FText::FromString(CurrentItemData.ItemName));
+	ItemNameText->SetText(UDataManagerSubsystem::GetDisplayText(CurrentItemData.ItemName));
 	ItemCountText->SetText(FText::AsNumber(CurrentCount));
 	TotalPriceText->SetText(FText::AsNumber(CurrentItemData.Price * CurrentCount));
 	USoundManagerWSubsystem::SetPopupVisibility(this, ESlateVisibility::Visible);

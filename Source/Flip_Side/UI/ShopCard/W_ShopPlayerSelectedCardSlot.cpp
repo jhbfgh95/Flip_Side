@@ -2,6 +2,7 @@
 
 
 #include "UI/ShopCard/W_ShopPlayerSelectedCardSlot.h"
+#include "Subsystem/DataManagerSubsystem.h"
 #include "UI/ShopCard/W_ShopPlayerCardSlot.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
@@ -103,7 +104,7 @@ void UW_ShopPlayerSelectedCardSlot::SetCardSlot(FCardData SetCardData, UW_ShopPl
     WidgetCardData = SetCardData;
     UpdateDetailButton(WidgetCardData.CardID);
     CardImage->SetBrushFromTexture(SetCardData.Icon);
-    CardNameTextBlock->SetText(FText::FromString(SetCardData.CardName));
+    CardNameTextBlock->SetText(UDataManagerSubsystem::GetDisplayText(SetCardData.CardName));
     PlayerCardSlot = ConnectedPlayerCardSlot;
     IsSelected = true;
 
@@ -153,7 +154,7 @@ void UW_ShopPlayerSelectedCardSlot::ClearSlot()
 void UW_ShopPlayerSelectedCardSlot::UpdateSlot()
 {
     CardImage->SetBrushFromTexture(WidgetCardData.Icon);
-    CardNameTextBlock->SetText(FText::FromString(WidgetCardData.CardName));
+    CardNameTextBlock->SetText(UDataManagerSubsystem::GetDisplayText(WidgetCardData.CardName));
 }
 
 FCardData UW_ShopPlayerSelectedCardSlot::GetCardData()

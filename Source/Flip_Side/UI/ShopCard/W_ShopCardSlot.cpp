@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/ShopCard/W_ShopCardSlot.h"
+#include "Subsystem/DataManagerSubsystem.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
 #include "Animation/WidgetAnimation.h"
@@ -98,7 +99,7 @@ void UW_ShopCardSlot::InitCardSlot(FCardData InitCard)
         CardImageMI->SetTextureParameterValue(FName("Weapon_Icon"), WidgetCardData.Icon);
         CardImageMI->SetVectorParameterValue(FName("Weapon_Color"), CardIconColor);
     }
-    CardNameTextBlock->SetText(FText::FromString(WidgetCardData.CardName));
+    CardNameTextBlock->SetText(UDataManagerSubsystem::GetDisplayText(WidgetCardData.CardName));
     CardPriceTextBlock->SetText(FText::AsNumber(WidgetCardData.Price));
     
     HoverBorder->SetVisibility(ESlateVisibility::Hidden);

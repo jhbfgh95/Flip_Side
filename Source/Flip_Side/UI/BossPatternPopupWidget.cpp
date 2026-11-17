@@ -2,13 +2,14 @@
 
 
 #include "UI/BossPatternPopupWidget.h"
+#include "Subsystem/DataManagerSubsystem.h"
 #include "Components/TextBlock.h"
 #include "Components/RichTextBlock.h"
 
 void UBossPatternPopupWidget::SetPatternInfo(const FBossHUDData& InData)
 {
 	if (IsValid(PatternNameText)) PatternNameText->SetText(InData.bHasPatternInfo
-		? FText::FromString(InData.PatternName) : FText::GetEmpty());
+		? UDataManagerSubsystem::GetDisplayText(InData.PatternName) : FText::GetEmpty());
 	// DB 설명을 그대로 전달합니다. RichText 스타일 테이블/Decorator는 팝업 BP에서 지정합니다.
 	if (IsValid(PatternDescriptionText)) PatternDescriptionText->SetText(InData.bHasPatternInfo
 		? InData.PatternDescription : FText::GetEmpty());

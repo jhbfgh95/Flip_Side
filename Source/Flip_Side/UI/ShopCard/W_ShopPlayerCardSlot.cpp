@@ -2,6 +2,7 @@
 
 
 #include "UI/ShopCard/W_ShopPlayerCardSlot.h"
+#include "Subsystem/DataManagerSubsystem.h"
 #include "Subsystem/ShopLevel/ShopCardWSubsystem.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
@@ -83,7 +84,7 @@ void UW_ShopPlayerCardSlot::InitCardSlot(FCardData InitCard)
     WidgetCardData = InitCard;
     UpdateDetailButton(WidgetCardData.CardID);
     CardImage->SetBrushFromTexture(WidgetCardData.Icon);
-    CardNameTextBlock->SetText(FText::FromString(WidgetCardData.CardName));
+    CardNameTextBlock->SetText(UDataManagerSubsystem::GetDisplayText(WidgetCardData.CardName));
 
     IsSelected = false;
     if (HoverBorder)

@@ -2,6 +2,7 @@
 
 
 #include "UI/W_BossHP.h"
+#include "Subsystem/DataManagerSubsystem.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
 #include "Components/CanvasPanel.h"
@@ -72,7 +73,7 @@ void UW_BossHP::SetBossName(const FString& SetBossName)
 {
     if(BossNameText)
     {
-        BossNameText->SetText(FText::FromString(SetBossName));
+        BossNameText->SetText(UDataManagerSubsystem::GetDisplayText(SetBossName));
     }
 }
 

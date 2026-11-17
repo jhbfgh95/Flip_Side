@@ -1,4 +1,5 @@
 #include "UI/W_ShopBossProgressSlot.h"
+#include "Subsystem/DataManagerSubsystem.h"
 
 #include "Animation/WidgetAnimation.h"
 #include "Components/Image.h"
@@ -34,7 +35,7 @@ void UW_ShopBossProgressSlot::InitializeProgressSlot(const FBossDisplayData& InB
 
 	if (IsValid(BossNameText))
 	{
-		BossNameText->SetText(FText::FromString(BossData.BossName));
+		BossNameText->SetText(UDataManagerSubsystem::GetDisplayText(BossData.BossName));
 	}
 
 	// 이미 클리어한 보스는 등장 연출 없이 열린 모습으로 표시합니다.

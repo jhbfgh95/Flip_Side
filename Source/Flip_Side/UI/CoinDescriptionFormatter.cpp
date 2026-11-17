@@ -1,4 +1,5 @@
 #include "UI/CoinDescriptionFormatter.h"
+#include "Subsystem/DataManagerSubsystem.h"
 #include "Misc/Base64.h"
 
 namespace CoinDescriptionFormatterPrivate
@@ -77,7 +78,8 @@ FCoinWeaponDescriptionData FCoinDescriptionFormatter::Parse(const FString& RawDe
 		if (Keyword.bEnabled) Labels.Add(Keyword.KeywordCode, Keyword.DisplayName);
 	}
 	TArray<FString> Lines;
-	CoinDescriptionFormatterPrivate::Normalize(RawDescription).ParseIntoArrayLines(Lines, false);
+	const FText Description = UDataManagerSubsystem::GetDisplayText(RawDescription);
+	CoinDescriptionFormatterPrivate::Normalize(Description.ToString()).ParseIntoArrayLines(Lines, false);
 	FCoinDescriptionSectionData* Current = nullptr;
 	for (const FString& Line : Lines)
 	{
@@ -134,29 +136,29 @@ bool FCoinDescriptionFormatter::ResolveToken(FName Key, const FCoinDescriptionSe
 	}
 	if (Type == TEXT("BUFF") && (Code == TEXT("Absorb") || Code == TEXT("Strike")))
 	{
-		OutToken.Label = FText::FromString(Code == TEXT("Absorb") ? TEXT("흡수버프") : TEXT("타격버프"));
+		OutToken.Label = UDataManagerSubsystem::GetDisplayText(Code == TEXT("Absorb") ? TEXT("흡수버프") : TEXT("타격버프"));
 		return true;
 	}
 	if (Type != TEXT("STAT")) return false;
 	if (Code == TEXT("AttackRange") || Code == TEXT("AbilityRange"))
 	{
-		OutToken.Label = FText::FromString(Code == TEXT("AttackRange") ? TEXT("공격사거리") : TEXT("능력사거리"));
+		OutToken.Label = UDataManagerSubsystem::GetDisplayText(Code == TEXT("AttackRange") ? TEXT("공격사거리") : TEXT("능력사거리"));
 		return true;
 	}
 	OutToken.bHasValue = true;
 	if (Code == TEXT("AttackPower"))
 	{
-		OutToken.Label = FText::FromString(TEXT("공격력"));
+		OutToken.Label = UDataManagerSubsystem::GetDisplayText(TEXT("공격력"));
 		OutToken.Value = Section.BaseStats.AttackPoint;
 	}
 	else if (Code == TEXT("WeaponPower"))
 	{
-		OutToken.Label = FText::FromString(TEXT("무기력"));
+		OutToken.Label = UDataManagerSubsystem::GetDisplayText(TEXT("무기력"));
 		OutToken.Value = Section.BaseStats.WeaponPoint;
 	}
 	else if (Code == TEXT("Count"))
 	{
-		OutToken.Label = FText::FromString(TEXT("횟수"));
+		OutToken.Label = UDataManagerSubsystem::GetDisplayText(TEXT("횟수"));
 		OutToken.Value = Section.BaseStats.WeaponCnt;
 	}
 	else return false;
@@ -183,7 +185,7 @@ FString FCoinDescriptionFormatter::TokenText(const FCoinDescriptionTokenData& To
 {
 	// 일반 텍스트 변환에는 이미지를 삽입할 수 없으므로 아이콘 위치를 명시합니다.
 	const FCoinDescriptionInlineParts Parts = BuildInlineParts(Token, bDetailed);
-	return Parts.BeforeIcon + TEXT("<아이콘>") + Parts.AfterIcon;
+	return Parts.BeforeIcon + UDataManagerSubsystem::GetDisplayText(TEXT("<아이콘>")).ToString() + Parts.AfterIcon;
 }
 
 FString FCoinDescriptionFormatter::ToRichText(const FString& RawText)

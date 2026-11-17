@@ -19,6 +19,8 @@ public:
 
 protected:
 	virtual void NativeOnInitialized() override;
+	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UTextBlock> BuffNameText;
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -29,4 +31,8 @@ protected:
 	FVector2D InlineIconSize = FVector2D(24.f, 24.f);
 	UPROPERTY(EditDefaultsOnly, Category = "Buff Info|Description")
 	float IconNameSpacing = 4.f;
+
+private:
+	void RefreshLocalizedDescription();
+	FText LocalizedDescription;
 };

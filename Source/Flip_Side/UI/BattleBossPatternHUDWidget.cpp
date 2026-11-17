@@ -2,6 +2,7 @@
 
 
 #include "UI/BattleBossPatternHUDWidget.h"
+#include "Subsystem/DataManagerSubsystem.h"
 
 #include "Components/Button.h"
 #include "Components/Border.h"
@@ -32,7 +33,7 @@ void UBattleBossPatternHUDWidget::SetBossHUDData(const FBossHUDData& InData)
 
 	if (IsValid(PatternName))
 	{
-		PatternName->SetText(FText::FromString(InData.PatternName));
+		PatternName->SetText(UDataManagerSubsystem::GetDisplayText(InData.PatternName));
 	}
 
 	if (IsValid(PatternTypeText))

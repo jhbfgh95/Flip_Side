@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "DataTypes/CoinDescriptionDataTypes.h"
+#include "DataTypes/KeywordDataTypes.h"
 #include "Styling/SlateTypes.h"
 #include "W_ShopSlotCoinDes.generated.h"
 
@@ -62,6 +63,12 @@ protected:
 	TSubclassOf<class UCoinDescriptionBookmarkWidget> BookmarkWidgetClass;
 	UPROPERTY(Transient)
 	TArray<FCoinDescriptionSectionData> Sections;
+
+	void RefreshLocalizedDescription();
+	FString DescriptionSource;
+	FWeaponNumericStats DescriptionStats;
+	UPROPERTY(Transient)
+	TArray<FKeywordDefinitionData> DescriptionKeywords;
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<class UCoinDescriptionBookmarkWidget>> Bookmarks;
 	int32 SelectedSectionIndex = INDEX_NONE;

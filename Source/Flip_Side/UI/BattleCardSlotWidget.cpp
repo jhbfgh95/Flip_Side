@@ -1,4 +1,5 @@
 #include "UI/BattleCardSlotWidget.h"
+#include "Subsystem/DataManagerSubsystem.h"
 
 #include "Components/Button.h"
 #include "Components/Image.h"
@@ -55,7 +56,7 @@ void UBattleCardSlotWidget::SetCardData(const FBattleCardSlotViewData& InData)
 
 	if (IsValid(CardNameText))
 	{
-		CardNameText->SetText(FText::FromString(InData.CardData.CardName));
+		CardNameText->SetText(UDataManagerSubsystem::GetDisplayText(InData.CardData.CardName));
 	}
 
 	if (IsValid(ActiveCardEffect))

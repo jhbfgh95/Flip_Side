@@ -98,6 +98,9 @@ public:
     UFUNCTION(BlueprintCallable)
     bool ReloadCache();
 
+    UFUNCTION(BlueprintPure, Category = "Database|Localization")
+    static FText GetDisplayText(const FString& Source);
+
     // ��ȸ (����)
     UFUNCTION(BlueprintCallable)
     bool TryGetWeapon(int32 WeaponID, FFaceData& Out) const;
@@ -151,6 +154,7 @@ private:
     bool OpenDbReadWrite();
     void CloseDb();
 
+    bool LoadDisplayTranslations();
     bool LoadWeapons();
     bool LoadWeaponTypes();
     bool LoadBossDisplayData();

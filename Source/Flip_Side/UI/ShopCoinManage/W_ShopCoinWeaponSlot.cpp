@@ -2,6 +2,7 @@
 
 
 #include "UI/ShopCoinManage/W_ShopCoinWeaponSlot.h"
+#include "Subsystem/DataManagerSubsystem.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
@@ -36,7 +37,7 @@ void UW_ShopCoinWeaponSlot::InitWidget(FFaceData FaceData)
         WeaponIconMI->SetTextureParameterValue(FName("Weapon_Icon"), FaceData.WeaponIcon);
         WeaponIconMI->SetVectorParameterValue(FName("Weapon_Color"), WeaponIconColor);
 
-        WeaponName->SetText(FText::FromString(FaceData.WeaponName));
+        WeaponName->SetText(UDataManagerSubsystem::GetDisplayText(FaceData.WeaponName));
 
         SetVisibility(ESlateVisibility::Visible);
     }

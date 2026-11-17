@@ -4,6 +4,8 @@
 #include "UI/W_SettingGame.h"
 
 #include "Components/ComboBoxString.h"
+#include "Internationalization/TextLocalizationManager.h"
+#include "Kismet/KismetInternationalizationLibrary.h"
 
 void UW_SettingGame::NativeOnInitialized()
 {
@@ -14,15 +16,29 @@ void UW_SettingGame::NativeOnInitialized()
 		return;
 	}
 
+	InitializeLanguageOptions();
 	LanguageComboBox->OnSelectionChanged.AddUniqueDynamic(
 		this, &ThisClass::HandleLanguageSelectionChanged);
-	InitializeLanguageOptions();
 }
 
 void UW_SettingGame::HandleLanguageSelectionChanged(
-	FString /*SelectedItem*/, ESelectInfo::Type /*SelectionType*/)
+	FString SelectedItem, ESelectInfo::Type SelectionType)
 {
-	// 실제 로컬라이제이션 적용은 추후 구현합니다.
+	if (SelectionType == ESelectInfo::Direct || !LanguageOptions.Contains(SelectedItem)) return;
+
+#if WITH_EDITOR
+	if (GIsEditor)
+	{
+		FTextLocalizationManager::Get().EnableGameLocalizationPreview(SelectedItem.ToLower());
+		return;
+	}
+#endif
+
+	if (!UKismetInternationalizationLibrary::SetCurrentLanguage(SelectedItem.ToLower(), true))
+	{
+		const bool bEnglish = UKismetInternationalizationLibrary::GetCurrentLanguage().StartsWith(TEXT("en"));
+		LanguageComboBox->SetSelectedIndex(bEnglish ? 1 : 0);
+	}
 }
 
 void UW_SettingGame::InitializeLanguageOptions()
@@ -34,9 +50,13 @@ void UW_SettingGame::InitializeLanguageOptions()
 		LanguageComboBox->AddOption(LanguageOption);
 	}
 
-	if (!LanguageOptions.IsEmpty())
+	bool bEnglish = UKismetInternationalizationLibrary::GetCurrentLanguage().StartsWith(TEXT("en"));
+#if WITH_EDITOR
+	if (GIsEditor)
 	{
-		LanguageComboBox->SetSelectedIndex(0);
+		bEnglish = FTextLocalizationManager::Get().IsGameLocalizationPreviewEnabled();
 	}
+#endif
+	LanguageComboBox->SetSelectedIndex(bEnglish ? 1 : 0);
 }
 

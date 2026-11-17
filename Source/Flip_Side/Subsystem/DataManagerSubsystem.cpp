@@ -1,6 +1,9 @@
 ﻿#include "DataManagerSubsystem.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
+#include "Misc/SecureHash.h"
+#include "Internationalization/PolyglotTextData.h"
+#include "Internationalization/TextLocalizationManager.h"
 #include "HAL/FileManager.h"
 #include "Engine/Texture2D.h"
 #include "NiagaraSystem.h"
@@ -8,6 +11,25 @@
 #include "UObject/UObjectGlobals.h"
 
 static bool TryParseHexColor_RRGGBBAA(const FString& InHex, FLinearColor& OutColor);
+
+namespace
+{
+    const TCHAR* const DatabaseTextNamespace = TEXT("FlipSide.Database");
+
+    FString GetDatabaseTextKey(const FString& Source)
+    {
+        // A changed source string must not reuse a translation written for its previous wording.
+        const FTCHARToUTF8 Utf8(*Source);
+        return FMD5::HashBytes(reinterpret_cast<const uint8*>(Utf8.Get()), Utf8.Length());
+    }
+}
+
+FText UDataManagerSubsystem::GetDisplayText(const FString& Source)
+{
+    if (Source.IsEmpty()) return FText::GetEmpty();
+
+    return FText::AsLocalizable_Advanced(DatabaseTextNamespace, GetDatabaseTextKey(Source), *Source);
+}
 
 static FString GetColText(FSQLitePreparedStatement& Stmt, int32 Index)
 {
@@ -87,7 +109,7 @@ bool UDataManagerSubsystem::ReloadCache()
         return false;
     }
 
-    bool bOk = true;
+    bool bOk = LoadDisplayTranslations();
     bOk &= LoadWeapons();
     bOk &= LoadBossDisplayData();
     bOk &= LoadBossPatternDisplay();
@@ -110,6 +132,49 @@ bool UDataManagerSubsystem::ReloadCache()
         ItemByID.Num());
 
     return bOk;
+}
+
+bool UDataManagerSubsystem::LoadDisplayTranslations()
+{
+    TMap<FString, FString> Translations;
+    const auto ReadTranslations = [this, &Translations](const TCHAR* Sql)
+    {
+        FSQLitePreparedStatement Statement;
+        if (!PrepareStmt(Db, Sql, Statement)) return false;
+
+        ESQLitePreparedStatementStepResult Step;
+        while ((Step = Statement.Step()) == ESQLitePreparedStatementStepResult::Row)
+        {
+            FString Source = GetColTextUTF8(Statement, 0);
+            FString English = GetColTextUTF8(Statement, 1);
+            if (!Source.IsEmpty() && !English.IsEmpty())
+            {
+                Translations.Add(MoveTemp(Source), MoveTemp(English));
+            }
+        }
+        return Step == ESQLitePreparedStatementStepResult::Done;
+    };
+
+    // Older databases have only legacy weapon copy and fall back to the Korean source.
+    FSQLitePreparedStatement Table;
+    if (!PrepareStmt(Db, TEXT("SELECT 1 FROM sqlite_master WHERE type='table' AND name='display_translation';"), Table)) return false;
+    const ESQLitePreparedStatementStepResult TableResult = Table.Step();
+    Table.Destroy();
+    if (TableResult != ESQLitePreparedStatementStepResult::Row && TableResult != ESQLitePreparedStatementStepResult::Done) return false;
+    if (TableResult == ESQLitePreparedStatementStepResult::Done) return true;
+    if (!ReadTranslations(TEXT("SELECT source_text, english_text FROM display_translation;")) ||
+        !ReadTranslations(TEXT("SELECT KOR_DES, ENG_DES FROM coin_weapon_def;"))) return false;
+
+    TArray<FPolyglotTextData> Texts;
+    Texts.Reserve(Translations.Num());
+    for (const auto& Pair : Translations)
+    {
+        FPolyglotTextData& Text = Texts.Emplace_GetRef(ELocalizedTextSourceCategory::Game,
+            DatabaseTextNamespace, GetDatabaseTextKey(Pair.Key), Pair.Key, TEXT("ko"));
+        Text.AddLocalizedString(TEXT("en"), Pair.Value);
+    }
+    FTextLocalizationManager::Get().RegisterPolyglotTextData(Texts);
+    return true;
 }
 
 bool UDataManagerSubsystem::TryGetWeapon(int32 WeaponID, FFaceData& Out) const
@@ -477,7 +542,7 @@ bool UDataManagerSubsystem::LoadBossDisplayData()
             if (!ImagePath.IsEmpty())
                 Boss.BossImage = LoadObject<UTexture2D>(nullptr, *ImagePath);
 
-            Boss.BossAbilityDescription = FText::FromString(GetColTextUTF8(Stmt, 5));
+            Boss.BossAbilityDescription = GetDisplayText(GetColTextUTF8(Stmt, 5));
             Boss.AttackPoint = GetColInt(Stmt, 6);
             Boss.BossHP      = GetColInt(Stmt, 7);
             Boss.ShieldValue = GetColInt(Stmt, 8);
@@ -559,7 +624,7 @@ bool UDataManagerSubsystem::LoadBossPatternDisplay()
         TArray<FBossPatternDisplayData>& BossPatterns = BossPatternDisplayByBossID.FindOrAdd(BossID);
         const int32 PatternIndex = BossPatterns.Num();
         Pattern.PatternName        = GetColTextUTF8(Stmt, 2);
-        Pattern.PatternDescription = FText::FromString(GetColTextUTF8(Stmt, 3));
+        Pattern.PatternDescription = GetDisplayText(GetColTextUTF8(Stmt, 3));
         Pattern.DamageRatio        = (float)GetColDouble(Stmt, 4);
 
         Pattern.PatternSpec.Pattern    = AttackAreaPatternFromInt(GetColInt(Stmt, 5));
@@ -722,7 +787,7 @@ bool UDataManagerSubsystem::LoadBossBattleData(int32 BossID, FBossBattleData& Ou
         {
             FBossPatternBattleData P;
             P.PatternName        = GetColTextUTF8(Stmt, 0);
-            P.PatternDescription = FText::FromString(GetColTextUTF8(Stmt, 1));
+            P.PatternDescription = GetDisplayText(GetColTextUTF8(Stmt, 1));
             P.DamageRatio        = (float)GetColDouble(Stmt, 2);
             P.ApplyDelay         = (float)GetColDouble(Stmt, 3);
 
@@ -1123,8 +1188,8 @@ bool UDataManagerSubsystem::LoadDebuffs()
     {
         FDebuffDefinitionData Data;
         Data.BuffTypeID = GetColInt(Stmt, 0);
-        Data.DisplayName = FText::FromString(GetColTextUTF8(Stmt, 1));
-        Data.Description = FText::FromString(GetColTextUTF8(Stmt, 3));
+        Data.DisplayName = GetDisplayText(GetColTextUTF8(Stmt, 1));
+        Data.Description = GetDisplayText(GetColTextUTF8(Stmt, 3));
         const FString ColorHex = GetColText(Stmt, 4);
         if (!TryParseHexColor_RRGGBBAA(ColorHex, Data.Color))
         {
@@ -1195,8 +1260,8 @@ bool UDataManagerSubsystem::LoadKeywordDefinitions()
         const FString CodeStr = GetColText(Stmt, 1);
         Data.KeywordCode = FName(*CodeStr);
 
-        Data.DisplayName = FText::FromString(GetColTextUTF8(Stmt, 2));
-        Data.Description = FText::FromString(GetColTextUTF8(Stmt, 3));
+        Data.DisplayName = GetDisplayText(GetColTextUTF8(Stmt, 2));
+        Data.Description = GetDisplayText(GetColTextUTF8(Stmt, 3));
 
         const FString ColorHex = GetColText(Stmt, 4);
         if (!TryParseHexColor_RRGGBBAA(ColorHex, Data.UIColor))

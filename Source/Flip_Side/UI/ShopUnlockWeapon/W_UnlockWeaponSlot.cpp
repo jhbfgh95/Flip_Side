@@ -2,6 +2,7 @@
 
 
 #include "UI/ShopUnlockWeapon/W_UnlockWeaponSlot.h"
+#include "Subsystem/DataManagerSubsystem.h"
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
@@ -124,7 +125,7 @@ void UW_UnlockWeaponSlot::InitWidget(const FFaceData& InitWeaponData)
         UnlockWeaponImageMI->SetTextureParameterValue(FName("Weapon_Icon"), UnlockWeaponData.WeaponIcon);
         UnlockWeaponImageMI->SetVectorParameterValue(FName("Weapon_Color"), UnlockWeaponIconColor);
     }
-    WeaponName->SetText(FText::FromString(UnlockWeaponData.WeaponName));
+    WeaponName->SetText(UDataManagerSubsystem::GetDisplayText(UnlockWeaponData.WeaponName));
 }
 
 
