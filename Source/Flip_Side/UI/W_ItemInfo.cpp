@@ -154,7 +154,7 @@ TSharedPtr<SWidget> UW_ItemInfo::CreateKeywordDisplay(FName Code, const FTextBlo
 	const FKeywordDefinitionData* Definition = KeywordDefinitions.Find(Code);
 	// DB 누락 시에도 키워드 의미는 남기고, 임의의 아이콘은 대입하지 않습니다.
 	const FText Label = Definition && !Definition->DisplayName.IsEmpty() ? Definition->DisplayName
-		: UDataManagerSubsystem::GetDisplayText(Code == TEXT("Attack") ? TEXT("공격") : Code == TEXT("Hit") ? TEXT("적중") : TEXT("즉시"));
+		: (Code == TEXT("Attack") ? NSLOCTEXT("DescriptionLabels", "Attack", "공격") : Code == TEXT("Hit") ? NSLOCTEXT("DescriptionLabels", "Hit", "적중") : NSLOCTEXT("DescriptionLabels", "Instant", "즉시"));
 	// 배경과 글자가 같은 DB 색상이 되지 않도록, Border 안의 헤더 글자색은 WBP 기본 서식을 사용합니다.
 	const FSlateColor Color = bHeader && IsValid(HeaderBorder) ? Style.ColorAndOpacity
 		: FSlateColor(Definition ? Definition->UIColor : FLinearColor::White);

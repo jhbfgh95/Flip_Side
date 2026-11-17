@@ -118,6 +118,11 @@ FCoinWeaponDescriptionData FCoinDescriptionFormatter::Parse(const FString& RawDe
 	{
 		return static_cast<uint8>(A.MainKeyword) < static_cast<uint8>(B.MainKeyword);
 	});
+	for (int32 Index = 0; Index < Result.Sections.Num(); ++Index)
+	{
+		Result.Sections[Index].SourceDescription = RawDescription;
+		Result.Sections[Index].SourceSectionIndex = Index;
+	}
 	return Result;
 }
 
@@ -136,29 +141,29 @@ bool FCoinDescriptionFormatter::ResolveToken(FName Key, const FCoinDescriptionSe
 	}
 	if (Type == TEXT("BUFF") && (Code == TEXT("Absorb") || Code == TEXT("Strike")))
 	{
-		OutToken.Label = UDataManagerSubsystem::GetDisplayText(Code == TEXT("Absorb") ? TEXT("흡수버프") : TEXT("타격버프"));
+		OutToken.Label = (Code == TEXT("Absorb") ? NSLOCTEXT("DescriptionLabels", "AbsorbBuff", "흡수버프") : NSLOCTEXT("DescriptionLabels", "StrikeBuff", "타격버프"));
 		return true;
 	}
 	if (Type != TEXT("STAT")) return false;
 	if (Code == TEXT("AttackRange") || Code == TEXT("AbilityRange"))
 	{
-		OutToken.Label = UDataManagerSubsystem::GetDisplayText(Code == TEXT("AttackRange") ? TEXT("공격사거리") : TEXT("능력사거리"));
+		OutToken.Label = (Code == TEXT("AttackRange") ? NSLOCTEXT("DescriptionLabels", "AttackRange", "공격사거리") : NSLOCTEXT("DescriptionLabels", "AbilityRange", "능력사거리"));
 		return true;
 	}
 	OutToken.bHasValue = true;
 	if (Code == TEXT("AttackPower"))
 	{
-		OutToken.Label = UDataManagerSubsystem::GetDisplayText(TEXT("공격력"));
+		OutToken.Label = NSLOCTEXT("CoinDescriptionFormatter", "DisplayText_001", "공격력");
 		OutToken.Value = Section.BaseStats.AttackPoint;
 	}
 	else if (Code == TEXT("WeaponPower"))
 	{
-		OutToken.Label = UDataManagerSubsystem::GetDisplayText(TEXT("무기력"));
+		OutToken.Label = NSLOCTEXT("CoinDescriptionFormatter", "DisplayText_002", "무기력");
 		OutToken.Value = Section.BaseStats.WeaponPoint;
 	}
 	else if (Code == TEXT("Count"))
 	{
-		OutToken.Label = UDataManagerSubsystem::GetDisplayText(TEXT("횟수"));
+		OutToken.Label = NSLOCTEXT("CoinDescriptionFormatter", "DisplayText_003", "횟수");
 		OutToken.Value = Section.BaseStats.WeaponCnt;
 	}
 	else return false;

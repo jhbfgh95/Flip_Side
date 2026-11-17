@@ -19,55 +19,55 @@ void UShopTutorialFlow::ConfigureTutorial()
 	DialogueBoxSizes.Reset();
 
 	// 0
-	TutorialDialogueList.Add(FText::FromString(TEXT("상점에서는 보스 전투를 준비하고 나만의 전략을 세울 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_001", "상점에서는 보스 전투를 준비하고 나만의 전략을 세울 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 1
-	TutorialDialogueList.Add(FText::FromString(TEXT("전투에 직접 사용하는 무기와 코인을 구매할 수 있으며,\n전투에 도움이 되는 아이템과 카드도 구매할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_002", "전투에 직접 사용하는 무기와 코인을 구매할 수 있으며,\n전투에 도움이 되는 아이템과 카드도 구매할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 2
-	TutorialDialogueList.Add(FText::FromString(TEXT("우선 상점에서 이동하는 방법을 알려 드리겠습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_003", "우선 상점에서 이동하는 방법을 알려 드리겠습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 3
-	TutorialDialogueList.Add(FText::FromString(TEXT("상단의 화살표를 눌러 보세요.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_004", "상단의 화살표를 눌러 보세요."));
 	TutorialActionSequence.Add(EShopTutorialAction::NavigatorBarOpened);
 
 	// 4
-	TutorialDialogueList.Add(FText::FromString(TEXT("방금 연 상단 바의 버튼을 통해 각 상점으로 빠르게 이동할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_005", "방금 연 상단 바의 버튼을 통해 각 상점으로 빠르게 이동할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 5
-	TutorialDialogueList.Add(FText::FromString(TEXT("상단 바뿐만 아니라 책상 위의 오브젝트를 통해서도 각 상점으로 이동할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_006", "상단 바뿐만 아니라 책상 위의 오브젝트를 통해서도 각 상점으로 이동할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 6
-	TutorialDialogueList.Add(FText::FromString(TEXT("보스 버튼이나 보스 조각상을 눌러 보스 정보 화면으로 이동해 보세요.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_007", "보스 버튼이나 보스 조각상을 눌러 보스 정보 화면으로 이동해 보세요."));
 	TutorialActionSequence.Add(EShopTutorialAction::PageChangedBoss);
 
 	// 7
-	TutorialDialogueList.Add(FText::FromString(TEXT("이 곳에서는 보스의 패시브와 패턴, 기믹을 가지고 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_008", "이 곳에서는 보스의 패시브와 패턴, 기믹을 가지고 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 8
-	TutorialDialogueList.Add(FText::FromString(TEXT("우선 패턴, 기믹 버튼을 눌러 정보를 확인해 보세요")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_009", "우선 패턴, 기믹 버튼을 눌러 정보를 확인해 보세요"));
 	TutorialActionSequence.Add(EShopTutorialAction::BossPatternClicked);
 
 	// 9
-	TutorialDialogueList.Add(FText::FromString(TEXT("보스는 여러 패턴과 기믹을 가지며\n보스의 패턴, 기믹 정보를 확인해 수비 전략을 세울 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_010", "보스는 여러 패턴과 기믹을 가지며\n보스의 패턴, 기믹 정보를 확인해 수비 전략을 세울 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 10
-	TutorialDialogueList.Add(FText::FromString(TEXT("이제 패시브 버튼을 눌러 패시브 정보를 확인해 보세요")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_011", "이제 패시브 버튼을 눌러 패시브 정보를 확인해 보세요"));
 	TutorialActionSequence.Add(EShopTutorialAction::BossPassiveClicked);
 
 	// 11
-	TutorialDialogueList.Add(FText::FromString(TEXT("보스마다 고유한 패시브가 있으며\n보스의 패시브를 통해 공격 전략을 세울 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_012", "보스마다 고유한 패시브가 있으며\n보스의 패시브를 통해 공격 전략을 세울 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 12
-	TutorialDialogueList.Add(FText::FromString(TEXT("이제 이 정보를 바탕으로 전투에 사용할 무기를 구매해 보겠습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_013", "이제 이 정보를 바탕으로 전투에 사용할 무기를 구매해 보겠습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 13
@@ -75,19 +75,19 @@ void UShopTutorialFlow::ConfigureTutorial()
 	TutorialActionSequence.Add(EShopTutorialAction::PageChangedWeapon);
 
 	// 14
-	TutorialDialogueList.Add(FText::FromString(TEXT("이곳에서는 코인의 한쪽 면에 장착할 수 있는 무기를 구매할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_014", "이곳에서는 코인의 한쪽 면에 장착할 수 있는 무기를 구매할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 15
-	TutorialDialogueList.Add(FText::FromString(TEXT("오른쪽 슬롯을 길게 눌러 무기를 구매해 보세요.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_015", "오른쪽 슬롯을 길게 눌러 무기를 구매해 보세요."));
 	TutorialActionSequence.Add(EShopTutorialAction::WeaponUnlocked);
 
 	// 16
-	TutorialDialogueList.Add(FText::FromString(TEXT("이렇게 구매한 무기는 이번 전투가 끝나도 계속해서 코인에 장착할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_016", "이렇게 구매한 무기는 이번 전투가 끝나도 계속해서 코인에 장착할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 17
-	TutorialDialogueList.Add(FText::FromString(TEXT("이제 구매한 무기를 코인에 장착해 보겠습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_017", "이제 구매한 무기를 코인에 장착해 보겠습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 18
@@ -95,54 +95,54 @@ void UShopTutorialFlow::ConfigureTutorial()
 	TutorialActionSequence.Add(EShopTutorialAction::PageChangedCoin);
 
 	// 19
-	TutorialDialogueList.Add(FText::FromString(TEXT("코인 상점에서는 전투에 직접적으로 참여할 코인을 만들 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_018", "코인 상점에서는 전투에 직접적으로 참여할 코인을 만들 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 20
-	TutorialDialogueList.Add(FText::FromString(TEXT("우선 왼쪽 하단에서 코인 슬롯 창을 연 뒤 코인 슬롯을 구매해 보세요.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_019", "우선 왼쪽 하단에서 코인 슬롯 창을 연 뒤 코인 슬롯을 구매해 보세요."));
 	TutorialActionSequence.Add(EShopTutorialAction::CoinSlotPurchased);
 
 	// 21
-	TutorialDialogueList.Add(FText::FromString(TEXT("코인 슬롯은 가격에 따라 해당 슬롯에 장착되는 코인의 최대 체력이 다릅니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_020", "코인 슬롯은 가격에 따라 해당 슬롯에 장착되는 코인의 최대 체력이 다릅니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 22
-	TutorialDialogueList.Add(FText::FromString(TEXT("이제 코인에 무기를 장착해 보겠습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_021", "이제 코인에 무기를 장착해 보겠습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 23
-	TutorialDialogueList.Add(FText::FromString(TEXT("쇠파이프를 장착해 보세요.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_022", "쇠파이프를 장착해 보세요."));
 	TutorialActionSequence.Add(EShopTutorialAction::FrontCoinWeaponClicked);
 
 	// 24
-	TutorialDialogueList.Add(FText::FromString(TEXT("코인의 앞면에 무기가 장착되었습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_023", "코인의 앞면에 무기가 장착되었습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 	// 25
-	TutorialDialogueList.Add(FText::FromString(TEXT("코인은 양면에 무기를 장착해야 전투에 참여할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_024", "코인은 양면에 무기를 장착해야 전투에 참여할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 26
-	TutorialDialogueList.Add(FText::FromString(TEXT("코인 슬롯의 뒷면 버튼이나 오른쪽 코인을 눌러 뒷면으로 전환해 보세요.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_025", "코인 슬롯의 뒷면 버튼이나 오른쪽 코인을 눌러 뒷면으로 전환해 보세요."));
 	TutorialActionSequence.Add(EShopTutorialAction::CoinSideChanged);
 
 	// 27
-	TutorialDialogueList.Add(FText::FromString(TEXT("이제 코인 뒷면에 무기를 장착할 수 있습니다.\n뒷면에 무기를 장착해 보세요.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_026", "이제 코인 뒷면에 무기를 장착할 수 있습니다.\n뒷면에 무기를 장착해 보세요."));
 	TutorialActionSequence.Add(EShopTutorialAction::BackCoinWeaponClicked);
 
 	// 28
-	TutorialDialogueList.Add(FText::FromString(TEXT("코인의 앞뒤에는 같은 무기를 장착할 수 없습니다.\n또한 다른 코인 슬롯과 앞뒤 무기가 중복되는 코인은 만들 수 없습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_027", "코인의 앞뒤에는 같은 무기를 장착할 수 없습니다.\n또한 다른 코인 슬롯과 앞뒤 무기가 중복되는 코인은 만들 수 없습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 29
-	TutorialDialogueList.Add(FText::FromString(TEXT("코인의 앞뒤에 무기를 장착했다면\n슬롯의 위쪽 화살표 버튼을 눌러 코인 개수를 5개로 늘려 보세요.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_028", "코인의 앞뒤에 무기를 장착했다면\n슬롯의 위쪽 화살표 버튼을 눌러 코인 개수를 5개로 늘려 보세요."));
 	TutorialActionSequence.Add(EShopTutorialAction::CoinCountIncreased);
 
 	// 30
-	TutorialDialogueList.Add(FText::FromString(TEXT("코인 개수가 1개 이상인 슬롯의 코인만 전투에 참여할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_029", "코인 개수가 1개 이상인 슬롯의 코인만 전투에 참여할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 31
-	TutorialDialogueList.Add(FText::FromString(TEXT("이제 전투에 도움을 주는 카드를 구매해 보겠습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_030", "이제 전투에 도움을 주는 카드를 구매해 보겠습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 32
@@ -150,35 +150,35 @@ void UShopTutorialFlow::ConfigureTutorial()
 	TutorialActionSequence.Add(EShopTutorialAction::PageChangedCard);
 
 	// 33
-	TutorialDialogueList.Add(FText::FromString(TEXT("카드 상점에서는 카드를 구매할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_031", "카드 상점에서는 카드를 구매할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 34
-	TutorialDialogueList.Add(FText::FromString(TEXT("카드는 특정 조건을 만족할 때 강력한 효과를 냅니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_032", "카드는 특정 조건을 만족할 때 강력한 효과를 냅니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 35
-	TutorialDialogueList.Add(FText::FromString(TEXT("구매한 카드는 전투가 끝나도 사라지지 않으며,\n다음 전투에서도 장착할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_033", "구매한 카드는 전투가 끝나도 사라지지 않으며,\n다음 전투에서도 장착할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 36
-	TutorialDialogueList.Add(FText::FromString(TEXT("카드를 구매해 보세요.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_034", "카드를 구매해 보세요."));
 	TutorialActionSequence.Add(EShopTutorialAction::CardPurchased);
 
 	// 37
-	TutorialDialogueList.Add(FText::FromString(TEXT("구매한 카드는 왼쪽 하단에서 확인할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_035", "구매한 카드는 왼쪽 하단에서 확인할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 38
-	TutorialDialogueList.Add(FText::FromString(TEXT("이제 구매한 카드를 장착해 보세요.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_036", "이제 구매한 카드를 장착해 보세요."));
 	TutorialActionSequence.Add(EShopTutorialAction::CardSelected);
 
 	// 39
-	TutorialDialogueList.Add(FText::FromString(TEXT("카드는 최대 3개까지 장착할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_037", "카드는 최대 3개까지 장착할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 40
-	TutorialDialogueList.Add(FText::FromString(TEXT("이제 마지막으로 아이템을 구매해 보겠습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_038", "이제 마지막으로 아이템을 구매해 보겠습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 41
@@ -186,23 +186,23 @@ void UShopTutorialFlow::ConfigureTutorial()
 	TutorialActionSequence.Add(EShopTutorialAction::PageChangedItem);
 
 	// 42
-	TutorialDialogueList.Add(FText::FromString(TEXT("아이템은 코인 행동 턴에 사용할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_039", "아이템은 코인 행동 턴에 사용할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 43
-	TutorialDialogueList.Add(FText::FromString(TEXT("아이템을 하나 선택해 구매해 보세요.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_040", "아이템을 하나 선택해 구매해 보세요."));
 	TutorialActionSequence.Add(EShopTutorialAction::ItemPurchased);
 
 	// 44
-	TutorialDialogueList.Add(FText::FromString(TEXT("구매한 아이템은 왼쪽의 구매한 아이템 목록에 추가되며\n최대 3종류의 아이템을 구매할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_041", "구매한 아이템은 왼쪽의 구매한 아이템 목록에 추가되며\n최대 3종류의 아이템을 구매할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 45
-	TutorialDialogueList.Add(FText::FromString(TEXT("왼쪽 패널에서 구매한 아이템을 판매해 보세요.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_042", "왼쪽 패널에서 구매한 아이템을 판매해 보세요."));
 	TutorialActionSequence.Add(EShopTutorialAction::ItemSold);
 
 	// 46
-	TutorialDialogueList.Add(FText::FromString(TEXT("구매한 아이템은 같은 가격에 재판매할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_043", "구매한 아이템은 같은 가격에 재판매할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 47
@@ -210,15 +210,15 @@ void UShopTutorialFlow::ConfigureTutorial()
 	TutorialActionSequence.Add(EShopTutorialAction::PageChangedMain);
 
 	// 48
-	TutorialDialogueList.Add(FText::FromString(TEXT("이제 상점에서 할 수 있는 모든 기능을 배웠습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_044", "이제 상점에서 할 수 있는 모든 기능을 배웠습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 49
-	TutorialDialogueList.Add(FText::FromString(TEXT("상점에서 구매한 코인과 슬롯은 전투가 끝나면 자동으로 정산되며,\n구매한 무기와 카드는 계속해서 사용할 수 있습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_045", "상점에서 구매한 코인과 슬롯은 전투가 끝나면 자동으로 정산되며,\n구매한 무기와 카드는 계속해서 사용할 수 있습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 50
-	TutorialDialogueList.Add(FText::FromString(TEXT("이제 실제 전투를 진행해 보겠습니다.")));
+	TutorialDialogueList.Add(NSLOCTEXT("ShopTutorialFlow", "DisplayText_046", "이제 실제 전투를 진행해 보겠습니다."));
 	TutorialActionSequence.Add(EShopTutorialAction::DialogueClicked);
 
 	// 51

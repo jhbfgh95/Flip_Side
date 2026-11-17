@@ -26,6 +26,7 @@ public:
 	TSharedPtr<SWidget> CreateExpressionDisplay(const FString& Expression, const FTextBlockStyle& Style);
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	// 토큰 BP 없이 두 RichTextBlock에서 직접 아이콘과 문자를 표시합니다.
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class URichTextBlock> HeaderRichText;
@@ -54,5 +55,6 @@ private:
 	FLinearColor GetTokenColor(FName Key) const;
 	TSharedRef<SWidget> CreateInlineIcon(FName Key, const FTextBlockStyle& Style);
 	void RefreshText();
+	void RefreshLocalizedSection();
 	bool bDetailed = false;
 };

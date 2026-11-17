@@ -1814,7 +1814,7 @@ void ABattlePlayerController_FlipSide::BuildStatusEffectViewData(
             Arguments.Add(ValueKeys[Index], FText::AsNumber(Values[Index]));
         // 피격 전에는 증가량이 아직 정해지지 않았으므로 실제 계산식을 표시합니다.
         const FText NextTurnAttack = StatusEffect.BuffTypeID == WeaponBuffTypeID::ArmorNextTurnAttack
-            ? FText::AsNumber(Modifier.AttackPoint) : UDataManagerSubsystem::GetDisplayText(TEXT("받은 공격 피해의 50%"));
+            ? FText::AsNumber(Modifier.AttackPoint) : NSLOCTEXT("BattleStatus", "ReceivedDamageHalf", "받은 공격 피해의 50%");
         Arguments.Add(TEXT("NextTurnAttack"), NextTurnAttack);
         NewViewData.Description = FText::Format(FTextFormat(DescriptionTemplate), Arguments);
         if (bIsBrand)

@@ -4,6 +4,7 @@
 #include "UI/CoinDescriptionFormatter.h"
 #include "UI/CoinDescriptionExpression.h"
 #include "UI/CoinDescriptionRichTextDecorator.h"
+#include "Internationalization/TextLocalizationManager.h"
 #include "Components/RichTextBlock.h"
 #include "Engine/Texture2D.h"
 #include "Widgets/SBoxPanel.h"
@@ -22,20 +23,50 @@ TArray<FString> UCoinDescriptionSectionWidget::GetInlineStyleKeys() const
 void UCoinDescriptionSectionWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.RemoveAll(this);
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.AddUObject(this, &ThisClass::RefreshLocalizedSection);
 	for (URichTextBlock* Text : { HeaderRichText.Get(), DescriptionRichText.Get() })
 	{
 		if (!IsValid(Text)) continue;
 		Text->SetDefaultColorAndOpacity(FSlateColor(FLinearColor::White));
 		Text->SetDecorators({ UCoinDescriptionRichTextDecorator::StaticClass() });
 	}
+	RefreshLocalizedSection();
+}
+
+void UCoinDescriptionSectionWidget::NativeDestruct()
+{
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.RemoveAll(this);
+	Super::NativeDestruct();
+}
+
+void UCoinDescriptionSectionWidget::RefreshLocalizedSection()
+{
+	if (!SectionData.SourceDescription.IsEmpty() && SectionData.SourceSectionIndex != INDEX_NONE)
+	{
+		UDataManagerSubsystem* Manager = IsValid(GetGameInstance())
+			? GetGameInstance()->GetSubsystem<UDataManagerSubsystem>() : nullptr;
+		if (IsValid(Manager))
+		{
+			TArray<FKeywordDefinitionData> Keywords;
+			Manager->GetAllEnabledKeywordDefinitions(Keywords);
+			const FCoinWeaponDescriptionData Localized = FCoinDescriptionFormatter::Parse(
+				SectionData.SourceDescription, Keywords, SectionData.BaseStats);
+			if (Localized.Sections.IsValidIndex(SectionData.SourceSectionIndex))
+			{
+				SectionData = Localized.Sections[SectionData.SourceSectionIndex];
+			}
+		}
+	}
 	RefreshText();
+	OnSectionDataChanged(SectionData);
 }
 
 void UCoinDescriptionSectionWidget::SetSectionData(const FCoinDescriptionSectionData& InData)
 {
 	SectionData = InData;
-	RefreshText();
-	OnSectionDataChanged(SectionData);
+	// 전투 ViewData가 이전 언어로 만들어졌어도 현재 언어로 표시합니다.
+	RefreshLocalizedSection();
 }
 
 void UCoinDescriptionSectionWidget::SetDetailed(bool bInDetailed)

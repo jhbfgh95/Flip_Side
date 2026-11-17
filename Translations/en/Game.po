@@ -1,0 +1,2548 @@
+# Game English translation.
+# Fill out your copyright notice in the Description page of Project Settings.
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: Game\n"
+"POT-Creation-Date: 2026-11-17 08:46\n"
+"PO-Revision-Date: 2026-11-17 08:46\n"
+"Language-Team: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. Key:	F568CEA54CA1299D7A9003A7F4C86E8B
+#. SourceLocation:	/Game/BattleTutorial/DA_BattleTutorialSequence.DA_BattleTutorialSequence.Steps(0).Steps.Text
+#: /Game/BattleTutorial/DA_BattleTutorialSequence.DA_BattleTutorialSequence.Steps(0).Steps.Text
+msgctxt ",F568CEA54CA1299D7A9003A7F4C86E8B"
+msgid "FLIP SIDE에 오신 것을 환영합니다."
+msgstr "Welcome to FLIP SIDE."
+
+#. Key:	11EE9F3944B4015AC827E3BC387C555B
+#. SourceLocation:	/Game/BattleTutorial/DT_BattleTutorialSequence.DT_BattleTutorialSequence.Step_001.Text
+#: /Game/BattleTutorial/DT_BattleTutorialSequence.DT_BattleTutorialSequence.Step_001.Text
+msgctxt ",11EE9F3944B4015AC827E3BC387C555B"
+msgid "FLIP SIDE에 오신 것을 환영합니다."
+msgstr "Welcome to FLIP SIDE."
+
+#. Key:	13C6923D4F1C979CEC8C848F691D31D2
+#. SourceLocation:	/Game/BattleTutorial/DT_BattleTutorialSequence.DT_BattleTutorialSequence.Step_002.Text
+#: /Game/BattleTutorial/DT_BattleTutorialSequence.DT_BattleTutorialSequence.Step_002.Text
+msgctxt ",13C6923D4F1C979CEC8C848F691D31D2"
+msgid "지금부터 기본적인 전투 방법을 알려드리겠습니다."
+msgstr "Let's learn the basics of combat."
+
+#. Key:	D00DF47149CD89599690D59C0C5438B6
+#. SourceLocation:	/Game/BattleTutorial/DT_BattleTutorialSequence.DT_BattleTutorialSequence.Step_003.Text
+#: /Game/BattleTutorial/DT_BattleTutorialSequence.DT_BattleTutorialSequence.Step_003.Text
+msgctxt ",D00DF47149CD89599690D59C0C5438B6"
+msgid "전투는 총 세 가지 페이즈로 구성됩니다."
+msgstr "Combat consists of three phases."
+
+#. Key:	CDD91CC6439FF90DF2847EB51D6CB40D
+#. SourceLocation:	/Game/BattleTutorial/DT_BattleTutorialSequence.DT_BattleTutorialSequence.Step_004.Text
+#: /Game/BattleTutorial/DT_BattleTutorialSequence.DT_BattleTutorialSequence.Step_004.Text
+msgctxt ",CDD91CC6439FF90DF2847EB51D6CB40D"
+msgid "코인 준비 페이즈\\n코인 행동 페이즈\\n보스 페이즈\\n로 구성됩니다."
+msgstr "Coin Ready Phase\\nCoin Action Phase\\nBoss Phase\\nThese phases repeat each turn."
+
+#. Key:	EA93F91E4F0F5EE0AB7565A73ADA7E93
+#. SourceLocation:	/Game/BattleTutorial/DT_BattleTutorialSequence.DT_BattleTutorialSequence.Step_022.Text
+#: /Game/BattleTutorial/DT_BattleTutorialSequence.DT_BattleTutorialSequence.Step_022.Text
+msgctxt ",EA93F91E4F0F5EE0AB7565A73ADA7E93"
+msgid "아이템은 코인 행동 페이즈에 사용할 수 있습니다.\\n사용할 때마다 수량이 1개씩 줄어드는 소모품입니다."
+msgstr "Items can be used during the Coin Action Phase.\\nThey are consumables: each use reduces their quantity by one."
+
+#. Key:	8589CD1946DC0B8481366A82E4D5C0C3
+#. SourceLocation:	/Game/Boss/Patterns/Tutorial/BP_Tutorial_BossPattern.Default__BP_Tutorial_BossPattern_C.PatternData(0).PatternData.PatternDescription
+#: /Game/Boss/Patterns/Tutorial/BP_Tutorial_BossPattern.Default__BP_Tutorial_BossPattern_C.PatternData(0).PatternData.PatternDescription
+msgctxt ",8589CD1946DC0B8481366A82E4D5C0C3"
+msgid "지정된 십자 범위에 { 공격력 }만큼의 피해를 줍니다."
+msgstr "Deals { 공격력 } damage within the designated cross-shaped area."
+
+#. Key:	4C00708B40EB8822660A208AB2D256D5
+#. SourceLocation:	/Game/Boss/Patterns/Tutorial/BP_Tutorial_BossPattern.Default__BP_Tutorial_BossPattern_C.PatternData(1).PatternData.PatternDescription
+#: /Game/Boss/Patterns/Tutorial/BP_Tutorial_BossPattern.Default__BP_Tutorial_BossPattern_C.PatternData(1).PatternData.PatternDescription
+msgctxt ",4C00708B40EB8822660A208AB2D256D5"
+msgid "지정된 정사각형 범위에 { 공격력 }만큼의 피해를 줍니다."
+msgstr "Deals { 공격력 } damage within the designated square area."
+
+#. Key:	A17A1E8143644817789172937CC86786
+#. SourceLocation:	/Game/Boss/Patterns/Tutorial/BP_Tutorial_BossPattern.Default__BP_Tutorial_BossPattern_C.PatternData(2).PatternData.PatternDescription
+#: /Game/Boss/Patterns/Tutorial/BP_Tutorial_BossPattern.Default__BP_Tutorial_BossPattern_C.PatternData(2).PatternData.PatternDescription
+msgctxt ",A17A1E8143644817789172937CC86786"
+msgid "과부화된 튜토리얼 봇이 공격력 만큼 쉴드를 회복합니다."
+msgstr "The overloaded tutorial bot restores Shield equal to its Attack Power."
+
+#. Key:	F91EE93A4ADE3518270C30819ABCA7F2
+#. SourceLocation:	/Game/Player/StartEnd/WBP_StartHud.WBP_StartHud_C:WidgetTree.Text_Exit.Text
+#: /Game/Player/StartEnd/WBP_StartHud.WBP_StartHud_C:WidgetTree.Text_Exit.Text
+msgctxt ",F91EE93A4ADE3518270C30819ABCA7F2"
+msgid "Exit"
+msgstr "Exit"
+
+#. Key:	A8B23C604E6958685B69B49CA2EE9BBD
+#. SourceLocation:	/Game/Player/StartEnd/WBP_StartHud.WBP_StartHud_C:WidgetTree.Text_GameStart.Text
+#: /Game/Player/StartEnd/WBP_StartHud.WBP_StartHud_C:WidgetTree.Text_GameStart.Text
+msgctxt ",A8B23C604E6958685B69B49CA2EE9BBD"
+msgid "Game Start"
+msgstr "Start Game"
+
+#. Key:	404DD5814C02699DCD306BAA3E693C5C
+#. SourceLocation:	/Game/Player/StartEnd/WBP_StartHud.WBP_StartHud_C:WidgetTree.Text_Tutorial.Text
+#: /Game/Player/StartEnd/WBP_StartHud.WBP_StartHud_C:WidgetTree.Text_Tutorial.Text
+msgctxt ",404DD5814C02699DCD306BAA3E693C5C"
+msgid "Tutorial"
+msgstr "Tutorial"
+
+#. Key:	9DEBDE844C2A9AC0E9DDB28FB6843798
+#. SourceLocation:	/Game/Player/StartEnd/WBP_StartMenu.WBP_StartMenu_C:WidgetTree.Text_Exit.Text
+#: /Game/Player/StartEnd/WBP_StartMenu.WBP_StartMenu_C:WidgetTree.Text_Exit.Text
+msgctxt ",9DEBDE844C2A9AC0E9DDB28FB6843798"
+msgid "Exit"
+msgstr "Exit"
+
+#. Key:	095158CB43E663183F22A7A43DDFCD66
+#. SourceLocation:	/Game/Player/StartEnd/WBP_StartMenu.WBP_StartMenu_C:WidgetTree.Text_Exit_1.Text
+#: /Game/Player/StartEnd/WBP_StartMenu.WBP_StartMenu_C:WidgetTree.Text_Exit_1.Text
+msgctxt ",095158CB43E663183F22A7A43DDFCD66"
+msgid "Setting"
+msgstr "Settings"
+
+#. Key:	E6B2563B4767E01FA9AF31AF85DF2ECD
+#. SourceLocation:	/Game/Player/StartEnd/WBP_StartMenu.WBP_StartMenu_C:WidgetTree.Text_Exit_2.Text
+#: /Game/Player/StartEnd/WBP_StartMenu.WBP_StartMenu_C:WidgetTree.Text_Exit_2.Text
+msgctxt ",E6B2563B4767E01FA9AF31AF85DF2ECD"
+msgid "Load Game"
+msgstr "Load Game"
+
+#. Key:	6F25C7EF483124C7129CD191EAA086D5
+#. SourceLocation:	/Game/Player/StartEnd/WBP_StartMenu.WBP_StartMenu_C:WidgetTree.Text_Tutorial.Text
+#: /Game/Player/StartEnd/WBP_StartMenu.WBP_StartMenu_C:WidgetTree.Text_Tutorial.Text
+msgctxt ",6F25C7EF483124C7129CD191EAA086D5"
+msgid "Tutorial"
+msgstr "Tutorial"
+
+#. Key:	38E68A6447A34C3BAE1233B174BEDD04
+#. SourceLocation:	/Game/Player/StartEnd/WBP_StartMenu.WBP_StartMenu_C:WidgetTree.TextBlock_76.Text
+#: /Game/Player/StartEnd/WBP_StartMenu.WBP_StartMenu_C:WidgetTree.TextBlock_76.Text
+msgctxt ",38E68A6447A34C3BAE1233B174BEDD04"
+msgid "Start Game"
+msgstr "Start Game"
+
+#. Key:	7CFB3625460BAC8874FAF5BB3E2183FF
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.ConditonalPatternDamage.Text
+#: /Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.ConditonalPatternDamage.Text
+msgctxt ",7CFB3625460BAC8874FAF5BB3E2183FF"
+msgid "500"
+msgstr "500"
+
+#. Key:	E291FAF6472CC8502211649F91A33051
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.PatternDamage.Text
+#: /Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.PatternDamage.Text
+msgctxt ",E291FAF6472CC8502211649F91A33051"
+msgid "100"
+msgstr "100"
+
+#. Key:	3C3B8EFC4A1908ED06A90082DD5835CB
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.PatternName.Text
+#: /Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.PatternName.Text
+msgctxt ",3C3B8EFC4A1908ED06A90082DD5835CB"
+msgid "패턴 이름"
+msgstr "Pattern Name"
+
+#. Key:	E8B5A22647AF89613D239188214693D8
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.PatternTypeText.Text
+#: /Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.PatternTypeText.Text
+msgctxt ",E8B5A22647AF89613D239188214693D8"
+msgid "패턴"
+msgstr "Pattern"
+
+#. Key:	C29C23A347EBF04A474038B8CE39238C
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.TextBlock_138.Text
+#: /Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.TextBlock_138.Text
+msgctxt ",C29C23A347EBF04A474038B8CE39238C"
+msgid "●"
+msgstr "●"
+
+#. Key:	6B318F2E4B662380C67C54837F46156C
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.TextBlock_320.Text
+#: /Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.TextBlock_320.Text
+msgctxt ",6B318F2E4B662380C67C54837F46156C"
+msgid "데미지"
+msgstr "Damage"
+
+#. Key:	BBB7E088476776E57E76FB8994641873
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.TextBlock_89.Text
+#: /Game/UI/BattleUIs/HUD/Left/WBP_BattleBossPatternHUDWidget.WBP_BattleBossPatternHUDWidget_C:WidgetTree.TextBlock_89.Text
+msgctxt ",BBB7E088476776E57E76FB8994641873"
+msgid "패턴 정보"
+msgstr "Pattern Details"
+
+#. Key:	2E66120E4DA7BD876CA8298479ADAF4D
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Left/WBP_BattlePhaseAndTurnDisplayUI.WBP_BattlePhaseAndTurnDisplayUI_C:WidgetTree.PhaseRichTextBlock.Text
+#: /Game/UI/BattleUIs/HUD/Left/WBP_BattlePhaseAndTurnDisplayUI.WBP_BattlePhaseAndTurnDisplayUI_C:WidgetTree.PhaseRichTextBlock.Text
+msgctxt ",2E66120E4DA7BD876CA8298479ADAF4D"
+msgid "CoinBehavior"
+msgstr "Coin Action"
+
+#. Key:	F31F65EE4D9EE3D0D49F83AAA1511D82
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Left/WBP_BattlePhaseAndTurnDisplayUI.WBP_BattlePhaseAndTurnDisplayUI_C:WidgetTree.TextBlock.Text
+#: /Game/UI/BattleUIs/HUD/Left/WBP_BattlePhaseAndTurnDisplayUI.WBP_BattlePhaseAndTurnDisplayUI_C:WidgetTree.TextBlock.Text
+msgctxt ",F31F65EE4D9EE3D0D49F83AAA1511D82"
+msgid "Phase"
+msgstr "Phase"
+
+#. Key:	913006C84A4182AB331E53B37E0B2BAF
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Left/WBP_BattlePhaseAndTurnDisplayUI.WBP_BattlePhaseAndTurnDisplayUI_C:WidgetTree.TextBlock_1.Text
+#: /Game/UI/BattleUIs/HUD/Left/WBP_BattlePhaseAndTurnDisplayUI.WBP_BattlePhaseAndTurnDisplayUI_C:WidgetTree.TextBlock_1.Text
+msgctxt ",913006C84A4182AB331E53B37E0B2BAF"
+msgid "Turn"
+msgstr "Turn"
+
+#. Key:	869DE7634D542ABED35A4FAF1B255EC7
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Left/WBP_BattlePhaseAndTurnDisplayUI.WBP_BattlePhaseAndTurnDisplayUI_C:WidgetTree.TurnCountTextBlock.Text
+#: /Game/UI/BattleUIs/HUD/Left/WBP_BattlePhaseAndTurnDisplayUI.WBP_BattlePhaseAndTurnDisplayUI_C:WidgetTree.TurnCountTextBlock.Text
+msgctxt ",869DE7634D542ABED35A4FAF1B255EC7"
+msgid "100"
+msgstr "100"
+
+#. Key:	79DACCD34E4D00C95CDD3B896F820C48
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleBuffIconWidget.WBP_BattleBuffIconWidget_C:WidgetTree.RemainingTurnsText.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleBuffIconWidget.WBP_BattleBuffIconWidget_C:WidgetTree.RemainingTurnsText.Text
+msgctxt ",79DACCD34E4D00C95CDD3B896F820C48"
+msgid "2"
+msgstr "2"
+
+#. Key:	052D53EE4E3C63035CA5509434ECE404
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleBuffIconWidget.WBP_BattleBuffIconWidget_C:WidgetTree.TextBlock.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleBuffIconWidget.WBP_BattleBuffIconWidget_C:WidgetTree.TextBlock.Text
+msgctxt ",052D53EE4E3C63035CA5509434ECE404"
+msgid "x"
+msgstr "x"
+
+#. Key:	AC12095C4ABB6A6E507E4A8E0B74CA26
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.AttackPointText.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.AttackPointText.Text
+msgctxt ",AC12095C4ABB6A6E507E4A8E0B74CA26"
+msgid "100"
+msgstr "100"
+
+#. Key:	10EC574341802E85C33137A00F4AB5AB
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.CoinCurrentHPText.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.CoinCurrentHPText.Text
+msgctxt ",10EC574341802E85C33137A00F4AB5AB"
+msgid "100"
+msgstr "100"
+
+#. Key:	F064759B404E9C688CF49F85B8E77A3B
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.devider.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.devider.Text
+msgctxt ",F064759B404E9C688CF49F85B8E77A3B"
+msgid "/"
+msgstr "/"
+
+#. Key:	63568AAC45284BEE38C8D1A8B997B616
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.DisplayedFaceText.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.DisplayedFaceText.Text
+msgctxt ",63568AAC45284BEE38C8D1A8B997B616"
+msgid "앞면"
+msgstr "Front"
+
+#. Key:	E1E9D7544ABDFE4F5D5ECA9A107E8E1F
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.TextBlock.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.TextBlock.Text
+msgctxt ",E1E9D7544ABDFE4F5D5ECA9A107E8E1F"
+msgid "무기력"
+msgstr "Weapon Power"
+
+#. Key:	536ACB404669EF928F4C2B87AD2CD8D0
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.TextBlock_1.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.TextBlock_1.Text
+msgctxt ",536ACB404669EF928F4C2B87AD2CD8D0"
+msgid "디버프"
+msgstr "Debuffs"
+
+#. Key:	588EB7F4489D2C6066FF8BB9B7ADE539
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.TextBlock_182.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.TextBlock_182.Text
+msgctxt ",588EB7F4489D2C6066FF8BB9B7ADE539"
+msgid "공격력"
+msgstr "Attack Power"
+
+#. Key:	F97302E3470D3D15C4E29492714A0570
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.TextBlock_2.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.TextBlock_2.Text
+msgctxt ",F97302E3470D3D15C4E29492714A0570"
+msgid "횟 수"
+msgstr "Count"
+
+#. Key:	64825B4F4888A457AD8355A9008F94D3
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.TextBlock_210.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.TextBlock_210.Text
+msgctxt ",64825B4F4888A457AD8355A9008F94D3"
+msgid "버프"
+msgstr "Buffs"
+
+#. Key:	TextBlockDefaultValue
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.WeaponNameText.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleCoinInfoUI.WBP_BattleCoinInfoUI_C:WidgetTree.WeaponNameText.Text
+msgctxt "UMG,TextBlockDefaultValue"
+msgid "Text Block"
+msgstr "Text Block"
+
+#. Key:	ED23C7DB4154E7E0AFCF00BDC2CA2194
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleReadyCoinWidget.WBP_BattleReadyCoinWidget_C:WidgetTree.ReadyAreaTitleText.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleReadyCoinWidget.WBP_BattleReadyCoinWidget_C:WidgetTree.ReadyAreaTitleText.Text
+msgctxt ",ED23C7DB4154E7E0AFCF00BDC2CA2194"
+msgid "준비된 코인"
+msgstr "Ready Coins"
+
+#. Key:	E7EA70F945332F824D81D1AF4054B7F2
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleReadyCoinWidget.WBP_BattleReadyCoinWidget_C:WidgetTree.ReadyCoinCountText.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleReadyCoinWidget.WBP_BattleReadyCoinWidget_C:WidgetTree.ReadyCoinCountText.Text
+msgctxt ",E7EA70F945332F824D81D1AF4054B7F2"
+msgid "10"
+msgstr "10"
+
+#. Key:	ABC9427A4038B4F49AE45AB1DE5AAC21
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleReadyCoinWidget.WBP_BattleReadyCoinWidget_C:WidgetTree.TextBlock.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleReadyCoinWidget.WBP_BattleReadyCoinWidget_C:WidgetTree.TextBlock.Text
+msgctxt ",ABC9427A4038B4F49AE45AB1DE5AAC21"
+msgid "/"
+msgstr "/"
+
+#. Key:	D118959D4CC29BDAE45233BB34063F03
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_BattleReadyCoinWidget.WBP_BattleReadyCoinWidget_C:WidgetTree.TotalCoinCountText.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_BattleReadyCoinWidget.WBP_BattleReadyCoinWidget_C:WidgetTree.TotalCoinCountText.Text
+msgctxt ",D118959D4CC29BDAE45233BB34063F03"
+msgid "10"
+msgstr "10"
+
+#. Key:	7EBE11B24E3A3FF3FF2E80AFD1F43C00
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Middle/WBP_ReadyCoinSlot.WBP_ReadyCoinSlot_C:WidgetTree.HPText.Text
+#: /Game/UI/BattleUIs/HUD/Middle/WBP_ReadyCoinSlot.WBP_ReadyCoinSlot_C:WidgetTree.HPText.Text
+msgctxt ",7EBE11B24E3A3FF3FF2E80AFD1F43C00"
+msgid "20"
+msgstr "20"
+
+#. Key:	DE1856C442F227C911D958B72EB5DB14
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/BP_CardGoldAppliedInfo.BP_CardGoldAppliedInfo_C:WidgetTree.title.Text
+#: /Game/UI/BattleUIs/HUD/Popup/BP_CardGoldAppliedInfo.BP_CardGoldAppliedInfo_C:WidgetTree.title.Text
+msgctxt ",DE1856C442F227C911D958B72EB5DB14"
+msgid "적용된 효과"
+msgstr "Applied Effects"
+
+#. Key:	14B30EAF4E7423CD9167BBBEFF1C5568
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark.WBP_CoinDesBookMark_C:WidgetTree.AdditionalKeywordText1.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark.WBP_CoinDesBookMark_C:WidgetTree.AdditionalKeywordText1.Text
+msgctxt ",14B30EAF4E7423CD9167BBBEFF1C5568"
+msgid "세글자"
+msgstr "Sample"
+
+#. Key:	7F3660004DA21BF9D6BCCB854FB8F7AA
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark.WBP_CoinDesBookMark_C:WidgetTree.AdditionalKeywordText2.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark.WBP_CoinDesBookMark_C:WidgetTree.AdditionalKeywordText2.Text
+msgctxt ",7F3660004DA21BF9D6BCCB854FB8F7AA"
+msgid "세글자"
+msgstr "Sample"
+
+#. Key:	F0B546B04EFFEC89CFDFFFB53901639F
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark.WBP_CoinDesBookMark_C:WidgetTree.AdditionalKeywordText3.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark.WBP_CoinDesBookMark_C:WidgetTree.AdditionalKeywordText3.Text
+msgctxt ",F0B546B04EFFEC89CFDFFFB53901639F"
+msgid "세글자"
+msgstr "Sample"
+
+#. Key:	09296C6A4E1B95306A8A9B895E086702
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark.WBP_CoinDesBookMark_C:WidgetTree.AdditionalKeywordText4.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark.WBP_CoinDesBookMark_C:WidgetTree.AdditionalKeywordText4.Text
+msgctxt ",09296C6A4E1B95306A8A9B895E086702"
+msgid "세글자"
+msgstr "Sample"
+
+#. Key:	023EE73147F55A592E8B909F8248FA8D
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark.WBP_CoinDesBookMark_C:WidgetTree.MainKeyWordText.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark.WBP_CoinDesBookMark_C:WidgetTree.MainKeyWordText.Text
+msgctxt ",023EE73147F55A592E8B909F8248FA8D"
+msgid "공격"
+msgstr "Attack"
+
+#. Key:	953E7DA748A6D38F9BAA3E84DF5D3E79
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark_BattleCoin.WBP_CoinDesBookMark_BattleCoin_C:WidgetTree.AdditionalKeywordText1.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark_BattleCoin.WBP_CoinDesBookMark_BattleCoin_C:WidgetTree.AdditionalKeywordText1.Text
+msgctxt ",953E7DA748A6D38F9BAA3E84DF5D3E79"
+msgid "세글자"
+msgstr "Sample"
+
+#. Key:	7D07085048E60BD414D9DCA7B27659E8
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark_BattleCoin.WBP_CoinDesBookMark_BattleCoin_C:WidgetTree.AdditionalKeywordText2.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark_BattleCoin.WBP_CoinDesBookMark_BattleCoin_C:WidgetTree.AdditionalKeywordText2.Text
+msgctxt ",7D07085048E60BD414D9DCA7B27659E8"
+msgid "세글자"
+msgstr "Sample"
+
+#. Key:	B5912528406B870F517A39B8C353726E
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark_BattleCoin.WBP_CoinDesBookMark_BattleCoin_C:WidgetTree.AdditionalKeywordText3.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark_BattleCoin.WBP_CoinDesBookMark_BattleCoin_C:WidgetTree.AdditionalKeywordText3.Text
+msgctxt ",B5912528406B870F517A39B8C353726E"
+msgid "세글자"
+msgstr "Sample"
+
+#. Key:	7EA8FF044A6099CFD3905386803F01B9
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark_BattleCoin.WBP_CoinDesBookMark_BattleCoin_C:WidgetTree.AdditionalKeywordText4.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark_BattleCoin.WBP_CoinDesBookMark_BattleCoin_C:WidgetTree.AdditionalKeywordText4.Text
+msgctxt ",7EA8FF044A6099CFD3905386803F01B9"
+msgid "세글자"
+msgstr "Sample"
+
+#. Key:	CD2547D4429778D33AAAF8840E3ED070
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark_BattleCoin.WBP_CoinDesBookMark_BattleCoin_C:WidgetTree.MainKeyWordText.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_CoinDesBookMark_BattleCoin.WBP_CoinDesBookMark_BattleCoin_C:WidgetTree.MainKeyWordText.Text
+msgctxt ",CD2547D4429778D33AAAF8840E3ED070"
+msgid "공격"
+msgstr "Attack"
+
+#. Key:	2ACF77FE4CB7C0BAC504C68940F40ABD
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_ShopCoinDesBookMark.WBP_ShopCoinDesBookMark_C:WidgetTree.AdditionalKeywordText1.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_ShopCoinDesBookMark.WBP_ShopCoinDesBookMark_C:WidgetTree.AdditionalKeywordText1.Text
+msgctxt ",2ACF77FE4CB7C0BAC504C68940F40ABD"
+msgid "세글자"
+msgstr "Sample"
+
+#. Key:	B97A138743DE9B29A4BB4C946823EC40
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_ShopCoinDesBookMark.WBP_ShopCoinDesBookMark_C:WidgetTree.AdditionalKeywordText2.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_ShopCoinDesBookMark.WBP_ShopCoinDesBookMark_C:WidgetTree.AdditionalKeywordText2.Text
+msgctxt ",B97A138743DE9B29A4BB4C946823EC40"
+msgid "세글자"
+msgstr "Sample"
+
+#. Key:	7D437F85463F6E46A91BE79010403C9F
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_ShopCoinDesBookMark.WBP_ShopCoinDesBookMark_C:WidgetTree.AdditionalKeywordText3.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_ShopCoinDesBookMark.WBP_ShopCoinDesBookMark_C:WidgetTree.AdditionalKeywordText3.Text
+msgctxt ",7D437F85463F6E46A91BE79010403C9F"
+msgid "세글자"
+msgstr "Sample"
+
+#. Key:	DD717EE1466F397D7355CCB97CDEC21F
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_ShopCoinDesBookMark.WBP_ShopCoinDesBookMark_C:WidgetTree.AdditionalKeywordText4.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_ShopCoinDesBookMark.WBP_ShopCoinDesBookMark_C:WidgetTree.AdditionalKeywordText4.Text
+msgctxt ",DD717EE1466F397D7355CCB97CDEC21F"
+msgid "세글자"
+msgstr "Sample"
+
+#. Key:	2BFED5E7441997589B94F08B7B75CFC9
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_ShopCoinDesBookMark.WBP_ShopCoinDesBookMark_C:WidgetTree.MainKeyWordText.Text
+#: /Game/UI/BattleUIs/HUD/Popup/CoinExplain/WBP_ShopCoinDesBookMark.WBP_ShopCoinDesBookMark_C:WidgetTree.MainKeyWordText.Text
+msgctxt ",2BFED5E7441997589B94F08B7B75CFC9"
+msgid "공격"
+msgstr "Attack"
+
+#. Key:	2D33D6FD470868A6A93863B60E07B758
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_BossPatternPopupWidget.WBP_BossPatternPopupWidget_C:WidgetTree.AttackPointText.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_BossPatternPopupWidget.WBP_BossPatternPopupWidget_C:WidgetTree.AttackPointText.Text
+msgctxt ",2D33D6FD470868A6A93863B60E07B758"
+msgid "1"
+msgstr "1"
+
+#. Key:	0DEC658D48B641D5447A68B6D0DFA4A1
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_BossPatternPopupWidget.WBP_BossPatternPopupWidget_C:WidgetTree.TextBlock.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_BossPatternPopupWidget.WBP_BossPatternPopupWidget_C:WidgetTree.TextBlock.Text
+msgctxt ",0DEC658D48B641D5447A68B6D0DFA4A1"
+msgid "추가 공격력"
+msgstr "Bonus Attack Power"
+
+#. Key:	C53ECA1C489FA6EE926B79AEA7490656
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_BossPatternPopupWidget.WBP_BossPatternPopupWidget_C:WidgetTree.TextBlock_1.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_BossPatternPopupWidget.WBP_BossPatternPopupWidget_C:WidgetTree.TextBlock_1.Text
+msgctxt ",C53ECA1C489FA6EE926B79AEA7490656"
+msgid "공격력"
+msgstr "Attack Power"
+
+#. Key:	A2F815574365C06DDCCE1BB8E13CF307
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_BossPatternPopupWidget.WBP_BossPatternPopupWidget_C:WidgetTree.TextBlock_2.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_BossPatternPopupWidget.WBP_BossPatternPopupWidget_C:WidgetTree.TextBlock_2.Text
+msgctxt ",A2F815574365C06DDCCE1BB8E13CF307"
+msgid "보호막"
+msgstr "Shield"
+
+#. Key:	C108BE2F49F24E5588059AB984E5B841
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CardWidget.WBP_CardWidget_C:WidgetTree.CardTitle.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CardWidget.WBP_CardWidget_C:WidgetTree.CardTitle.Text
+msgctxt ",C108BE2F49F24E5588059AB984E5B841"
+msgid "NameText"
+msgstr "NameText"
+
+#. Key:	76382BF34E7D2CF5EE52D0885D6DB485
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.CoinSlotNumberText.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.CoinSlotNumberText.Text
+msgctxt ",76382BF34E7D2CF5EE52D0885D6DB485"
+msgid "10"
+msgstr "10"
+
+#. Key:	E8047C5D413495B00DBB18956610ACF4
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.FrontAttackPowerText.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.FrontAttackPowerText.Text
+msgctxt ",E8047C5D413495B00DBB18956610ACF4"
+msgid "10"
+msgstr "10"
+
+#. Key:	7C4A918E4DB916FE4596B58528D6C141
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock.Text
+msgctxt ",7C4A918E4DB916FE4596B58528D6C141"
+msgid "무기력"
+msgstr "Weapon Power"
+
+#. Key:	99CC57D24ED49A51C2D0078D543C4E52
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_1.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_1.Text
+msgctxt ",99CC57D24ED49A51C2D0078D543C4E52"
+msgid " 횟수"
+msgstr " Count"
+
+#. Key:	AB612E0E4257FD3664376895374157DC
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_108.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_108.Text
+msgctxt ",AB612E0E4257FD3664376895374157DC"
+msgid "앞면"
+msgstr "Front"
+
+#. Key:	1DFF57324EFAEEB9930BF1B5C3AC1450
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_12.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_12.Text
+msgctxt ",1DFF57324EFAEEB9930BF1B5C3AC1450"
+msgid "공격사거리"
+msgstr "Attack Range"
+
+#. Key:	DFDDC63D4438AFDCB8FEFB8FB08C5D46
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_122.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_122.Text
+msgctxt ",DFDDC63D4438AFDCB8FEFB8FB08C5D46"
+msgid "능력"
+msgstr "Ability"
+
+#. Key:	1151C4E349FB997116800C87913F5BF9
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_155.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_155.Text
+msgctxt ",1151C4E349FB997116800C87913F5BF9"
+msgid "자세히 보려면 클릭 혹은 Shift를 누르세요"
+msgstr "Click or press Shift for details"
+
+#. Key:	02AFC77D4BB709BEDA2DE4A37A504C72
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_182.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_182.Text
+msgctxt ",02AFC77D4BB709BEDA2DE4A37A504C72"
+msgid "공격력"
+msgstr "Attack Power"
+
+#. Key:	37951DE94348EA1C2F1BB79A1DE95F07
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_2.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_2.Text
+msgctxt ",37951DE94348EA1C2F1BB79A1DE95F07"
+msgid "뒷면"
+msgstr "Back"
+
+#. Key:	CB418DC74D883B4057FE13AFE5123106
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_211.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_211.Text
+msgctxt ",CB418DC74D883B4057FE13AFE5123106"
+msgid "능력사거리"
+msgstr "Ability Range"
+
+#. Key:	39A0B45E4135AE8120ED72B0F1B81082
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_6.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_6.Text
+msgctxt ",39A0B45E4135AE8120ED72B0F1B81082"
+msgid "슬롯 "
+msgstr "Slot "
+
+#. Key:	40632A3E408C73976C80B69084A23DB5
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_7.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_7.Text
+msgctxt ",40632A3E408C73976C80B69084A23DB5"
+msgid "HP"
+msgstr "HP"
+
+#. Key:	19E6EF7D433323E74831DF9650724B87
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_8.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_CoinSlotInfo.WBP_CoinSlotInfo_C:WidgetTree.TextBlock_8.Text
+msgctxt ",19E6EF7D433323E74831DF9650724B87"
+msgid "X"
+msgstr "X"
+
+#. Key:	AF197D9C453791E124047E91986DED36
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Popup/WBP_ItemInfo.WBP_ItemInfo_C:WidgetTree.HoveredItemName.Text
+#: /Game/UI/BattleUIs/HUD/Popup/WBP_ItemInfo.WBP_ItemInfo_C:WidgetTree.HoveredItemName.Text
+msgctxt ",AF197D9C453791E124047E91986DED36"
+msgid "아이템 이름 아이템"
+msgstr "Item Name"
+
+#. Key:	CB67D6974C101FAD07BD239714834682
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Right/WBP_BattleCoinSlotWidget.WBP_BattleCoinSlotWidget_C:WidgetTree.CoinCountText.Text
+#: /Game/UI/BattleUIs/HUD/Right/WBP_BattleCoinSlotWidget.WBP_BattleCoinSlotWidget_C:WidgetTree.CoinCountText.Text
+msgctxt ",CB67D6974C101FAD07BD239714834682"
+msgid "30"
+msgstr "30"
+
+#. Key:	87A28C7A4B9ADAF76A8980B033FE4C22
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Right/WBP_BattleCoinSlotWidget.WBP_BattleCoinSlotWidget_C:WidgetTree.HPText.Text
+#: /Game/UI/BattleUIs/HUD/Right/WBP_BattleCoinSlotWidget.WBP_BattleCoinSlotWidget_C:WidgetTree.HPText.Text
+msgctxt ",87A28C7A4B9ADAF76A8980B033FE4C22"
+msgid "20"
+msgstr "20"
+
+#. Key:	462BEF80401FE44C237B03986FCC6996
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Right/WBP_BattleCoinSlotWidget.WBP_BattleCoinSlotWidget_C:WidgetTree.SlotNumberText.Text
+#: /Game/UI/BattleUIs/HUD/Right/WBP_BattleCoinSlotWidget.WBP_BattleCoinSlotWidget_C:WidgetTree.SlotNumberText.Text
+msgctxt ",462BEF80401FE44C237B03986FCC6996"
+msgid "20"
+msgstr "20"
+
+#. Key:	5BECD7EC46EF45E95EBE9EAE775F32EC
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Right/WBP_BattleCoinSlotWidget.WBP_BattleCoinSlotWidget_C:WidgetTree.TextBlock_88.Text
+#: /Game/UI/BattleUIs/HUD/Right/WBP_BattleCoinSlotWidget.WBP_BattleCoinSlotWidget_C:WidgetTree.TextBlock_88.Text
+msgctxt ",5BECD7EC46EF45E95EBE9EAE775F32EC"
+msgid "x"
+msgstr "x"
+
+#. Key:	FECBB2554062860B894BDB8599DB0BD4
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Right/WBP_BattleItemSlotWidget.WBP_BattleItemSlotWidget_C:WidgetTree.ItemCountText.Text
+#: /Game/UI/BattleUIs/HUD/Right/WBP_BattleItemSlotWidget.WBP_BattleItemSlotWidget_C:WidgetTree.ItemCountText.Text
+msgctxt ",FECBB2554062860B894BDB8599DB0BD4"
+msgid "30"
+msgstr "30"
+
+#. Key:	A794F4384616096505A596962B634059
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/Right/WBP_BattleItemSlotWidget.WBP_BattleItemSlotWidget_C:WidgetTree.TextBlock_304.Text
+#: /Game/UI/BattleUIs/HUD/Right/WBP_BattleItemSlotWidget.WBP_BattleItemSlotWidget_C:WidgetTree.TextBlock_304.Text
+msgctxt ",A794F4384616096505A596962B634059"
+msgid "x"
+msgstr "x"
+
+#. Key:	2EDCD8584F73582B7D3F30A055C0F2E9
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/WBP_BattlePlayerHUD_Default.WBP_BattlePlayerHUD_Default_C:WidgetTree.TextBlock_221.Text
+#: /Game/UI/BattleUIs/HUD/WBP_BattlePlayerHUD_Default.WBP_BattlePlayerHUD_Default_C:WidgetTree.TextBlock_221.Text
+msgctxt ",2EDCD8584F73582B7D3F30A055C0F2E9"
+msgid "아이템"
+msgstr "Items"
+
+#. Key:	050FCED24EAAEC839EADCCAB4CE225D3
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/WBP_BattlePlayerHUD_Default.WBP_BattlePlayerHUD_Default_C:WidgetTree.TextBlock_376.Text
+#: /Game/UI/BattleUIs/HUD/WBP_BattlePlayerHUD_Default.WBP_BattlePlayerHUD_Default_C:WidgetTree.TextBlock_376.Text
+msgctxt ",050FCED24EAAEC839EADCCAB4CE225D3"
+msgid "코인 슬롯"
+msgstr "Coin Slots"
+
+#. Key:	D875D88744C60EC34BC2D4BB34DA7830
+#. SourceLocation:	/Game/UI/BattleUIs/HUD/WBP_BattlePlayerHUD_Default.WBP_BattlePlayerHUD_Default_C:WidgetTree.TextBlock_84.Text
+#: /Game/UI/BattleUIs/HUD/WBP_BattlePlayerHUD_Default.WBP_BattlePlayerHUD_Default_C:WidgetTree.TextBlock_84.Text
+msgctxt ",D875D88744C60EC34BC2D4BB34DA7830"
+msgid "카드"
+msgstr "Cards"
+
+#. Key:	1F654C7F4CD6D93AD80A329C9C4F47DA
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.CurrentMoneyText.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.CurrentMoneyText.Text
+msgctxt ",1F654C7F4CD6D93AD80A329C9C4F47DA"
+msgid "1250"
+msgstr "1250"
+
+#. Key:	0BF2FAB64896F90D2407ED9A5C0B7529
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.RefundCoinCountText.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.RefundCoinCountText.Text
+msgctxt ",0BF2FAB64896F90D2407ED9A5C0B7529"
+msgid "415"
+msgstr "415"
+
+#. Key:	7834950843835A081D10DAA469D1F644
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.RefundCoinMoneyText.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.RefundCoinMoneyText.Text
+msgctxt ",7834950843835A081D10DAA469D1F644"
+msgid "4567"
+msgstr "4567"
+
+#. Key:	71B5D94A47E2D0AFE402AAA9CE068F25
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.RefundTotalMoneyText.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.RefundTotalMoneyText.Text
+msgctxt ",71B5D94A47E2D0AFE402AAA9CE068F25"
+msgid "3880"
+msgstr "3880"
+
+#. Key:	ED0E614746FD83B91FE6A985C28B15CA
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.StageRewardMoneyText.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.StageRewardMoneyText.Text
+msgctxt ",ED0E614746FD83B91FE6A985C28B15CA"
+msgid "2560"
+msgstr "2560"
+
+#. Key:	2AF646424AA38DC4C2FDF28E346C8B91
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock.Text
+msgctxt ",2AF646424AA38DC4C2FDF28E346C8B91"
+msgid "click to continue"
+msgstr "Click to continue"
+
+#. Key:	93B318B941E33AE23BA076BC7CFE39CA
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_10.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_10.Text
+msgctxt ",93B318B941E33AE23BA076BC7CFE39CA"
+msgid "남은 아이템"
+msgstr "Remaining Items"
+
+#. Key:	2779A07F49DF50984DE79B96FBA1C8BA
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_1051.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_1051.Text
+msgctxt ",2779A07F49DF50984DE79B96FBA1C8BA"
+msgid "코인 정산"
+msgstr "Coin Settlement"
+
+#. Key:	97EC8D5E44A343AAA18199AA5F29AFDC
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_11.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_11.Text
+msgctxt ",97EC8D5E44A343AAA18199AA5F29AFDC"
+msgid "정산 가격"
+msgstr "Settlement Value"
+
+#. Key:	CA8C45F44AD7565C546F1999CAB3DB88
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_1441.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_1441.Text
+msgctxt ",CA8C45F44AD7565C546F1999CAB3DB88"
+msgid "남은 코인"
+msgstr "Remaining Coins"
+
+#. Key:	F794EC9A43D4CD5D622D28BAC9FCFB8D
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_1664.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_1664.Text
+msgctxt ",F794EC9A43D4CD5D622D28BAC9FCFB8D"
+msgid "정산 가격"
+msgstr "Settlement Value"
+
+#. Key:	60B2C8B34FD74D49442126B3C06DC675
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_3.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_3.Text
+msgctxt ",60B2C8B34FD74D49442126B3C06DC675"
+msgid "다음 상점에서 쓸 수 있는 금액"
+msgstr "Gold Available at the Next Shop"
+
+#. Key:	AC57001146C9EA5281597880D6C9D1FF
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_4.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_4.Text
+msgctxt ",AC57001146C9EA5281597880D6C9D1FF"
+msgid "아이템 정산"
+msgstr "Item Settlement"
+
+#. Key:	7581210F4AB89E801374B69EFCEDE9B0
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_402.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_402.Text
+msgctxt ",7581210F4AB89E801374B69EFCEDE9B0"
+msgid "You Failed"
+msgstr "You Failed"
+
+#. Key:	2C48AD37415C8F136FF80898D8430A1F
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_416.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_416.Text
+msgctxt ",2C48AD37415C8F136FF80898D8430A1F"
+msgid "코인은 양면 무기의 절반 가격으로 정산되며, 아이템콰 카드는 상점 가격의 절반 가격으로 정산됩니다."
+msgstr "Coins are exchanged for half the combined price of their two weapons. Items and cards are exchanged for half their shop price."
+
+#. Key:	C2427EA74C72CCB941929A92AAAB99E5
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_496.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_496.Text
+msgctxt ",C2427EA74C72CCB941929A92AAAB99E5"
+msgid "보스 클리어 금액"
+msgstr "Boss Clear Reward"
+
+#. Key:	2CCAAC6A49FAE91BBF9A3A8777837A2D
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_5.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_5.Text
+msgctxt ",2CCAAC6A49FAE91BBF9A3A8777837A2D"
+msgid "보스 클리어"
+msgstr "Boss Cleared"
+
+#. Key:	EDA5EFFA44BE37C66096B7BA9BD288C8
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_6.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_6.Text
+msgctxt ",EDA5EFFA44BE37C66096B7BA9BD288C8"
+msgid "Game Cleaerd!"
+msgstr "Game Cleared!"
+
+#. Key:	7D61A0864ABF1762EBB82C8E849ACA36
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_7.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_7.Text
+msgctxt ",7D61A0864ABF1762EBB82C8E849ACA36"
+msgid "click to continue"
+msgstr "Click to continue"
+
+#. Key:	429B20654E914772C7E6B1A56F21597F
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_797.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_797.Text
+msgctxt ",429B20654E914772C7E6B1A56F21597F"
+msgid "Stage Cleared!"
+msgstr "Stage Cleared!"
+
+#. Key:	F130C5DA4E5B2D862EE0A380E30DCBB0
+#. SourceLocation:	/Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_821.Text
+#: /Game/UI/BattleUIs/WBP_StageEnd.WBP_StageEnd_C:WidgetTree.TextBlock_821.Text
+msgctxt ",F130C5DA4E5B2D862EE0A380E30DCBB0"
+msgid "전체 정산 금액"
+msgstr "Total Settlement"
+
+#. Key:	7F09A7A94A0598EF1C5EAFA941E0CEAF
+#. SourceLocation:	/Game/UI/BossUI/WBP_BossHP.WBP_BossHP_C:WidgetTree.HpText.Text
+#: /Game/UI/BossUI/WBP_BossHP.WBP_BossHP_C:WidgetTree.HpText.Text
+msgctxt ",7F09A7A94A0598EF1C5EAFA941E0CEAF"
+msgid "100"
+msgstr "100"
+
+#. Key:	66857FD846B6D95D38F7C18B9CAEEC24
+#. SourceLocation:	/Game/UI/BossUI/WBP_BossHP.WBP_BossHP_C:WidgetTree.HpTotalText.Text
+#: /Game/UI/BossUI/WBP_BossHP.WBP_BossHP_C:WidgetTree.HpTotalText.Text
+msgctxt ",66857FD846B6D95D38F7C18B9CAEEC24"
+msgid "/100"
+msgstr "/100"
+
+#. Key:	0C28975840943C87AC1519B73C674AAC
+#. SourceLocation:	/Game/UI/BossUI/WBP_BossHP.WBP_BossHP_C:WidgetTree.ShieldText.Text
+#: /Game/UI/BossUI/WBP_BossHP.WBP_BossHP_C:WidgetTree.ShieldText.Text
+msgctxt ",0C28975840943C87AC1519B73C674AAC"
+msgid "100"
+msgstr "100"
+
+#. Key:	22AF4BC64A75E55748DC4692755D7396
+#. SourceLocation:	/Game/UI/BossUI/WBP_BossHP.WBP_BossHP_C:WidgetTree.ShieldTotalText.Text
+#: /Game/UI/BossUI/WBP_BossHP.WBP_BossHP_C:WidgetTree.ShieldTotalText.Text
+msgctxt ",22AF4BC64A75E55748DC4692755D7396"
+msgid "/100"
+msgstr "/100"
+
+#. Key:	97C5BA994760C68A5C81249B729C06A1
+#. SourceLocation:	/Game/UI/CoinUI/WBP_CoinHPWidget_BarVer.WBP_CoinHPWidget_BarVer_C:WidgetTree.CoinCurrentHPText.Text
+#: /Game/UI/CoinUI/WBP_CoinHPWidget_BarVer.WBP_CoinHPWidget_BarVer_C:WidgetTree.CoinCurrentHPText.Text
+msgctxt ",97C5BA994760C68A5C81249B729C06A1"
+msgid "100"
+msgstr "100"
+
+#. Key:	11A0A99742B9734CFD5E1CBD5136BA05
+#. SourceLocation:	/Game/UI/CoinUI/WBP_CoinHPWidget_BarVer.WBP_CoinHPWidget_BarVer_C:WidgetTree.CoinMaxHPText.Text
+#: /Game/UI/CoinUI/WBP_CoinHPWidget_BarVer.WBP_CoinHPWidget_BarVer_C:WidgetTree.CoinMaxHPText.Text
+msgctxt ",11A0A99742B9734CFD5E1CBD5136BA05"
+msgid "100"
+msgstr "100"
+
+#. Key:	10364B6E491AFCD343979C92D70BA5B5
+#. SourceLocation:	/Game/UI/CoinUI/WBP_CoinHPWidget_BarVer.WBP_CoinHPWidget_BarVer_C:WidgetTree.ShieldText.Text
+#: /Game/UI/CoinUI/WBP_CoinHPWidget_BarVer.WBP_CoinHPWidget_BarVer_C:WidgetTree.ShieldText.Text
+msgctxt ",10364B6E491AFCD343979C92D70BA5B5"
+msgid "100"
+msgstr "100"
+
+#. Key:	F021259E4F6A2FE262E53E9B981244CB
+#. SourceLocation:	/Game/UI/CoinUI/WBP_CoinHPWidget_BarVer.WBP_CoinHPWidget_BarVer_C:WidgetTree.TextBlock_306.Text
+#: /Game/UI/CoinUI/WBP_CoinHPWidget_BarVer.WBP_CoinHPWidget_BarVer_C:WidgetTree.TextBlock_306.Text
+msgctxt ",F021259E4F6A2FE262E53E9B981244CB"
+msgid "/"
+msgstr "/"
+
+#. Key:	17E3B0E84A24BD3E1F373FA6333DBA00
+#. SourceLocation:	/Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock.Text
+#: /Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock.Text
+msgctxt ",17E3B0E84A24BD3E1F373FA6333DBA00"
+msgid "게임을 종료하시겠습니까?"
+msgstr "Quit the game?"
+
+#. Key:	272F5F664E15F35932704FA9B2024F26
+#. SourceLocation:	/Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_1.Text
+#: /Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_1.Text
+msgctxt ",272F5F664E15F35932704FA9B2024F26"
+msgid "설정"
+msgstr "Settings"
+
+#. Key:	08BF068C4066549213E7768BAE6F19D5
+#. SourceLocation:	/Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_10.Text
+#: /Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_10.Text
+msgctxt ",08BF068C4066549213E7768BAE6F19D5"
+msgid "(전투중이 아닌 상점에서 시작하게 됩니다.)"
+msgstr "(You will resume at the shop, outside of combat.)"
+
+#. Key:	AAD82477418D48F775FD8B84E8EA9B48
+#. SourceLocation:	/Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_2.Text
+#: /Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_2.Text
+msgctxt ",AAD82477418D48F775FD8B84E8EA9B48"
+msgid "시작화면으로"
+msgstr "Main Menu"
+
+#. Key:	C36DDC3A45ABE87CEF2F1FB0189626F8
+#. SourceLocation:	/Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_3.Text
+#: /Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_3.Text
+msgctxt ",C36DDC3A45ABE87CEF2F1FB0189626F8"
+msgid "게임종료"
+msgstr "Quit Game"
+
+#. Key:	60ADD78C41D0B064ADD770B796EEADE2
+#. SourceLocation:	/Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_4.Text
+#: /Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_4.Text
+msgctxt ",60ADD78C41D0B064ADD770B796EEADE2"
+msgid "취소"
+msgstr "Cancel"
+
+#. Key:	853A49F4443C23498941A1BA751ABA30
+#. SourceLocation:	/Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_5.Text
+#: /Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_5.Text
+msgctxt ",853A49F4443C23498941A1BA751ABA30"
+msgid "종료"
+msgstr "Quit"
+
+#. Key:	39C77A724283F4CBAFF903A48F79EE67
+#. SourceLocation:	/Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_6.Text
+#: /Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_6.Text
+msgctxt ",39C77A724283F4CBAFF903A48F79EE67"
+msgid "시작화면으로 이동하시겠습니까?"
+msgstr "Return to the main menu?"
+
+#. Key:	260254DD4AB4EC6DF702178DAB860545
+#. SourceLocation:	/Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_8.Text
+#: /Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_8.Text
+msgctxt ",260254DD4AB4EC6DF702178DAB860545"
+msgid "시작화면으로"
+msgstr "Main Menu"
+
+#. Key:	6603F6D948650CA6CE08069C531321C1
+#. SourceLocation:	/Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_87.Text
+#: /Game/UI/SettingUI/WBP_ESCWidget.WBP_ESCWidget_C:WidgetTree.TextBlock_87.Text
+msgctxt ",6603F6D948650CA6CE08069C531321C1"
+msgid "계속하기"
+msgstr "Continue"
+
+#. Key:	35A2262B405C67281A0AE4A3766FE46F
+#. SourceLocation:	/Game/UI/SettingUI/WBP_SettingGame.WBP_SettingGame_C:WidgetTree.TextBlock_64.Text
+#: /Game/UI/SettingUI/WBP_SettingGame.WBP_SettingGame_C:WidgetTree.TextBlock_64.Text
+msgctxt ",35A2262B405C67281A0AE4A3766FE46F"
+msgid "언어"
+msgstr "Language"
+
+#. Key:	623F8DE048036427C07C6EBD09EA73A7
+#. SourceLocation:	/Game/UI/SettingUI/WBP_SettingGraphic.WBP_SettingGraphic_C:WidgetTree.Resolution.Text
+#: /Game/UI/SettingUI/WBP_SettingGraphic.WBP_SettingGraphic_C:WidgetTree.Resolution.Text
+msgctxt ",623F8DE048036427C07C6EBD09EA73A7"
+msgid "해상도"
+msgstr "Resolution"
+
+#. Key:	0858C12147D88EE9CDEECCBBA3C1A10D
+#. SourceLocation:	/Game/UI/SettingUI/WBP_SettingGraphic.WBP_SettingGraphic_C:WidgetTree.창모드.Text
+#: /Game/UI/SettingUI/WBP_SettingGraphic.WBP_SettingGraphic_C:WidgetTree.창모드.Text
+msgctxt ",0858C12147D88EE9CDEECCBBA3C1A10D"
+msgid "창모드"
+msgstr "Window Mode"
+
+#. Key:	AAB639134C5A77228F6D23A58D45CBE2
+#. SourceLocation:	/Game/UI/SettingUI/WBP_SettingSound.WBP_SettingSound_C:WidgetTree.TextBlock_64.Text
+#: /Game/UI/SettingUI/WBP_SettingSound.WBP_SettingSound_C:WidgetTree.TextBlock_64.Text
+msgctxt ",AAB639134C5A77228F6D23A58D45CBE2"
+msgid "볼륨"
+msgstr "Volume"
+
+#. Key:	BB1670214280C7D01A338B82BD20CAA6
+#. SourceLocation:	/Game/UI/SettingUI/WBP_SettingSound.WBP_SettingSound_C:WidgetTree.VolumeValueTextBox.Text
+#: /Game/UI/SettingUI/WBP_SettingSound.WBP_SettingSound_C:WidgetTree.VolumeValueTextBox.Text
+msgctxt ",BB1670214280C7D01A338B82BD20CAA6"
+msgid "100"
+msgstr "100"
+
+#. Key:	05C06B1D43B75A5C58937E86E693D0A1
+#. SourceLocation:	/Game/UI/SettingUI/WBP_SettingWidget.WBP_SettingWidget_C:WidgetTree.ResolutionConfirmTimerText.Text
+#: /Game/UI/SettingUI/WBP_SettingWidget.WBP_SettingWidget_C:WidgetTree.ResolutionConfirmTimerText.Text
+msgctxt ",05C06B1D43B75A5C58937E86E693D0A1"
+msgid "0초 후 원래 해상도로 되돌아갑니다."
+msgstr "Reverting to the previous resolution in 0 seconds."
+
+#. Key:	B0BDCB7B45A2CAB79B339289D3EAD1D9
+#. SourceLocation:	/Game/UI/SettingUI/WBP_SettingWidget.WBP_SettingWidget_C:WidgetTree.TextBlock.Text
+#: /Game/UI/SettingUI/WBP_SettingWidget.WBP_SettingWidget_C:WidgetTree.TextBlock.Text
+msgctxt ",B0BDCB7B45A2CAB79B339289D3EAD1D9"
+msgid "닫기"
+msgstr "Close"
+
+#. Key:	CF0C13BC4E6F5F92552551AC6D55E027
+#. SourceLocation:	/Game/UI/SettingUI/WBP_SettingWidget.WBP_SettingWidget_C:WidgetTree.TextBlock_1.Text
+#: /Game/UI/SettingUI/WBP_SettingWidget.WBP_SettingWidget_C:WidgetTree.TextBlock_1.Text
+msgctxt ",CF0C13BC4E6F5F92552551AC6D55E027"
+msgid "변경을 적용하겠습니까?"
+msgstr "Apply these changes?"
+
+#. Key:	8469FAA14328BF43EB938A97558B18B5
+#. SourceLocation:	/Game/UI/SettingUI/WBP_SettingWidget.WBP_SettingWidget_C:WidgetTree.TextBlock_4.Text
+#: /Game/UI/SettingUI/WBP_SettingWidget.WBP_SettingWidget_C:WidgetTree.TextBlock_4.Text
+msgctxt ",8469FAA14328BF43EB938A97558B18B5"
+msgid "취소"
+msgstr "Cancel"
+
+#. Key:	FF6BF6DB4A4228F245EFAA94D455B138
+#. SourceLocation:	/Game/UI/SettingUI/WBP_SettingWidget.WBP_SettingWidget_C:WidgetTree.TextBlock_5.Text
+#: /Game/UI/SettingUI/WBP_SettingWidget.WBP_SettingWidget_C:WidgetTree.TextBlock_5.Text
+msgctxt ",FF6BF6DB4A4228F245EFAA94D455B138"
+msgid "적용"
+msgstr "Apply"
+
+#. Key:	E76D8F7F4ECC1419BF9D1ABAE3767B54
+#. SourceLocation:	/Game/UI/Shop_BossInfo/WBP_ShopBossInfo.WBP_ShopBossInfo_C:WidgetTree.PatternButtonText.Text
+#: /Game/UI/Shop_BossInfo/WBP_ShopBossInfo.WBP_ShopBossInfo_C:WidgetTree.PatternButtonText.Text
+msgctxt ",E76D8F7F4ECC1419BF9D1ABAE3767B54"
+msgid "Ps"
+msgstr "Ps"
+
+#. Key:	A5BA3E0B4ED04566689E30ADFE4DDF97
+#. SourceLocation:	/Game/UI/Shop_BossInfo/WBP_ShopBossInfo.WBP_ShopBossInfo_C:WidgetTree.PatternDescriptionText.Text
+#: /Game/UI/Shop_BossInfo/WBP_ShopBossInfo.WBP_ShopBossInfo_C:WidgetTree.PatternDescriptionText.Text
+msgctxt ",A5BA3E0B4ED04566689E30ADFE4DDF97"
+msgid "보스에 관한정보"
+msgstr "Boss Details"
+
+#. Key:	52184F0A43717F9CED80A39B78488D46
+#. SourceLocation:	/Game/UI/Shop_BossInfo/WBP_ShopBossInfo.WBP_ShopBossInfo_C:WidgetTree.PatternTitleText_1.Text
+#: /Game/UI/Shop_BossInfo/WBP_ShopBossInfo.WBP_ShopBossInfo_C:WidgetTree.PatternTitleText_1.Text
+msgctxt ",52184F0A43717F9CED80A39B78488D46"
+msgid "보스정보"
+msgstr "Boss Info"
+
+#. Key:	F719530547F242BC2BB5EB8717E501E4
+#. SourceLocation:	/Game/UI/Shop_BossInfo/WBP_ShopBossPatternButton.WBP_ShopBossPatternButton_C:WidgetTree.PatternButtonText.Text
+#: /Game/UI/Shop_BossInfo/WBP_ShopBossPatternButton.WBP_ShopBossPatternButton_C:WidgetTree.PatternButtonText.Text
+msgctxt ",F719530547F242BC2BB5EB8717E501E4"
+msgid "P"
+msgstr "P"
+
+#. Key:	46502EDE4FCED14DF128B68F73643FD5
+#. SourceLocation:	/Game/UI/Shop_CardSelect/WBP_Card.WBP_Card_C:WidgetTree.TextBlock_126.Text
+#: /Game/UI/Shop_CardSelect/WBP_Card.WBP_Card_C:WidgetTree.TextBlock_126.Text
+msgctxt ",46502EDE4FCED14DF128B68F73643FD5"
+msgid "asdaaaaaaaaaa"
+msgstr "asdaaaaaaaaaa"
+
+#. Key:	96E9E0824BE227053F5D0799206801C8
+#. SourceLocation:	/Game/UI/Shop_CardSelect/WBP_CardSelectModeWidget.WBP_CardSelectModeWidget_C:WidgetTree.TextBlock.Text
+#: /Game/UI/Shop_CardSelect/WBP_CardSelectModeWidget.WBP_CardSelectModeWidget_C:WidgetTree.TextBlock.Text
+msgctxt ",96E9E0824BE227053F5D0799206801C8"
+msgid "카드 장착"
+msgstr "Equip Card"
+
+#. Key:	7B839DEB4E0F90D5CC78989C1003370F
+#. SourceLocation:	/Game/UI/Shop_CardSelect/WBP_CardSelectModeWidget.WBP_CardSelectModeWidget_C:WidgetTree.TextBlock_1.Text
+#: /Game/UI/Shop_CardSelect/WBP_CardSelectModeWidget.WBP_CardSelectModeWidget_C:WidgetTree.TextBlock_1.Text
+msgctxt ",7B839DEB4E0F90D5CC78989C1003370F"
+msgid "카드 장착 해제"
+msgstr "Unequip Card"
+
+#. Key:	2600E7C74127D18A10947D9C27CF8385
+#. SourceLocation:	/Game/UI/Shop_CardSelect/WBP_CardSelectModeWidget.WBP_CardSelectModeWidget_C:WidgetTree.TextBlock_63.Text
+#: /Game/UI/Shop_CardSelect/WBP_CardSelectModeWidget.WBP_CardSelectModeWidget_C:WidgetTree.TextBlock_63.Text
+msgctxt ",2600E7C74127D18A10947D9C27CF8385"
+msgid "플레이어 카드"
+msgstr "Player Cards"
+
+#. Key:	D41688004B746F9035C50DB531155180
+#. SourceLocation:	/Game/UI/Shop_CardSelect/WBP_CardSelectModeWidget.WBP_CardSelectModeWidget_C:WidgetTree.TextBlock_65.Text
+#: /Game/UI/Shop_CardSelect/WBP_CardSelectModeWidget.WBP_CardSelectModeWidget_C:WidgetTree.TextBlock_65.Text
+msgctxt ",D41688004B746F9035C50DB531155180"
+msgid "해금하기"
+msgstr "Unlock"
+
+#. Key:	2E5EDD6C4331AE10572269BCD4354A77
+#. SourceLocation:	/Game/UI/Shop_CardSelect/WBP_PlayerCard.WBP_PlayerCard_C:WidgetTree.CardTitle.Text
+#: /Game/UI/Shop_CardSelect/WBP_PlayerCard.WBP_PlayerCard_C:WidgetTree.CardTitle.Text
+msgctxt ",2E5EDD6C4331AE10572269BCD4354A77"
+msgid "타이틀x"
+msgstr "Title"
+
+#. Key:	51F6275349A54B5BDD156FB85402DD59
+#. SourceLocation:	/Game/UI/Shop_CardSelect/WBP_ShopCardSlot.WBP_ShopCardSlot_C:WidgetTree.CardNameTextBlock.Text
+#: /Game/UI/Shop_CardSelect/WBP_ShopCardSlot.WBP_ShopCardSlot_C:WidgetTree.CardNameTextBlock.Text
+msgctxt ",51F6275349A54B5BDD156FB85402DD59"
+msgid "원포올"
+msgstr "One for All"
+
+#. Key:	90627CDA43FAFB29F289729EAA72D15A
+#. SourceLocation:	/Game/UI/Shop_CardSelect/WBP_ShopCardSlot.WBP_ShopCardSlot_C:WidgetTree.CardPriceTextBlock.Text
+#: /Game/UI/Shop_CardSelect/WBP_ShopCardSlot.WBP_ShopCardSlot_C:WidgetTree.CardPriceTextBlock.Text
+msgctxt ",90627CDA43FAFB29F289729EAA72D15A"
+msgid "120"
+msgstr "120"
+
+#. Key:	55D783044C4B2AD925445FBEA7B76EDD
+#. SourceLocation:	/Game/UI/Shop_CardSelect/WBP_ShopCardSlotContainer.WBP_ShopCardSlotContainer_C:WidgetTree.TextBlock_110.Text
+#: /Game/UI/Shop_CardSelect/WBP_ShopCardSlotContainer.WBP_ShopCardSlotContainer_C:WidgetTree.TextBlock_110.Text
+msgctxt ",55D783044C4B2AD925445FBEA7B76EDD"
+msgid "카드 상점"
+msgstr "Card Shop"
+
+#. Key:	3282F68B4232A4D01614D59C79FFB7EA
+#. SourceLocation:	/Game/UI/Shop_CardSelect/WBP_ShopCardWarning.WBP_ShopCardWarning_C:WidgetTree.WarningText.Text
+#: /Game/UI/Shop_CardSelect/WBP_ShopCardWarning.WBP_ShopCardWarning_C:WidgetTree.WarningText.Text
+msgctxt ",3282F68B4232A4D01614D59C79FFB7EA"
+msgid "텍스트"
+msgstr "Text"
+
+#. Key:	60D6424F466CEA198BA35AA87A94B249
+#. SourceLocation:	/Game/UI/Shop_CardSelect/WBP_ShopCardWidget.WBP_ShopCardWidget_C:WidgetTree.CardTitle.Text
+#: /Game/UI/Shop_CardSelect/WBP_ShopCardWidget.WBP_ShopCardWidget_C:WidgetTree.CardTitle.Text
+msgctxt ",60D6424F466CEA198BA35AA87A94B249"
+msgid "타이틀x"
+msgstr "Title"
+
+#. Key:	19CA400A4362044CA2D1BF8F137C63FB
+#. SourceLocation:	/Game/UI/Shop_CardSelect/WBP_ShopPlayerCardSlotContainer.WBP_ShopPlayerCardSlotContainer_C:WidgetTree.TextBlock.Text
+#: /Game/UI/Shop_CardSelect/WBP_ShopPlayerCardSlotContainer.WBP_ShopPlayerCardSlotContainer_C:WidgetTree.TextBlock.Text
+msgctxt ",19CA400A4362044CA2D1BF8F137C63FB"
+msgid "내 카드"
+msgstr "My Cards"
+
+#. Key:	F610868E49027CC14689AABF1034CB37
+#. SourceLocation:	/Game/UI/Shop_CardSelect/WBP_ShopPlayerCardSlotContainer.WBP_ShopPlayerCardSlotContainer_C:WidgetTree.TextBlock_110.Text
+#: /Game/UI/Shop_CardSelect/WBP_ShopPlayerCardSlotContainer.WBP_ShopPlayerCardSlotContainer_C:WidgetTree.TextBlock_110.Text
+msgctxt ",F610868E49027CC14689AABF1034CB37"
+msgid "선택한 카드"
+msgstr "Selected Cards"
+
+#. Key:	A54DA73D480EA09AF069318EF33E0B17
+#. SourceLocation:	/Game/UI/Shop_CoinManager/WBP_BuyCoinSlotContainer.WBP_BuyCoinSlotContainer_C:WidgetTree.SlotBuyButtonText.Text
+#: /Game/UI/Shop_CoinManager/WBP_BuyCoinSlotContainer.WBP_BuyCoinSlotContainer_C:WidgetTree.SlotBuyButtonText.Text
+msgctxt ",A54DA73D480EA09AF069318EF33E0B17"
+msgid "슬롯 구매"
+msgstr "Buy Slot"
+
+#. Key:	55F90FE14056AAEEF6D86AA6FC6B9F33
+#. SourceLocation:	/Game/UI/Shop_CoinManager/WBP_BuyCoinSlotContainer.WBP_BuyCoinSlotContainer_C:WidgetTree.TextBlock_95.Text
+#: /Game/UI/Shop_CoinManager/WBP_BuyCoinSlotContainer.WBP_BuyCoinSlotContainer_C:WidgetTree.TextBlock_95.Text
+msgctxt ",55F90FE14056AAEEF6D86AA6FC6B9F33"
+msgid "슬롯구매"
+msgstr "Buy Slot"
+
+#. Key:	F072E2144DF0E97F50227F9F1344C617
+#. SourceLocation:	/Game/UI/Shop_CoinManager/WBP_ShopCoinSlotIndex.WBP_ShopCoinSlotIndex_C:WidgetTree.SlotText.Text
+#: /Game/UI/Shop_CoinManager/WBP_ShopCoinSlotIndex.WBP_ShopCoinSlotIndex_C:WidgetTree.SlotText.Text
+msgctxt ",F072E2144DF0E97F50227F9F1344C617"
+msgid "1"
+msgstr "1"
+
+#. Key:	4A17DC8B49272CC0982E4E8961E95BA9
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinSlot.WBP_ShopCoinSlot_C:WidgetTree.CoinCountText.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinSlot.WBP_ShopCoinSlot_C:WidgetTree.CoinCountText.Text
+msgctxt ",4A17DC8B49272CC0982E4E8961E95BA9"
+msgid "개수"
+msgstr "Quantity"
+
+#. Key:	007680B3490C322FFE526BB8F0FD2E8A
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinSlot.WBP_ShopCoinSlot_C:WidgetTree.HpText.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinSlot.WBP_ShopCoinSlot_C:WidgetTree.HpText.Text
+msgctxt ",007680B3490C322FFE526BB8F0FD2E8A"
+msgid "체력"
+msgstr "HP"
+
+#. Key:	D5E110EF46B5C822825D649F6A0DEA35
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinSlot.WBP_ShopCoinSlot_C:WidgetTree.SlotIndexText.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinSlot.WBP_ShopCoinSlot_C:WidgetTree.SlotIndexText.Text
+msgctxt ",D5E110EF46B5C822825D649F6A0DEA35"
+msgid "1"
+msgstr "1"
+
+#. Key:	065AE7DC4A7AC1A6497860B041B48FBF
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinSlotBuyButton.WBP_ShopCoinSlotBuyButton_C:WidgetTree.BuySlotHpTextBlock.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinSlotBuyButton.WBP_ShopCoinSlotBuyButton_C:WidgetTree.BuySlotHpTextBlock.Text
+msgctxt ",065AE7DC4A7AC1A6497860B041B48FBF"
+msgid "체력"
+msgstr "HP"
+
+#. Key:	D876E090478499D56497539C29BBB0CB
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinSlotBuyButton.WBP_ShopCoinSlotBuyButton_C:WidgetTree.BuySlotPriceTextBlock.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinSlotBuyButton.WBP_ShopCoinSlotBuyButton_C:WidgetTree.BuySlotPriceTextBlock.Text
+msgctxt ",D876E090478499D56497539C29BBB0CB"
+msgid "가격"
+msgstr "Price"
+
+#. Key:	B6A7D3274241C612C33F6CBDAD99CFE0
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinSlotContainer.WBP_ShopCoinSlotContainer_C:WidgetTree.TextBlock_74.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinSlotContainer.WBP_ShopCoinSlotContainer_C:WidgetTree.TextBlock_74.Text
+msgctxt ",B6A7D3274241C612C33F6CBDAD99CFE0"
+msgid "슬롯"
+msgstr "Slot"
+
+#. Key:	1501834840844AEA3E3B19942738AF56
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinWarning.WBP_ShopCoinWarning_C:WidgetTree.WarningText.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_ShopCoinWarning.WBP_ShopCoinWarning_C:WidgetTree.WarningText.Text
+msgctxt ",1501834840844AEA3E3B19942738AF56"
+msgid "테스트메세지입니다"
+msgstr "This is a test message."
+
+#. Key:	37798E294FB605695068CFA4858AA407
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_ShopWeaponSlotContainer.WBP_ShopWeaponSlotContainer_C:WidgetTree.TextBlock_189.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_ShopWeaponSlotContainer.WBP_ShopWeaponSlotContainer_C:WidgetTree.TextBlock_189.Text
+msgctxt ",37798E294FB605695068CFA4858AA407"
+msgid "내 무기"
+msgstr "My Weapons"
+
+#. Key:	303CFB494FBB9C0CDBB6468020B57E1A
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.AttackPower.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.AttackPower.Text
+msgctxt ",303CFB494FBB9C0CDBB6468020B57E1A"
+msgid "10"
+msgstr "10"
+
+#. Key:	608E741343253644891D55A4840E1F20
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.CountText.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.CountText.Text
+msgctxt ",608E741343253644891D55A4840E1F20"
+msgid "10"
+msgstr "10"
+
+#. Key:	FF05C4E34D3F1D1F93E977B319BDA572
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock.Text
+msgctxt ",FF05C4E34D3F1D1F93E977B319BDA572"
+msgid "능력"
+msgstr "Ability"
+
+#. Key:	677B07054966B7CA036E49AFF1042876
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_1.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_1.Text
+msgctxt ",677B07054966B7CA036E49AFF1042876"
+msgid "공격 사거리"
+msgstr "Attack Range"
+
+#. Key:	523434164DEE9FB1E743E695D4FD6282
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_155.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_155.Text
+msgctxt ",523434164DEE9FB1E743E695D4FD6282"
+msgid "자세히 보려면 클릭 혹은 Shift를 누르세요"
+msgstr "Click or press Shift for details"
+
+#. Key:	E6BC9A904FBC7B53C94478A923250D5E
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_160.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_160.Text
+msgctxt ",E6BC9A904FBC7B53C94478A923250D5E"
+msgid "사거리"
+msgstr "Range"
+
+#. Key:	370132374F74557ACB9DD08B99FFB622
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_3.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_3.Text
+msgctxt ",370132374F74557ACB9DD08B99FFB622"
+msgid "공격력"
+msgstr "Attack Power"
+
+#. Key:	3A4C5B4B4FCC57F149DD95BCC5BEB58B
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_308.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_308.Text
+msgctxt ",3A4C5B4B4FCC57F149DD95BCC5BEB58B"
+msgid "능력 사거리"
+msgstr "Ability Range"
+
+#. Key:	AC5A810F4C2E0CE2AA97139E46FB627A
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_4.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_4.Text
+msgctxt ",AC5A810F4C2E0CE2AA97139E46FB627A"
+msgid "무기력"
+msgstr "Weapon Power"
+
+#. Key:	2F83538C440ECFFC07E9DDBA7875BEFD
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_5.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.TextBlock_5.Text
+msgctxt ",2F83538C440ECFFC07E9DDBA7875BEFD"
+msgid " 횟수"
+msgstr " Count"
+
+#. Key:	04F29150482F3875D31142A5BF3A70D3
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.WeaponNameText.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.WeaponNameText.Text
+msgctxt ",04F29150482F3875D31142A5BF3A70D3"
+msgid "테스트무기이름어느정도길이가적당한지"
+msgstr "Test Weapon Name Length Preview"
+
+#. Key:	16604C734CDAA0AFA0BCD0ABA4F5EBE0
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.WeaponPower.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.WeaponPower.Text
+msgctxt ",16604C734CDAA0AFA0BCD0ABA4F5EBE0"
+msgid "10"
+msgstr "10"
+
+#. Key:	42EE8D6F44DEFF17571E62956669A23B
+#. SourceLocation:	/Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.사거리.Text
+#: /Game/UI/Shop_CoinManager/Widget/WBP_SlotWeaponDes.WBP_SlotWeaponDes_C:WidgetTree.사거리.Text
+msgctxt ",42EE8D6F44DEFF17571E62956669A23B"
+msgid "사거리"
+msgstr "Range"
+
+#. Key:	89EBAC18436BD546E93D52852BCD939B
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_PlayerItemCountWidget.WBP_PlayerItemCountWidget_C:WidgetTree.OneText.Text
+#: /Game/UI/Shop_ItemSelect/WBP_PlayerItemCountWidget.WBP_PlayerItemCountWidget_C:WidgetTree.OneText.Text
+msgctxt ",89EBAC18436BD546E93D52852BCD939B"
+msgid "0"
+msgstr "0"
+
+#. Key:	C19C2089401AA0BD8BB284B1B40ACCAF
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_PlayerItemCountWidget.WBP_PlayerItemCountWidget_C:WidgetTree.TenText.Text
+#: /Game/UI/Shop_ItemSelect/WBP_PlayerItemCountWidget.WBP_PlayerItemCountWidget_C:WidgetTree.TenText.Text
+msgctxt ",C19C2089401AA0BD8BB284B1B40ACCAF"
+msgid "0"
+msgstr "0"
+
+#. Key:	C499351346AF2D9DB65810BFC540EFE0
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemPurchasePopup.WBP_ShopItemPurchasePopup_C:WidgetTree.ItemCountText.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemPurchasePopup.WBP_ShopItemPurchasePopup_C:WidgetTree.ItemCountText.Text
+msgctxt ",C499351346AF2D9DB65810BFC540EFE0"
+msgid "1234"
+msgstr "1234"
+
+#. Key:	63AAF2E645F92D25D392A6850007F5A8
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemPurchasePopup.WBP_ShopItemPurchasePopup_C:WidgetTree.TextBlock.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemPurchasePopup.WBP_ShopItemPurchasePopup_C:WidgetTree.TextBlock.Text
+msgctxt ",63AAF2E645F92D25D392A6850007F5A8"
+msgid "+"
+msgstr "+"
+
+#. Key:	616EA4B84E8518AB205E41911FBED4BF
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemPurchasePopup.WBP_ShopItemPurchasePopup_C:WidgetTree.TextBlock_1.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemPurchasePopup.WBP_ShopItemPurchasePopup_C:WidgetTree.TextBlock_1.Text
+msgctxt ",616EA4B84E8518AB205E41911FBED4BF"
+msgid "-"
+msgstr "-"
+
+#. Key:	B923655747A442AAB723D096AFFBE6A7
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemPurchasePopup.WBP_ShopItemPurchasePopup_C:WidgetTree.TextBlock_104.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemPurchasePopup.WBP_ShopItemPurchasePopup_C:WidgetTree.TextBlock_104.Text
+msgctxt ",B923655747A442AAB723D096AFFBE6A7"
+msgid "구매"
+msgstr "Buy"
+
+#. Key:	135EE9044F034EE7AEF7CEBC80DD96F8
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemPurchasePopup.WBP_ShopItemPurchasePopup_C:WidgetTree.TextBlock_2.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemPurchasePopup.WBP_ShopItemPurchasePopup_C:WidgetTree.TextBlock_2.Text
+msgctxt ",135EE9044F034EE7AEF7CEBC80DD96F8"
+msgid "취소"
+msgstr "Cancel"
+
+#. Key:	576404EA48438EA01BB876B718BE3E2F
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemPurchasePopup.WBP_ShopItemPurchasePopup_C:WidgetTree.TextBlock_94.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemPurchasePopup.WBP_ShopItemPurchasePopup_C:WidgetTree.TextBlock_94.Text
+msgctxt ",576404EA48438EA01BB876B718BE3E2F"
+msgid "구매"
+msgstr "Buy"
+
+#. Key:	BF9AE2D846F9812DF9CE59A1CB8CFB2B
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.ItemCountText.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.ItemCountText.Text
+msgctxt ",BF9AE2D846F9812DF9CE59A1CB8CFB2B"
+msgid "1234"
+msgstr "1234"
+
+#. Key:	B156C60B44CB8121E3E1BA9247CC90B0
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.OwnedCountText_1.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.OwnedCountText_1.Text
+msgctxt ",B156C60B44CB8121E3E1BA9247CC90B0"
+msgid "/"
+msgstr "/"
+
+#. Key:	503745CA4D85D27B293D0089DF241FC0
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.TextBlock.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.TextBlock.Text
+msgctxt ",503745CA4D85D27B293D0089DF241FC0"
+msgid "+"
+msgstr "+"
+
+#. Key:	52EB3FBB4AA167C05F4BA0AD5FA163D8
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.TextBlock_1.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.TextBlock_1.Text
+msgctxt ",52EB3FBB4AA167C05F4BA0AD5FA163D8"
+msgid "-"
+msgstr "-"
+
+#. Key:	025A71194720367992DD22AE89AC9244
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.TextBlock_104.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.TextBlock_104.Text
+msgctxt ",025A71194720367992DD22AE89AC9244"
+msgid "판매"
+msgstr "Sell"
+
+#. Key:	A939B69640E2A675BB1858A6988C7595
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.TextBlock_2.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.TextBlock_2.Text
+msgctxt ",A939B69640E2A675BB1858A6988C7595"
+msgid "취소"
+msgstr "Cancel"
+
+#. Key:	5A563B5246787EED4970BBB1BCE24D51
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.TextBlock_94.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemSellPopup.WBP_ShopItemSellPopup_C:WidgetTree.TextBlock_94.Text
+msgctxt ",5A563B5246787EED4970BBB1BCE24D51"
+msgid "판매"
+msgstr "Sell"
+
+#. Key:	5842B01D46C40AB062C22188E5AA5B39
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopItemSlot.WBP_ShopItemSlot_C:WidgetTree.ItemPriceTextBlock.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopItemSlot.WBP_ShopItemSlot_C:WidgetTree.ItemPriceTextBlock.Text
+msgctxt ",5842B01D46C40AB062C22188E5AA5B39"
+msgid "가격"
+msgstr "Price"
+
+#. Key:	A7410D5C45DA18ED3E3DCF89FC9BBDBE
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopPlayerItemGrid.WBP_ShopPlayerItemGrid_C:WidgetTree.ItemBuyDescrip.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopPlayerItemGrid.WBP_ShopPlayerItemGrid_C:WidgetTree.ItemBuyDescrip.Text
+msgctxt ",A7410D5C45DA18ED3E3DCF89FC9BBDBE"
+msgid " 플레이어 아이템"
+msgstr " Player Items"
+
+#. Key:	F596AFF948B3CDF22CC93EB384963638
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopPlayerItemSlot.WBP_ShopPlayerItemSlot_C:WidgetTree.ItemCOuntTextBlock.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopPlayerItemSlot.WBP_ShopPlayerItemSlot_C:WidgetTree.ItemCOuntTextBlock.Text
+msgctxt ",F596AFF948B3CDF22CC93EB384963638"
+msgid "아이템개수"
+msgstr "Item Quantity"
+
+#. Key:	B3E84B64401C0383D8C3FDB4EC600050
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopPlayerItemSlot.WBP_ShopPlayerItemSlot_C:WidgetTree.ItemNameTextBlock.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopPlayerItemSlot.WBP_ShopPlayerItemSlot_C:WidgetTree.ItemNameTextBlock.Text
+msgctxt ",B3E84B64401C0383D8C3FDB4EC600050"
+msgid "아이템 이름"
+msgstr "Item Name"
+
+#. Key:	EFCE01B846A9D81F8366B889EDA41258
+#. SourceLocation:	/Game/UI/Shop_ItemSelect/WBP_ShopSellItemGrid.WBP_ShopSellItemGrid_C:WidgetTree.TextBlock_92.Text
+#: /Game/UI/Shop_ItemSelect/WBP_ShopSellItemGrid.WBP_ShopSellItemGrid_C:WidgetTree.TextBlock_92.Text
+msgctxt ",EFCE01B846A9D81F8366B889EDA41258"
+msgid "아이템 상점"
+msgstr "Item Shop"
+
+#. Key:	E82DFDB8456AF71FD2E7D4BB40CC19D6
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.AttackPower.Text
+#: /Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.AttackPower.Text
+msgctxt ",E82DFDB8456AF71FD2E7D4BB40CC19D6"
+msgid "10"
+msgstr "10"
+
+#. Key:	FAF94D5D4FA9F33A7CDA0FB476D2318C
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.CountText.Text
+#: /Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.CountText.Text
+msgctxt ",FAF94D5D4FA9F33A7CDA0FB476D2318C"
+msgid "10"
+msgstr "10"
+
+#. Key:	A93C1B40493E2CA09FFD31BD4F6DFF05
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.TextBlock.Text
+#: /Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.TextBlock.Text
+msgctxt ",A93C1B40493E2CA09FFD31BD4F6DFF05"
+msgid "능력 사거리"
+msgstr "Ability Range"
+
+#. Key:	1F8E63554411590B1C1DD0969493FC32
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.TextBlock_155.Text
+#: /Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.TextBlock_155.Text
+msgctxt ",1F8E63554411590B1C1DD0969493FC32"
+msgid "자세히 보려면 클릭 혹은 Shift를 누르세요"
+msgstr "Click or press Shift for details"
+
+#. Key:	ABAA6BA942387C41A989E285ECFF39B1
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.TextBlock_3.Text
+#: /Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.TextBlock_3.Text
+msgctxt ",ABAA6BA942387C41A989E285ECFF39B1"
+msgid "공격력"
+msgstr "Attack Power"
+
+#. Key:	6CD8692C47080C3D45FDCBA1458D0378
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.TextBlock_4.Text
+#: /Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.TextBlock_4.Text
+msgctxt ",6CD8692C47080C3D45FDCBA1458D0378"
+msgid "무기력"
+msgstr "Weapon Power"
+
+#. Key:	F61C84B045C62F88E889A7A3B5C93024
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.TextBlock_5.Text
+#: /Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.TextBlock_5.Text
+msgctxt ",F61C84B045C62F88E889A7A3B5C93024"
+msgid " 횟수"
+msgstr " Count"
+
+#. Key:	DBC333E7421CD556D06A87BA0E6C7533
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.TextBlock_92.Text
+#: /Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.TextBlock_92.Text
+msgctxt ",DBC333E7421CD556D06A87BA0E6C7533"
+msgid "공격 사거리"
+msgstr "Attack Range"
+
+#. Key:	F415B10D4B46278C26E01580550C442C
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.WeaponNameText.Text
+#: /Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.WeaponNameText.Text
+msgctxt ",F415B10D4B46278C26E01580550C442C"
+msgid "테스트무기이름어느정도길이가적당한지"
+msgstr "Test Weapon Name Length Preview"
+
+#. Key:	A72089AC4B6C82B00E2F74A31F4AAE36
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.WeaponNameText_1.Text
+#: /Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.WeaponNameText_1.Text
+msgctxt ",A72089AC4B6C82B00E2F74A31F4AAE36"
+msgid "사거리"
+msgstr "Range"
+
+#. Key:	891C531C4294D40F42E76D9305EE18DE
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.WeaponNameText_2.Text
+#: /Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.WeaponNameText_2.Text
+msgctxt ",891C531C4294D40F42E76D9305EE18DE"
+msgid "스탯"
+msgstr "Stats"
+
+#. Key:	056213534A43A6FB62A1448280816B32
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.WeaponPower.Text
+#: /Game/UI/Shop_UnlockWeapon/WBP_WeaponDescription.WBP_WeaponDescription_C:WidgetTree.WeaponPower.Text
+msgctxt ",056213534A43A6FB62A1448280816B32"
+msgid "10"
+msgstr "10"
+
+#. Key:	A0AAE32B4870A4AB3107488F7A483FA6
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/Widget/WBP_UnlockSelectWeaponButton.WBP_UnlockSelectWeaponButton_C:WidgetTree.TextBlock_65.Text
+#: /Game/UI/Shop_UnlockWeapon/Widget/WBP_UnlockSelectWeaponButton.WBP_UnlockSelectWeaponButton_C:WidgetTree.TextBlock_65.Text
+msgctxt ",A0AAE32B4870A4AB3107488F7A483FA6"
+msgid "구매하기"
+msgstr "Buy"
+
+#. Key:	69A5669F4EF0C441207EFA957114459F
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/Widget/WBP_UnlockWeaponSlotContainer.WBP_UnlockWeaponSlotContainer_C:WidgetTree.TextBlock.Text
+#: /Game/UI/Shop_UnlockWeapon/Widget/WBP_UnlockWeaponSlotContainer.WBP_UnlockWeaponSlotContainer_C:WidgetTree.TextBlock.Text
+msgctxt ",69A5669F4EF0C441207EFA957114459F"
+msgid "좌클릭 길게 눌러구매"
+msgstr "Hold Left Click to Buy"
+
+#. Key:	86E08B634F002DF13AAA709197F0F434
+#. SourceLocation:	/Game/UI/Shop_UnlockWeapon/Widget/WBP_UnlockWeaponSlotContainer.WBP_UnlockWeaponSlotContainer_C:WidgetTree.TextBlock_40.Text
+#: /Game/UI/Shop_UnlockWeapon/Widget/WBP_UnlockWeaponSlotContainer.WBP_UnlockWeaponSlotContainer_C:WidgetTree.TextBlock_40.Text
+msgctxt ",86E08B634F002DF13AAA709197F0F434"
+msgid "무기 상점"
+msgstr "Weapon Shop"
+
+#. Key:	8730E57C4C23A5B48C7CBAA9A2754AF9
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopCheckStartGame.WBP_ShopCheckStartGame_C:WidgetTree.CheckStartGameText_1.Text
+#: /Game/UI/ShopMain/WBP_ShopCheckStartGame.WBP_ShopCheckStartGame_C:WidgetTree.CheckStartGameText_1.Text
+msgctxt ",8730E57C4C23A5B48C7CBAA9A2754AF9"
+msgid "게임 시작"
+msgstr "Start Game"
+
+#. Key:	BA377EB64336D12D0EAAC59EF7959B30
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopCheckStartGame.WBP_ShopCheckStartGame_C:WidgetTree.CheckStartGameText_2.Text
+#: /Game/UI/ShopMain/WBP_ShopCheckStartGame.WBP_ShopCheckStartGame_C:WidgetTree.CheckStartGameText_2.Text
+msgctxt ",BA377EB64336D12D0EAAC59EF7959B30"
+msgid "취소"
+msgstr "Cancel"
+
+#. Key:	BA805BEB44B5923E0F41B88080F2936C
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopMainBossUINameTag.WBP_ShopMainBossUINameTag_C:WidgetTree.TextBlock_32.Text
+#: /Game/UI/ShopMain/WBP_ShopMainBossUINameTag.WBP_ShopMainBossUINameTag_C:WidgetTree.TextBlock_32.Text
+msgctxt ",BA805BEB44B5923E0F41B88080F2936C"
+msgid "보스"
+msgstr "Boss"
+
+#. Key:	AD7DC2414317A2DD411758BEF3C7C6CA
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopMainCardUINameTag.WBP_ShopMainCardUINameTag_C:WidgetTree.TextBlock_32.Text
+#: /Game/UI/ShopMain/WBP_ShopMainCardUINameTag.WBP_ShopMainCardUINameTag_C:WidgetTree.TextBlock_32.Text
+msgctxt ",AD7DC2414317A2DD411758BEF3C7C6CA"
+msgid "카드"
+msgstr "Cards"
+
+#. Key:	528112A74697C376AD9FD89F29AD9822
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopMainCoinUINameTag.WBP_ShopMainCoinUINameTag_C:WidgetTree.TextBlock_32.Text
+#: /Game/UI/ShopMain/WBP_ShopMainCoinUINameTag.WBP_ShopMainCoinUINameTag_C:WidgetTree.TextBlock_32.Text
+msgctxt ",528112A74697C376AD9FD89F29AD9822"
+msgid "코인"
+msgstr "Coins"
+
+#. Key:	06353CAC4142B44C8B6047A58B324B33
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopMainItemUINameTag.WBP_ShopMainItemUINameTag_C:WidgetTree.TextBlock_32.Text
+#: /Game/UI/ShopMain/WBP_ShopMainItemUINameTag.WBP_ShopMainItemUINameTag_C:WidgetTree.TextBlock_32.Text
+msgctxt ",06353CAC4142B44C8B6047A58B324B33"
+msgid "아이템"
+msgstr "Items"
+
+#. Key:	C8C7790E433A490781EE45B3CA6AD379
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopMainWeaponUINameTag.WBP_ShopMainWeaponUINameTag_C:WidgetTree.TextBlock_32.Text
+#: /Game/UI/ShopMain/WBP_ShopMainWeaponUINameTag.WBP_ShopMainWeaponUINameTag_C:WidgetTree.TextBlock_32.Text
+msgctxt ",C8C7790E433A490781EE45B3CA6AD379"
+msgid "무기구매"
+msgstr "Buy Weapons"
+
+#. Key:	FDBAC61949A3B6DC45BD258405CE0FB9
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopMainWidget.WBP_ShopMainWidget_C:WidgetTree.TextBlock.Text
+#: /Game/UI/ShopMain/WBP_ShopMainWidget.WBP_ShopMainWidget_C:WidgetTree.TextBlock.Text
+msgctxt ",FDBAC61949A3B6DC45BD258405CE0FB9"
+msgid "코인 제작"
+msgstr "Create Coins"
+
+#. Key:	2A7257474EB7EE3200A3AEB756BD79BA
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopMainWidget.WBP_ShopMainWidget_C:WidgetTree.TextBlock_1.Text
+#: /Game/UI/ShopMain/WBP_ShopMainWidget.WBP_ShopMainWidget_C:WidgetTree.TextBlock_1.Text
+msgctxt ",2A7257474EB7EE3200A3AEB756BD79BA"
+msgid "카드 선택"
+msgstr "Select Cards"
+
+#. Key:	B10B7D024B1557898EDA568DCC534719
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopMainWidget.WBP_ShopMainWidget_C:WidgetTree.TextBlock_2.Text
+#: /Game/UI/ShopMain/WBP_ShopMainWidget.WBP_ShopMainWidget_C:WidgetTree.TextBlock_2.Text
+msgctxt ",B10B7D024B1557898EDA568DCC534719"
+msgid "아이템 구매"
+msgstr "Buy Items"
+
+#. Key:	7EAD8C134D389BD53ABA239E81478392
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopMainWidget.WBP_ShopMainWidget_C:WidgetTree.TextBlock_3.Text
+#: /Game/UI/ShopMain/WBP_ShopMainWidget.WBP_ShopMainWidget_C:WidgetTree.TextBlock_3.Text
+msgctxt ",7EAD8C134D389BD53ABA239E81478392"
+msgid "보스 정보 확인"
+msgstr "View Boss Info"
+
+#. Key:	19BFE181427B8F72CA7F519F46084F15
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopMainWidget.WBP_ShopMainWidget_C:WidgetTree.TextBlock_4.Text
+#: /Game/UI/ShopMain/WBP_ShopMainWidget.WBP_ShopMainWidget_C:WidgetTree.TextBlock_4.Text
+msgctxt ",19BFE181427B8F72CA7F519F46084F15"
+msgid "무기 구매"
+msgstr "Buy Weapons"
+
+#. Key:	D0DB4D76441EFCC94A24FE82C8D64315
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopMainWidget.WBP_ShopMainWidget_C:WidgetTree.TextBlock_93.Text
+#: /Game/UI/ShopMain/WBP_ShopMainWidget.WBP_ShopMainWidget_C:WidgetTree.TextBlock_93.Text
+msgctxt ",D0DB4D76441EFCC94A24FE82C8D64315"
+msgid "전투 시작"
+msgstr "Start Battle"
+
+#. Key:	B4DFA9804589735DA823A98245E3A851
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.TextBlock.Text
+#: /Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.TextBlock.Text
+msgctxt ",B4DFA9804589735DA823A98245E3A851"
+msgid "보스"
+msgstr "Boss"
+
+#. Key:	E2854F614608300D4962659A8369513D
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.TextBlock_1.Text
+#: /Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.TextBlock_1.Text
+msgctxt ",E2854F614608300D4962659A8369513D"
+msgid "무기"
+msgstr "Weapons"
+
+#. Key:	269E131E4DFF5A6C550BE29D0EE84298
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.TextBlock_2.Text
+#: /Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.TextBlock_2.Text
+msgctxt ",269E131E4DFF5A6C550BE29D0EE84298"
+msgid "메인"
+msgstr "Main"
+
+#. Key:	F1FA0BCF48C67BA96C106AB4731EB2A2
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.TextBlock_3.Text
+#: /Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.TextBlock_3.Text
+msgctxt ",F1FA0BCF48C67BA96C106AB4731EB2A2"
+msgid "코인"
+msgstr "Coins"
+
+#. Key:	96A6F19A41784E10B2FC7E8A71248FA2
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.TextBlock_4.Text
+#: /Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.TextBlock_4.Text
+msgctxt ",96A6F19A41784E10B2FC7E8A71248FA2"
+msgid "아이템"
+msgstr "Items"
+
+#. Key:	8A4C9B8648006428B11C3A967A460972
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.TextBlock_6.Text
+#: /Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.TextBlock_6.Text
+msgctxt ",8A4C9B8648006428B11C3A967A460972"
+msgid "전투"
+msgstr "Battle"
+
+#. Key:	4E4A626F4B8A6A7FDD2D3898CE89636C
+#. SourceLocation:	/Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.카드선택.Text
+#: /Game/UI/ShopMain/WBP_ShopNavigator.WBP_ShopNavigator_C:WidgetTree.카드선택.Text
+msgctxt ",4E4A626F4B8A6A7FDD2D3898CE89636C"
+msgid "카드"
+msgstr "Cards"
+
+#. Key:	88A835FD464B6C8F2FEE2C8291CBF652
+#. SourceLocation:	/Game/UI/Stage_CardSelect/WBP_StageHandCardWidget.WBP_StageHandCardWidget_C:WidgetTree.CardTitle.Text
+#: /Game/UI/Stage_CardSelect/WBP_StageHandCardWidget.WBP_StageHandCardWidget_C:WidgetTree.CardTitle.Text
+msgctxt ",88A835FD464B6C8F2FEE2C8291CBF652"
+msgid "타이틀x"
+msgstr "Title"
+
+#. Key:	BFCB87C8471218CF3AAD2A891B9496E7
+#. SourceLocation:	/Game/UI/WBP_Click.WBP_Click_C:WidgetTree.TextBlock_52.Text
+#: /Game/UI/WBP_Click.WBP_Click_C:WidgetTree.TextBlock_52.Text
+msgctxt ",BFCB87C8471218CF3AAD2A891B9496E7"
+msgid "Click To Continue!"
+msgstr "Click To Continue!"
+
+#. Key:	17E0A4924EFAA4E2A9C8759AA31DC156
+#. SourceLocation:	/Game/UI/WBP_CountWidget.WBP_CountWidget_C:WidgetTree.OneText.Text
+#: /Game/UI/WBP_CountWidget.WBP_CountWidget_C:WidgetTree.OneText.Text
+msgctxt ",17E0A4924EFAA4E2A9C8759AA31DC156"
+msgid "0"
+msgstr "0"
+
+#. Key:	68228A914DFA702594184BBBC3E460C4
+#. SourceLocation:	/Game/UI/WBP_CountWidget.WBP_CountWidget_C:WidgetTree.TenText.Text
+#: /Game/UI/WBP_CountWidget.WBP_CountWidget_C:WidgetTree.TenText.Text
+msgctxt ",68228A914DFA702594184BBBC3E460C4"
+msgid "0"
+msgstr "0"
+
+#. Key:	39880AC541E40FE650A77D9F1B51327E
+#. SourceLocation:	/Game/UI/WBP_MoneyDisplay.WBP_MoneyDisplay_C:WidgetTree.MoneyTextBlock.Text
+#: /Game/UI/WBP_MoneyDisplay.WBP_MoneyDisplay_C:WidgetTree.MoneyTextBlock.Text
+msgctxt ",39880AC541E40FE650A77D9F1B51327E"
+msgid "99999"
+msgstr "99999"
+
+#. Key:	ReceivedDamageHalf
+#. SourceLocation:	Source/Flip_Side/Player/BattlePlayerController_FlipSide.cpp(1817)
+#: Source/Flip_Side/Player/BattlePlayerController_FlipSide.cpp(1817)
+msgctxt "BattleStatus,ReceivedDamageHalf"
+msgid "받은 공격 피해의 50%"
+msgstr "50% of attack damage taken"
+
+#. Key:	GimmickType
+#. SourceLocation:	Source/Flip_Side/UI/BattleBossPatternHUDWidget.cpp(42)
+#: Source/Flip_Side/UI/BattleBossPatternHUDWidget.cpp(42)
+msgctxt "BattleBossPatternHUD,GimmickType"
+msgid "<Gimmick>기믹</>"
+msgstr "<Gimmick>Gimmick</>"
+
+#. Key:	PatternType
+#. SourceLocation:	Source/Flip_Side/UI/BattleBossPatternHUDWidget.cpp(43)
+#: Source/Flip_Side/UI/BattleBossPatternHUDWidget.cpp(43)
+msgctxt "BattleBossPatternHUD,PatternType"
+msgid "<Pattern>패턴</>"
+msgstr "<Pattern>Pattern</>"
+
+#. Key:	NoDamage
+#. SourceLocation:	Source/Flip_Side/UI/BattleBossPatternHUDWidget.cpp(56)
+#: Source/Flip_Side/UI/BattleBossPatternHUDWidget.cpp(56)
+msgctxt "BattleBossPatternHUD,NoDamage"
+msgid "피해 없음"
+msgstr "No Damage"
+
+#. Key:	Unknown
+#. SourceLocation:	Source/Flip_Side/UI/BattleBuffIconWidget.cpp(62)
+#: Source/Flip_Side/UI/BattleBuffIconWidget.cpp(62)
+msgctxt "Buff,Unknown"
+msgid "버프"
+msgstr "Buffs"
+
+#. Key:	Blind
+#. SourceLocation:	Source/Flip_Side/UI/BattleBuffIconWidget.cpp(63)
+#: Source/Flip_Side/UI/BattleBuffIconWidget.cpp(63)
+msgctxt "Debuff,Blind"
+msgid "실명"
+msgstr "Blind"
+
+#. Key:	Stat
+#. SourceLocation:	Source/Flip_Side/UI/BattleBuffIconWidget.cpp(64)
+#: Source/Flip_Side/UI/BattleBuffIconWidget.cpp(64)
+msgctxt "Debuff,Stat"
+msgid "스탯 약화"
+msgstr "Stat Reduction"
+
+#. Key:	Stun
+#. SourceLocation:	Source/Flip_Side/UI/BattleBuffIconWidget.cpp(64)
+#: Source/Flip_Side/UI/BattleBuffIconWidget.cpp(64)
+msgctxt "Debuff,Stun"
+msgid "기절"
+msgstr "Stun"
+
+#. Key:	StoredBack
+#. SourceLocation:	Source/Flip_Side/UI/BattleCoinInfoWidget.cpp(214)
+#: Source/Flip_Side/UI/BattleCoinInfoWidget.cpp(214)
+msgctxt "BattleCoinInfo,StoredBack"
+msgid "뒷면"
+msgstr "Back"
+
+#. Key:	StoredFront
+#. SourceLocation:	Source/Flip_Side/UI/BattleCoinInfoWidget.cpp(214)
+#: Source/Flip_Side/UI/BattleCoinInfoWidget.cpp(214)
+msgctxt "BattleCoinInfo,StoredFront"
+msgid "앞면"
+msgstr "Front"
+
+#. Key:	DetailOn
+#. SourceLocation:	Source/Flip_Side/UI/BattleCoinInfoWidget.cpp(322)
+#: Source/Flip_Side/UI/BattleCoinInfoWidget.cpp(322)
+msgctxt "CoinDescription,DetailOn"
+msgid "상세 표시: 켜짐"
+msgstr "Details: On"
+
+#. Key:	DetailOff
+#. SourceLocation:	Source/Flip_Side/UI/BattleCoinInfoWidget.cpp(323)
+#: Source/Flip_Side/UI/BattleCoinInfoWidget.cpp(323)
+msgctxt "CoinDescription,DetailOff"
+msgid "상세 표시: 꺼짐"
+msgstr "Details: Off"
+
+#. Key:	InfoTitle
+#. SourceLocation:	Source/Flip_Side/UI/BattleReadyCoinWidget.cpp(85)
+#: Source/Flip_Side/UI/BattleReadyCoinWidget.cpp(85)
+msgctxt "BattleReady,InfoTitle"
+msgid "배틀 코인 정보"
+msgstr "Battle Coin Info"
+
+#. Key:	ReadyTitle
+#. SourceLocation:	Source/Flip_Side/UI/BattleReadyCoinWidget.cpp(86)
+#: Source/Flip_Side/UI/BattleReadyCoinWidget.cpp(86)
+msgctxt "BattleReady,ReadyTitle"
+msgid "준비된 코인"
+msgstr "Ready Coins"
+
+#. Key:	NoDamage
+#. SourceLocation:	Source/Flip_Side/UI/BossPatternPopupWidget.cpp(23)
+#: Source/Flip_Side/UI/BossPatternPopupWidget.cpp(23)
+msgctxt "BossPatternPopup,NoDamage"
+msgid "피해 없음"
+msgstr "No Damage"
+
+#. Key:	Title
+#. SourceLocation:	Source/Flip_Side/UI/CardGoldAppliedInfoWidget.cpp(27)
+#: Source/Flip_Side/UI/CardGoldAppliedInfoWidget.cpp(27)
+msgctxt "CardGoldAppliedInfo,Title"
+msgid "현재 적용된 효과"
+msgstr "Currently Applied Effects"
+
+#. Key:	Inactive
+#. SourceLocation:	Source/Flip_Side/UI/CardGoldAppliedInfoWidget.cpp(31)
+#: Source/Flip_Side/UI/CardGoldAppliedInfoWidget.cpp(31)
+msgctxt "CardGoldAppliedInfo,Inactive"
+msgid "적용 중인 효과가 없습니다."
+msgstr "No effects are currently active."
+
+#. Key:	RemainingGold
+#. SourceLocation:	Source/Flip_Side/UI/CardGoldTierTableWidget.cpp(56)
+#: Source/Flip_Side/UI/CardGoldTierTableWidget.cpp(56)
+msgctxt "CardGoldTierTable,RemainingGold"
+msgid "남은\n골드"
+msgstr "Remaining\nGold"
+
+#. Key:	MinimumGold
+#. SourceLocation:	Source/Flip_Side/UI/CardGoldTierTableWidget.cpp(78)
+#: Source/Flip_Side/UI/CardGoldTierTableWidget.cpp(78)
+msgctxt "CardGoldTierTable,MinimumGold"
+msgid "{0}\n골드\n이상"
+msgstr "{0}\nGold\nor more"
+
+#. Key:	AbsorbBuff
+#. SourceLocation:	Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(139)
+#: Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(139)
+msgctxt "DescriptionLabels,AbsorbBuff"
+msgid "흡수버프"
+msgstr "Absorb Buff"
+
+#. Key:	StrikeBuff
+#. SourceLocation:	Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(139)
+#: Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(139)
+msgctxt "DescriptionLabels,StrikeBuff"
+msgid "타격버프"
+msgstr "Strike Buff"
+
+#. Key:	AbilityRange
+#. SourceLocation:	Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(145)
+#: Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(145)
+msgctxt "DescriptionLabels,AbilityRange"
+msgid "능력사거리"
+msgstr "Ability Range"
+
+#. Key:	AttackRange
+#. SourceLocation:	Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(145)
+#: Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(145)
+msgctxt "DescriptionLabels,AttackRange"
+msgid "공격사거리"
+msgstr "Attack Range"
+
+#. Key:	DisplayText_001
+#. SourceLocation:	Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(151)
+#: Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(151)
+msgctxt "CoinDescriptionFormatter,DisplayText_001"
+msgid "공격력"
+msgstr "Attack Power"
+
+#. Key:	DisplayText_002
+#. SourceLocation:	Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(156)
+#: Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(156)
+msgctxt "CoinDescriptionFormatter,DisplayText_002"
+msgid "무기력"
+msgstr "Weapon Power"
+
+#. Key:	DisplayText_003
+#. SourceLocation:	Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(161)
+#: Source/Flip_Side/UI/CoinDescriptionFormatter.cpp(161)
+msgctxt "CoinDescriptionFormatter,DisplayText_003"
+msgid "횟수"
+msgstr "Count"
+
+#. Key:	CancelItem
+#. SourceLocation:	Source/Flip_Side/UI/CoinInfoPinHintWidget.cpp(43)
+#: Source/Flip_Side/UI/CoinInfoPinHintWidget.cpp(43)
+msgctxt "CoinCursorHint,CancelItem"
+msgid " 우클릭 시 아이템 취소"
+msgstr " Right-click to cancel item use"
+
+#. Key:	CancelAbility
+#. SourceLocation:	Source/Flip_Side/UI/CoinInfoPinHintWidget.cpp(44)
+#: Source/Flip_Side/UI/CoinInfoPinHintWidget.cpp(44)
+msgctxt "CoinCursorHint,CancelAbility"
+msgid " 우클릭 시 능력 취소"
+msgstr " Right-click to cancel the ability"
+
+#. Key:	DisplayText_001
+#. SourceLocation:	Source/Flip_Side/UI/ReadyCoinSlot.cpp(195)
+#: Source/Flip_Side/UI/ReadyCoinSlot.cpp(195)
+msgctxt "ReadyCoinSlot,DisplayText_001"
+msgid "취소 가능"
+msgstr "Can Cancel"
+
+#. Key:	DisplayText_002
+#. SourceLocation:	Source/Flip_Side/UI/ReadyCoinSlot.cpp(195)
+#: Source/Flip_Side/UI/ReadyCoinSlot.cpp(195)
+msgctxt "ReadyCoinSlot,DisplayText_002"
+msgid "취소 불가"
+msgstr "Cannot Cancel"
+
+#. Key:	Warning_0
+#. SourceLocation:	Source/Flip_Side/UI/ShopCard/W_ShopCardWarning.cpp(29)
+#: Source/Flip_Side/UI/ShopCard/W_ShopCardWarning.cpp(29)
+msgctxt "W_ShopCardWarning,Warning_0"
+msgid "이미 장착한 카드입니다."
+msgstr "This card is already equipped."
+
+#. Key:	Warning_1
+#. SourceLocation:	Source/Flip_Side/UI/ShopCard/W_ShopCardWarning.cpp(33)
+#: Source/Flip_Side/UI/ShopCard/W_ShopCardWarning.cpp(33)
+msgctxt "W_ShopCardWarning,Warning_1"
+msgid "카드가 장착 되어있지 않습니다."
+msgstr "No card is equipped."
+
+#. Key:	Warning_2
+#. SourceLocation:	Source/Flip_Side/UI/ShopCard/W_ShopCardWarning.cpp(37)
+#: Source/Flip_Side/UI/ShopCard/W_ShopCardWarning.cpp(37)
+msgctxt "W_ShopCardWarning,Warning_2"
+msgid "카드를 더 이상 선택할 수 없습니다."
+msgstr "You cannot equip any more cards."
+
+#. Key:	DisplayText_002
+#. SourceLocation:	Source/Flip_Side/UI/ShopCoinManage/W_BuyCoinSlotContainer.cpp(128)
+#: Source/Flip_Side/UI/ShopCoinManage/W_BuyCoinSlotContainer.cpp(128)
+msgctxt "W_BuyCoinSlotContainer,DisplayText_002"
+msgid "취소"
+msgstr "Cancel"
+
+#. Key:	DisplayText_003
+#. SourceLocation:	Source/Flip_Side/UI/ShopCoinManage/W_BuyCoinSlotContainer.cpp(80)
+#: Source/Flip_Side/UI/ShopCoinManage/W_BuyCoinSlotContainer.cpp(80)
+msgctxt "W_BuyCoinSlotContainer,DisplayText_003"
+msgid "슬롯 구매"
+msgstr "Buy Slot"
+
+#. Key:	Warning_0
+#. SourceLocation:	Source/Flip_Side/UI/ShopCoinManage/W_ShopCoinWarning.cpp(21)
+#: Source/Flip_Side/UI/ShopCoinManage/W_ShopCoinWarning.cpp(21)
+msgctxt "W_ShopCoinWarning,Warning_0"
+msgid "양면에 같은 무기를 장착할 수 없습니다."
+msgstr "You cannot equip the same weapon on both sides."
+
+#. Key:	Warning_1
+#. SourceLocation:	Source/Flip_Side/UI/ShopCoinManage/W_ShopCoinWarning.cpp(25)
+#: Source/Flip_Side/UI/ShopCoinManage/W_ShopCoinWarning.cpp(25)
+msgctxt "W_ShopCoinWarning,Warning_1"
+msgid "이미 같은 무기가 장착된 코인이 존재합니다."
+msgstr "A coin with this weapon combination already exists."
+
+#. Key:	Warning_2
+#. SourceLocation:	Source/Flip_Side/UI/ShopCoinManage/W_ShopCoinWarning.cpp(29)
+#: Source/Flip_Side/UI/ShopCoinManage/W_ShopCoinWarning.cpp(29)
+msgctxt "W_ShopCoinWarning,Warning_2"
+msgid "양면에 무기가 장착되어 있지 않습니다."
+msgstr "Weapons must be equipped on both sides."
+
+#. Key:	Warning_3
+#. SourceLocation:	Source/Flip_Side/UI/ShopCoinManage/W_ShopCoinWarning.cpp(33)
+#: Source/Flip_Side/UI/ShopCoinManage/W_ShopCoinWarning.cpp(33)
+msgctxt "W_ShopCoinWarning,Warning_3"
+msgid "최대 30개의 코인만 보유할 수 있습니다."
+msgstr "You can own up to 30 coins."
+
+#. Key:	Warning_4
+#. SourceLocation:	Source/Flip_Side/UI/ShopCoinManage/W_ShopCoinWarning.cpp(37)
+#: Source/Flip_Side/UI/ShopCoinManage/W_ShopCoinWarning.cpp(37)
+msgctxt "W_ShopCoinWarning,Warning_4"
+msgid "최대 10개의 코인슬롯만 보유할 수 있습니다."
+msgstr "You can own up to 10 coin slots."
+
+#. Key:	Warning_0
+#. SourceLocation:	Source/Flip_Side/UI/ShopItem/W_ShopItemWarning.cpp(30)
+#: Source/Flip_Side/UI/ShopItem/W_ShopItemWarning.cpp(30)
+msgctxt "W_ShopItemWarning,Warning_0"
+msgid "돈이 부족합니다."
+msgstr "Not enough gold."
+
+#. Key:	DisplayText_019
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(102)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(102)
+msgctxt "ShopTutorialFlow,DisplayText_019"
+msgid "우선 왼쪽 하단에서 코인 슬롯 창을 연 뒤 코인 슬롯을 구매해 보세요."
+msgstr "Open the coin slot panel in the bottom-left corner, then buy a coin slot."
+
+#. Key:	DisplayText_020
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(106)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(106)
+msgctxt "ShopTutorialFlow,DisplayText_020"
+msgid "코인 슬롯은 가격에 따라 해당 슬롯에 장착되는 코인의 최대 체력이 다릅니다."
+msgstr "A coin slot's price determines the maximum HP of the coins in that slot."
+
+#. Key:	DisplayText_021
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(110)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(110)
+msgctxt "ShopTutorialFlow,DisplayText_021"
+msgid "이제 코인에 무기를 장착해 보겠습니다."
+msgstr "Now let's equip a weapon on your coin."
+
+#. Key:	DisplayText_022
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(114)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(114)
+msgctxt "ShopTutorialFlow,DisplayText_022"
+msgid "쇠파이프를 장착해 보세요."
+msgstr "Try equipping the Steel Pipe."
+
+#. Key:	DisplayText_023
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(118)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(118)
+msgctxt "ShopTutorialFlow,DisplayText_023"
+msgid "코인의 앞면에 무기가 장착되었습니다."
+msgstr "A weapon is now equipped on the front of your coin."
+
+#. Key:	DisplayText_024
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(121)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(121)
+msgctxt "ShopTutorialFlow,DisplayText_024"
+msgid "코인은 양면에 무기를 장착해야 전투에 참여할 수 있습니다."
+msgstr "A coin must have weapons equipped on both sides to enter battle."
+
+#. Key:	DisplayText_025
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(125)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(125)
+msgctxt "ShopTutorialFlow,DisplayText_025"
+msgid "코인 슬롯의 뒷면 버튼이나 오른쪽 코인을 눌러 뒷면으로 전환해 보세요."
+msgstr "Click the Back button on the coin slot or the coin on the right to flip it to the back."
+
+#. Key:	DisplayText_026
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(129)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(129)
+msgctxt "ShopTutorialFlow,DisplayText_026"
+msgid "이제 코인 뒷면에 무기를 장착할 수 있습니다.\n뒷면에 무기를 장착해 보세요."
+msgstr "You can now equip a weapon on the back of your coin.\nTry equipping a weapon on the back."
+
+#. Key:	DisplayText_027
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(133)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(133)
+msgctxt "ShopTutorialFlow,DisplayText_027"
+msgid "코인의 앞뒤에는 같은 무기를 장착할 수 없습니다.\n또한 다른 코인 슬롯과 앞뒤 무기가 중복되는 코인은 만들 수 없습니다."
+msgstr "You cannot equip the same weapon on both sides of a coin.\nYou also cannot create the same front-and-back weapon combination in another coin slot."
+
+#. Key:	DisplayText_028
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(137)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(137)
+msgctxt "ShopTutorialFlow,DisplayText_028"
+msgid "코인의 앞뒤에 무기를 장착했다면\n슬롯의 위쪽 화살표 버튼을 눌러 코인 개수를 5개로 늘려 보세요."
+msgstr "Once both sides have weapons equipped,\nclick the up arrow above the slot to increase its coin count to 5."
+
+#. Key:	DisplayText_029
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(141)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(141)
+msgctxt "ShopTutorialFlow,DisplayText_029"
+msgid "코인 개수가 1개 이상인 슬롯의 코인만 전투에 참여할 수 있습니다."
+msgstr "Only coins from slots with a coin count of at least 1 can enter battle."
+
+#. Key:	DisplayText_030
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(145)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(145)
+msgctxt "ShopTutorialFlow,DisplayText_030"
+msgid "이제 전투에 도움을 주는 카드를 구매해 보겠습니다."
+msgstr "Now let's buy a card to help you in battle."
+
+#. Key:	DisplayText_031
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(153)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(153)
+msgctxt "ShopTutorialFlow,DisplayText_031"
+msgid "카드 상점에서는 카드를 구매할 수 있습니다."
+msgstr "You can buy cards at the Card Shop."
+
+#. Key:	DisplayText_032
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(157)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(157)
+msgctxt "ShopTutorialFlow,DisplayText_032"
+msgid "카드는 특정 조건을 만족할 때 강력한 효과를 냅니다."
+msgstr "Cards provide powerful effects when certain conditions are met."
+
+#. Key:	DisplayText_033
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(161)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(161)
+msgctxt "ShopTutorialFlow,DisplayText_033"
+msgid "구매한 카드는 전투가 끝나도 사라지지 않으며,\n다음 전투에서도 장착할 수 있습니다."
+msgstr "Purchased cards remain after battle,\nand you can equip them for your next battle."
+
+#. Key:	DisplayText_034
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(165)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(165)
+msgctxt "ShopTutorialFlow,DisplayText_034"
+msgid "카드를 구매해 보세요."
+msgstr "Try buying a card."
+
+#. Key:	DisplayText_035
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(169)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(169)
+msgctxt "ShopTutorialFlow,DisplayText_035"
+msgid "구매한 카드는 왼쪽 하단에서 확인할 수 있습니다."
+msgstr "You can find your purchased cards in the bottom-left corner."
+
+#. Key:	DisplayText_036
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(173)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(173)
+msgctxt "ShopTutorialFlow,DisplayText_036"
+msgid "이제 구매한 카드를 장착해 보세요."
+msgstr "Now try equipping the card you bought."
+
+#. Key:	DisplayText_037
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(177)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(177)
+msgctxt "ShopTutorialFlow,DisplayText_037"
+msgid "카드는 최대 3개까지 장착할 수 있습니다."
+msgstr "You can equip up to 3 cards."
+
+#. Key:	DisplayText_038
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(181)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(181)
+msgctxt "ShopTutorialFlow,DisplayText_038"
+msgid "이제 마지막으로 아이템을 구매해 보겠습니다."
+msgstr "Finally, let's buy an item."
+
+#. Key:	DisplayText_039
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(189)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(189)
+msgctxt "ShopTutorialFlow,DisplayText_039"
+msgid "아이템은 코인 행동 턴에 사용할 수 있습니다."
+msgstr "Items can be used during the Coin Action Phase."
+
+#. Key:	DisplayText_040
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(193)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(193)
+msgctxt "ShopTutorialFlow,DisplayText_040"
+msgid "아이템을 하나 선택해 구매해 보세요."
+msgstr "Select an item and buy it."
+
+#. Key:	DisplayText_041
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(197)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(197)
+msgctxt "ShopTutorialFlow,DisplayText_041"
+msgid "구매한 아이템은 왼쪽의 구매한 아이템 목록에 추가되며\n최대 3종류의 아이템을 구매할 수 있습니다."
+msgstr "Purchased items appear in the list on the left.\nYou can own up to 3 different types of items."
+
+#. Key:	DisplayText_042
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(201)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(201)
+msgctxt "ShopTutorialFlow,DisplayText_042"
+msgid "왼쪽 패널에서 구매한 아이템을 판매해 보세요."
+msgstr "Try selling a purchased item from the panel on the left."
+
+#. Key:	DisplayText_043
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(205)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(205)
+msgctxt "ShopTutorialFlow,DisplayText_043"
+msgid "구매한 아이템은 같은 가격에 재판매할 수 있습니다."
+msgstr "You can sell purchased items for the same price you paid."
+
+#. Key:	DisplayText_044
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(213)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(213)
+msgctxt "ShopTutorialFlow,DisplayText_044"
+msgid "이제 상점에서 할 수 있는 모든 기능을 배웠습니다."
+msgstr "You have now learned everything you can do at the shop."
+
+#. Key:	DisplayText_045
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(217)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(217)
+msgctxt "ShopTutorialFlow,DisplayText_045"
+msgid "상점에서 구매한 코인과 슬롯은 전투가 끝나면 자동으로 정산되며,\n구매한 무기와 카드는 계속해서 사용할 수 있습니다."
+msgstr "Purchased coins and coin slots are automatically settled after battle.\nPurchased weapons and cards remain available for future use."
+
+#. Key:	DisplayText_001
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(22)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(22)
+msgctxt "ShopTutorialFlow,DisplayText_001"
+msgid "상점에서는 보스 전투를 준비하고 나만의 전략을 세울 수 있습니다."
+msgstr "At the shop, you can prepare for boss battles and build your own strategy."
+
+#. Key:	DisplayText_046
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(221)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(221)
+msgctxt "ShopTutorialFlow,DisplayText_046"
+msgid "이제 실제 전투를 진행해 보겠습니다."
+msgstr "Now let's move on to a real battle."
+
+#. Key:	DisplayText_002
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(26)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(26)
+msgctxt "ShopTutorialFlow,DisplayText_002"
+msgid "전투에 직접 사용하는 무기와 코인을 구매할 수 있으며,\n전투에 도움이 되는 아이템과 카드도 구매할 수 있습니다."
+msgstr "You can buy weapons and coins to use in combat,\nas well as items and cards to help you in battle."
+
+#. Key:	DisplayText_003
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(30)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(30)
+msgctxt "ShopTutorialFlow,DisplayText_003"
+msgid "우선 상점에서 이동하는 방법을 알려 드리겠습니다."
+msgstr "First, let's learn how to navigate the shop."
+
+#. Key:	DisplayText_004
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(34)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(34)
+msgctxt "ShopTutorialFlow,DisplayText_004"
+msgid "상단의 화살표를 눌러 보세요."
+msgstr "Click the arrow at the top of the screen."
+
+#. Key:	DisplayText_005
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(38)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(38)
+msgctxt "ShopTutorialFlow,DisplayText_005"
+msgid "방금 연 상단 바의 버튼을 통해 각 상점으로 빠르게 이동할 수 있습니다."
+msgstr "Use the buttons on the navigation bar you just opened to quickly move between shops."
+
+#. Key:	DisplayText_006
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(42)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(42)
+msgctxt "ShopTutorialFlow,DisplayText_006"
+msgid "상단 바뿐만 아니라 책상 위의 오브젝트를 통해서도 각 상점으로 이동할 수 있습니다."
+msgstr "You can also move between shops by clicking the objects on the desk."
+
+#. Key:	DisplayText_007
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(46)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(46)
+msgctxt "ShopTutorialFlow,DisplayText_007"
+msgid "보스 버튼이나 보스 조각상을 눌러 보스 정보 화면으로 이동해 보세요."
+msgstr "Click the Boss button or the boss statue to open the boss info screen."
+
+#. Key:	DisplayText_008
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(50)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(50)
+msgctxt "ShopTutorialFlow,DisplayText_008"
+msgid "이 곳에서는 보스의 패시브와 패턴, 기믹을 가지고 있습니다."
+msgstr "Here, you can view the boss's passive ability, patterns, and gimmicks."
+
+#. Key:	DisplayText_009
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(54)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(54)
+msgctxt "ShopTutorialFlow,DisplayText_009"
+msgid "우선 패턴, 기믹 버튼을 눌러 정보를 확인해 보세요"
+msgstr "First, click a pattern or gimmick button to view its details."
+
+#. Key:	DisplayText_010
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(58)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(58)
+msgctxt "ShopTutorialFlow,DisplayText_010"
+msgid "보스는 여러 패턴과 기믹을 가지며\n보스의 패턴, 기믹 정보를 확인해 수비 전략을 세울 수 있습니다."
+msgstr "Bosses have various patterns and gimmicks.\nReview them to plan your defense."
+
+#. Key:	DisplayText_011
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(62)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(62)
+msgctxt "ShopTutorialFlow,DisplayText_011"
+msgid "이제 패시브 버튼을 눌러 패시브 정보를 확인해 보세요"
+msgstr "Now click the Passive button to view the boss's passive ability."
+
+#. Key:	DisplayText_012
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(66)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(66)
+msgctxt "ShopTutorialFlow,DisplayText_012"
+msgid "보스마다 고유한 패시브가 있으며\n보스의 패시브를 통해 공격 전략을 세울 수 있습니다."
+msgstr "Each boss has a unique passive ability.\nUse this information to plan your attacks."
+
+#. Key:	DisplayText_013
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(70)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(70)
+msgctxt "ShopTutorialFlow,DisplayText_013"
+msgid "이제 이 정보를 바탕으로 전투에 사용할 무기를 구매해 보겠습니다."
+msgstr "Now let's use this information to buy weapons for battle."
+
+#. Key:	DisplayText_014
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(78)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(78)
+msgctxt "ShopTutorialFlow,DisplayText_014"
+msgid "이곳에서는 코인의 한쪽 면에 장착할 수 있는 무기를 구매할 수 있습니다."
+msgstr "Here, you can buy weapons to equip on one side of a coin."
+
+#. Key:	DisplayText_015
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(82)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(82)
+msgctxt "ShopTutorialFlow,DisplayText_015"
+msgid "오른쪽 슬롯을 길게 눌러 무기를 구매해 보세요."
+msgstr "Press and hold a slot on the right to buy a weapon."
+
+#. Key:	DisplayText_016
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(86)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(86)
+msgctxt "ShopTutorialFlow,DisplayText_016"
+msgid "이렇게 구매한 무기는 이번 전투가 끝나도 계속해서 코인에 장착할 수 있습니다."
+msgstr "Purchased weapons remain available to equip on coins even after the battle ends."
+
+#. Key:	DisplayText_017
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(90)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(90)
+msgctxt "ShopTutorialFlow,DisplayText_017"
+msgid "이제 구매한 무기를 코인에 장착해 보겠습니다."
+msgstr "Now let's equip your purchased weapon on a coin."
+
+#. Key:	DisplayText_018
+#. SourceLocation:	Source/Flip_Side/UI/ShopTutorialFlow.cpp(98)
+#: Source/Flip_Side/UI/ShopTutorialFlow.cpp(98)
+msgctxt "ShopTutorialFlow,DisplayText_018"
+msgid "코인 상점에서는 전투에 직접적으로 참여할 코인을 만들 수 있습니다."
+msgstr "At the Coin Shop, you can create coins to use in battle."
+
+#. Key:	Warning_0
+#. SourceLocation:	Source/Flip_Side/UI/ShopUnlockWeapon/W_UnlockWeaponWarning.cpp(29)
+#: Source/Flip_Side/UI/ShopUnlockWeapon/W_UnlockWeaponWarning.cpp(29)
+msgctxt "W_UnlockWeaponWarning,Warning_0"
+msgid "돈이 부족합니다."
+msgstr "Not enough gold."
+
+#. Key:	DisplayText_001
+#. SourceLocation:	Source/Flip_Side/UI/TutorialClickHintWidget.h(14)
+#: Source/Flip_Side/UI/TutorialClickHintWidget.h(14)
+msgctxt "TutorialClickHintWidget,DisplayText_001"
+msgid "Click!"
+msgstr "Click!"
+
+#. Key:	Attack
+#. SourceLocation:	Source/Flip_Side/UI/TutorialDescriptionWidget.cpp(90)
+#: Source/Flip_Side/UI/TutorialDescriptionWidget.cpp(90)
+msgctxt "DescriptionLabels,Attack"
+msgid "공격"
+msgstr "Attack"
+
+#. Key:	Hit
+#. SourceLocation:	Source/Flip_Side/UI/TutorialDescriptionWidget.cpp(91)
+#: Source/Flip_Side/UI/TutorialDescriptionWidget.cpp(91)
+msgctxt "DescriptionLabels,Hit"
+msgid "적중"
+msgstr "Hit"
+
+#. Key:	Mobility
+#. SourceLocation:	Source/Flip_Side/UI/TutorialDescriptionWidget.cpp(92)
+#: Source/Flip_Side/UI/TutorialDescriptionWidget.cpp(92)
+msgctxt "DescriptionLabels,Mobility"
+msgid "기동"
+msgstr "Mobility"
+
+#. Key:	DisplayText_001
+#. SourceLocation:	Source/Flip_Side/UI/W_BattlePhaseAndTurnDisplayUI.cpp(22)
+#: Source/Flip_Side/UI/W_BattlePhaseAndTurnDisplayUI.cpp(22)
+msgctxt "W_BattlePhaseAndTurnDisplayUI,DisplayText_001"
+msgid "<CoinReady>Coin Ready</>"
+msgstr "<CoinReady>Coin Ready</>"
+
+#. Key:	DisplayText_002
+#. SourceLocation:	Source/Flip_Side/UI/W_BattlePhaseAndTurnDisplayUI.cpp(24)
+#: Source/Flip_Side/UI/W_BattlePhaseAndTurnDisplayUI.cpp(24)
+msgctxt "W_BattlePhaseAndTurnDisplayUI,DisplayText_002"
+msgid "<CoinBehavior>Coin Behavior</>"
+msgstr "<CoinBehavior>Coin Action</>"
+
+#. Key:	DisplayText_003
+#. SourceLocation:	Source/Flip_Side/UI/W_BattlePhaseAndTurnDisplayUI.cpp(26)
+#: Source/Flip_Side/UI/W_BattlePhaseAndTurnDisplayUI.cpp(26)
+msgctxt "W_BattlePhaseAndTurnDisplayUI,DisplayText_003"
+msgid "<Boss>Boss</>"
+msgstr "<Boss>Boss</>"
+
+#. Key:	Instant
+#. SourceLocation:	Source/Flip_Side/UI/W_CardWidget.cpp(129)
+#: Source/Flip_Side/UI/W_CardWidget.cpp(129)
+msgctxt "DescriptionLabels,Instant"
+msgid "즉시"
+msgstr "Instant"
+
+#. Key:	GoldAmount
+#. SourceLocation:	Source/Flip_Side/UI/W_PriceWidget.cpp(10)
+#: Source/Flip_Side/UI/W_PriceWidget.cpp(10)
+msgctxt "PriceWidget,GoldAmount"
+msgid "{0} Gold"
+msgstr "{0} Gold"
+
+#. Key:	Windowed
+#. SourceLocation:	Source/Flip_Side/UI/W_SettingGraphic.cpp(116)
+#: Source/Flip_Side/UI/W_SettingGraphic.cpp(116)
+msgctxt "SettingGraphic,Windowed"
+msgid "창 모드"
+msgstr "Windowed"
+
+#. Key:	Fullscreen
+#. SourceLocation:	Source/Flip_Side/UI/W_SettingGraphic.cpp(117)
+#: Source/Flip_Side/UI/W_SettingGraphic.cpp(117)
+msgctxt "SettingGraphic,Fullscreen"
+msgid "전체 화면"
+msgstr "Fullscreen"
+
+#. Key:	Borderless
+#. SourceLocation:	Source/Flip_Side/UI/W_SettingGraphic.cpp(118)
+#: Source/Flip_Side/UI/W_SettingGraphic.cpp(118)
+msgctxt "SettingGraphic,Borderless"
+msgid "경계없는 창모드"
+msgstr "Borderless Window"
+
+#. Key:	ResolutionRevertCountdown
+#. SourceLocation:	Source/Flip_Side/UI/W_SettingWidget.cpp(189)
+#: Source/Flip_Side/UI/W_SettingWidget.cpp(189)
+msgctxt "SettingWidget,ResolutionRevertCountdown"
+msgid "{0}초 후 원래 해상도로 되돌아갑니다."
+msgstr "Reverting to the previous resolution in {0} seconds."
+
+#. Key:	PatternButtonLabel
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(200)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(200)
+msgctxt "BossInfo,PatternButtonLabel"
+msgid "P{0}"
+msgstr "P{0}"
+
+#. Key:	GimmickButtonLabel
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(207)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(207)
+msgctxt "BossInfo,GimmickButtonLabel"
+msgid "G{0}"
+msgstr "G{0}"
+
+#. Key:	HPFmt
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(244)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(244)
+msgctxt "BossInfo,HPFmt"
+msgid "HP  {0}"
+msgstr "HP  {0}"
+
+#. Key:	ShieldValFmt
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(252)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(252)
+msgctxt "BossInfo,ShieldValFmt"
+msgid "쉴드  {0}"
+msgstr "Shield  {0}"
+
+#. Key:	PassiveTitle
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(290)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(290)
+msgctxt "BossInfo,PassiveTitle"
+msgid "패시브"
+msgstr "Passive"
+
+#. Key:	DisplayText_001
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(303)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(303)
+msgctxt "W_ShopBossInfo,DisplayText_001"
+msgid "패턴"
+msgstr "Pattern"
+
+#. Key:	DmgFmt
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(376)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(376)
+msgctxt "BossInfo,DmgFmt"
+msgid "공격력  {0}"
+msgstr "Attack Power  {0}"
+
+#. Key:	ShieldHealMaxFmt
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(384)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(384)
+msgctxt "BossInfo,ShieldHealMaxFmt"
+msgid "쉴드 최대 {0} 회복"
+msgstr "Restore up to {0} Shield"
+
+#. Key:	ShieldHealDescription
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(385)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(385)
+msgctxt "BossInfo,ShieldHealDescription"
+msgid "보스가 쉴드를 최대 {0} 회복합니다. 최대 쉴드를 넘겨 회복하지 않습니다."
+msgstr "The boss restores up to {0} Shield, without exceeding its maximum Shield."
+
+#. Key:	BlindDamageFmt
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(389)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(389)
+msgctxt "BossInfo,BlindDamageFmt"
+msgid "피해 {0} · 실명 {1}턴"
+msgstr "Damage {0} · Blind {1} turns"
+
+#. Key:	BlindDamageDescription
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(391)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(391)
+msgctxt "BossInfo,BlindDamageDescription"
+msgid "범위 내 코인에게 피해 {0}을 주고 {1}턴 동안 실명을 부여합니다.\n<DebuffDesc>•실명 상태에서는 공격이 적중하지 않습니다. 기동 능력은 사용할 수 있습니다.</>"
+msgstr "Deals {0} damage to coins in the area and inflicts Blind for {1} turns.\n<DebuffDesc>•While Blind, attacks cannot hit. Mobility abilities can still be used.</>"
+
+#. Key:	SwampWeaponPowerFmt
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(397)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(397)
+msgctxt "BossInfo,SwampWeaponPowerFmt"
+msgid "피해 {0} · {1}턴 무기력 {2}"
+msgstr "Damage {0} · Weapon Power {2} for {1} turns"
+
+#. Key:	SwampWeaponPowerDescription
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(399)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(399)
+msgctxt "BossInfo,SwampWeaponPowerDescription"
+msgid "범위 내 코인에게 피해 {0}을 주고 {1}턴 동안 무기력 {2} 디버프를 부여합니다. 디버프는 중첩되지 않습니다."
+msgstr "Deals {0} damage to coins in the area and applies a Weapon Power debuff of {2} for {1} turns. This debuff does not stack."
+
+#. Key:	SwampAttackPowerFmt
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(404)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(404)
+msgctxt "BossInfo,SwampAttackPowerFmt"
+msgid "피해 {0} · {1}턴 공격력 {2}"
+msgstr "Damage {0} · Attack Power {2} for {1} turns"
+
+#. Key:	SwampAttackPowerDescription
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(406)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(406)
+msgctxt "BossInfo,SwampAttackPowerDescription"
+msgid "범위 내 코인에게 피해 {0}을 주고 {1}턴 동안 공격력 {2} 디버프를 부여합니다. 디버프는 중첩되지 않습니다."
+msgstr "Deals {0} damage to coins in the area and applies an Attack Power debuff of {2} for {1} turns. This debuff does not stack."
+
+#. Key:	SwampConditionalDamageFmt
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(411)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(411)
+msgctxt "BossInfo,SwampConditionalDamageFmt"
+msgid "피해 {0} / 디버프 보유 시 {1}"
+msgstr "Damage {0} / {1} if debuffed"
+
+#. Key:	SwampConditionalDamageDescription
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(413)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(413)
+msgctxt "BossInfo,SwampConditionalDamageDescription"
+msgid "범위 내 코인에게 피해 {0}을 줍니다. 디버프를 가진 코인에게는 대신 피해 {1}을 줍니다."
+msgstr "Deals {0} damage to coins in the area. Coins with a debuff take {1} damage instead."
+
+#. Key:	BrandDamageFmt
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(418)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(418)
+msgctxt "BossInfo,BrandDamageFmt"
+msgid "피해 {0} · 낙인 {1} × 경과 턴 합계"
+msgstr "Damage {0} · Brand {1} × total elapsed turns"
+
+#. Key:	BrandDamageDescription
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopBossInfo.cpp(420)
+#: Source/Flip_Side/UI/W_ShopBossInfo.cpp(420)
+msgctxt "BossInfo,BrandDamageDescription"
+msgid "범위 내 코인에게 피해 {0}을 주고 낙인을 부여합니다.\n<DebuffDesc>•낙인은 정화하기 전까지 유지됩니다.</>\n<DebuffDesc>•보스 페이즈마다 {1} × 모든 낙인의 경과 턴 합계만큼 피해를 줍니다.</>\n<DebuffDesc>•다시 맞으면 새 낙인이 따로 추가됩니다.</>"
+msgstr "Deals {0} damage to coins in the area and inflicts Brand.\n<DebuffDesc>•Brand lasts until cleansed.</>\n<DebuffDesc>•Each Boss Phase, it deals {1} × the total elapsed turns of all Brands as damage.</>\n<DebuffDesc>•Each additional hit applies a separate Brand.</>"
+
+#. Key:	Start
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopCheckStartGame.cpp(20)
+#: Source/Flip_Side/UI/W_ShopCheckStartGame.cpp(20)
+msgctxt "ShopStartConfirmation,Start"
+msgid "게임을 시작하시겠습니까?"
+msgstr "Start the game?"
+
+#. Key:	StartWithoutCoins
+#. SourceLocation:	Source/Flip_Side/UI/W_ShopCheckStartGame.cpp(21)
+#: Source/Flip_Side/UI/W_ShopCheckStartGame.cpp(21)
+msgctxt "ShopStartConfirmation,StartWithoutCoins"
+msgid "코인이 없습니다. 게임을 시작하시겠습니까?"
+msgstr "You have no coins. Start the game anyway?"

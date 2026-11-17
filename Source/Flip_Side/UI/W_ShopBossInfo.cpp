@@ -204,7 +204,7 @@ void UW_ShopBossInfo::RebuildPatternButtons(int32 PatternCount)
 		else
 		{
 			ButtonLabel = FText::Format(
-				NSLOCTEXT("BossInfo", "PatternButtonLabel", "G{0}"),
+				NSLOCTEXT("BossInfo", "GimmickButtonLabel", "G{0}"),
 				FText::AsNumber(Index + 1)
 			);
 		}
@@ -249,7 +249,7 @@ void UW_ShopBossInfo::RefreshBossTexts()
 	{
 		if (FinalShield > 0)
 		{
-			BossShieldText->SetText(FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("쉴드  {0}")), FText::AsNumber(FinalShield)));
+			BossShieldText->SetText(FText::Format(NSLOCTEXT("BossInfo", "ShieldValFmt", "쉴드  {0}"), FText::AsNumber(FinalShield)));
 			BossShieldText->SetColorAndOpacity(FSlateColor(FLinearColor(0.3f, 0.6f, 1.f)));
 			BossShieldText->SetVisibility(ESlateVisibility::HitTestInvisible);
 		}
@@ -287,10 +287,10 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 			}
 		}
 		if (PatternTitleText)
-			PatternTitleText->SetText(UDataManagerSubsystem::GetDisplayText(TEXT("패시브")));
+			PatternTitleText->SetText(NSLOCTEXT("BossInfo", "PassiveTitle", "패시브"));
 		if (PatternNameText)
 		{
-			PatternNameText->SetText(UDataManagerSubsystem::GetDisplayText(TEXT("패시브")));
+			PatternNameText->SetText(NSLOCTEXT("BossInfo", "PassiveTitle", "패시브"));
 			PatternNameText->SetColorAndOpacity(FSlateColor(FLinearColor(1.f, 0.85f, 0.3f)));
 		}
 		if (PatternDescriptionText)
@@ -300,7 +300,7 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 
 	if(PatternTitleText)
 	{
-		PatternTitleText->SetText(UDataManagerSubsystem::GetDisplayText(TEXT("패턴")));
+		PatternTitleText->SetText(NSLOCTEXT("W_ShopBossInfo", "DisplayText_001", "패턴"));
 	}
 
 	if(!CurrentPatternDataList.IsValidIndex(CurrentPatternIndex))
@@ -373,7 +373,7 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 	}
 
 	FText StatText = FinalDamage > 0
-		? FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("공격력  {0}")), FText::AsNumber(FinalDamage))
+		? FText::Format(NSLOCTEXT("BossInfo", "DmgFmt", "공격력  {0}"), FText::AsNumber(FinalDamage))
 		: FText::GetEmpty();
 	FText DisplayDescription = PatternData.PatternDescription;
 	switch (PatternData.GimmickType)
@@ -381,43 +381,43 @@ void UW_ShopBossInfo::RefreshPatternTexts()
 	case EBossGimmickType::Shield:
 		if (PatternData.bNoDamage)
 		{
-			StatText = FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("쉴드 최대 {0} 회복")), FText::AsNumber(FinalShieldHeal));
-			DisplayDescription = FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("보스가 쉴드를 최대 {0} 회복합니다. 최대 쉴드를 넘겨 회복하지 않습니다.")), FText::AsNumber(FinalShieldHeal));
+			StatText = FText::Format(NSLOCTEXT("BossInfo", "ShieldHealMaxFmt", "쉴드 최대 {0} 회복"), FText::AsNumber(FinalShieldHeal));
+			DisplayDescription = FText::Format(NSLOCTEXT("BossInfo", "ShieldHealDescription", "보스가 쉴드를 최대 {0} 회복합니다. 최대 쉴드를 넘겨 회복하지 않습니다."), FText::AsNumber(FinalShieldHeal));
 		}
 		break;
 	case EBossGimmickType::Blind:
-		StatText = FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("피해 {0} · 실명 {1}턴")),
+		StatText = FText::Format(NSLOCTEXT("BossInfo", "BlindDamageFmt", "피해 {0} · 실명 {1}턴"),
 			FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA));
-		DisplayDescription = FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("범위 내 코인에게 피해 {0}을 주고 {1}턴 동안 실명을 부여합니다.\n<DebuffDesc>•실명 상태에서는 공격이 적중하지 않습니다. 기동 능력은 사용할 수 있습니다.</>")),
+		DisplayDescription = FText::Format(NSLOCTEXT("BossInfo", "BlindDamageDescription", "범위 내 코인에게 피해 {0}을 주고 {1}턴 동안 실명을 부여합니다.\n<DebuffDesc>•실명 상태에서는 공격이 적중하지 않습니다. 기동 능력은 사용할 수 있습니다.</>"),
 			FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA));
 		break;
 	case EBossGimmickType::GridDebuff:
 		if (bIsSwampPattern && CurrentPatternIndex == 0)
 		{
-			StatText = FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("피해 {0} · {1}턴 무기력 {2}")),
+			StatText = FText::Format(NSLOCTEXT("BossInfo", "SwampWeaponPowerFmt", "피해 {0} · {1}턴 무기력 {2}"),
 				FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA), FText::AsNumber(PatternData.GimmickParamB));
-			DisplayDescription = FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("범위 내 코인에게 피해 {0}을 주고 {1}턴 동안 무기력 {2} 디버프를 부여합니다. 디버프는 중첩되지 않습니다.")),
+			DisplayDescription = FText::Format(NSLOCTEXT("BossInfo", "SwampWeaponPowerDescription", "범위 내 코인에게 피해 {0}을 주고 {1}턴 동안 무기력 {2} 디버프를 부여합니다. 디버프는 중첩되지 않습니다."),
 				FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA), FText::AsNumber(PatternData.GimmickParamB));
 		}
 		else if (bIsSwampPattern && CurrentPatternIndex == 1)
 		{
-			StatText = FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("피해 {0} · {1}턴 공격력 {2}")),
+			StatText = FText::Format(NSLOCTEXT("BossInfo", "SwampAttackPowerFmt", "피해 {0} · {1}턴 공격력 {2}"),
 				FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA), FText::AsNumber(PatternData.GimmickParamB));
-			DisplayDescription = FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("범위 내 코인에게 피해 {0}을 주고 {1}턴 동안 공격력 {2} 디버프를 부여합니다. 디버프는 중첩되지 않습니다.")),
+			DisplayDescription = FText::Format(NSLOCTEXT("BossInfo", "SwampAttackPowerDescription", "범위 내 코인에게 피해 {0}을 주고 {1}턴 동안 공격력 {2} 디버프를 부여합니다. 디버프는 중첩되지 않습니다."),
 				FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA), FText::AsNumber(PatternData.GimmickParamB));
 		}
 		else if (bHasConditionalDamage)
 		{
-			StatText = FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("피해 {0} / 디버프 보유 시 {1}")),
+			StatText = FText::Format(NSLOCTEXT("BossInfo", "SwampConditionalDamageFmt", "피해 {0} / 디버프 보유 시 {1}"),
 				FText::AsNumber(FinalDamage), FText::AsNumber(ConditionalDamage));
-			DisplayDescription = FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("범위 내 코인에게 피해 {0}을 줍니다. 디버프를 가진 코인에게는 대신 피해 {1}을 줍니다.")),
+			DisplayDescription = FText::Format(NSLOCTEXT("BossInfo", "SwampConditionalDamageDescription", "범위 내 코인에게 피해 {0}을 줍니다. 디버프를 가진 코인에게는 대신 피해 {1}을 줍니다."),
 				FText::AsNumber(FinalDamage), FText::AsNumber(ConditionalDamage));
 		}
 		break;
 	case EBossGimmickType::Poison:
-		StatText = FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("피해 {0} · 낙인 {1} × 경과 턴 합계")),
+		StatText = FText::Format(NSLOCTEXT("BossInfo", "BrandDamageFmt", "피해 {0} · 낙인 {1} × 경과 턴 합계"),
 			FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA));
-		DisplayDescription = FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("범위 내 코인에게 피해 {0}을 주고 낙인을 부여합니다.\n<DebuffDesc>•낙인은 정화하기 전까지 유지됩니다.</>\n<DebuffDesc>•보스 페이즈마다 {1} × 모든 낙인의 경과 턴 합계만큼 피해를 줍니다.</>\n<DebuffDesc>•다시 맞으면 새 낙인이 따로 추가됩니다.</>")),
+		DisplayDescription = FText::Format(NSLOCTEXT("BossInfo", "BrandDamageDescription", "범위 내 코인에게 피해 {0}을 주고 낙인을 부여합니다.\n<DebuffDesc>•낙인은 정화하기 전까지 유지됩니다.</>\n<DebuffDesc>•보스 페이즈마다 {1} × 모든 낙인의 경과 턴 합계만큼 피해를 줍니다.</>\n<DebuffDesc>•다시 맞으면 새 낙인이 따로 추가됩니다.</>"),
 			FText::AsNumber(FinalDamage), FText::AsNumber(PatternData.GimmickParamA));
 		break;
 	default:

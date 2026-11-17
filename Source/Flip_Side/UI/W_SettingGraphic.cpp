@@ -113,9 +113,9 @@ void UW_SettingGraphic::InitializeResolutionOptions()
 void UW_SettingGraphic::InitializeWindowModeOptions()
 {
 	WindowModeComboBox->ClearOptions();
-	WindowModeComboBox->AddOption(TEXT("창 모드"));
-	WindowModeComboBox->AddOption(TEXT("전체 화면"));
-	WindowModeComboBox->AddOption(TEXT("경계없는 창모드"));
+	WindowModeComboBox->AddOption(NSLOCTEXT("SettingGraphic", "Windowed", "창 모드").ToString());
+	WindowModeComboBox->AddOption(NSLOCTEXT("SettingGraphic", "Fullscreen", "전체 화면").ToString());
+	WindowModeComboBox->AddOption(NSLOCTEXT("SettingGraphic", "Borderless", "경계없는 창모드").ToString());
 
 	SelectedWindowMode = GameSettingSubsystem
 		? GameSettingSubsystem->GetCurrentWindowMode()

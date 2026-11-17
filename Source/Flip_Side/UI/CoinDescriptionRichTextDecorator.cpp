@@ -112,7 +112,12 @@ TSharedPtr<SWidget> UCoinDescriptionRichTextDecorator::CreateDetailedStatDisplay
 	if (!IsValid(Widget) || !KeyText) return nullptr;
 	const FName Keys[] = { TEXT("STAT:AttackPower"), TEXT("STAT:WeaponPower"), TEXT("STAT:Count"),
 		TEXT("STAT:AttackRange"), TEXT("STAT:AbilityRange") };
-	const TCHAR* const Names[] = { TEXT("공격력"), TEXT("무기력"), TEXT("횟수"), TEXT("공격사거리"), TEXT("능력사거리") };
+	const FText Names[] = {
+        NSLOCTEXT("CoinDescriptionFormatter", "DisplayText_001", "공격력"),
+        NSLOCTEXT("CoinDescriptionFormatter", "DisplayText_002", "무기력"),
+        NSLOCTEXT("CoinDescriptionFormatter", "DisplayText_003", "횟수"),
+        NSLOCTEXT("DescriptionLabels", "AttackRange", "공격사거리"),
+        NSLOCTEXT("DescriptionLabels", "AbilityRange", "능력사거리") };
 	const FName Key(**KeyText);
 	int32 StatIndex = INDEX_NONE;
 	for (int32 Index = 0; Index < UE_ARRAY_COUNT(Keys); ++Index)
@@ -132,7 +137,7 @@ TSharedPtr<SWidget> UCoinDescriptionRichTextDecorator::CreateDetailedStatDisplay
 	const bool bHasDefinition = IsValid(Manager) && Manager->TryGetKeywordByCode(FName(*KeyText->RightChop(5)), Definition);
 	const FSlateColor Color = bHasDefinition ? FSlateColor(Definition.UIColor) : Style.ColorAndOpacity;
 	const FText Label = bHasDefinition && !Definition.DisplayName.IsEmpty()
-		? Definition.DisplayName : UDataManagerSubsystem::GetDisplayText(Names[StatIndex]);
+		? Definition.DisplayName : Names[StatIndex];
 	FSlateFontInfo Font = Style.Font;
 	Font.TypefaceFontName = Typeface;
 	TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox).Visibility(EVisibility::HitTestInvisible);

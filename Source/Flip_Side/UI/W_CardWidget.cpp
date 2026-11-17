@@ -126,7 +126,7 @@ TSharedPtr<SWidget> UW_CardWidget::CreateKeywordDisplay(FName Code, const FTextB
 {
     const FKeywordDefinitionData* Definition = KeywordDefinitions.Find(Code);
     const FText Label = Definition && !Definition->DisplayName.IsEmpty() ? Definition->DisplayName
-        : UDataManagerSubsystem::GetDisplayText(Code == TEXT("Attack") ? TEXT("공격") : Code == TEXT("Hit") ? TEXT("적중") : TEXT("즉시"));
+        : (Code == TEXT("Attack") ? NSLOCTEXT("DescriptionLabels", "Attack", "공격") : Code == TEXT("Hit") ? NSLOCTEXT("DescriptionLabels", "Hit", "적중") : NSLOCTEXT("DescriptionLabels", "Instant", "즉시"));
     UTexture2D* Icon = Definition ? Definition->Icon.Get() : nullptr;
     TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox).Visibility(EVisibility::HitTestInvisible);
     if (IsValid(Icon))

@@ -22,12 +22,12 @@ void UW_ShopItemWarning::NativeDestruct()
 
 void UW_ShopItemWarning::SetWarning(int32 WarningCode)
 {
-    FString text;
+    FText text;
 
     switch (WarningCode)
     {
      case 0:
-        text = TEXT("돈이 부족합니다.");
+        text = NSLOCTEXT("W_ShopItemWarning", "Warning_0", "돈이 부족합니다.");
         break;
     
     default:

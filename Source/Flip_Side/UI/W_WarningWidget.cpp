@@ -7,10 +7,10 @@
 #include "Engine/World.h"
 #include "Subsystem/BattleLevel/SoundManagerWSubsystem.h"
 
-void UW_WarningWidget::ActiveWarning(FString Text, bool bPlayWarningSound)
+void UW_WarningWidget::ActiveWarning(const FText& Text, bool bPlayWarningSound)
 {
     WarningImage->SetVisibility(ESlateVisibility::Visible);
-    WarningText->SetText(FText::FromString(Text));
+    WarningText->SetText(Text);
     PlayAnimation(WarningTextAnim);
 
     if (UWorld* World = GetWorld(); bPlayWarningSound && IsValid(World))

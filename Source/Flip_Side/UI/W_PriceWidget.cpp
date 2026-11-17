@@ -6,6 +6,6 @@
 
 void UW_PriceWidget::SetPriceText(int32 Price)
 {
-    FString text = FString::Printf(TEXT("%d Gold"), Price);
-    PriceText->SetText(FText::FromString(text));
+    PriceText->SetText(FText::Format(
+        NSLOCTEXT("PriceWidget", "GoldAmount", "{0} Gold"), FText::AsNumber(Price)));
 }

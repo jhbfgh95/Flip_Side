@@ -19,11 +19,11 @@ namespace
         switch (CurrentPhase)
         {
         case EPhaseState::CoinReadyPhase:
-            return FText::FromString(TEXT("<CoinReady>Coin Ready</>"));
+            return NSLOCTEXT("W_BattlePhaseAndTurnDisplayUI", "DisplayText_001", "<CoinReady>Coin Ready</>");
         case EPhaseState::CoinBehaviorPhase:
-            return FText::FromString(TEXT("<CoinBehavior>Coin Behavior</>"));
+            return NSLOCTEXT("W_BattlePhaseAndTurnDisplayUI", "DisplayText_002", "<CoinBehavior>Coin Behavior</>");
         case EPhaseState::BossPhase:
-            return FText::FromString(TEXT("<Boss>Boss</>"));
+            return NSLOCTEXT("W_BattlePhaseAndTurnDisplayUI", "DisplayText_003", "<Boss>Boss</>");
         default:
             return FText::GetEmpty();
         }

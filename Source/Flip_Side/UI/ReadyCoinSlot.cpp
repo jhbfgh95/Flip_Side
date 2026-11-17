@@ -192,7 +192,7 @@ void UReadyCoinSlot::UpdateCancelStateVisual()
 {
 	if (IsValid(CanCancleText))
 	{
-		CanCancleText->SetText(bCanCancel ? FText::FromString(TEXT("취소 가능")) : FText::FromString(TEXT("취소 불가")));
+		CanCancleText->SetText(bCanCancel ? NSLOCTEXT("ReadyCoinSlot", "DisplayText_001", "취소 가능") : NSLOCTEXT("ReadyCoinSlot", "DisplayText_002", "취소 불가"));
 	}
 
 	if (!IsValid(CanCancleIcon))

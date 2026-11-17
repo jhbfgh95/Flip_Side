@@ -16,11 +16,11 @@ void UW_ShopCheckStartGame::NativeOnInitialized()
 
 void UW_ShopCheckStartGame::SetCheckStartGameText(bool bHasCoin)
 {
-	const FString Message = bHasCoin
-		? TEXT("게임을 시작하시겠습니까?")
-		: TEXT("코인이 없습니다. 게임을 시작하시겠습니까?");
+	const FText Message = bHasCoin
+		? NSLOCTEXT("ShopStartConfirmation", "Start", "게임을 시작하시겠습니까?")
+		: NSLOCTEXT("ShopStartConfirmation", "StartWithoutCoins", "코인이 없습니다. 게임을 시작하시겠습니까?");
 
-	CheckStartGameText->SetText(FText::FromString(Message));
+	CheckStartGameText->SetText(Message);
 }
 
 void UW_ShopCheckStartGame::HandleStartGameButtonClicked()

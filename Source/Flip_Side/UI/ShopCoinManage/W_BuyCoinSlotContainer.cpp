@@ -77,7 +77,7 @@ void UW_BuyCoinSlotContainer::CloseSlotBuyPopupBorder()
 {
 	if (IsValid(SlotBuyBorder))
 	{
-		SlotBuyButtonText->SetText(FText::FromString(TEXT("슬롯 구매")));
+		SlotBuyButtonText->SetText(NSLOCTEXT("W_BuyCoinSlotContainer", "DisplayText_003", "슬롯 구매"));
 		IsPopupOpen = false;
 		USoundManagerWSubsystem::SetPopupVisibility(SlotBuyBorder, ESlateVisibility::Hidden);
 	}
@@ -125,12 +125,12 @@ void UW_BuyCoinSlotContainer::ClickOpenSlotBuyPopup()
 {
 	if(!IsPopupOpen)
 	{
-		SlotBuyButtonText->SetText(FText::FromString(TEXT("취소")));
+		SlotBuyButtonText->SetText(NSLOCTEXT("W_BuyCoinSlotContainer", "DisplayText_002", "취소"));
 		OpenSlotBuyPopupBorder();
 	}
 	else
 	{
-		SlotBuyButtonText->SetText(FText::FromString(TEXT("슬롯 구매")));
+		SlotBuyButtonText->SetText(NSLOCTEXT("W_BuyCoinSlotContainer", "DisplayText_003", "슬롯 구매"));
 		CloseSlotBuyPopupBorder();
 	}
 		

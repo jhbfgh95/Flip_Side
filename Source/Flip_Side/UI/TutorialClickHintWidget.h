@@ -11,7 +11,7 @@ class FLIP_SIDE_API UTutorialClickHintWidget : public UUserWidget
 public:
 	UTutorialClickHintWidget(const FObjectInitializer& ObjectInitializer);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tutorial")
-	FText Prompt = FText::FromString(TEXT("Click!"));
+	FText Prompt = NSLOCTEXT("TutorialClickHintWidget", "DisplayText_001", "Click!");
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tutorial")
 	FLinearColor PromptColor = FLinearColor::White;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tutorial")

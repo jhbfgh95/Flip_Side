@@ -87,10 +87,11 @@ void UTutorialDescriptionWidget::SetDescriptionText(const FText& Text)
 TSharedPtr<SWidget> UTutorialDescriptionWidget::CreateKeywordDisplay(FName Code, const FTextBlockStyle& Style)
 {
 	const FKeywordDefinitionData* Definition = KeywordDefinitions.Find(Code);
-	const FString SourceLabel = Code == TEXT("Attack") ? TEXT("공격") : Code == TEXT("Hit") ? TEXT("적중")
-		: Code == TEXT("Mobility") ? TEXT("기동") : Code.ToString();
+	const FText FallbackLabel = Code == TEXT("Attack") ? NSLOCTEXT("DescriptionLabels", "Attack", "공격")
+        : Code == TEXT("Hit") ? NSLOCTEXT("DescriptionLabels", "Hit", "적중")
+        : Code == TEXT("Mobility") ? NSLOCTEXT("DescriptionLabels", "Mobility", "기동") : FText::FromName(Code);
 	const FText Label = Definition && !Definition->DisplayName.IsEmpty()
-		? Definition->DisplayName : UDataManagerSubsystem::GetDisplayText(SourceLabel);
+		? Definition->DisplayName : FallbackLabel;
 	const FSlateColor Color = Definition ? FSlateColor(Definition->UIColor) : Style.ColorAndOpacity;
 	UTexture2D* Icon = Definition ? Definition->Icon.Get() : nullptr;
 	FSlateFontInfo Font = Style.Font;

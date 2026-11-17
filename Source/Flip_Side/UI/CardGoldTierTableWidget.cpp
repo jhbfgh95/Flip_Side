@@ -53,7 +53,7 @@ void UCardGoldTierTableWidget::NativeConstruct()
 void UCardGoldTierTableWidget::RefreshTable()
 {
 	if (!IsValid(WidgetTree) || !IsValid(GoldTierGrid)) return;
-	AddCell(0, 0, UDataManagerSubsystem::GetDisplayText(TEXT("남은\n골드")));
+	AddCell(0, 0, NSLOCTEXT("CardGoldTierTable", "RemainingGold", "남은\n골드"));
 	for (int32 Index = 0; Index < UE_ARRAY_COUNT(CardGoldTierTablePrivate::StatKeys); ++Index)
 	{
 		const FString Tag = FString::Printf(TEXT("<coin key=\"%s\"/>"), *CardGoldTierTablePrivate::StatKeys[Index].ToString());
@@ -75,7 +75,7 @@ void UCardGoldTierTableWidget::RefreshTable()
 	for (int32 Index = 0; Index < Card.GoldTiers.Num(); ++Index)
 	{
 		const FCardGoldTierData& Tier = Card.GoldTiers[Index];
-		AddCell(0, Index + 1, FText::Format(UDataManagerSubsystem::GetDisplayText(TEXT("{0}\n골드\n이상")),
+		AddCell(0, Index + 1, FText::Format(NSLOCTEXT("CardGoldTierTable", "MinimumGold", "{0}\n골드\n이상"),
 			FText::AsNumber(Tier.MinimumGold)));
 		// 각 구간의 최종 증가량을 그대로 표시합니다. 이전 구간과 누적하지 않습니다.
 		const FCoinCardModifiers& Modifiers = Tier.Modifiers;

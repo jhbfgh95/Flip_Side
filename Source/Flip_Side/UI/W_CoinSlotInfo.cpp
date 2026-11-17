@@ -251,8 +251,8 @@ void UW_CoinSlotInfo::RefreshDetailedDescriptions()
 	if (IsValid(Level) && Level->IsBattleTutorialActive()) bDetailToggleEnabled = true;
 	if (IsValid(DetailedDescriptionToggleText))
 		DetailedDescriptionToggleText->SetText(bDetailToggleEnabled
-			? UDataManagerSubsystem::GetDisplayText(TEXT("상세 표시: 켜짐"))
-			: UDataManagerSubsystem::GetDisplayText(TEXT("상세 표시: 꺼짐")));
+			? NSLOCTEXT("CoinDescription", "DetailOn", "상세 표시: 켜짐")
+			: NSLOCTEXT("CoinDescription", "DetailOff", "상세 표시: 꺼짐"));
 	const bool bDetailed = bDetailToggleEnabled;
 	// Shift는 현재 선택을 유지한 채 앞/뒷면의 표시 서식만 변경합니다.
 	if (IsValid(FrontDescriptionWidget)) FrontDescriptionWidget->SetDetailed(bDetailed);

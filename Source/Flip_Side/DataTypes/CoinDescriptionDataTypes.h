@@ -37,6 +37,11 @@ struct FCoinDescriptionSectionData
 	// 이름만 DB에서 전달하며, 색상·아이콘·크기는 BP가 소유합니다.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FName, FText> KeywordLabels;
+	// 번역된 본문은 파싱 시 문자열이 되므로, 언어 변경 시 다시 파싱할 원문도 보관합니다.
+	UPROPERTY(Transient)
+	FString SourceDescription;
+	UPROPERTY(Transient)
+	int32 SourceSectionIndex = INDEX_NONE;
 };
 
 USTRUCT(BlueprintType)

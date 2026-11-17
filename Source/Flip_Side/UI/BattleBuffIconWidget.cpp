@@ -59,9 +59,9 @@ void UBattleBuffIconWidget::SetBuffData(const FBattleStatusEffectViewData& InDat
 	}
 	if (IsValid(StatusNameText))
 	{
-		StatusNameText->SetText(!InData.DisplayName.IsEmpty() ? InData.DisplayName : InData.Polarity == EStatusPolarity::Buff ? UDataManagerSubsystem::GetDisplayText(TEXT("버프")) :
-			InData.CCType == ECCTypes::Blind ? UDataManagerSubsystem::GetDisplayText(TEXT("실명")) :
-			InData.CCType == ECCTypes::Stun ? UDataManagerSubsystem::GetDisplayText(TEXT("기절")) : UDataManagerSubsystem::GetDisplayText(TEXT("스탯 약화")));
+		StatusNameText->SetText(!InData.DisplayName.IsEmpty() ? InData.DisplayName : InData.Polarity == EStatusPolarity::Buff ? NSLOCTEXT("Buff", "Unknown", "버프") :
+			InData.CCType == ECCTypes::Blind ? NSLOCTEXT("Debuff", "Blind", "실명") :
+			InData.CCType == ECCTypes::Stun ? NSLOCTEXT("Debuff", "Stun", "기절") : NSLOCTEXT("Debuff", "Stat", "스탯 약화"));
 		StatusNameText->SetVisibility(!IsValid(Icon) ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 	if (IsValid(IconImage)) IconImage->SetVisibility(IsValid(Icon) ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);

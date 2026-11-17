@@ -178,8 +178,8 @@ void UW_WeaponDescription::SetDetailed(bool bInDetailed)
     if (IsValid(DescriptionSection)) DescriptionSection->SetDetailed(bDetailed);
     if (IsValid(DetailedDescriptionToggleText))
         DetailedDescriptionToggleText->SetText(bDetailed
-            ? UDataManagerSubsystem::GetDisplayText(TEXT("상세 표시: 켜짐"))
-            : UDataManagerSubsystem::GetDisplayText(TEXT("상세 표시: 꺼짐")));
+            ? NSLOCTEXT("CoinDescription", "DetailOn", "상세 표시: 켜짐")
+            : NSLOCTEXT("CoinDescription", "DetailOff", "상세 표시: 꺼짐"));
 }
 
 void UW_WeaponDescription::ToggleDetailedDescriptions()
