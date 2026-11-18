@@ -18,7 +18,7 @@ public:
 	static FCoinDescriptionInlineParts BuildInlineParts(const FCoinDescriptionTokenData& Data, bool bDetailed, bool bShowValue = true);
 	static FCoinWeaponDescriptionData Parse(const FString& RawDescription,
 		const TArray<FKeywordDefinitionData>& Keywords, const FWeaponNumericStats& BaseStats);
-	static FString ToRichText(const FString& RawText);
+	static FString ToRichText(const FString& RawText, const FCoinDescriptionSectionData* Section = nullptr, bool bDetailed = false);
 	static FString ToPlainText(const FString& RawText, const FCoinDescriptionSectionData& Section, bool bDetailed);
 	static bool ResolveToken(FName Key, const FCoinDescriptionSectionData& Section, FCoinDescriptionTokenData& OutToken);
 	static FString TokenText(const FCoinDescriptionTokenData& Token, bool bDetailed);

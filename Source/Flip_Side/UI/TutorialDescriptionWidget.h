@@ -27,6 +27,8 @@ public:
 	TSharedPtr<SWidget> CreateKeywordDisplay(FName Code, const FTextBlockStyle& Style);
 protected:
 	virtual void NativeOnInitialized() override;
+	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Tutorial|Bindings", meta = (BindWidgetOptional))
 	TObjectPtr<URichTextBlock> DescriptionText;
@@ -39,6 +41,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Tutorial|Keywords", meta = (ClampMin = "0.0"))
 	float KeywordIconNameSpacing = 4.f;
 private:
+	void RefreshLocalizedDescription();
+	FText CurrentDescription;
+
 	UPROPERTY(Transient)
 	TMap<FName, FKeywordDefinitionData> KeywordDefinitions;
 	bool bUsingFallbackLayout = false;

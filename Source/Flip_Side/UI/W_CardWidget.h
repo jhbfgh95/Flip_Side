@@ -40,9 +40,9 @@ class FLIP_SIDE_API UW_CardWidget : public UUserWidget
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<class UPanelWidget> AdditonalInfoLayer;
 	UPROPERTY(EditDefaultsOnly, Category = "Card Description|Additional Info")
-	TSubclassOf<class UCardGoldAppliedInfoWidget> GoldAppliedInfoWidgetClass;
+	TSubclassOf<class UBuffsInfoPopup> GoldAppliedInfoWidgetClass;
 	UPROPERTY(Transient)
-	TObjectPtr<class UCardGoldAppliedInfoWidget> GoldAppliedInfoWidget;
+	TObjectPtr<class UBuffsInfoPopup> GoldAppliedInfoWidget;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Card Description", meta = (ClampMin = "1.0"))
 	FVector2D KeywordIconSize = FVector2D(24.0f, 24.0f);

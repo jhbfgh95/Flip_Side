@@ -13,7 +13,7 @@
 #include "Internationalization/TextLocalizationManager.h"
 #include "UI/ItemDescriptionFormatter.h"
 #include "UI/ItemDescriptionRichTextDecorator.h"
-#include "UI/CardGoldAppliedInfoWidget.h"
+#include "UI/BuffsInfoPopup.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SBox.h"
@@ -103,15 +103,33 @@ void UW_CardWidget::InitBattleCard(const FBattleCardSlotViewData& InData)
     if (!IsValid(GoldAppliedInfoWidget))
     {
         UClass* WidgetClass = GoldAppliedInfoWidgetClass
-            ? GoldAppliedInfoWidgetClass.Get() : UCardGoldAppliedInfoWidget::StaticClass();
+            ? GoldAppliedInfoWidgetClass.Get() : UBuffsInfoPopup::StaticClass();
         if (!IsValid(WidgetClass) || WidgetClass->HasAnyClassFlags(CLASS_Abstract)) return;
-        GoldAppliedInfoWidget = CreateWidget<UCardGoldAppliedInfoWidget>(this, WidgetClass);
+        GoldAppliedInfoWidget = CreateWidget<UBuffsInfoPopup>(this, WidgetClass);
         if (!IsValid(GoldAppliedInfoWidget)) return;
         AdditonalInfoLayer->AddChild(GoldAppliedInfoWidget);
         if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(GoldAppliedInfoWidget->Slot); IsValid(CanvasSlot))
             CanvasSlot->SetAutoSize(true);
     }
-    GoldAppliedInfoWidget->SetAppliedEffects(InData.AppliedModifiers, InData.bHasAppliedModifiers);
+    FBattleStatusEffectViewData AppliedInfo;
+    AppliedInfo.Icon = InData.CardData.Icon;
+    AppliedInfo.DisplayName = UDataManagerSubsystem::GetDisplayText(InData.CardData.CardName);
+    const TCHAR* Keys[] = { TEXT("AttackPower"), TEXT("WeaponPower"), TEXT("Count"),
+        TEXT("AttackRange"), TEXT("AbilityRange") };
+    const FCoinCardModifiers& Modifiers = InData.AppliedModifiers;
+    const int32 Values[] = { Modifiers.AttackAdd, Modifiers.BehaviorAdd, Modifiers.CountAdd,
+        Modifiers.RangeAdd, Modifiers.AbilityRangeAdd };
+    TArray<FString> Lines;
+    if (InData.bHasAppliedModifiers)
+    {
+        // 코인 버프와 동일하게 실제 추가 스탯만 [스탯] +수치 순서로 한 줄씩 표시합니다.
+        for (int32 Index = 0; Index < UE_ARRAY_COUNT(Keys); ++Index)
+            if (Values[Index] != 0) Lines.Add(FString::Printf(TEXT("[STAT:%s] %+d"), Keys[Index], Values[Index]));
+    }
+    AppliedInfo.Description = Lines.IsEmpty()
+        ? NSLOCTEXT("CardGoldAppliedInfo", "Inactive", "적용 중인 효과가 없습니다.")
+        : FText::FromString(FString::Join(Lines, TEXT("\n")));
+    GoldAppliedInfoWidget->SetBuffInfo(AppliedInfo);
     AdditonalInfoLayer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
     GoldAppliedInfoWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 }

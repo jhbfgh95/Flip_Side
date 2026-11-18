@@ -7,6 +7,7 @@
 #include "Engine/DataTable.h"
 #include "Engine/GameInstance.h"
 #include "Engine/Texture2D.h"
+#include "Internationalization/TextLocalizationManager.h"
 #include "Subsystem/DataManagerSubsystem.h"
 #include "UI/ItemDescriptionRichTextDecorator.h"
 #include "UObject/UnrealType.h"
@@ -61,7 +62,26 @@ void UTutorialDescriptionWidget::NativeOnInitialized()
 	}
 }
 
+void UTutorialDescriptionWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.AddUObject(this, &ThisClass::RefreshLocalizedDescription);
+	RefreshLocalizedDescription();
+}
+
+void UTutorialDescriptionWidget::NativeDestruct()
+{
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.RemoveAll(this);
+	Super::NativeDestruct();
+}
+
 void UTutorialDescriptionWidget::SetDescriptionText(const FText& Text)
+{
+	CurrentDescription = Text;
+	RefreshLocalizedDescription();
+}
+
+void UTutorialDescriptionWidget::RefreshLocalizedDescription()
 {
 	if (!IsValid(DescriptionText)) return;
 	KeywordDefinitions.Reset();
@@ -71,7 +91,7 @@ void UTutorialDescriptionWidget::SetDescriptionText(const FText& Text)
 	if (IsValid(Manager)) Manager->GetAllEnabledKeywordDefinitions(Definitions);
 	for (const FKeywordDefinitionData& Definition : Definitions)
 		KeywordDefinitions.Add(Definition.KeywordCode, Definition);
-	FString Value = Text.ToString();
+	FString Value = CurrentDescription.ToString();
 	Value.ReplaceInline(TEXT("\\n"), TEXT("\n"));
 	const TCHAR* Labels[] = {TEXT("공격"), TEXT("적중"), TEXT("기동")};
 	const TCHAR* Codes[] = {TEXT("Attack"), TEXT("Hit"), TEXT("Mobility")};
@@ -82,6 +102,7 @@ void UTutorialDescriptionWidget::SetDescriptionText(const FText& Text)
 		Value.ReplaceInline(*(FString(TEXT("[KW:")) + Codes[Index] + TEXT("]")), *Tag, ESearchCase::CaseSensitive);
 	}
 	DescriptionText->SetText(FText::FromString(Value));
+	DescriptionText->RefreshTextLayout();
 }
 
 TSharedPtr<SWidget> UTutorialDescriptionWidget::CreateKeywordDisplay(FName Code, const FTextBlockStyle& Style)

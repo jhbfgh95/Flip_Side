@@ -1,5 +1,6 @@
 #include "UI/CoinDescriptionFormatter.h"
 #include "Subsystem/DataManagerSubsystem.h"
+#include "UI/CoinDescriptionExpression.h"
 #include "Misc/Base64.h"
 
 namespace CoinDescriptionFormatterPrivate
@@ -193,7 +194,7 @@ FString FCoinDescriptionFormatter::TokenText(const FCoinDescriptionTokenData& To
 	return Parts.BeforeIcon + UDataManagerSubsystem::GetDisplayText(TEXT("<아이콘>")).ToString() + Parts.AfterIcon;
 }
 
-FString FCoinDescriptionFormatter::ToRichText(const FString& RawText)
+FString FCoinDescriptionFormatter::ToRichText(const FString& RawText, const FCoinDescriptionSectionData* Section, bool bDetailed)
 {
 	const FString Text = CoinDescriptionFormatterPrivate::Normalize(RawText);
 	FString Result;
@@ -207,8 +208,31 @@ FString FCoinDescriptionFormatter::ToRichText(const FString& RawText)
 			Result += CoinDescriptionFormatterPrivate::Escape(Text.Mid(Cursor, Formula - Cursor));
 			const int32 End = Text.Find(TEXT("</Stat>"), ESearchCase::CaseSensitive, ESearchDir::FromStart, Formula + 6);
 			if (End == INDEX_NONE) { Result += CoinDescriptionFormatterPrivate::Escape(Text.Mid(Formula)); break; }
-			// DB 수식은 속성에서 안전하게 전달하고, 계산은 전용 Decorator에서 수행합니다.
-			Result += FString::Printf(TEXT("<coinexpr expr=\"%s\"/>"), *FBase64::Encode(Text.Mid(Formula + 6, End - Formula - 6)));
+			const FString Expression = Text.Mid(Formula + 6, End - Formula - 6);
+			const FCoinExpressionResult Evaluated = Section
+				? FCoinDescriptionExpression::Evaluate(Expression, *Section) : FCoinExpressionResult();
+			if (Section && !Evaluated.bValid)
+			{
+				Result += CoinDescriptionFormatterPrivate::Escape(Expression);
+			}
+			else if (Section && (bDetailed || Evaluated.bHasUnknownValue))
+			{
+				// 개별 스탯은 아이콘과 함께 유지하고, 수식의 항 사이에서는 본문이 줄바꿈할 수 있게 합니다.
+				Result += TEXT("( ");
+				for (const FCoinExpressionPart& Part : Evaluated.Parts)
+				{
+					if (Part.Key.IsNone()) Result += CoinDescriptionFormatterPrivate::Escape(Part.Text);
+					else Result += FString::Printf(TEXT("<coin key=\"%s\"/>"),
+						*CoinDescriptionFormatterPrivate::Escape(Part.Key.ToString()));
+					Result += TEXT(" ");
+				}
+				Result += TEXT(")");
+			}
+			else
+			{
+				// 일반 결과 모드의 아이콘과 계산된 수치는 기존 Decorator에서 함께 표시합니다.
+				Result += FString::Printf(TEXT("<coinexpr expr=\"%s\"/>"), *FBase64::Encode(Expression));
+			}
 			Cursor = End + 7;
 			continue;
 		}

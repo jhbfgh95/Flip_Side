@@ -108,7 +108,8 @@ void UCoinDescriptionSectionWidget::RefreshText()
 	}
 	if (IsValid(DescriptionRichText))
 	{
-		DescriptionRichText->SetText(FText::FromString(FCoinDescriptionFormatter::ToRichText(SectionData.Description.ToString())));
+		DescriptionRichText->SetText(FText::FromString(FCoinDescriptionFormatter::ToRichText(
+			SectionData.Description.ToString(), &SectionData, bDetailed)));
 		DescriptionRichText->RefreshTextLayout();
 	}
 }
