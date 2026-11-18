@@ -19,6 +19,8 @@ class FLIP_SIDE_API UW_SettingGraphic : public UUserWidget
 
 protected:
 	virtual void NativeOnInitialized() override;
+	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UComboBoxString> ResolutionComboBox;
@@ -35,20 +37,19 @@ private:
 
 	void InitializeResolutionOptions();
 	void InitializeWindowModeOptions();
+	void RefreshWindowModeOptions();
 
 	UPROPERTY()
 	TObjectPtr<UGameSettingGISubsystem> GameSettingSubsystem;
 
 	TArray<FIntPoint> Resolutions= {
 		FIntPoint(1280, 720),
-		FIntPoint(1600, 900),
-		FIntPoint(1920, 1080),
-		FIntPoint(2560, 1440),
-		FIntPoint(3840, 2160)
+		FIntPoint(1920, 1080)
 	};
 	int32 SelectedResolutionIndex = INDEX_NONE;
 	EWindowMode::Type SelectedWindowMode = EWindowMode::Fullscreen;
 	bool bIsSynchronizingResolutionSelection = false;
+	bool bIsRefreshingWindowModeOptions = false;
 
 public:
 	/** 해상도 선택이 변경될 때 선택된 해상도를 알립니다. */

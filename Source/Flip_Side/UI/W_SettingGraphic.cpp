@@ -5,6 +5,7 @@
 
 #include "Components/ComboBoxString.h"
 #include "Engine/GameInstance.h"
+#include "Internationalization/TextLocalizationManager.h"
 #include "Subsystem/GameSettingGISubsystem.h"
 
 void UW_SettingGraphic::NativeOnInitialized()
@@ -29,6 +30,20 @@ void UW_SettingGraphic::NativeOnInitialized()
 			this, &ThisClass::HandleWindowModeSelectionChanged);
 		InitializeWindowModeOptions();
 	}
+}
+
+void UW_SettingGraphic::NativeConstruct()
+{
+	Super::NativeConstruct();
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.RemoveAll(this);
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.AddUObject(this, &ThisClass::RefreshWindowModeOptions);
+	RefreshWindowModeOptions();
+}
+
+void UW_SettingGraphic::NativeDestruct()
+{
+	FTextLocalizationManager::Get().OnTextRevisionChangedEvent.RemoveAll(this);
+	Super::NativeDestruct();
 }
 
 void UW_SettingGraphic::HandleResolutionSelectionChanged(
@@ -58,7 +73,7 @@ void UW_SettingGraphic::HandleResolutionSelectionChanged(
 void UW_SettingGraphic::HandleWindowModeSelectionChanged(
 	FString /*SelectedItem*/, ESelectInfo::Type /*SelectionType*/)
 {
-	if (!WindowModeComboBox)
+	if (!IsValid(WindowModeComboBox) || bIsRefreshingWindowModeOptions)
 	{
 		return;
 	}
@@ -71,11 +86,8 @@ void UW_SettingGraphic::HandleWindowModeSelectionChanged(
 	case 1:
 		SelectedWindowMode = EWindowMode::Fullscreen;
 		break;
-	case 2:
-		SelectedWindowMode = EWindowMode::WindowedFullscreen;
-		break;
 	default:
-		break;
+		return;
 	}
 
 	if (IsValid(GameSettingSubsystem)
@@ -88,14 +100,14 @@ void UW_SettingGraphic::HandleWindowModeSelectionChanged(
 
 void UW_SettingGraphic::InitializeResolutionOptions()
 {
-
+	ResolutionComboBox->ClearOptions();
 	FIntPoint CurrentResolution = Resolutions[0];
 	if (GameSettingSubsystem)
 	{
 		CurrentResolution = GameSettingSubsystem->GetCurrentScreenResolution();
 	}
 
-	SelectedResolutionIndex = 0;
+	SelectedResolutionIndex = Resolutions.Num() - 1;
 	for (int32 ResolutionIndex = 0; ResolutionIndex < Resolutions.Num(); ++ResolutionIndex)
 	{
 		const FIntPoint& Resolution = Resolutions[ResolutionIndex];
@@ -112,23 +124,36 @@ void UW_SettingGraphic::InitializeResolutionOptions()
 
 void UW_SettingGraphic::InitializeWindowModeOptions()
 {
-	WindowModeComboBox->ClearOptions();
-	WindowModeComboBox->AddOption(NSLOCTEXT("SettingGraphic", "Windowed", "창 모드").ToString());
-	WindowModeComboBox->AddOption(NSLOCTEXT("SettingGraphic", "Fullscreen", "전체 화면").ToString());
-	WindowModeComboBox->AddOption(NSLOCTEXT("SettingGraphic", "Borderless", "경계없는 창모드").ToString());
-
 	SelectedWindowMode = GameSettingSubsystem
 		? GameSettingSubsystem->GetCurrentWindowMode()
 		: EWindowMode::Fullscreen;
+	// 기존에 저장된 경계 없는 창 모드는 지원하는 전체 화면 모드로 전환합니다.
+	if (SelectedWindowMode == EWindowMode::WindowedFullscreen)
+	{
+		SelectedWindowMode = EWindowMode::Fullscreen;
+		if (IsValid(GameSettingSubsystem))
+		{
+			GameSettingSubsystem->SetWindowMode(SelectedWindowMode);
+			GameSettingSubsystem->ApplyAndSaveSettings();
+		}
+	}
+	RefreshWindowModeOptions();
+}
+
+void UW_SettingGraphic::RefreshWindowModeOptions()
+{
+	if (!IsValid(WindowModeComboBox)) return;
+	// 문자열을 다시 넣는 동안 발생하는 선택 이벤트는 실제 설정 변경으로 처리하지 않습니다.
+	TGuardValue<bool> RefreshGuard(bIsRefreshingWindowModeOptions, true);
+	WindowModeComboBox->ClearOptions();
+	WindowModeComboBox->AddOption(NSLOCTEXT("SettingGraphic", "Windowed", "창 모드").ToString());
+	WindowModeComboBox->AddOption(NSLOCTEXT("SettingGraphic", "Fullscreen", "전체 화면").ToString());
 
 	int32 SelectedIndex = 1;
 	switch (SelectedWindowMode)
 	{
 	case EWindowMode::Windowed:
 		SelectedIndex = 0;
-		break;
-	case EWindowMode::WindowedFullscreen:
-		SelectedIndex = 2;
 		break;
 	case EWindowMode::Fullscreen:
 	default:
