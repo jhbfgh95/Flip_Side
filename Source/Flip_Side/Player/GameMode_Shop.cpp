@@ -54,7 +54,17 @@ void AGameMode_Shop::ChangeBattleLevel()
 
     if(ShopCoinSubsystem->GetIsCoinEmpty())
     {
-        CrossSubsystem->SetIsCoinEmpty(true);
+        // 이전 전투의 코인을 지우고 첫 슬롯에 기본 코인 한 개만 전달합니다.
+        for (int32 SlotIndex = 0; SlotIndex < 10; ++SlotIndex)
+        {
+            FCoinTypeStructure CoinData;
+            CoinData.FrontWeaponID = SlotIndex == 0 ? -3 : -1;
+            CoinData.BackWeaponID = SlotIndex == 0 ? -2 : -1;
+            CoinData.SameTypeCoinNum = SlotIndex == 0 ? 1 : 0;
+            CoinData.Level = 1;
+            CrossSubsystem->SetSlotCoin(SlotIndex, CoinData);
+        }
+        CrossSubsystem->SetIsCoinEmpty(false);
     }
     else
     {
